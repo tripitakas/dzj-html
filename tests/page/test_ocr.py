@@ -8,7 +8,7 @@ class TestApi(APITestCase):
     def setUp(self):
         super(TestApi, self).setUp()
         self.add_first_user_as_admin_then_login()
-        self.delete_tasks_and_locks()
+        self.reset_tasks_and_data()
 
     def tearDown(self):
         super(TestApi, self).tearDown()

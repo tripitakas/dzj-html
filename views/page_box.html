@@ -47,7 +47,7 @@
       </div>
       <div class="right">
         <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
-        {% if handler.is_task %} {% include _task_btns.html %} {% end %}
+        {% if hasattr(handler, 'task_type') %} {% include _task_btns.html %} {% end %}
       </div><!--right-->
     </div>
     <div class="m-body flex">
@@ -123,7 +123,7 @@
 
 {% include _base_js.html %}
 {% include _base_cut.html %}
-{% if handler.is_task %} {% include _base_task.html %} {% end %}
+{% if hasattr(handler, 'task_type') %} {% include _base_task.html %} {% end %}
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script>
   // 页面图

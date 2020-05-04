@@ -11,7 +11,7 @@ views = [
 handlers = [
     ocr.FetchTasksApi, ocr.SubmitTasksApi, ocr.ConfirmFetchApi,
     api.PageDeleteApi, api.PageUpsertApi,
-    api.PageBoxApi, api.PageOrderApi, api.PageCmpTxtApi, api.PageCmpTxtNeighborApi,
+    api.PageBoxApi, api.CharBoxApi, api.PageOrderApi, api.PageCmpTxtApi, api.PageCmpTxtNeighborApi,
     api.PageTxtDiffApi, api.PageDetectCharsApi, api.PageGenCharsApi, api.PageSourceApi,
     api.PageTaskPublishApi, api.PageCutTaskApi,
 ]

@@ -27,8 +27,8 @@ class ComLeft(UIModule):
                 dict(name='切分审定', icon='icon-subitem', link='/task/lobby/cut_review'),
                 dict(name='聚类校对', icon='icon-subitem', link='/task/lobby/cluster_proof'),
                 dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/cluster_review'),
-                dict(name='分类校对', icon='icon-subitem', link='/task/lobby/separate_proof'),
-                dict(name='分类审定', icon='icon-subitem', link='/task/lobby/separate_review'),
+                dict(name='异体校对', icon='icon-subitem', link='/task/lobby/variant_proof'),
+                dict(name='异体审定', icon='icon-subitem', link='/task/lobby/variant_review'),
                 dict(name='文字校对', icon='icon-subitem', link='/task/lobby/txt_proof'),
                 dict(name='文字审定', icon='icon-subitem', link='/task/lobby/txt_review'),
             ]),
@@ -37,8 +37,8 @@ class ComLeft(UIModule):
                 dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
                 dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof'),
                 dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review'),
-                dict(name='分类校对', icon='icon-subitem', link='/task/my/separate_proof'),
-                dict(name='分类审定', icon='icon-subitem', link='/task/my/separate_review'),
+                dict(name='异体校对', icon='icon-subitem', link='/task/my/variant_proof'),
+                dict(name='异体审定', icon='icon-subitem', link='/task/my/variant_review'),
                 dict(name='文字校对', icon='icon-subitem', link='/task/my/txt_proof'),
                 dict(name='文字审定', icon='icon-subitem', link='/task/my/txt_review'),
             ]),
@@ -126,6 +126,7 @@ class Pager(UIModule):
             start = 1 if start < 1 else start
             end = pager['page_count'] if end > pager['page_count'] else end
             pager['display_range'] = range(start, end + 1)
+            pager['options'] = sorted(list({10, 30, 50, 100, 500, pager['page_size']}))
 
         return self.render_string('_pager.html', get_page_uri=self.get_page_uri, **pager)
 

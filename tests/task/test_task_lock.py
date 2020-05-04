@@ -22,7 +22,7 @@ class TestDataLock(APITestCase):
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.user1]],
             '切分校对员,单元测试用户'
         )
-        self.delete_tasks_and_locks()
+        self.reset_tasks_and_data()
 
     def tearDown(self):
         super(TestDataLock, self).tearDown()
@@ -99,7 +99,7 @@ class TestDataLock(APITestCase):
             lock, level = self.get_data_lock_and_level(ready_ids[1], task_type=task_type)
             self.assertTrue(lock == {})
 
-            self.delete_tasks_and_locks()
+            self.reset_tasks_and_data()
 
     def test_data_lock_special(self):
         """ 测试数据锁机制中的几种特殊情况 """

@@ -50,42 +50,52 @@ class Task(Model):
         'cut_proof': {
             'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
             'steps': [['box', '字框'], ['order', '字序']],
-            'num': [1, 2, 3],
+            'num': [1, 2, 3], 'publishable': True,
         },
         'cut_review': {
             'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
             'steps': [['box', '字框'], ['order', '字序']],
-            'pre_tasks': ['cut_proof'],
+            'pre_tasks': ['cut_proof'], 'publishable': True,
         },
         'txt_proof': {
             'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3]
+            'num': [1, 2, 3], 'publishable': True,
         },
         'txt_review': {
             'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
-            'pre_tasks': ['txt_proof'],
+            'pre_tasks': ['txt_proof'], 'publishable': True,
         },
         'ocr_box': {
             'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': True,
         },
         'ocr_txt': {
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': True,
         },
         'cluster_proof': {
             'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3],
+            'num': [1, 2, 3], 'publishable': True,
         },
         'cluster_review': {
             'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
-            'pre_tasks': ['cluster_proof'],
+            'pre_tasks': ['cluster_proof'], 'publishable': True,
         },
-        'separate_proof': {
-            'name': '分类校对', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3]
+        'rare_proof': {
+            'name': '生僻校对', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3], 'publishable': False,
         },
-        'separate_review': {
-            'name': '分类审定', 'data': {'collection': 'char', 'id': 'name'},
-            'pre_tasks': ['separate_proof'],
+        'rare_review': {
+            'name': '生僻审定', 'data': {'collection': 'char', 'id': 'name'},
+            'pre_tasks': ['cluster_proof'], 'publishable': False,
+        },
+        'variant_proof': {
+            'name': '异体校对', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3], 'publishable': True,
+        },
+        'variant_review': {
+            'name': '异体审定', 'data': {'collection': 'char', 'id': 'name'},
+            'pre_tasks': ['variant_proof'], 'publishable': True,
         },
     }
 
@@ -120,11 +130,12 @@ class Task(Model):
         return {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == 'char'}
 
     @classmethod
-    def task_names(cls, collection=None):
+    def task_names(cls, collection=None, publishable=None):
         if collection:
-            return {k: t['name'] for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == collection}
+            return {k: t['name'] for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == collection
+                    and t.get('publishable') == publishable}
         else:
-            return {k: t['name'] for k, t in cls.task_types.items()}
+            return {k: t['name'] for k, t in cls.task_types.items() if t.get('publishable') == publishable}
 
     @classmethod
     def step_names(cls):

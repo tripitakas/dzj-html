@@ -27,5 +27,9 @@ var l10n = {
   create_time: '创建时间',
   updated_time: '更新时间',
   remark: '备注',
+  updated: '已更新',
+  un_changed: '数据未改变',
+  level_unqualified: '数据等级不够',
+  point_unqualified: '积分不够',
 };
 

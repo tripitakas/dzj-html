@@ -47,31 +47,39 @@
 .flex .char-panel {
   flex: 1;
   overflow: auto;
-  margin: 10px 20px;
+  margin: 10px;
   display: flex;
   flex-direction: column;
 }
 
-.char-panel .txt-kinds {
+.char-panel .txt-kinds, .char-panel .variants {
   display: flex;
   flex-wrap: wrap;
-  padding-left: 10px;
+  margin: 5px 10px;
   border-bottom: 1px solid #ccc;
 }
 
-.txt-kind {
+.txt-kind, .variant {
   width: 45px;
   height: 55px;
   font-size: 36px;
   display: inline-block;
   cursor: pointer;
   text-align: center;
-  margin: 0 12px 5px 0;
+  margin: 0 18px 5px 0;
   border: 1px solid #ccc;
 }
 
 .txt-kind.current {
   background-color: rgba(0, 0, 0, .1);
+}
+
+.variant-img {
+  background: #fff;
+}
+
+.variant-img img {
+  width: 42px;
 }
 
 .char-panel .char-items {
@@ -129,12 +137,12 @@
 
 .char-item .char-info {
   height: 20px;
-  display: inline-block;
+  display: flex;
+  justify-content: space-around;
 }
 
 .char-info span {
-  float: left;
-  margin: 0 2px;
+  margin: 0;
 }
 
 .char-item .checkbox-inline {
@@ -170,8 +178,8 @@
 .flex .work-panel {
   flex: 1;
   height: 100%;
-  width: 360px;
-  max-width: 360px;
+  width: 380px;
+  max-width: 380px;
   background: var(--Grey_Content);
   display: flex;
   flex-direction: column;
@@ -212,11 +220,12 @@
   display: inline-block;
   cursor: pointer;
   text-align: center;
-  margin: 0 12px 5px 0;
+  margin: 0 18px 5px 0;
   border: 1px solid #ccc;
 }
 
 .txt-item.active {
+  /*border: 1px solid red;*/
   background-color: rgba(0, 0, 0, .1);
 }
 
@@ -252,20 +261,26 @@
 .log-meta label {
   font-weight: 400;
   margin-right: 5px;
-  width: 60px;
+  width: 75px;
   color: #6a6a77;
 }
 
 .txt-type {
-  margin-top: 5px;
+  margin: 8px 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
 }
 
-.txt-type .radio-item {
-  display: inline-block;
+.variant-help {
+  font-size: 14px;
+  margin: 0 8px 0 2px;
+}
+
+.radio-item {
   cursor: pointer;
+  display: inline-block;
+  margin-left: 0 !important;
 }
 
 .radio-item.long {
@@ -303,4 +318,15 @@
 
 #s-alert .close {
   line-height: 16px;
+}
+
+.modal-body .form-group h4{
+  clear: both;
+}
+
+.modal-body .form-group div{
+  overflow: auto;
+  padding-top: 7px;
+  max-height: 300px;
+  word-break: break-all;
 }

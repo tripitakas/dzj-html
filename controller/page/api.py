@@ -45,6 +45,49 @@ class PageBoxApi(PageHandler):
         return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
 
 
+class CharBoxApi(PageHandler):
+    URL = '/api/char/box/@char_name'
+
+    def post(self, char_name):
+        """ 更新字符的box"""
+
+        try:
+            rules = [(v.not_empty, 'pos', 'task_type')]
+            self.validate(self.data, rules)
+            page_name, cid = '_'.join(char_name.split('_')[:-1]), char_name.split('_')[-1]
+            char = self.db.char.find_one({'name': char_name})
+            if not char:
+                return self.send_error_response(e.no_object, message='没有找到字符%s' % char_name)
+            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, {'name': 1, 'chars.$': 1})
+            if not char:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            # 检查数据等级和积分
+            self.check_level_and_point(self, char, 'box', self.data['task_type'])
+            # todo 待完善：切分数据以page和char哪个为准，更新哪些字段，是否马上切图并上传oss
+            if h.cmp_obj(char, self.data, ['pos']):
+                return self.send_error_response(e.not_changed)
+
+            my_log = {'pos': self.data['pos'], 'updated_time': self.now()}
+            new_log, logs = True, page['chars'][0].get('box_logs') or []
+            for i, log in enumerate(logs):
+                if log['user_id'] == self.user_id:
+                    logs[i].update(my_log)
+                    new_log = False
+            if new_log:
+                my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
+                logs.append(my_log)
+
+            box_level = self.get_user_level(self, 'box', self.data['task_type'])
+            update = {**self.data['pos'], 'box_logs': logs, 'box_level': box_level}
+            self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {'chars.$': update}})
+            self.db.char.update_one({'_id': char['_id']}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
+
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class PageOrderApi(PageHandler):
     URL = ['/api/page/order/@page_name']
 

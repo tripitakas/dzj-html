@@ -26,7 +26,7 @@ class TestPeriodicTask(APITestCase):
         return Th.prop(page, 'lock.%s' % shared_field)
 
     def test_republish_timeout_task(self):
-        self.delete_tasks_and_locks()
+        self.reset_tasks_and_data()
         # 发布任务，前置任务为空
         r = self.publish_page_tasks(dict(task_type='cut_proof', doc_ids=ready_ids, pre_tasks=[]))
         self.assert_code(200, r)
@@ -60,7 +60,7 @@ class TestPeriodicTask(APITestCase):
         self.assertIsNone(prop(page, 'lock.box.locked_time'))
 
     def test_statistic_task(self):
-        self.delete_tasks_and_locks()
+        self.reset_tasks_and_data()
         self._app.db.statistic.delete_many({})
         user = self._app.db.user.find_one({'email': u.expert1[0]})
 

@@ -24,13 +24,12 @@ class TaskHandler(BaseHandler, Task):
     def __init__(self, application, request, **kwargs):
         super(TaskHandler, self).__init__(application, request, **kwargs)
         self.task = self.task_type = self.steps = self.task_id = None
-        self.mode = self.readonly = None
+        self.mode = self.readonly = self.submit_by_page = None
 
     def prepare(self):
         """ 根据url参数，检查任务是否存在并设置任务，检查任务权限，设置任务相关参数"""
         super().prepare()
-        self.is_task = len(self.get_task_id()) > 0
-        if not self.is_task:
+        if not self.get_task_id():
             return
         self.task_id = self.get_task_id()
         self.task, self.error = self.get_task(self.task_id)
@@ -77,7 +76,7 @@ class TaskHandler(BaseHandler, Task):
 
     def get_task_mode(self):
         r = re.findall('/task/(do|update|browse)/', self.request.path)
-        mode = r[0] if r else 'view' if self.is_task else None
+        mode = r[0] if r else 'view' if self.get_task_id() else None
         return mode
 
     def get_task_type(self):

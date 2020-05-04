@@ -14,7 +14,7 @@ function showError(title, text, timer) {
     return setTimeout(() => $('.ajax-error').hide(), timer);
   }
   // sweet alert
-  var type = /失败|错误/.test(title) ? 'error' : 'warning';
+  var type = /失败|错误/.test(title) && !/没有发生改变/.test(text) ? 'error' : 'warning';
   Swal0.fire({title: title, html: text, type: type, timer: timer || 1000});
 }
 
@@ -132,7 +132,12 @@ function toLocalTime(isoTimeStamp) {
 
 /* localStorage*/
 function getStorage(key, defaultValue) {
-  return localStorage.getItem(key) || defaultValue
+  var value = localStorage.getItem(key);
+  if (value === 'true')
+    return true;
+  if (value === 'false')
+    return false;
+  return value || defaultValue
 }
 
 function setStorage(key, value, ignoreEmpty) {

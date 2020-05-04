@@ -23,8 +23,9 @@ url_placeholder = {
     'metadata': r'tripitaka|sutra|volume|reel|variant',
     'ocr_task': r'ocr_box|ocr_txt',
     'page_task': r'cut_proof|cut_review|txt_proof|txt_review',
-    'char_task': r'cluster_proof|cluster_review|separate_proof|separate_review',
-    'task_type': r'ocr_\w+|cut_\w+|txt_\w+|cluster_\w+|separate_\w+',
+    'cluster_task': r'cluster_proof|cluster_review|rare_proof|rare_review',
+    'char_task': r'cluster_proof|cluster_review|rare_proof|rare_review|variant_proof|variant_review',
+    'task_type': r'ocr_\w+|cut_\w+|txt_\w+|cluster_\w+|variant_\w+',
 }
 
 """ 
@@ -149,29 +150,49 @@ role_route_maps = {
             '/api/task/(do|update)/cluster_review/@task_id': ['POST'],
         }
     },
-    '分类校对员': {
+    '生僻校对员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/task/(lobby|my)/separate_proof': ['GET'],
-            '/api/task/pick/separate_proof': ['POST'],
-            '/task/(do|update)/separate_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/separate_proof/@task_id': ['POST'],
+            '/task/(lobby|my)/rare_proof': ['GET'],
+            '/api/task/pick/rare_proof': ['POST'],
+            '/task/(do|update)/rare_proof/@task_id': ['GET'],
+            '/api/task/(do|update)/rare_proof/@task_id': ['POST'],
         }
     },
-    '分类审定员': {
+    '生僻审定员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/task/(lobby|my)/separate_review': ['GET'],
-            '/api/task/pick/separate_review': ['POST'],
-            '/task/(do|update)/separate_review/@task_id': ['GET'],
-            '/api/task/(do|update)/separate_review/@task_id': ['POST'],
+            '/task/(lobby|my)/rare_review': ['GET'],
+            '/api/task/pick/rare_review': ['POST'],
+            '/task/(do|update)/rare_review/@task_id': ['GET'],
+            '/api/task/(do|update)/rare_review/@task_id': ['POST'],
+        }
+    },
+    '异体校对员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/task/(lobby|my)/variant_proof': ['GET'],
+            '/api/task/pick/variant_proof': ['POST'],
+            '/task/(do|update)/variant_proof/@task_id': ['GET'],
+            '/api/task/(do|update)/variant_proof/@task_id': ['POST'],
+        }
+    },
+    '异体审定员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/task/(lobby|my)/variant_review': ['GET'],
+            '/api/task/pick/variant_review': ['POST'],
+            '/task/(do|update)/variant_review/@task_id': ['GET'],
+            '/api/task/(do|update)/variant_review/@task_id': ['POST'],
         }
     },
     '文字专家': {
         'is_assignable': True,
-        'roles': ['工作人员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '分类校对员', '分类审定员'],
+        'roles': ['工作人员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '异体校对员', '异体审定员'],
         'routes': {}
     },
     'OCR加工员': {

@@ -5,6 +5,8 @@ import re
 from .tool.box import Box
 from .tool.diff import Diff
 from controller import auth
+from controller import errors as e
+from controller import helper as hp
 from tornado.escape import url_escape
 from controller.page.page import Page
 from controller.task.base import TaskHandler
@@ -12,43 +14,98 @@ from controller.char.base import CharHandler
 
 
 class PageHandler(TaskHandler, Page, Box):
+    box_level = {
+        'task': dict(cut_proof=1, cut_review=10),
+        'role': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
+    }
+    default_level = 1
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
+
+    @classmethod
+    def get_required_box_level(cls, char):
+        return char.get('box_level') or cls.default_level
+
+    @classmethod
+    def get_user_box_level(cls, self, task_type=None, user=None):
+        """ 获取用户的数据等级"""
+        user = user or self.current_user
+        if task_type:
+            return hp.prop(cls.box_level, 'task.' + task_type) or 0
+        else:
+            roles = auth.get_all_roles(user['roles'])
+            return max([hp.prop(cls.box_level, 'role.' + role, 0) for role in roles])
+
+    @staticmethod
+    def get_required_type_and_point(char):
+        """ 获取修改char的txt所需的积分"""
+        ratio = {'cut_proof': 1000, 'cut_review': 500}
+        for task_type in ['cut_review', 'cut_proof']:
+            tasks = hp.prop(char, 'tasks.' + task_type, [])
+            if tasks:
+                return task_type, len(tasks) * ratio.get(task_type)
+        return 'cut_proof', 1000
+
+    @staticmethod
+    def get_user_point(self, task_type):
+        """ 针对指定的任务类型，获取用户积分"""
+        return self.db.task.count_documents({
+            'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED
+        })
+
+    @classmethod
+    def check_box_level_and_point(cls, self, char, task_type=None, send_error_response=True):
+        """ 检查数据等级和积分"""
+        required_level = cls.get_required_box_level(char)
+        user_level = cls.get_user_box_level(self, task_type)
+        if int(user_level) < int(required_level):
+            msg = '该字符的切分数据等级为%s，您的切分数据等级(%s)不够' % (required_level, user_level)
+            if send_error_response:
+                return self.send_error_response(e.data_level_unqualified, message=msg)
+            else:
+                return e.data_level_unqualified[0], msg
+        if not task_type:
+            required_type, required_point = cls.get_required_type_and_point(char)
+            user_point = cls.get_user_point(self, required_type)
+            if int(user_point) < int(required_point):
+                msg = '该字符需要%s的%s积分，您的积分%s不够' % (self.get_task_name(required_type), required_point, user_point)
+                if send_error_response:
+                    return self.send_error_response(e.data_point_unqualified, message=msg)
+                else:
+                    return e.data_point_unqualified[0], msg
+        return True
+
+    def can_write(self, box, task_type=None):
+        return self.check_box_level_and_point(self, box, task_type, False) is True
+
+    def set_box_access(self, page, task_type=None):
+        """ 设置切分框的读写权限"""
+        for b in page['blocks']:
+            b['readonly'] = not self.can_write(b, task_type)
+        for b in page['chars']:
+            b['readonly'] = not self.can_write(b, task_type)
+        for b in page['columns']:
+            b['readonly'] = not self.can_write(b, task_type)
 
     def pack_boxes(self, page):
         self.pop_fields(page['chars'], 'box_logs')
         self.pop_fields(page['blocks'], 'box_logs')
         self.pop_fields(page['columns'], 'box_logs')
 
-    def can_write(self, box, edit_type):
-        """ 检查写权限"""
-        # todo 待完善
-        r = CharHandler.check_level_and_point(self, box, 'box', edit_type, False) is True
-        return r or True
-
-    def set_box_access(self, page, edit_type):
-        """ 设置切分框的读写权限"""
-        for b in page['blocks']:
-            b['readonly'] = not self.can_write(b, edit_type)
-        for b in page['chars']:
-            b['readonly'] = not self.can_write(b, edit_type)
-        for b in page['columns']:
-            b['readonly'] = not self.can_write(b, edit_type)
-
-    def merge_post_boxes(self, post_boxes, box_type, page, edit_type='raw_edit'):
+    def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
         """ 合并用户提交和数据库中已有数据"""
         post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
         # 检查删除
         post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
         to_delete = [b for b in page[box_type] if b['cid'] not in post_cids]
-        can_delete = [b['cid'] for b in to_delete if self.can_write(b, edit_type)]
+        can_delete = [b['cid'] for b in to_delete if self.can_write(b, task_type)]
         cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
         boxes = [b for b in page[box_type] if b['cid'] not in can_delete]
         # 检查修改
         change_cids = [b.get('cid') for b in post_boxes if b.get('changed') is True]
         to_change = [b for b in boxes if b['cid'] in change_cids]
-        can_change = [b for b in to_change if self.can_write(b, edit_type)]
+        can_change = [b for b in to_change if self.can_write(b, task_type)]
         cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_delete]
         for b in can_change:
             b.pop('changed', 0)

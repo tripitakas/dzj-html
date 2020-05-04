@@ -28,6 +28,7 @@ class CharListHandler(CharHandler):
         {'id': 'pos', 'name': '坐标'},
         {'id': 'column', 'name': '所属列'},
         {'id': 'txt_type', 'name': '文字类型'},
+        {'id': 'is_variant', 'name': '是否异体字'},
         {'id': 'txt', 'name': '正字'},
         {'id': 'ori_txt', 'name': '原字'},
         {'id': 'ocr_txt', 'name': '字框OCR'},
@@ -35,7 +36,7 @@ class CharListHandler(CharHandler):
         {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
         {'id': 'txt_logs', 'name': '校对记录'},
-        {'id': 'task_count', 'name': '校对任务次数'},
+        {'id': 'tasks', 'name': '校对任务'},
         {'id': 'remark', 'name': '备注'},
     ]
     operations = [
@@ -52,7 +53,7 @@ class CharListHandler(CharHandler):
             {'operation': 'ori_txt', 'label': '按原字'},
         ]},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': name} for k, name in CharHandler.task_names('char').items()
+            {'operation': k, 'label': name} for k, name in CharHandler.task_names('char', True).items()
         ]},
     ]
     actions = [
@@ -269,12 +270,11 @@ class CharTaskStatHandler(CharHandler):
 
 
 class CharTaskClusterHandler(CharHandler):
-    URL = ['/task/(cluster_proof|cluster_review)/@task_id',
-           '/task/do/(cluster_proof|cluster_review)/@task_id',
-           '/task/browse/(cluster_proof|cluster_review)/@task_id',
-           '/task/update/(cluster_proof|cluster_review)/@task_id']
+    URL = ['/task/@cluster_task/@task_id',
+           '/task/do/@cluster_task/@task_id',
+           '/task/browse/@cluster_task/@task_id',
+           '/task/update/@cluster_task/@task_id']
 
-    txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
     config_fields = [
         {'id': 'page-size', 'name': '每页显示条数'},
         {'id': 'auto-pick', 'name': '提交后自动领新任务', 'input_type': 'radio', 'options': ['是', '否']},
@@ -283,56 +283,71 @@ class CharTaskClusterHandler(CharHandler):
     def get(self, task_type, task_id):
         """ 聚类校对页面"""
         try:
+            # 1.设置查询条件
             params = self.task['params']
             ocr_txts = [c['ocr_txt'] for c in params]
-            txt_level = self.get_txt_level('task', task_type)
-            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}, 'txt_level': {'$lte': txt_level}}
+            user_level = self.get_user_txt_level(self, task_type)
+            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}, 'txt_level': {'$lte': user_level}}
             # 统计字种
             counts = list(self.db.char.aggregate([
                 {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
                 {'$sort': {'count': -1}},
             ]))
             txts = [c['_id'] for c in counts]
-            # 设置当前正字
-            txt = self.get_query_argument('txt', 0)
+            # 设置当前正字和相关异体字
+            txt, variants = self.get_query_argument('txt', 0), []
             if txt:
                 cond.update({'txt': txt})
+                variants = list(self.db.variant.find({'$or': [{'txt': txt}, {'normal_txt': txt}]}))
             # 按修改过滤
             update = self.get_query_argument('update', 0)
             if update == 'my':
                 cond['txt_logs.user_id'] = self.user_id
-            if update == 'all':
+            elif update == 'all':
                 cond['txt_logs'] = {'$nin': [None, []]}
-            # 查找单字数据
+            # 是否已提交
+            submitted = self.get_query_argument('submitted', 0)
+            if submitted == 'true':
+                cond['tasks.' + task_type] = self.task['_id']
+            elif submitted == 'false':
+                cond['tasks.' + task_type] = {'$ne': self.task['_id']}
+            # 是否异体字
+            is_variant = self.get_query_argument('variant', 0)
+            if is_variant == 'true':
+                cond['is_variant'] = '是'
+            elif is_variant == 'false':
+                cond['is_variant'] = '否'
+            # 2.查找单字数据
             self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             chars = {str(d['_id']): d for d in docs}
+            # 设置列图hash值
             column_url = ''
             for d in docs:
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
                 d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
                 if not column_url:
                     column_url = self.get_web_img(column_name, 'column')
-            self.render('char_task_cluster.html', docs=docs, pager=pager, q=q, order=order,
+            self.render('char_cluster.html', docs=docs, pager=pager, q=q, order=order,
                         char_count=self.task.get('char_count'), ocr_txts=ocr_txts,
-                        txts=txts, txt=txt, column_url=column_url,
-                        chars=chars, Char=Char)
+                        txts=txts, txt=txt, variants=variants, chars=chars,
+                        column_url=column_url, Char=Char)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
 class CharTaskSeparateHandler(CharHandler):
-    URL = ['/task/(separate_proof|separate_review)/@task_id',
-           '/task/do/(separate_proof|separate_review)/@task_id',
-           '/task/browse/(separate_proof|separate_review)/@task_id',
-           '/task/update/(separate_proof|separate_review)/@task_id']
+    URL = ['/task/(variant_proof|variant_review)/@task_id',
+           '/task/do/(variant_proof|variant_review)/@task_id',
+           '/task/browse/(variant_proof|variant_review)/@task_id',
+           '/task/update/(variant_proof|variant_review)/@task_id']
 
     page_size = 50
     txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
 
     def get(self, task_type, task_id):
-        """ 分类校对页面"""
+        """ 异体校对页面"""
         try:
             params = self.task['params']
             txts = [c['txt'] for c in params]

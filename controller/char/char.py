@@ -29,11 +29,12 @@ class Char(Model):
         {'id': 'txt', 'name': '正字'},
         {'id': 'ori_txt', 'name': '原字'},
         {'id': 'txt_type', 'name': '类型'},
+        {'id': 'is_variant', 'name': '是否异体字'},
         {'id': 'box_level', 'name': '切分等级'},
         {'id': 'box_logs', 'name': '切分校对历史'},
         {'id': 'txt_level', 'name': '文字等级'},
         {'id': 'txt_logs', 'name': '文字校对历史'},
-        {'id': 'task_count', 'name': '校对任务次数'},
+        {'id': 'tasks', 'name': '校对任务'},
         {'id': 'remark', 'name': '备注'},
     ]
     rules = [
@@ -41,7 +42,7 @@ class Char(Model):
     ]
     primary = 'name'
 
-    txt_types = {'': '正字', 'Y': '广义异体字', 'X': '狭义异体字', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+    txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
     # search_fields在这里定义，这样find_by_page时q参数才会起作用
     search_tips = '请搜索字编码、分类、文字'
     search_fields = ['name', 'source', 'txt', 'ocr_txt', 'ori_txt']

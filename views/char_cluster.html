@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>聚类校对</title>
+  <title>{{handler.page_name if hasattr(handler, 'page_name') else '聚类校对'}}</title>
   {% include _base_css.html %}
   <link href="{{static_url('css/char.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
@@ -20,7 +20,7 @@
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
         <div class="btn-group title">
-          聚类校对
+          {{handler.page_name if hasattr(handler, 'page_name') else '聚类校对'}}
         </div>
       </div><!--left-->
       <div class="center">
@@ -45,9 +45,12 @@
             <button id="btn-filter" type="button" class="btn btn-primary btn-sm">确定</button>
           </div>
         </div>
-        <div class="btn-group" title="按修改过滤">
+        <div class="btn-group" title="按条件过滤">
           <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
+            <li><a id="btn-submitted" href="#">已提交</a></li>
+            <li><a id="btn-not-submitted" href="#">未提交</a></li>
+            <li><a id="btn-variant" href="#">异体字</a></li>
             <li><a id="btn-my-update" href="#">我的修改</a></li>
             <li><a id="btn-all-update" href="#">所有修改</a></li>
           </ul>
@@ -55,28 +58,40 @@
         <div class="btn-group" title="批量选择">
           <i class="btn-txt icon-checkbox2 dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-select" href="#">打开选择</a></li>
-            <li><a id="btn-cancel" href="#">关闭选择</a></li>
             <li><a id="btn-select-all" href="#">全部选择</a></li>
             <li><a id="btn-deselect" href="#">全部不选</a></li>
             <li><a id="bat-update" href="#">批量修改</a></li>
           </ul>
         </div>
+        <div id="toggle-column-panel" class="btn-txt icon-panel-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐中间列图"></div>
+        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
         <div class="search">
           <input id="search-variant" type="text" placeholder="搜索异体字字典">
           <i id="icon-search" class="icon-search"></i>
         </div>
       </div>
       <div class="right">
-        {% if handler.is_task %} {% include _task_btns.html %} {% end %}
+        {% include _task_btns.html %}
       </div><!--right-->
     </div>
     <div class="m-body flex">
       <div class="char-panel">
         <div class="txt-kinds">
-          <div class="txt-kind{{' current' if not txt else ''}}"></div>
+          <span class="txt-kind{{' current' if not txt else ''}}"></span>
           {% for t in txts %}
           <span class="txt-kind{{' current' if t == txt else ''}}">{{t}}</span>
+          {% end %}
+        </div>
+        <div class="variants{{'' if variants else ' hide'}}">
+          <span id="add-variant" class="variant">+</span>
+          {% for v in variants %}
+          {% if v.get('txt') %}
+          <span class="variant txt-item">{{v['txt']}}</span>
+          {% else %}
+          <span class="variant txt-item variant-img" data-value="{{v['img_code']}}">
+            <img src="{{handler.get_web_img(v['img_code'], 'char')}}"/>
+          </span>
+          {% end %}
           {% end %}
         </div>
         <div class="char-items">
@@ -88,8 +103,9 @@
             <div class="char-info">
               <span class="txt">{{d.get('txt', '')}}</span>
               <span class="cc">{{d.get('cc', 0)/1000}}</span>
+              <span class="submitted {{'' if hasattr(handler, 'task') and handler.task.get('_id') in prop(d, 'tasks.'+handler.task_type, []) else 'hide'}}">√</span>
             </div>
-            <div class="char-check"><input type="checkbox" class="hide1" title="{{d['name']}}"></div>
+            <div class="char-check"><input type="checkbox" title="{{d['name']}}"></div>
           </div>
           {% end %}
         </div>
@@ -152,13 +168,20 @@
               请您校对<span id="proof-help" class="icon-help"></span>
             </label>
             <div class="body">
-              <input class="form-control txt" placeholder="请输入字框中的文字，可带校对符号"/>
+              <input class="form-control txt" placeholder="请输入字框中的文字"/>
               <div class="txt-type">
+                <span class="control-label">标记</span>
                 {% for k, v in handler.txt_types.items() %}
                 <label class="radio-item radio-inline">
                   <input type="radio" name="txt-type" value="{{k}}">{{v}}
                 </label>
                 {% end %}
+              </div>
+              <div class="is-variant">
+                <span class="control-label">是否异体字</span>
+                <span class="icon-info variant-help" data-toggle="tooltip" data-placement="left" title="如果您输入的文字和图片用字不是同一个字，即有多笔少划或者字形结构上的不同，但是属于同一个正字，则二者构成异体字。"></span>
+                <label class="radio-item radio-inline"><input type="radio" name="is-variant" value="否">否</label>
+                <label class="radio-item radio-inline"><input type="radio" name="is-variant" value="是">是</label>
               </div>
               <input class="form-control remark" placeholder="备注，如果有的话"/>
             </div>
@@ -215,64 +238,73 @@
       </div>
     </div>
   </div>
+  <div id="variantModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="variantModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content modal-sm">
+        <div class="modal-header"><h4 class="modal-title">新增异体字</h4></div>
+        <div class="modal-body">
+          <form class="form-horizontal">
+            <div class="form-group">
+              <h4 class="col-sm-3 control-label">异体字</h4>
+              <div class="col-sm-8">
+                <input type="text" class="form-control txt" placeholder="请输入异体字文字或字图编码">
+              </div>
+              <h4 class="col-sm-3 control-label" style="margin-top: 10px">所属正字</h4>
+              <div class="col-sm-8" style="margin-top: 10px">
+                <input type="text" class="form-control normal-txt" placeholder="请输入所属正字" readonly="readonly">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="resultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="resultModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h4 class="modal-title">更新结果</h4></div>
+        <div class="modal-body">
+          <form class="form-horizontal">
+            <div class="form-group">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <div class="col-sm-12" style="font-style: italic;margin-bottom: 8px;">注：点击确定将刷新页面，可查看更新后的结果，取消则不会。</div>
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% include _base_js.html %}
-{% if handler.is_task %} {% include _base_task.html %} {% end %}
+{% include _base_task.html %}
 {% include _base_cut.html %}
 <script src="{{static_url('js/char.js')}}"></script>
 <script>
   // 公共参数
   var columnBaseUrl = "{{column_url}}";
-  var editType = "{{handler.task_type}}";
   var chars = decodeJSON('{{dumps(chars)}}');
   var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
+  var taskType = "{{handler.task_type if hasattr(handler, 'task_type') else ''}}";
 
-  // 切换字种
-  $('.txt-kind').on('click', function () {
-    if (!$(this).text().trim())
-      location.href = location.pathname;
-    else
-      location.href = setQueryString('txt', $(this).text());
-  });
+  // 初始化
+  $('#toggle-column-panel').toggleClass('active', getStorage('toggle-column-panel', true));
+  $('#toggle-work-panel').toggleClass('active', getStorage('toggle-work-panel', true));
+  $('.column-panel').toggleClass('hide', !getStorage('toggle-column-panel', true));
+  $('.work-panel').toggleClass('hide', !getStorage('toggle-work-panel', true));
 
-  // 检索异体字
-  $('#search-variant').on('keydown', function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode === 13) {
-      var q = $(this).val().trim();
-      if (q.length)
-        window.open('http://hanzi.lqdzj.cn/variant_search?q=' + q, '_blank');
-    }
-  });
-  $('#icon-search').on('click', function () {
-    var q = $('#search-variant').val().trim();
-    if (q.length)
-      window.open('http://hanzi.lqdzj.cn/variant_search?q=' + q, '_blank');
+  $(document).ready(function () {
+    getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
   });
 
-  // 打开选择
-  $('#btn-select').on('click', function () {
-    $('.char-check').removeClass('hide');
-  });
-  // 关闭选择
-  $('#btn-cancel').on('click', function () {
-    $('.char-check').addClass('hide');
-  });
-
-  // 全部选择
-  $('#btn-select-all').on('click', function () {
-    $('.char-check').removeClass('hide');
-    $('.char-check').prop('checked', true);
-  });
-
-  // 全部不选
-  $('#btn-deselect').on('click', function () {
-    $('.char-check').removeClass('hide');
-    $('.char-check').removeAttr('checked');
-  });
-
-  // 每页显示多少个字图
+  // 配置每页显示多少个字图
   $('#taskConfigModal .modal-confirm').on('click', function () {
     var pageSize = $('#taskConfigModal .page-size').val();
     if (pageSize.length) {
@@ -285,36 +317,100 @@
     }
   });
 
-  // 批量修改
+  // 新增异体字
+  $('#add-variant').on('click', function () {
+    $('#variantModal .normal-txt').val($('.txt-kind.current').text());
+    $('#variantModal').modal();
+  });
+  $('#variantModal .modal-confirm').on('click', function () {
+    var data = {txt: $('#variantModal .txt').val(), normal_txt: $('#variantModal .normal-txt').val()};
+    if (!data.txt.length) {
+      return showWarning('提示', '请输入异体字文字或字图编码');
+    } else if (!data.normal_txt.length) {
+      return showWarning('提示', '请输入异体字所属正字');
+    } else {
+      postApi('/data/variant', {data: data}, function (res) {
+        $("#variantModal").modal('hide');
+        if (/[0-9a-zA-Z_]+/.test(data.txt)) {
+          var imgUrl = $('#' + data.txt).find('img').attr('src');
+          $('.variants').append(`<span class="variant txt-item variant-img" data-value="${data.txt}"><img src="${imgUrl}"/></span>`);
+        } else {
+          $('.variants').append(`<span class="variant txt-item">${data.txt}</span>`);
+        }
+      });
+    }
+  });
+
+  // 批量修改文字
   $('#bat-update').on('click', function () {
-    $('.char-check').removeClass('hide');
-    var names = $.map($('.char-check:checked'), (item) => $(item).attr('title'));
+    var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
     if (!names.length)
       return showWarning('请选择', '当前没有选中任何记录。');
     Swal2.fire({title: '请输入文字', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        var data = {names: names, txt: result.value, edit_type: editType};
-        postApi('/char/txt', {data: data}, () => location.reload());
+        var data = {names: names, txt: result.value, task_type: taskType};
+        postApi('/chars/txt', {data: data}, function (res) {
+          $('#resultModal .form-group').html($.map(res.data, function (value, key) {
+            return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
+          }).join(''));
+          $('#resultModal').modal();
+        });
       }
     });
   });
 
-  // 保存数据
-  saveData = function (submit) {
-    if (submit) {
-      bsLoading('保存中‧‧‧');
-      postApi(location.pathname, {data: {}}, function () {
-        bsShow('成功!', '已保存。');
-        var autoPick = getStorage('autoPick', '是');
-        if (mode === 'do' && autoPick === '是') {
-          showSuccess('提示', '已成功提交！将自动领取下一个任务。');
-          pick('/task/pick/' + taskType);
-        } else {
-          window.leave();
-        }
-      });
-    }
-  };
+  $('#resultModal .modal-confirm').on('click', function () {
+    location.reload();
+  });
+
+
+  // 提交文字修改
+  $('#submit-txt').on('click', function () {
+    var id = $('#currentId').val();
+    var name = $('#currentName').val();
+    var data = {
+      task_type: taskType,
+      txt: $('.proof .txt').val() || '',
+      ori_txt: $('.proof .ori-txt').val() || '',
+      txt_type: $('.txt-type :checked').val() || '',
+      is_variant: $('.is-variant :checked').val() || '',
+      remark: $('.proof .remark').val() || '',
+    };
+    postApi('/char/txt/' + name, {data: data}, function (res) {
+      updateLogs(res.txt_logs);
+      location.href = setAnchor(name);
+      data.txt_logs = res.txt_logs;
+      chars[id] = $.extend(chars[id], data);
+      var $curItem = $('#' + name);
+      $curItem.find('.txt').text(data.txt);
+      var index = $curItem.attr('class').search(/proof\d/);
+      var no = $curItem.attr('class').substr(index + 5, 1);
+      $curItem.removeClass('proof' + no).addClass('proof' + (parseInt(no) + 1));
+      bsShow('成功！', '已保存成功', 'success', 1000, '#s-alert');
+    });
+  });
+
+  // 提交字框修改
+  $('#submit-box').on('click', function () {
+    var name = $('#currentName').val();
+    var data = {'pos': getBox()['pos'], 'task_type': taskType};
+    postApi('/char/box/' + name, {data: data}, function (res) {
+      bsShow('成功！', '已保存成功', 'success', 1000);
+    });
+  });
+
+  // 提交当前页
+  $('#page-submit').on("click", function () {
+    $('#progress').removeClass('hide');
+    var charIds = $.map($('.char-item'), function (item) {
+      return $(item).attr('data-id');
+    });
+    postApi(location.pathname, {data: {char_ids: charIds}}, function () {
+      $('#progress').addClass('hide');
+      $('.char-item .submitted').removeClass('hide');
+      showSuccess('成功', '页面已提交。');
+    });
+  });
 
 </script>
 </body>

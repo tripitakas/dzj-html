@@ -23,7 +23,7 @@ class TestTaskApi(APITestCase):
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.user1, u.user2, u.user3]],
             '普通用户,单元测试用户'
         )
-        self.delete_tasks_and_locks()
+        self.reset_tasks_and_data()
 
     def tearDown(self):
         super(TestTaskApi, self).tearDown()
@@ -173,7 +173,7 @@ class TestTaskApi(APITestCase):
         """ 测试领取和退回任务 """
         # task_types = ['cut_proof']
         for task_type in task_types:
-            self.delete_tasks_and_locks()
+            self.reset_tasks_and_data()
             # 发布任务
             self.login_as_admin()
             r = self.publish_page_tasks(dict(doc_ids=ready_ids, task_type=task_type, pre_tasks=[]))
@@ -276,7 +276,7 @@ class TestTaskApi(APITestCase):
             r = self.fetch('/api/task/republish/%s' % task2['_id'], body={'data': {}})
             self.assert_code(errors.task_status_error[0], r, msg=task_type)
 
-            self.delete_tasks_and_locks()
+            self.reset_tasks_and_data()
 
     def test_delete_tasks(self):
         """ 测试管理员删除已发布或悬挂的任务 """
@@ -306,7 +306,7 @@ class TestTaskApi(APITestCase):
             self.assertEqual(0, self.parse_response(r).get('count'), msg=task_type)
 
             # 删除任务，以免干扰后续测试
-            self.delete_tasks_and_locks()
+            self.reset_tasks_and_data()
 
     def test_assign_tasks(self):
         """ 测试管理员指派任务给某个用户 """
@@ -314,7 +314,7 @@ class TestTaskApi(APITestCase):
         for task_type in task_types:
             # 管理员发布任务
             self.login_as_admin()
-            self.delete_tasks_and_locks()
+            self.reset_tasks_and_data()
             r1 = self.publish_page_tasks(dict(task_type=task_type, doc_ids=ready_ids, pre_tasks=[]))
             self.assert_code(200, r1)
 

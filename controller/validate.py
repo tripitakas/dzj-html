@@ -105,6 +105,13 @@ def not_all_empty(**kw):
         return err
 
 
+def not_none(**kw):
+    """不允许为空"""
+    code, message = e.not_allowed_empty
+    errs = {k: (code, message % i18n(k)) for k, v in kw.items() if v is None}
+    return errs or None
+
+
 def not_equal(**kw):
     assert len(kw) == 2
     k1, k2 = kw.keys()
@@ -253,10 +260,18 @@ def is_digit(**kw):
     return errs or None
 
 
-def is_proof_txt(**kw):
+def is_txt(**kw):
     """ 检查是否为校对文字。"""
-    code, message = e.invalid_proof_txt
-    regex = r'^([^\x00-\xff]|\[.*?\])[XYMN*]?$'  # 一个汉字或组字式，再加一个校对符号（可选）
+    code, message = e.invalid_txt
+    regex = r'^[^\x00-\xff]$'
+    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    return errs or None
+
+
+def is_txt_type(**kw):
+    """ 检查文字类型。"""
+    code, message = e.invalid_txt_type
+    regex = r'^[MN*]$'
     errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
     return errs or None
 

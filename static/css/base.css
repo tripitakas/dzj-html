@@ -906,6 +906,12 @@ body.widescreen {
   word-break: keep-all;
 }
 
+.m-body .tooltip-inner {
+  font-size: 1.2em;
+  text-align: left;
+  word-break: break-all;
+}
+
 .tooltip .tooltip-arrow {
   /*display: none;*/
   border-bottom-color: #eee !important;

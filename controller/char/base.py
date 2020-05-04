@@ -10,55 +10,42 @@ from controller.task.base import TaskHandler
 
 
 class CharHandler(TaskHandler, Char):
-    box_level = {
-        'task': dict(cut_proof=1, cut_review=10),
-        'role': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
-    }
-
     txt_level = {
-        'task': dict(cluster_proof=1, cluster_review=10, separate_proof=20, separate_review=30),
-        'role': dict(聚类校对员=1, 聚类审定员=10, 分类校对员=20, 分类审定员=30, 文字专家=100),
+        'task': dict(cluster_proof=1, cluster_review=10, variant_proof=20, variant_review=30),
+        'role': dict(聚类校对员=1, 聚类审定员=10, 异体校对员=20, 异体审定员=30, 文字专家=100),
     }
+    default_level = 1
 
     def __init__(self, application, request, **kwargs):
         super(CharHandler, self).__init__(application, request, **kwargs)
+        self.submit_by_page = True
 
     def prepare(self):
         super().prepare()
 
     @classmethod
-    def get_box_level(cls, kind, task_or_role):
-        return hp.prop(cls.box_level, kind + '.' + task_or_role, 0)
+    def get_required_txt_level(cls, char):
+        return char.get('txt_level') or cls.default_level
 
     @classmethod
-    def get_txt_level(cls, kind, task_or_role):
-        return hp.prop(cls.txt_level, kind + '.' + task_or_role, 0)
-
-    @classmethod
-    def get_role_level(cls, field, roles):
-        assert field in ['box', 'txt']
-        user_roles = auth.get_all_roles(roles)
-        if field == 'box':
-            return max([cls.get_box_level('role', r) for r in user_roles]) or 0
-        if field == 'txt':
-            return max([cls.get_txt_level('role', r) for r in user_roles]) or 0
-
-    @classmethod
-    def get_task_level(cls, field, task_type):
-        assert field in ['box', 'txt']
-        if field == 'box':
-            return cls.get_box_level('task', task_type) or 0
-        if field == 'txt':
-            return cls.get_txt_level('task', task_type) or 0
-
-    @classmethod
-    def get_user_level(cls, self, field, edit_type):
+    def get_user_txt_level(cls, self, task_type=None, user=None):
         """ 获取用户的数据等级"""
-        assert field in ['box', 'txt']
-        if edit_type == 'raw_edit':
-            return cls.get_role_level(field, self.current_user['roles'])
+        user = user or self.current_user
+        if task_type:
+            return hp.prop(cls.txt_level, 'task.' + task_type) or 0
         else:
-            return cls.get_task_level(field, edit_type)
+            roles = auth.get_all_roles(user['roles'])
+            return max([hp.prop(cls.txt_level, 'role.' + role, 0) for role in roles])
+
+    @staticmethod
+    def get_required_type_and_point(char):
+        """ 获取修改char的txt所需的积分"""
+        ratio = {'cluster_proof': 1000, 'cluster_review': 500, 'variant_proof': 1000, 'variant_review': 500}
+        for task_type in ['variant_review', 'variant_proof', 'cluster_review', 'cluster_proof']:
+            tasks = hp.prop(char, 'tasks.' + task_type, [])
+            if tasks:
+                return task_type, len(tasks) * ratio.get(task_type)
+        return 'cluster_proof', 1000
 
     @staticmethod
     def get_user_point(self, task_type):
@@ -67,49 +54,22 @@ class CharHandler(TaskHandler, Char):
             'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED
         })
 
-    @staticmethod
-    def get_required_level(char, field):
-        assert field in ['box', 'txt']
-        if field == 'box':
-            return char.get('box_level') or 0
-        if field == 'txt':
-            return char.get('txt_level') or 0
-
-    @staticmethod
-    def get_required_point(char, field):
-        """ 获取修改char的box、txt所需的积分"""
-        assert field in ['box', 'txt']
-        ratio = {'cut_proof': 1000, 'cut_review': 500, 'cluster_proof': 1000, 'cluster_review': 500,
-                 'separate_proof': 1000, 'separate_review': 500}
-        if field == 'box':
-            for task_type in ['cut_review', 'cut_proof']:
-                count = hp.prop(char, 'task_count.' + task_type)
-                if count:
-                    return task_type, count * ratio.get(task_type)
-            return 'cut_proof', 1000
-        else:
-            for task_type in ['separate_review', 'separate_proof', 'cluster_review', 'cluster_proof']:
-                count = hp.prop(char, 'task_count.' + task_type)
-                if count:
-                    return task_type, count * ratio.get(task_type)
-            return 'cluster_proof', 1000
-
     @classmethod
-    def check_level_and_point(cls, self, char, field, edit_type, send_error_response=True):
+    def check_txt_level_and_point(cls, self, char, task_type=None, send_error_response=True):
         """ 检查数据等级和积分"""
-        required_level = cls.get_required_level(char, field)
-        user_level = cls.get_user_level(self, field, edit_type)
+        required_level = cls.get_required_txt_level(char)
+        user_level = cls.get_user_txt_level(self, task_type)
         if int(user_level) < int(required_level):
-            msg = '该字符数据等级为%s，您的文字数据等级(%s)不够' % (required_level, user_level)
+            msg = '该字符的文字数据等级为%s，您的文字数据等级%s不够' % (required_level, user_level)
             if send_error_response:
                 return self.send_error_response(e.data_level_unqualified, message=msg)
             else:
                 return e.data_level_unqualified[0], msg
-        if edit_type == 'raw_edit':
-            required_task_type, required_point = cls.get_required_point(char, field)
-            user_point = cls.get_user_point(self, required_task_type)
+        if not task_type:
+            required_type, required_point = cls.get_required_type_and_point(char)
+            user_point = cls.get_user_point(self, required_type)
             if int(user_point) < int(required_point):
-                msg = '该字符需要在%s任务上有%s个积分，您的积分(%s)不够' % (required_task_type, required_point, user_point)
+                msg = '该字符需要%s的%s积分，您的积分%s不够' % (self.get_task_name(required_type), required_point, user_point)
                 if send_error_response:
                     return self.send_error_response(e.data_point_unqualified, message=msg)
                 else:

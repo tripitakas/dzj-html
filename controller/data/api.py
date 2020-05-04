@@ -11,7 +11,7 @@ from controller import errors as e
 from controller import validate as v
 from controller.base import BaseHandler
 from controller.helper import align_code
-from controller.data.data import Tripitaka, Reel, Sutra, Volume
+from controller.data.data import Tripitaka, Reel, Sutra, Volume, Variant
 
 try:
     from StringIO import StringIO
@@ -87,7 +87,6 @@ class DataDeleteApi(BaseHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
-
 
 class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'

@@ -1,3 +1,4 @@
+{% if hasattr(handler, 'task_type') %}
 <div class="panel-body" style="padding: 0">
   {% module ReturnModal() %}
   {% module TaskRemarkModal() %}
@@ -63,10 +64,14 @@
   };
 
   // 保存任务
+  var getPostData = function () {
+    return {};
+  };
+
   function saveTask(submit, jumpUrl, saveEnded) {
     var data = getPostData();
     $.extend(data, {submit: submit, step: step});
-    if (data && !data.error) {
+    if (!data.error) {
       $('#progress').removeClass('hide');
       postApi(location.pathname, {data: data}, function (res) {
         $('#progress').addClass('hide');
@@ -139,3 +144,4 @@
   });
 
 </script>
+{% end %}

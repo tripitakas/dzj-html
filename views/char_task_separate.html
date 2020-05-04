@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>分类校对</title>
+  <title>异体校对</title>
   {% include _base_css.html %}
   <link href="{{static_url('css/char.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
@@ -20,7 +20,7 @@
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
         <div class="btn-group title">
-          分类校对
+          异体校对
         </div>
       </div><!--left-->
       <div class="center">
@@ -54,7 +54,7 @@
         </div>
       </div>
       <div class="right">
-        {% if handler.is_task %} {% include _task_btns.html %} {% end %}
+        {% if hasattr(handler, 'task_type') %} {% include _task_btns.html %} {% end %}
       </div><!--right-->
     </div>
     <div class="m-body flex">
@@ -201,7 +201,7 @@
 </div>
 
 {% include _base_js.html %}
-{% if handler.is_task %} {% include _base_task.html %} {% end %}
+{% if hasattr(handler, 'task_type') %} {% include _base_task.html %} {% end %}
 <script src="{{static_url('js/cut/raphael.js')}}"></script>
 <script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
 <script src="{{static_url('js/char.js')}}"></script>

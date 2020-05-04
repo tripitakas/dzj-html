@@ -150,15 +150,15 @@ class Variant(Model):
     collection = 'variant'
     fields = [
         {'id': 'variant_code', 'name': '编码'},
-        {'id': 'txt', 'name': '异体字'},
         {'id': 'normal_txt', 'name': '所属正字'},
+        {'id': 'txt', 'name': '异体字'},
         {'id': 'img_code', 'name': '字图'},
         {'id': 'remark', 'name': '备注'}
     ]
     rules = [
-        (v.not_empty, 'txt'),
+        (v.not_empty, 'normal_txt'),
     ]
-    primary = 'txt'
+    primary = '_id'
 
     page_title = '异体字管理'
     search_tips = '请搜异体字、正字及编码'
@@ -166,3 +166,12 @@ class Variant(Model):
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
+
+    @classmethod
+    def pack_doc(cls, doc):
+        doc = super().pack_doc(doc)
+        regex = r'^[0-9a-zA-Z_]+$'
+        if re.match(regex, doc.get('txt')):
+            doc['img_code'] = doc['txt']
+            doc.pop('txt', 0)
+        return doc
