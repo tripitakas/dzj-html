@@ -254,7 +254,7 @@
       }
       handle.handles.length = 0;
 
-      if (el && !state.readonly) {
+      if (el && !state.readonly && !el.data('readonly')) {
         for (i = 0; i < 8; i++) {
           pt = getHandle(el, i);
           r = data.paper.rect(pt.x - size, pt.y - size, size * 2, size * 2)
@@ -489,7 +489,8 @@
 
         e.preventDefault();
         state.mouseDrag(pt, e);
-        if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3) {
+        if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3
+            || state.originBox && state.originBox.data('readonly')) {
           return;
         }
 
@@ -683,6 +684,7 @@
             })
             .data('class', b.class)
             .data('cid', b.cid)
+            .data('readonly', b.readonly)
             .data('char_id', b.char_id)
             .data('char', b.txt);
         c.shape.node.id = b.char_id;
@@ -898,7 +900,7 @@
         return;
       }
       this.cancelDrag();
-      if (state.edit && !state.readonly) {
+      if (state.edit && !state.readonly && !state.edit.data('readonly')) {
         var el = state.edit;
         var info = this.findCharById(el.data('char_id'));
         var hi = /small|narrow|flat/.test(data.hlType) && this.switchNextHighlightBox;
@@ -1045,11 +1047,12 @@
         if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
           if (!$(box.shape.node).hasClass('flash')) {
             $(box.shape.node).toggle(visible || !!readonly);
-            box.shape.data('readonly', readonly);
+            box.shape.data('_readonly', readonly);
             box.shape.attr({
-        opacity: readonly ? 0.3 : 1,
-        stroke: (box.column_no || 0) % 2 ?
-            readonly ? '#977' : data.normalColor2 : readonly ? '#779' : data.normalColor});
+              opacity: readonly ? 0.3 : 1,
+              stroke: (box.column_no || 0) % 2 ?
+                  (readonly ? '#977' : data.normalColor2) : (readonly ? '#779' : data.normalColor)
+              });
           }
         }
       });
