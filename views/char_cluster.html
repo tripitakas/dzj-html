@@ -170,14 +170,14 @@
             <div class="body">
               <input class="form-control txt" placeholder="请输入字框中的文字"/>
               <div class="txt-type">
-                <span class="control-label">标记</span>
+                <span class="control-label hide">标记</span>
                 {% for k, v in handler.txt_types.items() %}
                 <label class="radio-item radio-inline">
                   <input type="radio" name="txt-type" value="{{k}}">{{v}}
                 </label>
                 {% end %}
               </div>
-              <div class="is-variant">
+              <div class="is-variant hide">
                 <span class="control-label">是否异体字</span>
                 <span class="icon-info variant-help" data-toggle="tooltip" data-placement="left" title="如果您输入的文字和图片用字不是同一个字，即有多笔少划或者字形结构上的不同，但是属于同一个正字，则二者构成异体字。"></span>
                 <label class="radio-item radio-inline"><input type="radio" name="is-variant" value="否">否</label>
