@@ -216,7 +216,7 @@
         </div>
         <h4 class="control-label">选择前置任务</h4>
         <div class="pre_tasks">
-          {% for k, name in handler.task_names('page').items() %}
+          {% for k, name in handler.task_names('page', True).items() %}
           {% if handler.is_mod_enabled(name) %}
           <label class="checkbox-inline">
             <input type="checkbox" class="{{k}}" title="{{k}}">{{name}}

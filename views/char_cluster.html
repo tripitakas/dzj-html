@@ -77,12 +77,12 @@
     <div class="m-body flex">
       <div class="char-panel">
         <div class="txt-kinds">
-          <span class="txt-kind{{' current' if not txt else ''}}"></span>
+          <span class="txt-kind{{' current' if not cur_txt else ''}}"></span>
           {% for t in txts %}
-          <span class="txt-kind{{' current' if t == txt else ''}}">{{t}}</span>
+          <span class="txt-kind{{' current' if t == cur_txt else ''}}">{{t}}</span>
           {% end %}
         </div>
-        <div class="variants{{'' if variants else ' hide'}}">
+        <div class="variants{{'' if cur_txt else ' hide'}}">
           <span id="add-variant" class="variant">+</span>
           {% for v in variants %}
           {% if v.get('txt') %}

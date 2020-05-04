@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import re
+from datetime import datetime
 from functools import cmp_to_key
 from controller.model import Model
 from controller import helper as h
@@ -153,7 +155,10 @@ class Variant(Model):
         {'id': 'normal_txt', 'name': '所属正字'},
         {'id': 'txt', 'name': '异体字'},
         {'id': 'img_code', 'name': '字图'},
-        {'id': 'remark', 'name': '备注'}
+        {'id': 'remark', 'name': '备注'},
+        {'id': 'create_user_id', 'name': '创建人id'},
+        {'id': 'create_by', 'name': '创建人'},
+        {'id': 'create_time', 'name': '创建时间'},
     ]
     rules = [
         (v.not_empty, 'normal_txt'),
@@ -169,9 +174,12 @@ class Variant(Model):
 
     @classmethod
     def pack_doc(cls, doc):
-        doc = super().pack_doc(doc)
+        doc['create_time'] = datetime.now()
+        doc['create_by'] = h.prop(doc.get('user'), 'name')
+        doc['create_user_id'] = h.prop(doc.get('user'), '_id')
         regex = r'^[0-9a-zA-Z_]+$'
         if re.match(regex, doc.get('txt')):
             doc['img_code'] = doc['txt']
             doc.pop('txt', 0)
+        doc = super().pack_doc(doc)
         return doc

@@ -295,10 +295,10 @@ class CharTaskClusterHandler(CharHandler):
             ]))
             txts = [c['_id'] for c in counts]
             # 设置当前正字和相关异体字
-            txt, variants = self.get_query_argument('txt', 0), []
-            if txt:
-                cond.update({'txt': txt})
-                variants = list(self.db.variant.find({'$or': [{'txt': txt}, {'normal_txt': txt}]}))
+            cur_txt, variants = self.get_query_argument('txt', 0), []
+            if cur_txt:
+                cond.update({'txt': cur_txt})
+                variants = list(self.db.variant.find({'$or': [{'txt': cur_txt}, {'normal_txt': cur_txt}]}))
             # 按修改过滤
             update = self.get_query_argument('update', 0)
             if update == 'my':
@@ -330,7 +330,7 @@ class CharTaskClusterHandler(CharHandler):
                     column_url = self.get_web_img(column_name, 'column')
             self.render('char_cluster.html', docs=docs, pager=pager, q=q, order=order,
                         char_count=self.task.get('char_count'), ocr_txts=ocr_txts,
-                        txts=txts, txt=txt, variants=variants, chars=chars,
+                        txts=txts, cur_txt=cur_txt, variants=variants, chars=chars,
                         column_url=column_url, Char=Char)
 
         except Exception as error:
