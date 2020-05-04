@@ -489,7 +489,7 @@
         e.preventDefault();
         state.mouseDrag(pt, e);
         if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3
-            || state.originBox.data('readonly')) {
+            || state.originBox && state.originBox.data('readonly')) {
           return;
         }
 
