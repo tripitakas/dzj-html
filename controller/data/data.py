@@ -159,28 +159,46 @@ class Variant(Model):
         {'id': 'create_user_id', 'name': '创建人id'},
         {'id': 'create_by', 'name': '创建人'},
         {'id': 'create_time', 'name': '创建时间'},
+        {'id': 'updated_time', 'name': '更新时间'},
     ]
     rules = [
         (v.not_empty, 'normal_txt'),
     ]
     primary = '_id'
 
-    page_title = '异体字管理'
-    search_tips = '请搜异体字、正字及编码'
-    search_fields = ['txt', 'normal_txt', 'img_name', 'remark']
-    table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
-    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                          options=f.get('options', [])) for f in fields]
+    search_tips = '请搜异体字、异体字图、正字及备注'
+    search_fields = ['txt', 'img_name', 'normal_txt', 'remark']
 
     @classmethod
     def pack_doc(cls, doc, self=None):
-        doc['create_time'] = datetime.now()
-        doc['create_by'] = self.user_id
-        doc['create_user_id'] = self.username
-        if not re.match(r'^[^\x00-\xff]$', doc.get('txt')):  # 非汉字
-            doc['img_name'] = doc['txt']
-            v_max = self.db.variant.find_one({'img_name': {'$ne': None}}, sort=[('uid', -1)])
-            doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
-            doc.pop('txt', 0)
+        if doc.get('_id'):  # 更新
+            doc['updated_time'] = datetime.now()
+        else:   # 新增
+            doc['create_time'] = datetime.now()
+            doc['create_by'] = self.user_id
+            doc['create_user_id'] = self.username
+            if not re.match(r'^[^\x00-\xff]$', doc.get('txt')):  # 非汉字
+                doc['img_name'] = doc['txt']
+                doc.pop('txt', 0)
+                v_max = self.db.variant.find_one({'img_name': {'$ne': None}}, sort=[('uid', -1)])
+                doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
         doc = super().pack_doc(doc)
         return doc
+
+    @classmethod
+    def get_variant_search_condition(cls, request_query):
+        condition, params = dict(), dict()
+        q = h.get_url_param('q', request_query)
+        if q and cls.search_fields:
+            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
+        for field in ['uid', 'txt', 'normal_txt']:
+            value = h.get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: value})
+        for field in ['img_name', 'remark']:
+            value = h.get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: {'$regex': value, '$options': '$i'}})
+        return condition, params
