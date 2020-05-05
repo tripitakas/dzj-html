@@ -44,7 +44,7 @@ class TestCharTask(APITestCase):
         # 测试专家一可以修改单字
         self.login(u.expert1[0], u.expert1[1])
         txts = [t for t in '测试数据等级' if t != char1['txt']]
-        data = {'txt': txts[0], 'txt_type': '', 'is_variant': False, 'task_type': 'cluster_review'}
+        data = {'txt': txts[0], 'txt_type': '', 'task_type': 'cluster_review'}
         r = self.fetch('/api/char/txt/%s' % char1['name'], body={'data': data})
         self.assert_code(200, r)
 
@@ -54,13 +54,13 @@ class TestCharTask(APITestCase):
 
         # 测试专家二修改时，提示等级不够
         self.login(u.expert2[0], u.expert2[1])
-        data = {'txt': txts[1], 'txt_type': '', 'is_variant': False, 'task_type': 'cluster_proof'}
+        data = {'txt': txts[1], 'txt_type': '', 'task_type': 'cluster_proof'}
         r = self.fetch('/api/char/txt/%s' % char1['name'], body={'data': data})
         self.assert_code(e.data_level_unqualified[0], r)
 
         # 测试专家一可以修改自己刚刚改过的字
         self.login(u.expert1[0], u.expert1[1])
-        data = {'txt': '试', 'txt_type': '', 'is_variant': False, 'task_type': 'cluster_review'}
+        data = {'txt': '试', 'txt_type': '', 'task_type': 'cluster_review'}
         r = self.fetch('/api/char/txt/%s' % char1['name'], body={'data': data})
         self.assert_code(200, r)
 

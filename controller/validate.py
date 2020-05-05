@@ -263,7 +263,7 @@ def is_digit(**kw):
 def is_txt(**kw):
     """ 检查是否为校对文字。"""
     code, message = e.invalid_txt
-    regex = r'^([^\x00-\xff]|[A-Z]{2}_[0-9_]+)$'
+    regex = r'^([^\x00-\xff]|Y\d+)$'
     errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
     return errs or None
 

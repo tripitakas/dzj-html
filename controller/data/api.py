@@ -26,11 +26,10 @@ class DataUpsertApi(BaseHandler):
         """ 新增或修改 """
         try:
             model = eval(metadata.capitalize())
-            self.data['user'] = self.current_user
-            r = model.save_one(self.db, metadata, self.data)
+            r = model.save_one(self.db, metadata, self.data, self=self)
             if r.get('status') == 'success':
-                self.add_log(('update_' if r.get('update') else 'add_') + metadata, target_id=r.get('id'))
                 self.send_data_response(r)
+                self.add_log(('update_' if r.get('update') else 'add_') + metadata, target_id=r.get('id'))
             else:
                 self.send_error_response(r.get('errors'))
 

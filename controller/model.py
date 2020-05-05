@@ -95,7 +95,7 @@ class Model(object):
         return {f: getattr(cls, f) for f in fields}
 
     @classmethod
-    def pack_doc(cls, doc):
+    def pack_doc(cls, doc, self=None):
         d = {f['id']: doc.get(f['id']) for f in cls.fields if doc.get(f['id'])}
         if doc.get('_id'):
             d['_id'] = ObjectId(str(doc['_id']))
@@ -159,14 +159,15 @@ class Model(object):
         return False
 
     @classmethod
-    def save_one(cls, db, collection, doc, rules=None):
+    def save_one(cls, db, collection, doc, rules=None, self=None):
         """ 插入或更新一条记录
         :param db 数据库连接
         :param collection: 准备插入哪个集合
         :param doc: 准备插入哪条数据
         :param rules: 数据验证规则
+        :param self: 调用函数的handler
         """
-        doc = cls.pack_doc(doc)
+        doc = cls.pack_doc(doc, self)
         errs = cls.validate(doc, rules)
         if errs:
             return dict(status='failed', errors=errs)
@@ -177,14 +178,14 @@ class Model(object):
                 r = db[collection].update_one({'_id': doc.get('_id')}, {'$set': doc})
                 if not r.modified_count:
                     return dict(status='failed', errors=e.not_changed)
-                return dict(status='success', id=doc.get('_id'), update=True, insert=False)
+                return dict(status='success', id=doc.get('_id'), doc=doc, update=True, insert=False)
             else:
                 return dict(status='failed', errors=e.no_object)
         else:  # 新增
             condition = {cls.primary: doc.get(cls.primary, '')}
             if cls.ignore_existed_check(doc) is False and not db[collection].find_one(condition):
                 r = db[collection].insert_one(doc)
-                return dict(status='success', id=r.inserted_id, update=False, insert=True)
+                return dict(status='success', id=r.inserted_id, doc=doc, update=False, insert=True)
             else:
                 return dict(status='failed', errors=e.code_existed)
 

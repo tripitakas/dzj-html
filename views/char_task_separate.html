@@ -60,9 +60,9 @@
     <div class="m-body flex">
       <div class="char-panel">
         <div class="txt-kinds">
-          <div class="txt-kind{{' current' if not ori_txt else ''}}"></div>
-          {% for t in ori_txts %}
-          <div class="txt-kind{{' current' if t == ori_txt else ''}}">{{t}}</div>
+          <div class="txt-kind{{' current' if not nor_txt else ''}}"></div>
+          {% for t in nor_txts %}
+          <div class="txt-kind{{' current' if t == nor_txt else ''}}">{{t}}</div>
           {% end %}
         </div>
         <div class="char-items">
@@ -72,7 +72,7 @@
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
             <div class="char-info">
-              <span class="txt">{{d.get('ori_txt', '')}}</span><span class="cc">{{d.get('cc', 0)/1000}}</span>
+              <span class="txt">{{d.get('nor_txt', '')}}</span><span class="cc">{{d.get('cc', 0)/1000}}</span>
             </div>
           </div>
           {% end %}
@@ -99,9 +99,9 @@
             <label class="head">当前信息</label>
             <div class="body">
               <div class="log">
-                <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('ori_txt')}}</span></div>
+                <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('nor_txt')}}</span></div>
                 <div class="log-meta">
-                  {% for f in [i for i in ['name', 'page_name', 'txt', 'ori_txt', 'txt_type'] if c.get(i)]%}
+                  {% for f in [i for i in ['name', 'page_name', 'txt', 'nor_txt', 'txt_type'] if c.get(i)]%}
                   <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
                   {% end %}
                 </div>
@@ -113,9 +113,9 @@
             <div class="body">
               {% for log in c.get('txt_logs', '')%}
               <div class="log current">
-                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('ori_txt')}}</span></div>
+                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('nor_txt')}}</span></div>
                 <div class="log-meta">
-                  {% for f in ['txt', 'ori_txt', 'txt_type', 'remark'] %}
+                  {% for f in ['txt', 'nor_txt', 'txt_type', 'remark'] %}
                   {% if log.get(f) %}
                   <label>{{handler.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
                   {% end %}
@@ -217,7 +217,7 @@
     if (!$(this).text().trim())
       location.href = location.pathname;
     else
-      location.href = setQueryString('ori_txt', $(this).text());
+      location.href = setQueryString('nor_txt', $(this).text());
   });
 
   // 保存数据

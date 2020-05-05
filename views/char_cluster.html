@@ -64,6 +64,7 @@
             <li><a id="bat-update" href="#">批量修改</a></li>
           </ul>
         </div>
+        <div id="toggle-char-info" class="btn-txt icon-txt-simple active" data-toggle="tooltip" data-placement="bottom" title="显隐字图信息"></div>
         <div id="toggle-column-panel" class="btn-txt icon-panel-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐中间列图"></div>
         <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
         <div class="search">
@@ -80,39 +81,41 @@
         <div class="txt-kinds">
           <span class="txt-kind{{' current' if not cur_txt else ''}}"></span>
           {% for t in txts %}
-          {% if re.match(r'[0-9a-zA-Z_]+', t) %}
           <span class="txt-kind{{' current' if t == cur_txt else ''}}" data-value="{{t}}">
-            <img src="{{handler.get_web_img(t, 'char')}}"/>
-          </span>
+          {% if t[0] == 'Y' %}
+            <img src="{{handler.get_web_img(v_txts.get(t), 'char')}}"/>
           {% else %}
-          <span class="txt-kind{{' current' if t == cur_txt else ''}}">{{t}}</span>
+            {{t}}
           {% end %}
+          </span>
           {% end %}
         </div>
         <div class="variants{{'' if cur_txt else ' hide'}}">
           <span id="add-variant" class="variant">+</span>
           {% for v in variants %}
+          <span class="variant txt-item" data-value="{{v.get('txt') or 'Y%s' % v.get('uid')}}">
           {% if v.get('txt') %}
-          <span class="variant txt-item">{{v['txt']}}</span>
+            {{v['txt']}}
           {% else %}
-          <span class="variant txt-item variant-img" data-value="{{v['img_code']}}">
-            <img src="{{handler.get_web_img(v['img_code'], 'char')}}"/>
-          </span>
+            <img src="{{handler.get_web_img(v['img_name'], 'char')}}"/>
           {% end %}
+          </span>
           {% end %}
         </div>
         <div class="char-items">
           {% for d in docs %}
-          <div class="char-item proof{{len(d.get('txt_logs') or [])}}" id="{{d['name']}}" data-id="{{d['_id']}}" title="{{d['char_id']}} #{{d['cid']}}">
+          <div class="char-item proof{{len(d.get('txt_logs') or [])}}" id="{{d['name']}}" data-id="{{d['_id']}}">
             <div class="char-img">
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
             <div class="char-info">
               <span class="txt">{{d.get('txt', '')}}</span>
-              <span class="cc">{{d.get('cc', 0)/1000}}</span>
               <span class="submitted {{'' if hasattr(handler, 'task') and handler.task.get('_id') in prop(d, 'tasks.'+handler.task_type, []) else 'hide'}}">√</span>
             </div>
-            <div class="char-check"><input type="checkbox" title="{{d['name']}}"></div>
+            <div class="char-check">
+              <span class="cc">{{d.get('cc', 0)/1000}}</span>
+              <input type="checkbox" title="{{d['name']}}">
+            </div>
           </div>
           {% end %}
         </div>
@@ -120,7 +123,7 @@
       </div>
       <div class="column-panel">
         <div id="col-holder"></div>
-        <button id="submit-box" class="btn btn-primary btn-sm" style="margin-top: 10px">确认</button>
+        <button id="submit-box" class="btn btn-primary btn-sm" style="margin-top: 6px">确认</button>
       </div>
       <div class="work-panel">
         {% set c = docs and docs[0] or {}%}
@@ -139,9 +142,11 @@
             <label class="head">当前信息</label>
             <div class="body">
               <div class="log">
-                <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('ori_txt')}}</span></div>
+                <div class="log-head">
+                  <span class="log-txt txt-item">{{c.get('txt') or c.get('nor_txt')}}</span>
+                </div>
                 <div class="log-meta">
-                  {% for f in [i for i in ['name', 'page_name', 'txt', 'ori_txt', 'txt_type'] if c.get(i)]%}
+                  {% for f in [i for i in ['name', 'page_name', 'txt', 'nor_txt', 'txt_type'] if c.get(i)]%}
                   <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
                   {% end %}
                 </div>
@@ -153,9 +158,9 @@
             <div class="body">
               {% for log in c.get('txt_logs', '')%}
               <div class="log current">
-                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('ori_txt')}}</span></div>
+                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('nor_txt')}}</span></div>
                 <div class="log-meta">
-                  {% for f in ['txt', 'ori_txt', 'txt_type', 'remark'] %}
+                  {% for f in ['txt', 'nor_txt', 'txt_type', 'remark'] %}
                   {% if log.get(f) %}
                   <label>{{Char.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
                   {% end %}
@@ -172,23 +177,17 @@
         <div class="items user-work">
           <div class="item proof">
             <label class="head">
-              请您校对<span id="proof-help" class="icon-help"></span>
+              请您校对
+              <span class="icon-info variant-help" data-toggle="tooltip" data-placement="left" title="如果您输入的文字和图片用字不是同一个字，即有多笔少划或者字形结构上的不同，但是属于同一个正字，则二者构成异体字。"></span>
             </label>
             <div class="body">
               <input class="form-control txt" placeholder="请输入字框中的文字"/>
-              <div class="txt-type">
-                <span class="control-label hide">标记</span>
+              <div class="txt-types">
                 {% for k, v in handler.txt_types.items() %}
                 <label class="radio-item radio-inline">
                   <input type="radio" name="txt-type" value="{{k}}">{{v}}
                 </label>
                 {% end %}
-              </div>
-              <div class="is-variant hide">
-                <span class="control-label">是否异体字</span>
-                <span class="icon-info variant-help" data-toggle="tooltip" data-placement="left" title="如果您输入的文字和图片用字不是同一个字，即有多笔少划或者字形结构上的不同，但是属于同一个正字，则二者构成异体字。"></span>
-                <label class="radio-item radio-inline"><input type="radio" name="is-variant" value="否">否</label>
-                <label class="radio-item radio-inline"><input type="radio" name="is-variant" value="是">是</label>
               </div>
               <input class="form-control remark" placeholder="备注，如果有的话"/>
             </div>
@@ -303,9 +302,11 @@
 
   // 初始化
   $('#toggle-column-panel').toggleClass('active', getStorage('toggle-column-panel', true));
-  $('#toggle-work-panel').toggleClass('active', getStorage('toggle-work-panel', true));
   $('.column-panel').toggleClass('hide', !getStorage('toggle-column-panel', true));
+  $('#toggle-work-panel').toggleClass('active', getStorage('toggle-work-panel', true));
   $('.work-panel').toggleClass('hide', !getStorage('toggle-work-panel', true));
+  $('#toggle-char-info').toggleClass('active', getStorage('toggle-char-info', true));
+  $('.char-info, .cc').toggleClass('hide', !getStorage('toggle-char-info', true));
 
   $(document).ready(function () {
     getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
@@ -340,9 +341,9 @@
         $("#variantModal").modal('hide');
         if (/[0-9a-zA-Z_]+/.test(data.txt)) {
           var imgUrl = $('#' + data.txt).find('img').attr('src');
-          $('.variants').append(`<span class="variant txt-item variant-img" data-value="${data.txt}"><img src="${imgUrl}"/></span>`);
+          $('.variants').append(`<span class="variant txt-item" data-value="Y${res.doc.uid}"><img src="${imgUrl}"/></span>`);
         } else {
-          $('.variants').append(`<span class="variant txt-item">${data.txt}</span>`);
+          $('.variants').append(`<span class="variant txt-item" data-value="${data.txt}">${data.txt}</span>`);
         }
       });
     }
@@ -370,7 +371,6 @@
     location.reload();
   });
 
-
   // 提交文字修改
   $('#submit-txt').on('click', function () {
     var id = $('#currentId').val();
@@ -378,9 +378,8 @@
     var data = {
       task_type: taskType,
       txt: $('.proof .txt').val() || '',
-      ori_txt: $('.proof .ori-txt').val() || '',
-      txt_type: $('.txt-type :checked').val() || '',
-      is_variant: $('.is-variant :checked').val() || '',
+      nor_txt: $('.proof .nor-txt').val() || '',
+      txt_type: $('.txt-types :checked').val() || '',
       remark: $('.proof .remark').val() || '',
     };
     postApi('/char/txt/' + name, {data: data}, function (res) {

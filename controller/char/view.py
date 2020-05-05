@@ -28,9 +28,8 @@ class CharListHandler(CharHandler):
         {'id': 'pos', 'name': '坐标'},
         {'id': 'column', 'name': '所属列'},
         {'id': 'txt_type', 'name': '文字类型'},
-        {'id': 'is_variant', 'name': '是否异体字'},
-        {'id': 'txt', 'name': '正字'},
-        {'id': 'ori_txt', 'name': '原字'},
+        {'id': 'txt', 'name': '原字'},
+        {'id': 'nor_txt', 'name': '正字'},
         {'id': 'ocr_txt', 'name': '字框OCR'},
         {'id': 'col_txt', 'name': '列框OCR'},
         {'id': 'cmp_txt', 'name': '比对文字'},
@@ -48,9 +47,9 @@ class CharListHandler(CharHandler):
         {'operation': 'btn-browse', 'label': '浏览结果'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
             {'operation': 'source', 'label': '按分类'},
-            {'operation': 'txt', 'label': '按正字'},
+            {'operation': 'txt', 'label': '按原字'},
             {'operation': 'ocr_txt', 'label': '按OCR'},
-            {'operation': 'ori_txt', 'label': '按原字'},
+            {'operation': 'nor_txt', 'label': '按正字'},
         ]},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in CharHandler.task_names('char', True).items()
@@ -62,12 +61,12 @@ class CharListHandler(CharHandler):
         {'action': 'btn-remove', 'label': '删除'},
     ]
     hide_fields = ['page_name', 'cid', 'uid', 'data_level', 'txt_logs', 'sc', 'pos', 'column', 'proof_count']
-    info_fields = ['has_img', 'source', 'txt', 'ori_txt', 'txt_type', 'remark']
+    info_fields = ['has_img', 'source', 'txt', 'nor_txt', 'txt_type', 'remark']
     update_fields = [
         {'id': 'txt_type', 'name': '类型', 'input_type': 'radio', 'options': Char.txt_types},
         {'id': 'source', 'name': '分类'},
-        {'id': 'txt', 'name': '正字'},
-        {'id': 'ori_txt', 'name': '原字'},
+        {'id': 'txt', 'name': '原字'},
+        {'id': 'nor_txt', 'name': '正字'},
         {'id': 'remark', 'name': '备注'},
     ]
 
@@ -158,8 +157,8 @@ class CharStatHandler(CharHandler):
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
             kind = self.get_query_argument('kind', '')
-            if kind not in ['source', 'txt', 'ocr_txt', 'ori_txt']:
-                return self.send_error_response(e.statistic_type_error, message='只能按分类、原字、正字和OCR文字统计')
+            if kind not in ['source', 'txt', 'ocr_txt', 'nor_txt']:
+                return self.send_error_response(e.statistic_type_error, message='只能按分类、正字、原字和OCR文字统计')
             aggregates = [{'$group': {'_id': '$' + kind, 'count': {'$sum': 1}}}]
             docs, pager, q, order = Char.aggregate_by_page(self, condition, aggregates, default_order='-count')
             self.render('char_statistic.html', docs=docs, pager=pager, q=q, order=order, kind=kind)
@@ -282,23 +281,8 @@ class CharTaskClusterHandler(CharHandler):
 
     def get(self, task_type, task_id):
         """ 聚类校对页面"""
-        try:
-            # 1.设置查询条件
-            params = self.task['params']
-            ocr_txts = [c['ocr_txt'] for c in params]
-            user_level = self.get_user_txt_level(self, task_type)
-            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}, 'txt_level': {'$lte': user_level}}
-            # 统计字种
-            counts = list(self.db.char.aggregate([
-                {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
-                {'$sort': {'count': -1}},
-            ]))
-            txts = [c['_id'] for c in counts]
-            # 设置当前正字和相关异体字
-            cur_txt, variants = self.get_query_argument('txt', 0), []
-            if cur_txt:
-                cond.update({'txt': cur_txt})
-                variants = list(self.db.variant.find({'$or': [{'txt': cur_txt}, {'normal_txt': cur_txt}]}))
+
+        def get_user_filter():
             # 按修改过滤
             update = self.get_query_argument('update', 0)
             if update == 'my':
@@ -311,12 +295,30 @@ class CharTaskClusterHandler(CharHandler):
                 cond['tasks.' + task_type] = self.task['_id']
             elif submitted == 'false':
                 cond['tasks.' + task_type] = {'$ne': self.task['_id']}
-            # 是否异体字
-            is_variant = self.get_query_argument('variant', 0)
-            if is_variant == 'true':
-                cond['is_variant'] = '是'
-            elif is_variant == 'false':
-                cond['is_variant'] = '否'
+
+        try:
+            # 1.根据任务参数，设置字数据的过滤条件
+            params = self.task['params']
+            ocr_txts = [c['ocr_txt'] for c in params]
+            user_level = self.get_user_txt_level(self, task_type)
+            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}, 'txt_level': {'$lte': user_level}}
+            # 统计任务相关字种
+            counts = list(self.db.char.aggregate([
+                {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}},
+            ]))
+            txts = [c['_id'] for c in counts]
+            v_txts = [int(t[1:]) for t in txts if t[0] == 'Y']
+            if v_txts:
+                v_txts = list(self.db.variant.find({'uid': {'$in': v_txts}}, {'uid': 1, 'img_name': 1}))
+                v_txts = {'Y%s' % t['uid']: t['img_name'] for t in v_txts}
+            # 设置当前字种及相关的异体字
+            cur_txt, variants = self.get_query_argument('txt', 0), []
+            if cur_txt:
+                cond.update({'txt': cur_txt})
+                variants = list(self.db.variant.find({'$or': [{'txt': cur_txt}, {'normal_txt': cur_txt}]}))
+            # 设置用户过滤条件
+            get_user_filter()
             # 2.查找单字数据
             self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
@@ -329,8 +331,8 @@ class CharTaskClusterHandler(CharHandler):
                 if not column_url:
                     column_url = self.get_web_img(column_name, 'column')
             self.render('char_cluster.html', docs=docs, pager=pager, q=q, order=order,
-                        char_count=self.task.get('char_count'), ocr_txts=ocr_txts,
-                        txts=txts, cur_txt=cur_txt, variants=variants, chars=chars,
+                        ocr_txts=ocr_txts, txts=txts, v_txts=v_txts, cur_txt=cur_txt, chars=chars,
+                        char_count=self.task.get('char_count'), variants=variants,
                         column_url=column_url, Char=Char)
 
         except Exception as error:
@@ -354,12 +356,12 @@ class CharTaskSeparateHandler(CharHandler):
             data_level = self.get_txt_level('task', task_type)
             cond = {'source': params[0]['source'], 'txt': {'$in': txts}, 'data_level': {'$lte': data_level}}
             # 异体字字种
-            ori_txts = list(self.db.variant.find({'normal_txt': {'$in': txts}}, {'txt': 1}))
-            ori_txts = [t['txt'] for t in ori_txts]
+            nor_txts = list(self.db.variant.find({'normal_txt': {'$in': txts}}, {'txt': 1}))
+            nor_txts = [t['txt'] for t in nor_txts]
             # 设置当前异体字
-            ori_txt = self.get_query_argument('ori_txt', 0)
-            if ori_txt:
-                cond.update({'ori_txt': ori_txt})
+            nor_txt = self.get_query_argument('nor_txt', 0)
+            if nor_txt:
+                cond.update({'nor_txt': nor_txt})
             # 按修改过滤
             update = self.get_query_argument('update', 0)
             if update == 'my':
@@ -375,8 +377,8 @@ class CharTaskSeparateHandler(CharHandler):
                 if not column_url:
                     column_url = self.get_web_img(column_name, 'column')
             self.render('char_task_separate.html', docs=docs, pager=pager, q=q, order=order,
-                        char_count=self.task.get('char_count'), ori_txts=ori_txts,
-                        txts=txts, ori_txt=ori_txt, column_url=column_url,
+                        char_count=self.task.get('char_count'), nor_txts=nor_txts,
+                        txts=txts, nor_txt=nor_txt, column_url=column_url,
                         chars={str(d['_id']): d for d in docs})
 
         except Exception as error:

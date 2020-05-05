@@ -14,7 +14,7 @@ from controller.data.data import Tripitaka, Volume, Sutra, Reel, Variant
 
 
 class DataListHandler(BaseHandler):
-    URL = '/data/(tripitaka|sutra|reel|volume|variant)'
+    URL = '/data/(tripitaka|sutra|reel|volume)'
 
     def get(self, metadata):
         """ 数据管理"""
@@ -33,6 +33,28 @@ class DataListHandler(BaseHandler):
                  'url': '/static/template/%s-sample.csv' % metadata},
             ]
             docs, pager, q, order = model.find_by_page(self)
+            self.render('data_list.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class VariantListHandler(BaseHandler, Variant):
+    URL = '/data/variant'
+
+    def get(self):
+        """ 数据管理"""
+        try:
+            kwargs = Variant.get_template_kwargs()
+            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
+            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
+            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
+            kwargs['img_operations'] = ['config']
+            kwargs['operations'] = [
+                {'operation': 'btn-add', 'label': '新增记录'},
+                {'operation': 'bat-remove', 'label': '批量删除'},
+            ]
+            docs, pager, q, order = Variant.find_by_page(self)
             self.render('data_list.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
 
         except Exception as error:

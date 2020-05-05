@@ -130,7 +130,7 @@ class Volume(Model):
                           options=f.get('options', [])) for f in fields]
 
     @classmethod
-    def pack_doc(cls, doc):
+    def pack_doc(cls, doc, self=None):
         doc = super().pack_doc(doc)
         if doc.get('content_pages') and isinstance(doc['content_pages'], str):
             content_pages = re.sub(r'[\[\]\"\'\s]', '', doc['content_pages']).split(',')
@@ -151,10 +151,10 @@ class Volume(Model):
 class Variant(Model):
     collection = 'variant'
     fields = [
-        {'id': 'variant_code', 'name': '编码'},
-        {'id': 'normal_txt', 'name': '所属正字'},
+        {'id': 'uid', 'name': '编码'},
         {'id': 'txt', 'name': '异体字'},
-        {'id': 'img_code', 'name': '字图'},
+        {'id': 'img_name', 'name': '异体字图'},
+        {'id': 'normal_txt', 'name': '所属正字'},
         {'id': 'remark', 'name': '备注'},
         {'id': 'create_user_id', 'name': '创建人id'},
         {'id': 'create_by', 'name': '创建人'},
@@ -167,19 +167,20 @@ class Variant(Model):
 
     page_title = '异体字管理'
     search_tips = '请搜异体字、正字及编码'
-    search_fields = ['txt', 'normal_txt', 'remark']
+    search_fields = ['txt', 'normal_txt', 'img_name', 'remark']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
 
     @classmethod
-    def pack_doc(cls, doc):
+    def pack_doc(cls, doc, self=None):
         doc['create_time'] = datetime.now()
-        doc['create_by'] = h.prop(doc.get('user'), 'name')
-        doc['create_user_id'] = h.prop(doc.get('user'), '_id')
-        regex = r'^[0-9a-zA-Z_]+$'
-        if re.match(regex, doc.get('txt')):
-            doc['img_code'] = doc['txt']
+        doc['create_by'] = self.user_id
+        doc['create_user_id'] = self.username
+        if not re.match(r'^[^\x00-\xff]$', doc.get('txt')):  # 非汉字
+            doc['img_name'] = doc['txt']
+            v_max = self.db.variant.find_one({'img_name': {'$ne': None}}, sort=[('uid', -1)])
+            doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
             doc.pop('txt', 0)
         doc = super().pack_doc(doc)
         return doc

@@ -85,9 +85,9 @@
             <label class="head">当前信息</label>
             <div class="body">
               <div class="log">
-                <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('ori_txt')}}</span></div>
+                <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('nor_txt')}}</span></div>
                 <div class="log-meta">
-                  {% for f in [i for i in ['name', 'page_name', 'txt', 'ori_txt', 'txt_type'] if c.get(i)]%}
+                  {% for f in [i for i in ['name', 'page_name', 'txt', 'nor_txt', 'txt_type'] if c.get(i)]%}
                   <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
                   {% end %}
                 </div>
@@ -99,9 +99,9 @@
             <div class="body">
               {% for log in c.get('txt_logs', '')%}
               <div class="log current">
-                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('ori_txt')}}</span></div>
+                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('nor_txt')}}</span></div>
                 <div class="log-meta">
-                  {% for f in ['txt', 'ori_txt', 'txt_type', 'remark'] %}
+                  {% for f in ['txt', 'nor_txt', 'txt_type', 'remark'] %}
                   {% if log.get(f) %}
                   <label>{{handler.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
                   {% end %}
@@ -121,7 +121,7 @@
               请您校对<span id="proof-help" class="icon-help"></span>
             </label>
             <div class="body">
-              <input class="form-control txt" placeholder="请录入正字，可带校对符号"/>
+              <input class="form-control txt" placeholder="请录入原字，可带校对符号"/>
               <div class="txt-type">
                 {% for k, v in txt_types.items() %}
                 <label class="radio-item radio-inline">
@@ -129,7 +129,7 @@
                 </label>
                 {% end %}
               </div>
-              <input class="form-control ori-txt" placeholder="请录入原字"/>
+              <input class="form-control nor-txt" placeholder="请录入正字"/>
               <input class="form-control remark" placeholder="备注，如果有的话"/>
             </div>
             <div class="tail submit" style="margin-top: 5px">

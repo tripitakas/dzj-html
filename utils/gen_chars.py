@@ -45,7 +45,7 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
     total_count = db.page.count_documents(condition)
     log_id = Bh.add_op_log(db, 'gen_chars', 'ongoing', [], username)
     fields1 = ['name', 'source', 'columns', 'chars']
-    fields2 = ['source', 'cid', 'char_id', 'txt', 'ori_txt', 'ocr_txt', 'col_txt', 'cmp_txt', 'alternatives']
+    fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'col_txt', 'cmp_txt', 'alternatives']
     for i in range(int(math.ceil(total_count / once_size))):
         pages = list(db.page.find(condition, {k: 1 for k in fields1}).skip(i * once_size).limit(once_size))
         # 查找、分类chars

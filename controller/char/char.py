@@ -26,10 +26,9 @@ class Char(Model):
         {'id': 'col_txt', 'name': '列框OCR'},
         {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
-        {'id': 'txt', 'name': '正字'},
-        {'id': 'ori_txt', 'name': '原字'},
+        {'id': 'txt', 'name': '原字'},
+        {'id': 'nor_txt', 'name': '正字'},
         {'id': 'txt_type', 'name': '类型'},
-        {'id': 'is_variant', 'name': '是否异体字'},
         {'id': 'box_level', 'name': '切分等级'},
         {'id': 'box_logs', 'name': '切分校对历史'},
         {'id': 'txt_level', 'name': '文字等级'},
@@ -45,7 +44,7 @@ class Char(Model):
     txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
     # search_fields在这里定义，这样find_by_page时q参数才会起作用
     search_tips = '请搜索字编码、分类、文字'
-    search_fields = ['name', 'source', 'txt', 'ocr_txt', 'ori_txt']
+    search_fields = ['name', 'source', 'txt', 'ocr_txt', 'nor_txt']
 
     @classmethod
     def get_char_search_condition(cls, request_query):
