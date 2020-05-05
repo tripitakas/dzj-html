@@ -331,7 +331,7 @@ class CharTaskClusterHandler(CharHandler):
                 d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
                 if not column_url:
                     column_url = self.get_web_img(column_name, 'column')
-            show_char_info = json_util.loads(self.get_secure_cookie('cluster_char_info') or '是')
+            show_char_info = json_util.loads(self.get_secure_cookie('cluster_char_info') or '0') or '是'
             self.render('char_cluster.html', docs=docs, pager=pager, q=q, order=order,
                         ocr_txts=ocr_txts, txts=txts, v_txts=v_txts, cur_txt=cur_txt, chars=chars,
                         char_count=self.task.get('char_count'), variants=variants,
