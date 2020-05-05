@@ -54,7 +54,7 @@ $('#icon-search').on('click', function () {
     window.open('http://hanzi.lqdzj.cn/variant_search?q=' + q, '_blank');
 });
 
-// 显隐中间列图
+// 显隐字图信息
 $('#toggle-char-info').on('click', function () {
   $(this).toggleClass('active');
   setStorage('toggle-char-info', $(this).hasClass('active'));

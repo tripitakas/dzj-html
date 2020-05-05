@@ -64,7 +64,6 @@
             <li><a id="bat-update" href="#">批量修改</a></li>
           </ul>
         </div>
-        <div id="toggle-char-info" class="btn-txt icon-txt-simple active" data-toggle="tooltip" data-placement="bottom" title="显隐字图信息"></div>
         <div id="toggle-column-panel" class="btn-txt icon-panel-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐中间列图"></div>
         <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
         <div class="search">
@@ -108,12 +107,12 @@
             <div class="char-img">
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
-            <div class="char-info">
+            <div class="char-info{{' hide' if show_char_info == '否' else ''}}">
               <span class="txt">{{d.get('txt', '')}}</span>
               <span class="submitted {{'' if hasattr(handler, 'task') and handler.task.get('_id') in prop(d, 'tasks.'+handler.task_type, []) else 'hide'}}">√</span>
             </div>
             <div class="char-check">
-              <span class="cc">{{d.get('cc', 0)/1000}}</span>
+              <span class="cc{{' hide' if show_char_info == '否' else ''}}">{{d.get('cc', 0)/1000}}</span>
               <input type="checkbox" title="{{d['name']}}">
             </div>
           </div>
@@ -305,23 +304,30 @@
   $('.column-panel').toggleClass('hide', !getStorage('toggle-column-panel', true));
   $('#toggle-work-panel').toggleClass('active', getStorage('toggle-work-panel', true));
   $('.work-panel').toggleClass('hide', !getStorage('toggle-work-panel', true));
-  $('#toggle-char-info').toggleClass('active', getStorage('toggle-char-info', true));
-  $('.char-info, .cc').toggleClass('hide', !getStorage('toggle-char-info', true));
 
   $(document).ready(function () {
     getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
   });
 
-  // 配置每页显示多少个字图
+  // 配置项
   $('#taskConfigModal .modal-confirm').on('click', function () {
+    var data = {};
     var pageSize = $('#taskConfigModal .page-size').val();
     if (pageSize.length) {
       if (!/^\d+$/.test(pageSize)) {
         return showWarning('提示', '每页条数中请输入数字');
       } else {
-        postApi('/session/config', {data: {'cluster_page_size': pageSize}});
-        $("#taskConfigModal").modal('hide');
+        data['cluster_page_size'] = pageSize;
       }
+    }
+    var showCharInfo = $('#taskConfigModal .show-char-info :checked');
+    if (showCharInfo) {
+      data['cluster_char_info'] = showCharInfo.val();
+      $('.char-info, .cc').toggleClass('hide', showCharInfo.val() !== '是');
+    }
+    if (JSON.stringify(data) !== '{}') {
+      postApi('/session/config', {data: data});
+      $("#taskConfigModal").modal('hide');
     }
   });
 

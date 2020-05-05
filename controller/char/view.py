@@ -276,6 +276,7 @@ class CharTaskClusterHandler(CharHandler):
 
     config_fields = [
         {'id': 'page-size', 'name': '每页显示条数'},
+        {'id': 'show-char-info', 'name': '是否显示字图信息', 'input_type': 'radio', 'options': ['是', '否']},
         {'id': 'auto-pick', 'name': '提交后自动领新任务', 'input_type': 'radio', 'options': ['是', '否']},
     ]
 
@@ -330,10 +331,11 @@ class CharTaskClusterHandler(CharHandler):
                 d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
                 if not column_url:
                     column_url = self.get_web_img(column_name, 'column')
+            show_char_info = json_util.loads(self.get_secure_cookie('cluster_char_info')) or '是'
             self.render('char_cluster.html', docs=docs, pager=pager, q=q, order=order,
                         ocr_txts=ocr_txts, txts=txts, v_txts=v_txts, cur_txt=cur_txt, chars=chars,
                         char_count=self.task.get('char_count'), variants=variants,
-                        column_url=column_url, Char=Char)
+                        column_url=column_url, show_char_info=show_char_info, Char=Char)
 
         except Exception as error:
             return self.send_db_error(error)
