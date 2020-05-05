@@ -180,7 +180,7 @@ class Variant(Model):
             if not re.match(r'^[^\x00-\xff]$', doc.get('txt')):  # 非汉字
                 doc['img_name'] = doc['txt']
                 doc.pop('txt', 0)
-                v_max = self.db.variant.find_one({}, sort=[('uid', -1)])
+                v_max = self.db.variant.find_one({'uid': {'$ne': None}}, sort=[('uid', -1)])
                 doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
         if doc.get('uid'):
             doc['uid'] = int(doc['uid'])
