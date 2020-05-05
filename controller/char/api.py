@@ -11,6 +11,26 @@ from controller import helper as h
 from controller import validate as v
 
 
+class CharDeleteApi(CharHandler):
+    URL = '/api/(char)/delete'
+
+    def post(self, collection):
+        """ 批量删除 """
+        try:
+            rules = [(v.not_both_empty, '_id', '_ids')]
+            self.validate(self.data, rules)
+
+            if self.data.get('_id'):
+                r = self.db[collection].delete_one({'_id': ObjectId(self.data['_id'])})
+                self.add_log('delete_' + collection, target_id=self.data['_id'])
+            else:
+                r = self.db[collection].delete_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}})
+                self.add_log('delete_' + collection, target_id=self.data['_ids'])
+            self.send_data_response(dict(count=r.deleted_count))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
 class CharExtractImgApi(CharHandler):
     URL = '/api/char/extract_img'
 

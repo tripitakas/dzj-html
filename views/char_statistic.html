@@ -18,7 +18,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    {% module ComLeft() %}
+    {% module ComLeft(active_id='#char-list') %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
@@ -34,7 +34,7 @@
               <tr>
                 <th class="_id">
                   <span class="sort {{'active' if order in ['_id', '-_id'] else ''}}" title="_id">
-                  {{handler.get_field_name(kind)}}<span class="ion-arrow-down-b {{'toggle' if order == '_id' else ''}}"></span>
+                  {{Char.get_field_name(kind)}}<span class="ion-arrow-down-b {{'toggle' if order == '_id' else ''}}"></span>
                   </span>
                 </th>
                 <th class="count">

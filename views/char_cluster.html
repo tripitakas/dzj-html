@@ -51,7 +51,6 @@
           <ul class="dropdown-menu" data-stopPropagation="true">
             <li><a id="btn-submitted" href="#">已提交</a></li>
             <li><a id="btn-not-submitted" href="#">未提交</a></li>
-            <li><a id="btn-variant" href="#">异体字</a></li>
             <li><a id="btn-my-update" href="#">我的修改</a></li>
             <li><a id="btn-all-update" href="#">所有修改</a></li>
           </ul>
@@ -157,7 +156,9 @@
             <div class="body">
               {% for log in c.get('txt_logs', '')%}
               <div class="log current">
-                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('nor_txt')}}</span></div>
+                <div class="log-head">
+                  <span class="log-txt txt-item">{{log.get('txt') or log.get('nor_txt')}}</span>
+                </div>
                 <div class="log-meta">
                   {% for f in ['txt', 'nor_txt', 'txt_type', 'remark'] %}
                   {% if log.get(f) %}
@@ -279,7 +280,7 @@
           </form>
         </div>
         <div class="modal-footer">
-          <div class="col-sm-12" style="font-style: italic;margin-bottom: 8px;">注：点击确定将刷新页面，可查看更新后的结果，取消则不会。</div>
+          <div class="col-sm-12" style="font-style: italic;margin-bottom: 8px;">注：点击确定将刷新页面，可查看更新后的结果，取消则保持页面。</div>
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
           <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
         </div>
@@ -364,10 +365,14 @@
       if (result.value) {
         var data = {names: names, txt: result.value, task_type: taskType};
         postApi('/chars/txt', {data: data}, function (res) {
-          $('#resultModal .form-group').html($.map(res.data, function (value, key) {
-            return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
-          }).join(''));
-          $('#resultModal').modal();
+          if (res.data.level_unqualified || res.data.level_unqualified) {
+            $('#resultModal .form-group').html($.map(res.data, function (value, key) {
+              return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
+            }).join(''));
+            $('#resultModal').modal();
+          } else {
+            location.reload();
+          }
         });
       }
     });

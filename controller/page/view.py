@@ -409,7 +409,7 @@ class PageTaskStatHandler(PageHandler):
             elif kind == 'status':
                 trans = self.task_statuses
             label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态')[kind]
-            self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans)
+            self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='page')
 
         except Exception as error:
             return self.send_db_error(error)

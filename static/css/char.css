@@ -318,3 +318,7 @@
   max-height: 300px;
   word-break: break-all;
 }
+
+#resultModal .control-label{
+  padding-top: 0 !important;
+}

@@ -170,29 +170,9 @@ role_route_maps = {
             '/api/task/(do|update)/rare_review/@task_id': ['POST'],
         }
     },
-    '异体校对员': {
-        'is_assignable': True,
-        'roles': ['工作人员'],
-        'routes': {
-            '/task/(lobby|my)/variant_proof': ['GET'],
-            '/api/task/pick/variant_proof': ['POST'],
-            '/task/(do|update)/variant_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/variant_proof/@task_id': ['POST'],
-        }
-    },
-    '异体审定员': {
-        'is_assignable': True,
-        'roles': ['工作人员'],
-        'routes': {
-            '/task/(lobby|my)/variant_review': ['GET'],
-            '/api/task/pick/variant_review': ['POST'],
-            '/task/(do|update)/variant_review/@task_id': ['GET'],
-            '/api/task/(do|update)/variant_review/@task_id': ['POST'],
-        }
-    },
     '文字专家': {
         'is_assignable': True,
-        'roles': ['工作人员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '异体校对员', '异体审定员'],
+        'roles': ['工作人员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],
         'routes': {}
     },
     'OCR加工员': {
@@ -247,7 +227,6 @@ role_route_maps = {
             '/page/(box|order|cmp_txt|txt|char)/edit/@page_name': ['GET'],
             '/api/page/(box|order|cmp_txt)/@page_name': ['POST'],
             '/char/(list|browse|statistic)': ['GET'],
-            '/api/char/delete': ['POST'],
             '/api/char/(delete|source|extract_img)': ['POST'],
         }
     },

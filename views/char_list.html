@@ -96,9 +96,9 @@
             </div>
           </div>
           <div class="form-group">
-            <h4 class="col-sm-2 control-label">批　次</h4>
+            <h4 class="col-sm-2 control-label">分　类</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control batch" value="{{params.get('source') or ''}}" placeholder="请输入批次">
+              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
             </div>
           </div>
           <div class="form-group">
@@ -301,6 +301,11 @@
     location.href = '/char/browse' + setQueryString('from', location.pathname, true);
   });
 
+  // 查看
+  $('.btn-detail').on('click', function () {
+    location.href = '/char/' + $(this).parent().parent().find('.name').text();
+  });
+
 </script>
 <script>
   /*---综合检索---*/
@@ -315,9 +320,9 @@
         search += '&' + field + '=' + value;
     });
     selectFields.forEach(function (field) {
-      var value = $searchModal.find('.' + field + ' :selected').val();
-      if (value)
-        search += '&' + field + '=' + value;
+      var $select = $searchModal.find('.' + field + ' :selected');
+      if ($select.text())
+        search += '&' + field + '=' + $select.val();
     });
     if (!search.length)
       return showWarning('请输入查询条件');
@@ -332,7 +337,6 @@
   });
 
 </script>
-
 <script>
   /*---发布任务---*/
   var taskType = '';

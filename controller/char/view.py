@@ -39,7 +39,7 @@ class CharListHandler(CharHandler):
         {'id': 'remark', 'name': '备注'},
     ]
     operations = [
-        {'operation': 'bat-remove', 'label': '批量删除'},
+        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/char/delete'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'bat-gen-img', 'label': '生成字图'},
@@ -58,7 +58,7 @@ class CharListHandler(CharHandler):
     actions = [
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-update', 'label': '更新'},
-        {'action': 'btn-remove', 'label': '删除'},
+        {'action': 'btn-remove', 'label': '删除', 'url': '/api/char/delete'},
     ]
     hide_fields = ['page_name', 'cid', 'uid', 'data_level', 'txt_logs', 'sc', 'pos', 'column', 'proof_count']
     info_fields = ['has_img', 'source', 'txt', 'nor_txt', 'txt_type', 'remark']
@@ -75,7 +75,7 @@ class CharListHandler(CharHandler):
             {'$group': {'_id': '$name', 'count': {'$sum': 1}}},
             {'$match': {'count': {'$gte': 2}}},
         ]))
-        condition = {'id': {'$in': [c['_id'] for c in chars]}}
+        condition = {'name': {'$in': [c['_id'] for c in chars]}}
         params = {'duplicate': 'true'}
         return condition, params
 
@@ -111,29 +111,6 @@ class CharListHandler(CharHandler):
             return self.send_db_error(error)
 
 
-class CharBrowseHandler(CharHandler):
-    URL = '/char/browse'
-
-    page_size = 50
-
-    def get(self):
-        """ 浏览字图"""
-        try:
-            condition = Char.get_char_search_condition(self.request.query)[0]
-            docs, pager, q, order = Char.find_by_page(self, condition)
-            column_url = ''
-            for d in docs:
-                column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
-                d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
-                if not column_url:
-                    column_url = self.get_web_img(column_name, 'column')
-            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order,
-                        column_url=column_url, chars={str(d['_id']): d for d in docs})
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-
 class CharViewHandler(CharHandler, Char):
     URL = '/char/@char_name'
 
@@ -161,7 +138,7 @@ class CharStatHandler(CharHandler):
                 return self.send_error_response(e.statistic_type_error, message='只能按分类、正字、原字和OCR文字统计')
             aggregates = [{'$group': {'_id': '$' + kind, 'count': {'$sum': 1}}}]
             docs, pager, q, order = Char.aggregate_by_page(self, condition, aggregates, default_order='-count')
-            self.render('char_statistic.html', docs=docs, pager=pager, q=q, order=order, kind=kind)
+            self.render('char_statistic.html', docs=docs, pager=pager, q=q, order=order, kind=kind, Char=Char)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -262,7 +239,30 @@ class CharTaskStatHandler(CharHandler):
                 trans = self.task_statuses
             label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态')[kind]
 
-            self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans)
+            self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='char')
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class CharBrowseHandler(CharHandler):
+    URL = '/char/browse'
+
+    page_size = 50
+
+    def get(self):
+        """ 浏览字图"""
+        try:
+            condition = Char.get_char_search_condition(self.request.query)[0]
+            docs, pager, q, order = Char.find_by_page(self, condition)
+            column_url = ''
+            for d in docs:
+                column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
+                d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
+                if not column_url:
+                    column_url = self.get_web_img(column_name, 'column')
+            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order,
+                        column_url=column_url, chars={str(d['_id']): d for d in docs})
 
         except Exception as error:
             return self.send_db_error(error)

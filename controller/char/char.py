@@ -52,6 +52,9 @@ class Char(Model):
             return int(float(c) * 1000)
 
         condition, params = dict(), dict()
+        if 'txt_type' in request_query and not h.get_url_param('txt_type', request_query):
+            params['txt_type'] = ''
+            condition.update({'txt_type': None})
         for field in ['txt', 'ocr_txt', 'txt_type']:
             value = h.get_url_param(field, request_query)
             if value:

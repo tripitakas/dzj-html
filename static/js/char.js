@@ -156,7 +156,7 @@ function updateLogs(logs) {
     var head = `<span class="log-txt txt-item">${/[0-9]/.test(txt) ? '' : txt}</span>`;
     var meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
     meta += log.nor_txt ? `<label>正字</label><span>${log.nor_txt}</span><br/>` : '';
-    meta += log.txt_type ? `<label>类型</label><span>${log.txt_type + (txtTypes[log.txt_type] || '')}</span><br/>` : '';
+    meta += log.txt_type ? `<label>类型</label><span>${txtTypes[log.txt_type] || ''}</span><br/>` : '';
     meta += log.remark ? `<label>备注</label><span>${log.remark}</span><br/>` : '';
     meta += log.username ? `<label>校对人</label><span>${log.username}</span><br/>` : '';
     meta += log.create_time ? `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>` : '';
@@ -183,6 +183,7 @@ function updateWorkPanel(ch) {
   // 更新请您校对
   $('.proof .remark').val('');
   $('.proof .txt').val(ch.txt || ch.ocr_txt);
+  $('.proof .nor-txt').val(ch.nor_txt || '');
   $('.proof .txt-types :radio').each(function (i, item) {
     $(item).val() === ch.txt_type || '' ? $(item).prop('checked', true) : $(item).removeAttr('checked');
   });
