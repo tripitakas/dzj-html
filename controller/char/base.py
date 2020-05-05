@@ -11,8 +11,8 @@ from controller.task.base import TaskHandler
 
 class CharHandler(TaskHandler, Char):
     txt_level = {
-        'task': dict(cluster_proof=1, cluster_review=10, variant_proof=20, variant_review=30),
-        'role': dict(聚类校对员=1, 聚类审定员=10, 异体校对员=20, 异体审定员=30, 文字专家=100),
+        'task': dict(cluster_proof=1, cluster_review=10, rare_proof=1, rare_review=10),
+        'role': dict(聚类校对员=1, 聚类审定员=10, 生僻校对员=1, 生僻审定员=10, 文字专家=100),
     }
     default_level = 1
 

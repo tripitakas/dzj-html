@@ -173,15 +173,17 @@ class Variant(Model):
     def pack_doc(cls, doc, self=None):
         if doc.get('_id'):  # 更新
             doc['updated_time'] = datetime.now()
-        else:   # 新增
+        else:  # 新增
             doc['create_time'] = datetime.now()
             doc['create_by'] = self.user_id
             doc['create_user_id'] = self.username
             if not re.match(r'^[^\x00-\xff]$', doc.get('txt')):  # 非汉字
                 doc['img_name'] = doc['txt']
                 doc.pop('txt', 0)
-                v_max = self.db.variant.find_one({'img_name': {'$ne': None}}, sort=[('uid', -1)])
+                v_max = self.db.variant.find_one({}, sort=[('uid', -1)])
                 doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
+        if doc.get('uid'):
+            doc['uid'] = int(doc['uid'])
         doc = super().pack_doc(doc)
         return doc
 
