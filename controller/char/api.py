@@ -195,7 +195,7 @@ class CharTaskPublishApi(CharHandler):
         batch = self.data['batch']
         priority = self.data.get('priority') or 2
         pre_tasks = self.data.get('pre_tasks') or []
-        txt_kind = ''.join([p.get('ocr_txt') or p.get('txt') for p in params])
+        txt_kind = ''.join([p.get('ocr_txt') or '' for p in params])
         return dict(task_type=task_type, num=num, batch=batch, collection='char', id_name='name',
                     txt_kind=txt_kind, char_count=cnt, doc_id=None, steps=None, status=self.STATUS_PUBLISHED,
                     priority=priority, pre_tasks=pre_tasks, params=params, result={},
