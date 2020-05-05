@@ -89,14 +89,6 @@ class Task(Model):
             'name': '生僻审定', 'data': {'collection': 'char', 'id': 'name'},
             'pre_tasks': ['cluster_proof'], 'publishable': False,
         },
-        'variant_proof': {
-            'name': '异体校对', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3], 'publishable': True,
-        },
-        'variant_review': {
-            'name': '异体审定', 'data': {'collection': 'char', 'id': 'name'},
-            'pre_tasks': ['variant_proof'], 'publishable': True,
-        },
     }
 
     # 任务状态表

@@ -159,12 +159,7 @@ class CharTaskPublishApi(CharHandler):
             self.validate(self.data, rules)
             if not self.db.char.count_documents({'source': self.data['source']}):
                 self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
-
-            if 'cluster' in self.data['task_type']:
-                log = self.publish_cluster_task()
-            else:
-                log = self.publish_variant_task()
-
+            log = self.publish_cluster_task()
             return self.send_data_response(log)
 
         except self.DbError as error:
@@ -237,57 +232,6 @@ class CharTaskPublishApi(CharHandler):
             log.append(dict(task_type=rare_type, task_params=[t['params'] for t in rare_tasks]))
 
         self.add_op_log(self.db, 'publish_task', None, log, self.username)
-        return dict(published=published, normal_count=len(normal_tasks), rare_count=len(rare_tasks))
-
-    def publish_variant_task(self):
-        """ 发布异体校对、审定任务 """
-        log = []
-        source = self.data['source']
-        task_type = self.data['task_type']
-        num = self.data.get('num') or 1  # 默认校次为1
-
-        # 统计字频
-        field = 'txt'  # 以哪个字段进行聚类
-        counts = list(self.db.char.aggregate([
-            {'$match': {'source': source, 'is_variant': '是'}}, {'$group': {'_id': '$' + field, 'count': {'$sum': 1}}},
-            {'$sort': {'count': -1}}
-        ]))
-
-        # 去除已发布的任务
-        cond = {'task_type': task_type, 'num': num, 'params.source': source}
-        published = list(self.db.task.find(cond))
-        if published:
-            published = ''.join([self.get_txt(t, field) for t in published])
-            counts = [c for c in counts if str(c['_id']) not in published]
-
-        # 针对常见字(字频大于等于50)，发布异体校对
-        counts1 = [c for c in counts if c['count'] >= 50]
-        normal_tasks = [
-            self.task_meta(task_type, [{field: c['_id'], 'count': c['count'], 'source': source}], c['count'])
-            for c in counts1
-        ]
-        if normal_tasks:
-            self.db.task.insert_many(normal_tasks)
-            log.append(dict(task_type=task_type, task_params=[t['params'] for t in normal_tasks]))
-
-        # 针对生僻字(字频小于50)，凑足50个字后，发布异体校对
-        counts2 = [c for c in counts if c['count'] < 50]
-        rare_tasks = []
-        params, total_count = [], 0
-        for c in counts2:
-            total_count += c['count']
-            params.append({field: c['_id'], 'count': c['count'], 'source': source})
-            if total_count > 50:
-                rare_tasks.append(self.task_meta(task_type, params, total_count))
-                params, total_count = [], 0
-        if total_count:
-            rare_tasks.append(self.task_meta(task_type, params, total_count))
-        if rare_tasks:
-            self.db.task.insert_many(rare_tasks)
-            log.append(dict(task_type=task_type, task_params=[t['params'] for t in rare_tasks]))
-
-        self.add_op_log(self.db, 'publish_task', None, log, self.username)
-
         return dict(published=published, normal_count=len(normal_tasks), rare_count=len(rare_tasks))
 
 
