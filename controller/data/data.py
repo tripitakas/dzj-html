@@ -200,7 +200,12 @@ class Variant(Model):
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:
             condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
-        for field in ['uid', 'txt', 'normal_txt']:
+        for field in ['uid']:
+            value = h.get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: int(value)})
+        for field in ['txt', 'normal_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
