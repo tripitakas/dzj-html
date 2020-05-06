@@ -224,7 +224,7 @@
     var columnActive = cutStep ? cutStep === 2 : $('#toggle-column').hasClass('active');
     var threeActive = $('#toggle-three').hasClass('active');
 
-    if (el.data('readonly')) {
+    if (el.data('readonly') || el.data('_readonly')) {
       return false;
     }
     if ((charActive || threeActive) && cls === 'char') {

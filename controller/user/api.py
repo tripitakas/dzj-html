@@ -377,7 +377,7 @@ class UserlistApi(BaseHandler):
                 condition.update({'name': {'$regex': q}})
             size = 10
             cur_page = int(self.get_body_argument('page', 1))
-            total_count = self.db.user.count_documents(condition)
+            total_count = self.db.user.estimated_document_count(filter=condition)
             users = self.db.user.find(condition).sort('_id', 1).skip((cur_page - 1) * size).limit(size)
             users = [dict(id=str(u['_id']), text=u['name']) for u in list(users)]
             self.send_data_response(dict(results=list(users), pagination=dict(more=total_count > cur_page * size)))

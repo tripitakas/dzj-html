@@ -178,9 +178,9 @@ class TaskHandler(BaseHandler, Task, Lock):
 
         def get_random_skip():
             condition.update(dict(priority=3))
-            n3 = self.db.task.count_documents(condition)
+            n3 = self.db.task.estimated_document_count(filter=condition)
             condition.update(dict(priority=2))
-            n2 = self.db.task.count_documents(condition)
+            n2 = self.db.task.estimated_document_count(filter=condition)
             condition.pop('priority', 0)
             skip = n3 if n3 > page_size else n3 + n2 if n3 + n2 > page_size else total_count
             return random.randint(1, skip - page_size) if skip > page_size else 0
@@ -203,14 +203,14 @@ class TaskHandler(BaseHandler, Task, Lock):
             if my_tasks:
                 condition['doc_id'] = condition.get('doc_id') or {}
                 condition['doc_id'].update({'$nin': [t['doc_id'] for t in my_tasks]})
-            total_count = self.db.task.count_documents(condition)
+            total_count = self.db.task.estimated_document_count(filter=condition)
             skip_no = get_random_skip()
             # 按3倍量查询后去重
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
             tasks = de_duplicate()
         else:
             condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
-            total_count = self.db.task.count_documents(condition)
+            total_count = self.db.task.estimated_document_count(filter=condition)
             skip_no = get_random_skip()
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
 
@@ -228,7 +228,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             con_status.update({'$ne': self.STATUS_RETURNED})
             condition.update({'status': con_status})
             condition.update({'picked_user_id': self.user_id})
-        return self.db.task.count_documents(condition)
+        return self.db.task.estimated_document_count(filter=condition)
 
     def get_publish_meta(self, task_type):
         now = self.now()
