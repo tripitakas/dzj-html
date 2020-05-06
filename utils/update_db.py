@@ -17,6 +17,22 @@ from controller.page.tool.variant import variants
 from controller.page.base import PageHandler as Ph
 
 
+def index_db(db):
+    """ 给数据库增加索引"""
+    fields2index = {
+        'user': ['name', 'email', 'phone'],
+        'char': ['name', 'uid', 'source', 'ocr_txt', 'txt', 'cc', 'sc', 'txt_level', 'has_img'],
+        'page': ['name', 'page_code', 'source', 'level.box', 'level.text'],
+        'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
+    }
+    for collection, fields in fields2index.items():
+        for field in fields:
+            try:
+                db[collection].create_index(field)
+            except PyMongoError as e:
+                print(e)
+
+
 def check_box_cover(db):
     """ 检查切分框的覆盖情况"""
     size = 10
@@ -76,6 +92,7 @@ def update_cid(db):
         project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
         pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
+            print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             update = dict()
             if Ph.update_box_cid(page['chars']):
                 update['chars'] = page['chars']
@@ -85,23 +102,6 @@ def update_cid(db):
                 update['columns'] = page['columns']
             if update:
                 db.page.update_one({'_id': page['_id']}, {'$set': update})
-            print('processing %s: %s' % (page['name'], 'updated' if update else 'keep'))
-
-
-def index_db(db):
-    """ 给数据库增加索引"""
-    fields2index = {
-        'user': ['name', 'email', 'phone'],
-        'char': ['name', 'uid', 'source', 'ocr_txt', 'txt', 'cc', 'sc', 'txt_level', 'has_img'],
-        'page': ['name', 'page_code', 'source', 'level.box', 'level.text'],
-        'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
-    }
-    for collection, fields in fields2index.items():
-        for field in fields:
-            try:
-                db[collection].create_index(field)
-            except PyMongoError as e:
-                print(e)
 
 
 def apply_col_txt(db):
@@ -112,10 +112,10 @@ def apply_col_txt(db):
         project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
         pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
+            print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             r = Ph.apply_col_txt(page)
             if r:
                 db.page.update_one({'_id': page['_id']}, {'$set': {'columns': page['columns'], 'chars': page['chars']}})
-            print('processing %s: %s' % (page['name'], 'updated' if r else 'keep'))
 
 
 def migrate_fields_to_char(db, fields=None):
