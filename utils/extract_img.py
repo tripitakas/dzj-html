@@ -262,7 +262,7 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
         condition = json.loads(condition)
 
     once_size = 5000
-    total_count = db.char.estimated_document_count(filter=condition)
+    total_count = db.char.count_documents(condition)
     log_id = Bh.add_op_log(db, 'extract_img', 'ongoing', [], username)
     print('[%s]%s chars to generate.' % (total_count, hp.get_date_time()))
     for i in range(int(math.ceil(total_count / once_size))):
