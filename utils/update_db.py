@@ -33,6 +33,21 @@ def index_db(db):
                 print(e)
 
 
+def reorder_boxes(db):
+    """ 重新排序"""
+    size = 10
+    page_count = math.ceil(db.page.count_documents({}) / size)
+    for i in range(page_count):
+        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
+        pages = list(db.page.find({}, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for page in pages:
+            print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), page['name']))
+            Ph.reorder_boxes(page=page)
+            db.page.update_one({'_id': page['_id']}, {'$set': {
+                'blocks': page['blocks'], 'columns': page['columns'], 'chars': page['chars']
+            }})
+
+
 def check_box_cover(db):
     """ 检查切分框的覆盖情况"""
     size = 10
