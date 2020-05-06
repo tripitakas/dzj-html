@@ -144,6 +144,8 @@ def migrate_fields_to_char(db, fields=None):
         for page in pages:
             print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             for c in page['chars']:
+                if not c.get('ocr_txt'):
+                    continue
                 update = {f: c[f] for f in fields if c.get(f)}
                 un_equal = [v for v in update.values() if v != c['ocr_txt']]
                 update['un_equal'] = len(un_equal) > 0
