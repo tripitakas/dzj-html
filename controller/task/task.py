@@ -124,10 +124,16 @@ class Task(Model):
     @classmethod
     def task_names(cls, collection=None, publishable=None):
         if collection:
-            return {k: t['name'] for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == collection
-                    and t.get('publishable') == publishable}
+            r = {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == collection}
+            if publishable is not None:
+                return {k: t['name'] for k, t in r.items() if t.get('publishable') == publishable}
+            else:
+                return {k: t['name'] for k, t in r.items()}
         else:
-            return {k: t['name'] for k, t in cls.task_types.items() if t.get('publishable') == publishable}
+            if publishable is not None:
+                return {k: t['name'] for k, t in cls.task_types.items() if t.get('publishable') == publishable}
+            else:
+                return {k: t['name'] for k, t in cls.task_types.items()}
 
     @classmethod
     def step_names(cls):

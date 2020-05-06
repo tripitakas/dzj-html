@@ -1,11 +1,7 @@
 {% extends "_list.html" %}
 {% block custom-css %}
-{% if not debug and 0 %}
-<link href="{{static_url('built/task_admin_assets.css')}}" rel="stylesheet"/>
-{% else %}
 <link href="{{static_url('assets/flatpickr/flatpickr.min.css')}}" rel="stylesheet"/>
 <link href="{{static_url('assets/select2/select2.css')}}" rel="stylesheet"/>
-{% end %}
 <link href="{{static_url('css/task-admin.css')}}" rel="stylesheet"/>
 {% end %}
 

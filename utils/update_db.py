@@ -92,8 +92,7 @@ def index_db(db):
     """ 给数据库增加索引"""
     fields2index = {
         'user': ['name', 'email', 'phone'],
-        'char': ['name', 'uid', 'source', 'ocr_txt', 'txt', 'cc', 'sc',
-                 'page_name', 'data_level', 'has_img'],
+        'char': ['name', 'uid', 'source', 'ocr_txt', 'txt', 'cc', 'sc', 'txt_level', 'has_img'],
         'page': ['name', 'page_code', 'source', 'level.box', 'level.text'],
         'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
     }
@@ -119,7 +118,24 @@ def apply_col_txt(db):
             print('processing %s: %s' % (page['name'], 'updated' if r else 'keep'))
 
 
-def main(db_name='tripitaka', uri='localhost', func='apply_col_txt', **kwargs):
+def migrate_fields_to_char(db, fields=None):
+    """ 将page表的值同步到char表"""
+    fields = fields or ['col_txt', 'cmp_txt']
+    size = 10
+    page_count = math.ceil(db.page.count_documents({}) / size)
+    for i in range(page_count):
+        project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
+        pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
+        for page in pages:
+            print('processing %s: %s chars' % (page['name'], len(page['chars'])))
+            for c in page['chars']:
+                update = {f: c[f] for f in fields if c.get(f)}
+                un_equal = [v for v in update.values() if v != c['ocr_txt']]
+                update['un_equal'] = len(un_equal) > 0
+                db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
+
+
+def main(db_name='tripitaka', uri='localhost', func='migrate_fields_to_char', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

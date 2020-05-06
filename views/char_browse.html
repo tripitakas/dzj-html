@@ -77,10 +77,21 @@
         <input type="hidden" id="currentName">
         <div class="items txt-list">
           <div class="item ocr-alternatives">
-            <label class="head">OCR候选</label>
+            <label class="head">OCR字引擎</label>
             <div class="body">
               {% for t in c.get('alternatives', '')%}
               <span class="ocr-txt txt-item">{{t}}</span>
+              {% end %}
+            </div>
+          </div>
+          <div class="item other-alternatives">
+            <label class="head">OCR列引擎和比对文本</label>
+            <div class="body">
+              {% if c.get('col_txt') %}
+              <span class="ocr-txt txt-item">{{c['col_txt']}}</span>
+              {% end %}
+              {% if c.get('cmp_txt') %}
+              <span class="ocr-txt txt-item">{{c['cmp_txt']}}</span>
               {% end %}
             </div>
           </div>

@@ -120,7 +120,7 @@ class PageHandler(TaskHandler, Page, Box):
                     else:
                         c['col_txt'] = co_txt[i]
             else:
-                co['un_match'] = True
+                co['un_equal'] = True
         return changed
 
     @staticmethod
