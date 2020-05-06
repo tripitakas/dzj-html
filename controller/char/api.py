@@ -272,7 +272,7 @@ class CharTaskClusterApi(CharHandler):
             # 提交任务
             params = self.task['params']
             cond.update({'source': params[0]['source'], 'ocr_txt': {'$in': [c['ocr_txt'] for c in params]}})
-            if self.db.char.estimated_document_count(filter=cond):
+            if self.db.char.count_documents(cond):
                 return self.send_error_response(e.task_submit_error, message='还有未提交的字图，不能提交任务')
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
                 'status': self.STATUS_FINISHED, 'finished_time': self.now()
