@@ -59,7 +59,7 @@ class HomeHandler(TaskHandler):
             # 今日访问次数
             today_begin = datetime.strptime(get_date_time('%Y-%m-%d'), '%Y-%m-%d')
             condition = {'create_time': {'$gte': today_begin}, 'user_id': self.user_id, 'op_type': 'visit'}
-            visit_count = self.db.log.estimated_document_count(filter=condition)
+            visit_count = self.db.log.count_documents(condition)
 
             # 最后登录时间
             condition = {'user_id': self.user_id, 'op_type': {'$in': ['login_ok', 'register']}}
