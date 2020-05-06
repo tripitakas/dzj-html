@@ -99,9 +99,11 @@ class PageHandler(TaskHandler, Page, Box):
         """ 将columns的ocr_txt赋值给chars字段col_txt"""
         changed = False
         for co in page.get('columns', []):
+            co_txt = co.get('ocr_txt')
+            if not co_txt:
+                continue
             chars = [c for c in page['chars'] if c['block_no'] == co['block_no'] and c['column_no'] == co['column_no']]
             chars.sort(key=itemgetter('block_no', 'column_no', 'char_no'))
-            co_txt = co['ocr_txt']
             length = len(chars)
             if len(co_txt) == length:  # 字数相等
                 changed = True
