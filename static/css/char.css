@@ -19,6 +19,7 @@
 }
 
 .m-header .search {
+  position: relative;
   margin-left: 25px;
 }
 
@@ -34,11 +35,12 @@
 }
 
 .search i {
-  left: 0;
-  top: 6px;
+  right: 0;
+  top: 12px;
   cursor: pointer;
   font-size: 15px;
   margin-left: -18px;
+  position: absolute;
   color: var(--Brown_Darker);
   display: inline-block;
 }
