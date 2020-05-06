@@ -37,7 +37,7 @@ class GetReadyDocsApi(TaskHandler):
                 condition.update({output_field: {'$in': [None, '']}})  # 任务字段为空，则表示任务未完成
             page_no = int(self.data.get('page', 0)) if int(self.data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
-            count = self.db[collection].count_documents(condition)
+            count = self.db[collection].estimated_document_count(filter=condition)
             docs = self.db[collection].find(condition).limit(page_size).skip(page_size * (page_no - 1))
             doc_ids = [d[id_name] for d in list(docs)]
             response = {'docs': doc_ids, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
