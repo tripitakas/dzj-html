@@ -128,9 +128,9 @@ class TaskHandler(BaseHandler, Task):
 
         def get_random_skip():
             condition.update(dict(priority=3))
-            n3 = self.db.task.count_documents(condition)
+            n3 = self.db.task.estimated_document_count(filter=condition)
             condition.update(dict(priority=2))
-            n2 = self.db.task.count_documents(condition)
+            n2 = self.db.task.estimated_document_count(filter=condition)
             condition.pop('priority', 0)
             skip = n3 if n3 > page_size else n3 + n2 if n3 + n2 > page_size else total_count
             return random.randint(1, skip - page_size) if skip > page_size else 0
@@ -139,7 +139,7 @@ class TaskHandler(BaseHandler, Task):
         field = 'doc_id' if task_type in self.get_page_tasks() else 'txt_kind'
         condition = {field: {'$regex': q, '$options': '$i'}} if q else {}
         condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
-        total_count = self.db.task.count_documents(condition)
+        total_count = self.db.task.estimated_document_count(filter=condition)
         if self.has_num(task_type):  # 任务类型有多个校次的情况
             tasks = []
             my_tasks = self.find_mine(task_type)
@@ -174,7 +174,7 @@ class TaskHandler(BaseHandler, Task):
             con_status.update({'$ne': self.STATUS_RETURNED})
             condition.update({'status': con_status})
             condition.update({'picked_user_id': self.user_id})
-        return self.db.task.count_documents(condition)
+        return self.db.task.estimated_document_count(filter=condition)
 
     def check_task_auth(self, task, mode=None):
         """ 检查当前用户是否拥有相应的任务权限"""
