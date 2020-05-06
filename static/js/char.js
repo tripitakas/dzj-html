@@ -91,8 +91,12 @@ $('.char-panel .char-img').on('click', function () {
   updateWorkPanel(ch);
 });
 
-$('.char-panel .char-info').on('click', function () {
+$('.char-panel .char-info, .char-panel .char-check').on('click', function () {
   $(this).parent().find(':checkbox').click();
+});
+
+$('.char-check input').on('click', function (e) {
+  e.stopPropagation();
 });
 
 /** 中间列图面板 */

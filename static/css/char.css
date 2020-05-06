@@ -76,7 +76,7 @@
 }
 
 .txt-kind.current {
-  background-color: rgba(0, 0, 0, .1);
+  background-color: #f005;
 }
 
 .variant img, .txt-kind img {
@@ -148,6 +148,7 @@
   /*position: relative !important;*/
   /*margin-bottom: -17px !important;*/
 }
+
 
 /* 列图面板*/
 .flex .column-panel {

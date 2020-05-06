@@ -175,8 +175,8 @@ class Variant(Model):
             doc['updated_time'] = datetime.now()
         else:  # 新增
             doc['create_time'] = datetime.now()
-            doc['create_by'] = self.user_id
-            doc['create_user_id'] = self.username
+            doc['create_by'] = self.username
+            doc['create_user_id'] = self.user_id
             if not re.match(r'^[^\x00-\xff]$', doc.get('txt')):  # 非汉字
                 doc['img_name'] = doc['txt'].strip()
                 doc.pop('txt', 0)
