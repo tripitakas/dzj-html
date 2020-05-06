@@ -42,7 +42,7 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
         condition = {}
 
     once_size = 50
-    total_count = db.page.count_documents(condition)
+    total_count = db.page.estimated_document_count(filter=condition)
     log_id = Bh.add_op_log(db, 'gen_chars', 'ongoing', [], username)
     fields1 = ['name', 'source', 'columns', 'chars']
     fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'col_txt', 'cmp_txt', 'alternatives']

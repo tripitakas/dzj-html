@@ -117,7 +117,7 @@ class Model(object):
         if order:
             o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             query.sort(o, asc)
-        doc_count = self.db[cls.collection].count_documents(condition)
+        doc_count = self.db[cls.collection].estimated_document_count(filter=condition)
         cur_page = int(self.get_query_argument('page', 1))
         page_size = int(self.get_query_argument('page_size', 0) or hasattr(self, 'page_size') and self.page_size
                         or self.get_config('pager.page_size'))
