@@ -114,11 +114,13 @@ class PageHandler(TaskHandler, Page, Box):
                     cont = co_txt[i + 1] if i < length - 2 else ''
                     cnt = chars[i + 1].get('ocr_txt') if i < length - 1 else ''
                     cnnt = chars[i + 2].get('ocr_txt') if i < length - 2 else ''
-                    if cot != c['ocr_txt'] and (cot == cnt or cont == cnnt):
+                    if not c.get('ocr_txt') and cot != cnt:
+                        c['col_txt'] = c['ocr_txt'] = cot
+                    elif cot != c.get('ocr_txt') and (cot == cnt or cont == cnnt):
                         c['col_txt'] = ''
                         co_txt = co_txt[:i] + '□' + co_txt[i:]
                     else:
-                        c['col_txt'] = co_txt[i]
+                        c['col_txt'] = cot
             else:
                 co['un_equal'] = True
         return changed
