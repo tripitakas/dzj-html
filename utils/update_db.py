@@ -105,9 +105,23 @@ def index_db(db):
                 print(e)
 
 
-def main(db_name='tripitaka', uri='localhost', func='update_cid'):
+def apply_col_txt(db):
+    """ 将page表中columns的文本赋值给chars字段col_txt"""
+    size = 10
+    page_count = math.ceil(db.page.count_documents({}) / size)
+    for i in range(page_count):
+        project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
+        pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
+        for page in pages:
+            r = Ph.apply_col_txt(page)
+            if r:
+                db.page.update_one({'_id': page['_id']}, {'$set': {'columns': page['columns'], 'chars': page['chars']}})
+            print('processing %s: %s' % (page['name'], 'updated' if r else 'keep'))
+
+
+def main(db_name='tripitaka', uri='localhost', func='apply_col_txt', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
-    eval(func)(db)
+    eval(func)(db, **kwargs)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+from operator import itemgetter
 from .tool.box import Box
 from .tool.diff import Diff
 from controller import auth
@@ -10,7 +11,6 @@ from controller import helper as hp
 from tornado.escape import url_escape
 from controller.page.page import Page
 from controller.task.base import TaskHandler
-from controller.char.base import CharHandler
 
 
 class PageHandler(TaskHandler, Page, Box):
@@ -93,6 +93,35 @@ class PageHandler(TaskHandler, Page, Box):
         self.pop_fields(page['chars'], 'box_logs')
         self.pop_fields(page['blocks'], 'box_logs')
         self.pop_fields(page['columns'], 'box_logs')
+
+    @staticmethod
+    def apply_col_txt(page):
+        """ 将columns的ocr_txt赋值给chars字段col_txt"""
+        changed = False
+        for co in page.get('columns', []):
+            chars = [c for c in page['chars'] if c['block_no'] == co['block_no'] and c['column_no'] == co['column_no']]
+            chars.sort(key=itemgetter('block_no', 'column_no', 'char_no'))
+            co_txt = co['ocr_txt']
+            length = len(chars)
+            if len(co_txt) == length:  # 字数相等
+                changed = True
+                for i, c in enumerate(chars):
+                    c['col_txt'] = co_txt[i]
+            elif len(co_txt) == length - 1:  # 字数少1
+                changed = True
+                for i, c in enumerate(chars):
+                    cot = co_txt[i] if i < length - 1 else ''
+                    cont = co_txt[i+1] if i < length - 2 else ''
+                    cnt = chars[i + 1].get('ocr_txt') if i < length - 1 else ''
+                    cnnt = chars[i + 2].get('ocr_txt') if i < length - 2 else ''
+                    if cot != c['ocr_txt'] and (cot == cnt or cont == cnnt):
+                        c['col_txt'] = ''
+                        co_txt = co_txt[:i] + '□' + co_txt[i:]
+                    else:
+                        c['col_txt'] = co_txt[i]
+            else:
+                co['un_match'] = True
+        return changed
 
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
         """ 合并用户提交和数据库中已有数据"""
