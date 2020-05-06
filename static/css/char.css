@@ -232,6 +232,14 @@
   border: 1px solid rgba(0, 0, 255, .4);
 }
 
+.col-txt {
+  border-bottom: 1px solid rgba(255, 0, 0, .4);
+}
+
+.cmp-txt {
+  border-bottom: 1px solid rgba(0, 255, 0, .4);
+}
+
 .ocr-alternatives .body {
   display: flex;
   flex-wrap: wrap;
@@ -270,7 +278,7 @@
   justify-content: space-between;
 }
 
-.variant-help {
+.proof-help {
   font-size: 14px;
   margin: 0 6px 0 4px;
 }
@@ -322,6 +330,6 @@
   word-break: break-all;
 }
 
-#resultModal .control-label{
+#resultModal .control-label {
   padding-top: 0 !important;
 }

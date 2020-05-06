@@ -178,10 +178,13 @@ function updateWorkPanel(ch) {
   $('.m-footer .page-name').text(ch.page_name);
   $('#currentId').val(ch._id.$oid);
   $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
-  // 更新OCR候选
-  $('.ocr-alternatives .body').html((ch.alternatives || ch.txt || '').split('').map(function (c) {
-    return '<span class="ocr-txt txt-item' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
-  }));
+  // 更新候选文字
+  var options = ch.col_txt ? `<span class="txt-item col-txt${ch.col_txt === ch.txt ? ' active' : ''}">${ch.col_txt}</span>` : '';
+  options += ch.cmp_txt ? `<span class="txt-item cmp-txt${ch.cmp_txt === ch.txt ? ' active' : ''}">${ch.cmp_txt}</span>` : '';
+  options += (ch.alternatives || '').split('').map(function (c) {
+    return `<span class="txt-item${c === ch.txt ? ' active' : ''}">${c}</span>`;
+  }).join('');
+  $('.ocr-alternatives .body').html(options);
   // 更新校对历史
   updateLogs(ch.txt_logs);
   // 更新请您校对

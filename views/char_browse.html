@@ -80,7 +80,7 @@
             <label class="head">OCR字引擎</label>
             <div class="body">
               {% for t in c.get('alternatives', '')%}
-              <span class="ocr-txt txt-item">{{t}}</span>
+              <span class="txt-item">{{t}}</span>
               {% end %}
             </div>
           </div>
@@ -88,10 +88,10 @@
             <label class="head">OCR列引擎和比对文本</label>
             <div class="body">
               {% if c.get('col_txt') %}
-              <span class="ocr-txt txt-item">{{c['col_txt']}}</span>
+              <span class="txt-item">{{c['col_txt']}}</span>
               {% end %}
               {% if c.get('cmp_txt') %}
-              <span class="ocr-txt txt-item">{{c['cmp_txt']}}</span>
+              <span class="txt-item">{{c['cmp_txt']}}</span>
               {% end %}
             </div>
           </div>
@@ -137,7 +137,7 @@
           <div class="item proof">
             <label class="head">
               请您校对
-              <span class="icon-info variant-help" data-toggle="tooltip" data-placement="left" title="如果您输入的文字和图片用字不是同一个字，即有多笔少划或者字形结构上的不同，但是属于同一个正字，则二者构成异体字。"></span>
+              <span class="icon-info proof-help" data-toggle="tooltip" data-placement="left" title="如果您输入的文字和图片用字不是同一个字，即有多笔少划或者字形结构上的不同，但是属于同一个正字，则二者构成异体字。"></span>
             </label>
             <div class="body">
               <input class="form-control txt" placeholder="请录入原字"/>

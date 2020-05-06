@@ -140,7 +140,7 @@ def migrate_fields_to_char(db, fields=None):
     page_count = math.ceil(db.page.count_documents({}) / size)
     for i in range(page_count):
         project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
-        pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find({'name': 'GL_127_7_8'}, project).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             for c in page['chars']:
