@@ -62,6 +62,7 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
                         m['txt'] = c.get('txt') or c.get('ocr_txt')
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
+                        m['ocr_match'] = c.get('col_txt', '1') == c.get('alternatives', ['2'])[0]
                         m['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
                         chars.append(m)
                     except KeyError as e:

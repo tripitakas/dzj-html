@@ -178,12 +178,19 @@ class Variant(Model):
             doc['create_by'] = self.user_id
             doc['create_user_id'] = self.username
             if not re.match(r'^[^\x00-\xff]$', doc.get('txt')):  # 非汉字
-                doc['img_name'] = doc['txt']
+                doc['img_name'] = doc['txt'].strip()
                 doc.pop('txt', 0)
                 v_max = self.db.variant.find_one({'uid': {'$ne': None}}, sort=[('uid', -1)])
                 doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
         if doc.get('uid'):
             doc['uid'] = int(doc['uid'])
+        if doc.get('txt'):
+            doc['txt'] = doc['txt'].strip()
+        if doc.get('normal_txt'):
+            nt = doc['normal_txt']
+            variant = self.db.variant.find_one({'uid': int(nt.strip('Y'))} if 'Y' in nt else {'txt': nt})
+            if variant:
+                doc['normal_txt'] = variant.get('normal_txt')
         doc = super().pack_doc(doc)
         return doc
 

@@ -121,6 +121,7 @@ class AddPage(object):
             meta['source'] = self.source if self.source else meta.get('source')
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
+            Ph.apply_col_txt(page)
             Ph.update_box_cid(meta['chars'])
             Ph.update_box_cid(meta['blocks'])
             Ph.update_box_cid(meta['columns'])

@@ -8,7 +8,7 @@ $('#btn-my-update').on('click', () => location.href = setQueryString('update', '
 $('#btn-all-update').on('click', () => location.href = setQueryString('update', 'all'));
 $('#btn-submitted').on('click', () => location.href = setQueryString('submitted', 'true'));
 $('#btn-not-submitted').on('click', () => location.href = setQueryString('submitted', 'false'));
-$('#btn-variant').on('click', () => location.href = setQueryString('variant', 'true'));
+$('#btn-diff-txt').on('click', () => location.href = setQueryString('diff', 'true'));
 
 // 按置信度过滤
 $('#btn-filter').on('click', function () {
@@ -185,7 +185,7 @@ function updateWorkPanel(ch) {
   $('.proof .txt').val(ch.txt || ch.ocr_txt);
   $('.proof .nor-txt').val(ch.nor_txt || '');
   $('.proof .txt-types :radio').each(function (i, item) {
-    $(item).val() === ch.txt_type || '' ? $(item).prop('checked', true) : $(item).removeAttr('checked');
+    $(item).val() === (ch.txt_type || '') ? $(item).prop('checked', true) : $(item).removeAttr('checked');
   });
   // 更新列图和字框
   if ($('#col-holder').length)

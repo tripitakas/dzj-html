@@ -49,6 +49,7 @@
         <div class="btn-group" title="按条件过滤">
           <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
+            <li><a id="btn-diff-txt" href="#">异文</a></li>
             <li><a id="btn-submitted" href="#">已提交</a></li>
             <li><a id="btn-not-submitted" href="#">未提交</a></li>
             <li><a id="btn-my-update" href="#">我的修改</a></li>
@@ -334,7 +335,8 @@
 
   // 新增异体字
   $('#add-variant').on('click', function () {
-    $('#variantModal .normal-txt').val($('.txt-kind.current').text());
+    $('#variantModal .normal-txt').val($('.txt-kind.current').attr('data-value'));
+    $('#variantModal .txt').val($('#currentName').val());
     $('#variantModal').modal();
   });
   $('#variantModal .modal-confirm').on('click', function () {

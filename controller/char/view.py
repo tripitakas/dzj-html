@@ -284,6 +284,10 @@ class CharTaskClusterHandler(CharHandler):
         """ 聚类校对页面"""
 
         def get_user_filter():
+            # 异文
+            diff = self.get_query_argument('diff', 0)
+            if diff == 'true':
+                cond['un_match'] = True
             # 按修改过滤
             update = self.get_query_argument('update', 0)
             if update == 'my':

@@ -111,7 +111,7 @@ class PageHandler(TaskHandler, Page, Box):
                 changed = True
                 for i, c in enumerate(chars):
                     cot = co_txt[i] if i < length - 1 else ''
-                    cont = co_txt[i+1] if i < length - 2 else ''
+                    cont = co_txt[i + 1] if i < length - 2 else ''
                     cnt = chars[i + 1].get('ocr_txt') if i < length - 1 else ''
                     cnnt = chars[i + 2].get('ocr_txt') if i < length - 2 else ''
                     if cot != c['ocr_txt'] and (cot == cnt or cont == cnnt):
@@ -121,6 +121,12 @@ class PageHandler(TaskHandler, Page, Box):
                         c['col_txt'] = co_txt[i]
             else:
                 co['un_match'] = True
+        return changed
+
+    @staticmethod
+    def apply_cmp_txt(page):
+        """ 将寻找的比对文本逐个赋值给chars字段cmp_txt"""
+        changed = False
         return changed
 
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
