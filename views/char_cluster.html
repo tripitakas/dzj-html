@@ -340,7 +340,7 @@
     }
     if (JSON.stringify(data) !== '{}') {
       postApi('/session/config', {data: data});
-      $("#taskConfigModal").modal('hide');
+      location.reload();
     }
   });
 
