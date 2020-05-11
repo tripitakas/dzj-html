@@ -32,6 +32,7 @@
   height: 24px;
   color: var(--Brown_Darker);
   padding-left: 6px;
+  margin-top: 8px;
 }
 
 .search i {
@@ -57,6 +58,7 @@
 .char-panel .txt-kinds, .char-panel .variants {
   display: flex;
   flex-wrap: wrap;
+  flex-shrink: 0;
   margin: 5px 10px;
   border-bottom: 1px solid #ccc;
 }
