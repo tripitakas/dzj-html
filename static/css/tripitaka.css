@@ -152,7 +152,7 @@
 }
 
 .main-line .search .scope-items a.active:after {
-  content: '√';
+  content: "e067"; /* glyphicon-check */
   padding-left: 4px;
 }
 
