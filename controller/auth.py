@@ -80,7 +80,7 @@ role_route_maps = {
             '/api/page/cmp_txt/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
             '/char/@char_name': ['GET'],
-            '/api/chars/(txt|box)': ['POST'],
+            '/api/chars/(txt|txt_type|box)': ['POST'],
             '/api/char/(txt|box)/@char_name': ['POST'],
         }
     },

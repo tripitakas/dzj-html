@@ -97,7 +97,7 @@ class CharTxtApi(CharHandler):
 
 
 class CharsTxtApi(CharHandler):
-    URL = '/api/chars/(txt|nor_txt)'
+    URL = '/api/chars/(txt|txt_type)'
 
     def post(self, field):
         """ 批量更新txt"""
@@ -140,9 +140,11 @@ class CharsTxtApi(CharHandler):
                 }}})
             if old_update:
                 cond = {'name': {'$in': old_update}, 'txt_logs.user_id': self.user_id}
-                self.db.char.update_many(cond, {'$set': {'txt_logs.$': {
-                    **info, 'updated_time': self.now()
-                }}})
+                self.db.char.update_many(cond, {'$set': {
+                    'txt_logs.$.' + field: info[field],
+                    'txt_logs.$.txt_level': info['txt_level'],
+                    'txt_logs.$.updated_time': self.now(),
+                }})
             self.send_data_response({k: l for k, l in log.items() if l})
             self.add_log('update_txt', None, new_update + old_update, info)
 

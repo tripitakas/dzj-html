@@ -156,7 +156,7 @@ function updateColumnImg(ch) {
 // 更新校对记录
 function updateLogs(logs) {
   var html = (logs || []).map(function (log) {
-    var txt = log.txt || log.nor_txt;
+    var txt = log.txt || log.nor_txt || '';
     var head = `<span class="log-txt txt-item">${/[0-9]/.test(txt) ? '' : txt}</span>`;
     var meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
     meta += log.nor_txt ? `<label>正字</label><span>${log.nor_txt}</span><br/>` : '';

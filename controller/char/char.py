@@ -41,7 +41,7 @@ class Char(Model):
     ]
     primary = 'name'
 
-    txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+    txt_types = {'Y': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
     # search_fields在这里定义，这样find_by_page时q参数才会起作用
     search_tips = '请搜索字编码、分类、文字'
     search_fields = ['name', 'source', 'txt', 'ocr_txt', 'nor_txt']
