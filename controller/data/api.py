@@ -114,16 +114,16 @@ class VariantDeleteApi(BaseHandler):
     URL = '/api/variant/delete'
 
     def post(self):
-        """ 删除异体字"""
+        """ 删除图片异体字"""
         try:
-            rules = [(v.not_empty, 'txt')]
+            rules = [(v.not_empty, 'uid'), (v.is_char_uid, 'uid')]
             self.validate(self.data, rules)
-            txt = self.data['txt']
-            if self.db.char.find_one({'txt': txt}):
+            uid = self.data['uid']
+            if self.db.char.find_one({'txt': uid}):
                 return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
-            vt = self.db.variant.find_one({'uid': int(txt.strip('Y'))} if re.match(r'Y\d+', txt) else {'txt': txt})
+            vt = self.db.variant.find_one({'uid': int(uid.strip('Y'))})
             if not vt:
-                return self.send_error_response(e.no_object, message='没有找到%s相关的异体字' % txt)
+                return self.send_error_response(e.no_object, message='没有找到%s相关的异体字' % uid)
             self.db.variant.delete_one({'_id': vt['_id']})
             self.send_data_response()
             self.add_log('delete_variant', target_id=vt['_id'])

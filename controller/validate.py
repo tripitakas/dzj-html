@@ -277,6 +277,14 @@ def is_txt_type(**kw):
     return errs or None
 
 
+def is_char_uid(**kw):
+    """ 检查是否为char的uid。"""
+    code, message = e.invalid_txt_type
+    regex = r'^Y\d+$'
+    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    return errs or None
+
+
 def between(min_v, max_v, **kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]

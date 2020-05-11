@@ -87,13 +87,15 @@
         <div class="variants{{'' if cur_txt else ' hide'}}">
           <span id="add-variant" class="variant">+</span>
           {% for v in variants %}
-          <span class="variant txt-item" data-value="{{v.get('txt') or 'Y%s' % v.get('uid')}}">
           {% if v.get('txt') %}
+          <span class="variant txt-item" data-value="{{v['txt']}}">
             {{v['txt']}}
-          {% else %}
-            <img src="{{handler.get_web_img(v['img_name'], 'char')}}"/>
-          {% end %}
           </span>
+          {% else %}
+          <span class="variant variant-img txt-item" data-value="{{'Y%s' % v.get('uid')}}">
+            <img src="{{handler.get_web_img(v['img_name'], 'char')}}"/>
+          </span>
+          {% end %}
           {% end %}
         </div>
         <div class="char-items">
@@ -351,7 +353,7 @@
         $("#variantModal").modal('hide');
         if (/[0-9a-zA-Z_]+/.test(data.txt)) {
           var imgUrl = $('#' + data.txt).find('img').attr('src');
-          $('.variants').append(`<span class="variant txt-item" data-value="Y${res.doc.uid}"><img src="${imgUrl}"/></span>`);
+          $('.variants').append(`<span class="variant variant-img txt-item" data-value="Y${res.doc.uid}"><img src="${imgUrl}"/></span>`);
         } else {
           $('.variants').append(`<span class="variant txt-item" data-value="${data.txt}">${data.txt}</span>`);
         }
@@ -360,10 +362,10 @@
   });
 
   // 删除异体字
-  $('.variant').on('dblclick', function () {
+  $(document).on('dblclick', '.variant-img', function () {
     var $this = $(this);
     showConfirm('提示', '确定删除该图片字吗？', function () {
-      postApi('/variant/delete', {data: {txt: $this.attr('data-value')}}, function (res) {
+      postApi('/variant/delete', {data: {uid: $this.attr('data-value')}}, function (res) {
         $this.remove();
       });
     });
@@ -416,7 +418,6 @@
   $('#resultModal .modal-confirm').on('click', function () {
     location.reload();
   });
-
 
   // 提交文字修改
   $('#submit-txt').on('click', function () {
