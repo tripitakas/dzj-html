@@ -204,7 +204,7 @@ class Variant(Model):
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field: int(value)})
+                condition.update({field: int(value.strip('Y'))})
         for field in ['txt', 'normal_txt']:
             value = h.get_url_param(field, request_query)
             if value:
@@ -215,4 +215,5 @@ class Variant(Model):
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
+        print(condition)
         return condition, params

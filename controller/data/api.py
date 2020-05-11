@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import os
 import csv
 from os import path
@@ -73,9 +74,29 @@ class DataDeleteApi(BaseHandler):
 
     def post(self, collection):
         """ 批量删除 """
+
+        def pre_variant():
+            if self.data.get('_id'):
+                vt = self.db.variant.find_one({'_id': ObjectId(self.data['_id'])})
+                if self.db.char.find_one({'txt': 'Y%s' % vt['uid'] if vt.get('uid') else vt['txt']}):
+                    return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
+            else:
+                can_delete = []
+                vts = list(self.db.variant.find({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}))
+                for vt in vts:
+                    if not self.db.char.find_one({'txt': 'Y%s' % vt['uid'] if vt.get('uid') else vt['txt']}):
+                        can_delete.append(str(vt['_id']))
+                if can_delete:
+                    self.data['_ids'] = can_delete
+                else:
+                    return self.send_error_response(e.unauthorized, message='所有异体字均被使用中，不能删除')
+
         try:
             rules = [(v.not_both_empty, '_id', '_ids')]
             self.validate(self.data, rules)
+
+            if collection == 'variant':
+                pre_variant()
 
             if self.data.get('_id'):
                 r = self.db[collection].delete_one({'_id': ObjectId(self.data['_id'])})
@@ -87,6 +108,29 @@ class DataDeleteApi(BaseHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
+
+
+class VariantDeleteApi(BaseHandler):
+    URL = '/api/variant/delete'
+
+    def post(self):
+        """ 删除异体字"""
+        try:
+            rules = [(v.not_empty, 'txt')]
+            self.validate(self.data, rules)
+            txt = self.data['txt']
+            if self.db.char.find_one({'txt': txt}):
+                return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
+            vt = self.db.variant.find_one({'uid': int(txt.strip('Y'))} if re.match(r'Y\d+', txt) else {'txt': txt})
+            if not vt:
+                return self.send_error_response(e.no_object, message='没有找到%s相关的异体字' % txt)
+            self.db.variant.delete_one({'_id': vt['_id']})
+            self.send_data_response()
+            self.add_log('delete_variant', target_id=vt['_id'])
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
 
 class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'

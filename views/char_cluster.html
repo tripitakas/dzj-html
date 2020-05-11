@@ -56,14 +56,8 @@
             <li><a id="btn-all-update" href="#">所有修改</a></li>
           </ul>
         </div>
-        <div class="btn-group" title="批量选择">
-          <i class="btn-txt icon-checkbox2 dropdown-toggle" data-toggle="dropdown"></i>
-          <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-select-all" href="#">全部选择</a></li>
-            <li><a id="btn-deselect" href="#">全部不选</a></li>
-            <li><a id="bat-update" href="#">批量修改</a></li>
-          </ul>
-        </div>
+        <div id="bat-select" class="btn-txt icon-checkbox2" data-toggle="tooltip" data-placement="bottom" title="全部选择"></div>
+        <div id="bat-update" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="批量修改"></div>
         <div id="toggle-column-panel" class="btn-txt icon-panel-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐中间列图"></div>
         <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
         <div class="search">
@@ -185,7 +179,7 @@
           <div class="item proof">
             <label class="head">
               请您校对
-              <span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="如果您输入的文字和图片用字不是同一个字，即有多笔少划或者字形结构上的不同，但是属于同一个正字，则二者构成异体字。"></span>
+              <span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="如果两个字有多笔少划或者字形结构上的不同，则二者不是同一个字。"></span>
             </label>
             <div class="body">
               <input class="form-control txt" placeholder="请输入字框中的文字"/>
@@ -254,16 +248,16 @@
   <div id="variantModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="variantModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content modal-sm">
-        <div class="modal-header"><h4 class="modal-title">新增异体字</h4></div>
+        <div class="modal-header"><h4 class="modal-title">新增图片字</h4></div>
         <div class="modal-body">
           <form class="form-horizontal">
             <div class="form-group">
-              <h4 class="col-sm-3 control-label">异体字</h4>
+              <h4 class="col-sm-3 control-label">图片字</h4>
               <div class="col-sm-8">
-                <input type="text" class="form-control txt" placeholder="请输入异体字文字或字图编码">
+                <input type="text" class="form-control txt" placeholder="请输入图片字的编码">
               </div>
-              <h4 class="col-sm-3 control-label" style="margin-top: 10px">所属正字</h4>
-              <div class="col-sm-8" style="margin-top: 10px">
+              <h4 class="col-sm-3 control-label hide" style="margin-top: 10px">所属正字</h4>
+              <div class="col-sm-8 hide" style="margin-top: 10px">
                 <input type="text" class="form-control normal-txt" placeholder="请输入所属正字" readonly="readonly">
               </div>
             </div>
@@ -364,12 +358,22 @@
     }
   });
 
+  // 删除异体字
+  $('.variant').on('dblclick', function () {
+    var $this = $(this);
+    showConfirm('提示', '确定删除该图片字吗？', function () {
+      postApi('/variant/delete', {data: {txt: $this.attr('data-value')}}, function (res) {
+        $this.remove();
+      });
+    });
+  });
+
   // 批量修改文字
   $('#bat-update').on('click', function () {
     var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
     if (!names.length)
       return showWarning('请选择', '当前没有选中任何记录。');
-    Swal2.fire({title: '请输入文字', input: 'text', showLoaderOnConfirm: true}).then((result) => {
+    Swal2.fire({title: '请输入文字', input: 'text', inputValue: $('.proof .txt').val(), showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
         var data = {names: names, txt: result.value, task_type: taskType};
         postApi('/chars/txt', {data: data}, function (res) {

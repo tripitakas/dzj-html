@@ -30,13 +30,13 @@ $('#btn-filter').on('click', function () {
 });
 
 // 全部选择
-$('#btn-select-all').on('click', function () {
-  $('.char-check :checkbox').prop('checked', true);
-});
-
-// 全部不选
-$('#btn-deselect').on('click', function () {
-  $('.char-check :checkbox').removeAttr('checked');
+$('#bat-select').on('click', function () {
+  $(this).toggleClass('active');
+  if ($(this).hasClass('active')) {
+    $('.char-check :checkbox').prop('checked', true);
+  } else {
+    $('.char-check :checkbox').removeAttr('checked');
+  }
 });
 
 // 检索异体字
@@ -176,6 +176,7 @@ function updateWorkPanel(ch) {
   // 更新当前参数
   $('.m-footer .char-name').text(ch.name);
   $('.m-footer .page-name').text(ch.page_name);
+  $('#search-variant').val(ch.ocr_txt || ch.txt);
   $('#currentId').val(ch._id.$oid);
   $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
   // 更新候选文字

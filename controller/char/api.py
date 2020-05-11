@@ -31,6 +31,7 @@ class CharDeleteApi(CharHandler):
         except self.DbError as error:
             return self.send_db_error(error)
 
+
 class CharExtractImgApi(CharHandler):
     URL = '/api/char/extract_img'
 
@@ -235,14 +236,14 @@ class CharTaskPublishApi(CharHandler):
             self.db.task.insert_many(normal_tasks)
             log.append(dict(task_type=task_type, task_params=[t['params'] for t in normal_tasks]))
 
-        # 针对生僻字(字频小于50)，发布生僻校对
+        # 针对生僻字(字频小于50)，发布生僻校对。发布任务时，字种不超过10个。
         counts2 = [c for c in counts if c['count'] < 50]
         rare_tasks = []
         params, total_count = [], 0
         for c in counts2:
             total_count += c['count']
             params.append({field: c['_id'], 'count': c['count'], 'source': source})
-            if total_count > 50:
+            if total_count >= 50 or len(params) >= 10:
                 rare_tasks.append(self.task_meta(rare_type, params, total_count))
                 params, total_count = [], 0
         if total_count:
