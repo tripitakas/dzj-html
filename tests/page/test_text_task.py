@@ -128,12 +128,12 @@ class TestTextTask(APITestCase):
 
         # 测试获取上一页文本
         data = {'data': {'cmp_page_code': hit_page_codes[0], 'neighbor': 'prev'}}
-        d = self.parse_response(self.fetch('/api/page/cmp_txt/neighbor', body=data))
+        d = self.parse_response(self.fetch('/api/page/find_cmp/neighbor', body=data))
         self.assertTrue(d.get('txt'))
 
         # 测试获取下一页文本
         data = {'data': {'cmp_page_code': hit_page_codes[0], 'neighbor': 'next'}}
-        d = self.parse_response(self.fetch('/api/page/cmp_txt/neighbor', body=data))
+        d = self.parse_response(self.fetch('/api/page/find_cmp/neighbor', body=data))
         self.assertTrue(d.get('txt'))
 
     def test_text_mode(self):

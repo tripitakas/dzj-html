@@ -145,8 +145,20 @@ class PageCutTaskApi(PageHandler):
             return self.send_db_error(error)
 
 
+class PageTxtMatchApi(PageHandler):
+    URL = ['/api/page/txt_match/@page_name']
+
+    def post(self, page_name):
+        """ 提交文本匹配"""
+        try:
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class PageCmpTxtApi(PageHandler):
-    URL = '/api/page/cmp_txt/@page_name'
+    URL = '/api/page/find_cmp/@page_name'
 
     def post(self, page_name):
         """ 根据OCR文本从CBETA库中查找相似文本作为比对本"""
@@ -169,7 +181,7 @@ class PageCmpTxtApi(PageHandler):
 
 
 class PageCmpTxtNeighborApi(PageHandler):
-    URL = '/api/page/cmp_txt/neighbor'
+    URL = '/api/page/find_cmp/neighbor'
 
     def post(self):
         """ 获取比对文本的前后页文本"""
@@ -186,49 +198,6 @@ class PageCmpTxtNeighborApi(PageHandler):
                 self.send_data_response(dict(txt='', message='没有更多内容'))
 
         except self.DbError as error:
-            return self.send_db_error(error)
-
-
-class PageTxtDiffApi(PageHandler):
-    URL = '/api/page/txt/diff'
-
-    def post(self):
-        """ 用户提交纯文本后重新比较，并设置修改痕迹"""
-        try:
-            rules = [(v.not_empty, 'texts')]
-            self.validate(self.data, rules)
-            diff_blocks = self.diff(*self.data['texts'])
-            if self.data.get('hints'):
-                diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
-            cmp_data = self.render_string('page_text_area.html', blocks=diff_blocks,
-                                          sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))
-            cmp_data = native_str(cmp_data)
-            self.send_data_response(dict(cmp_data=cmp_data))
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-    @staticmethod
-    def set_hints(diff_blocks, hints):
-        for h in hints:
-            line_segments = diff_blocks.get(h['block_no'], {}).get(h['line_no'])
-            if not line_segments:
-                continue
-            for s in line_segments:
-                if s['base'] == h['base'] and s['cmp1'] == h['cmp1']:
-                    s['selected'] = True
-        return diff_blocks
-
-
-class PageDetectCharsApi(PageHandler):
-    URL = '/api/page/txt/detect_chars'
-
-    def post(self):
-        """ 根据文本行内容识别宽字符"""
-        try:
-            mb4 = [[self.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
-            self.send_data_response(mb4)
-        except Exception as error:
             return self.send_db_error(error)
 
 
