@@ -215,11 +215,12 @@ class Page(Model):
         return ''.join([n.zfill(4) for n in page_name.split('_')]).lstrip('0')
 
     @classmethod
-    def insert_many(cls, db, file_stream=None, layout=None):
+    def insert_many(cls, db, file_stream=None, layout=None, source=None):
         """ 插入新页面
         :param db 数据库连接
         :param file_stream 已打开的文件流。
         :param layout 页面的版面结构。
+        :param source 页面分类
         :return {status: 'success'/'failed', code: '',  message: '...', errors:[]}
         """
         result = json.load(file_stream)
@@ -234,6 +235,7 @@ class Page(Model):
             s = page_name.split('.')
             page['name'] = s[0]
             page['layout'] = layout
+            page['source'] = source
             page['page_code'] = cls.name2pagecode(s[0])
             page['img_suffix'] = name2suffix.get(page_name)
             pages.append(page)
