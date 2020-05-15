@@ -40,7 +40,8 @@ class DataUploadApi(BaseHandler):
         with StringIO(content) as fn:
             if collection == 'page':
                 assert self.data.get('layout'), 'need layout'
-                r = Page.insert_many(self.db, file_stream=fn, layout=self.data['layout'])
+                r = Page.insert_many(self.db, file_stream=fn, layout=self.data['layout'],
+                                     source=self.data.get('source'))
             else:
                 update = False if collection == 'tripitaka' else True
                 r = model.save_many(self.db, collection, file_stream=fn, update=update)

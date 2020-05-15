@@ -180,7 +180,7 @@ class Model(object):
         for i, doc in enumerate(docs):
             err = cls.validate(doc)
             if err:
-                error_codes.append([doc.get(cls.primary), err[0][1]])
+                error_codes.append([doc.get(cls.primary), list(err.items())[0][1]])
             elif cls.ignore_existed_check(doc) is False and doc.get(cls.primary) in valid_codes:
                 # 去掉重复数据
                 error_codes.append([doc.get(cls.primary), e.code_duplicated[1]])
