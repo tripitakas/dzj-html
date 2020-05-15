@@ -258,13 +258,13 @@ class DeleteTasksApi(TaskHandler):
     URL = '/api/task/delete'
 
     def post(self):
-        """ 删除任务(只能删除已发布未领取、等待前置任务、已退回的任务，这些任务未占数据锁)"""
+        """ 删除任务(只能删除已发布未领取、等待前置任务、已退回、失败的任务，这些任务未占数据锁)"""
         try:
             rules = [(v.not_both_empty, '_ids', '_id')]
             self.validate(self.data, rules)
 
             _ids = self.data['_ids'] if self.data.get('_ids') else [self.data['_id']]
-            status = [self.STATUS_PUBLISHED, self.STATUS_PENDING, self.STATUS_RETURNED]
+            status = [self.STATUS_PUBLISHED, self.STATUS_PENDING, self.STATUS_RETURNED, self.STATUS_FAILED]
             tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(t) for t in _ids]}, 'status': {'$in': status}}))
             r = self.db.task.delete_many({'_id': {'$in': [t['_id'] for t in tasks]}})
             self.add_op_log('delete_task', target_id=_ids)
