@@ -16,7 +16,7 @@ from controller.task.task import Task
 class ComLeft(UIModule):
     def render(self, active_id=''):
         def is_enabled(module):
-            return module not in prop(self.handler.config, 'modules.disabled', '')
+            return module and module not in prop(self.handler.config, 'module.disabled', '')
 
         can_access = self.handler.can_access
 

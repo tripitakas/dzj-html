@@ -42,8 +42,8 @@ class BoxOrder(object):
         p21, p22, w2 = line2[0], line2[1], line2[1] - line2[0]
         if p11 > p22 or p21 > p12:
             return False if only_check else (0, 0, 0)
-        if only_check:
-            return True
+        if only_check or not (w1 and w2):
+            return True if only_check else (0, 0, 0)
         else:
             overlap = w1 + w2 - (max(p12, p22) - min(p11, p21))
             ratio1 = round(overlap / w1, 2)
@@ -58,8 +58,8 @@ class BoxOrder(object):
         if x1 > x2 + w2 or x2 > x1 + w1 or y1 > y2 + h2 or y2 > y1 + h1:
             return False if only_check else (0, 0, 0)
 
-        if only_check:
-            return True
+        if only_check or not (w1 and w2 and h1 and h2):
+            return True if only_check else (0, 0, 0)
         else:
             col = abs(min(x1 + w1, x2 + w2) - max(x1, x2))
             row = abs(min(y1 + h1, y2 + h2) - max(y1, y2))

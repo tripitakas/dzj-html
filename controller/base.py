@@ -304,7 +304,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.send_error_response(errs)
 
     def is_mod_enabled(self, mod):
-        disabled_mods = self.prop(self.config, 'modules.disabled_mods')
+        disabled_mods = self.prop(self.config, 'module.disabled')
         return not disabled_mods or mod not in disabled_mods
 
     def update_user_time(self):

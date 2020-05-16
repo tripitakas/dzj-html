@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2020-04-05
+ * Date: 2020-04-27
  */
 (function () {
   'use strict';
@@ -88,7 +88,7 @@
           .initZoom().setAttr({
             stroke: data.changedColor,
             'stroke-opacity': data.boxOpacity,
-            'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
+            'stroke-width': data.boxLineWidth / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来正常
             , 'fill-opacity': 0.1
           });
     }
@@ -134,8 +134,8 @@
   }
 
   var data = {
-    normalColor: '#158815',                   // 正常字框的线色
-    normalColor2: '#AA0000',                  // 另一列字框的的线色
+    normalColor: '#59b138',                   // 正常字框的线色
+    normalColor2: '#6966c8',                  // 另一列字框的的线色
     changedColor: '#C53433',                  // 改动字框的线色
     hoverColor: '#e42d81',                    // 掠过时的字框线色
     hoverFill: '#ff0000',                     // 掠过时的字框填充色
@@ -144,6 +144,7 @@
     activeHandleColor: '#72141d',             // 活动控制点的线色
     activeHandleFill: '#434188',              // 活动控制点的填充色
     handleSize: 2.2,                          // 字框控制点的半宽
+    boxLineWidth: 2,                          // 框线宽
     boxFill: 'rgba(0, 0, 0, .01)',            // 默认的字框填充色，不能全透明
     boxOpacity: 0.7,                          // 字框线半透明度
     activeFillOpacity: 0.4,                   // 掠过或当期字框的填充半透明度
@@ -253,7 +254,7 @@
       }
       handle.handles.length = 0;
 
-      if (el && !state.readonly) {
+      if (el && !state.readonly && !el.data('readonly')) {
         for (i = 0; i < 8; i++) {
           pt = getHandle(el, i);
           r = data.paper.rect(pt.x - size, pt.y - size, size * 2, size * 2)
@@ -488,7 +489,8 @@
 
         e.preventDefault();
         state.mouseDrag(pt, e);
-        if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3) {
+        if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3
+            || state.originBox && state.originBox.data('readonly')) {
           return;
         }
 
@@ -676,12 +678,13 @@
             .setAttr({
               stroke: (b.column_no || 0) % 2 ? data.normalColor2 : data.normalColor,
               'stroke-opacity': data.boxOpacity,
-              'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
+              'stroke-width': data.boxLineWidth / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来正常
               , 'fill-opacity': 0.1
               , 'class': typeof b.class !== 'undefined' ? 'box ' + b.class : 'box'
             })
             .data('class', b.class)
             .data('cid', b.cid)
+            .data('readonly', b.readonly)
             .data('char_id', b.char_id)
             .data('char', b.txt);
         c.shape.node.id = b.char_id;
@@ -897,7 +900,7 @@
         return;
       }
       this.cancelDrag();
-      if (state.edit && !state.readonly) {
+      if (state.edit && !state.readonly && !state.edit.data('readonly')) {
         var el = state.edit;
         var info = this.findCharById(el.data('char_id'));
         var hi = /small|narrow|flat/.test(data.hlType) && this.switchNextHighlightBox;
@@ -1039,11 +1042,18 @@
       }
     },
 
-    toggleBox: function (visible, cls, boxIds) {
+    toggleBox: function (visible, cls, boxIds, readonly) {
       data.chars.forEach(function (box) {
         if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
-          if (!$(box.shape.node).hasClass('flash'))
-            $(box.shape.node).toggle(!!visible);
+          if (!$(box.shape.node).hasClass('flash')) {
+            $(box.shape.node).toggle(visible || !!readonly);
+            box.shape.data('_readonly', readonly);
+            box.shape.attr({
+              opacity: readonly ? 0.3 : 1,
+              stroke: (box.column_no || 0) % 2 ?
+                  (readonly ? '#977' : data.normalColor2) : (readonly ? '#779' : data.normalColor)
+              });
+          }
         }
       });
       if (window.showHighLightCount) {

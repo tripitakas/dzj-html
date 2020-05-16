@@ -24,7 +24,7 @@ class PageTool(BoxOrder):
         """ 过滤掉页面之外的切分框"""
 
         def valid(box):
-            page_box = dict(x=0, y=0, w=width, h=height)
+            page_box = dict(x=2, y=2, w=width - 4, h=height - 4)
             is_valid = cls.box_overlap(box, page_box, True)
             if is_valid:
                 box['x'] = 0 if box['x'] < 0 else box['x']
@@ -116,6 +116,7 @@ class PageTool(BoxOrder):
     def get_chars_col(cls, chars):
         """ 按照column_no对chars分组并设置cid。假定chars已排序"""
         ret = []
+        assert chars, 'no chars in get_chars_col'
         cid_col = [chars[0]['cid']]
         for i, c in enumerate(chars[1:]):
             column_id1 = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
@@ -221,6 +222,19 @@ class PageTool(BoxOrder):
             if (cur['w'] < threshold and ratio2 < 0.45) or (cur['w'] >= threshold and ratio2 < 0.55):
                 ret_columns.append(cur)
         return ret_columns
+
+    @classmethod
+    def deduplicate_columns2(cls, columns):
+        """ 删除冗余的列 """
+        if len(columns) < 3:
+            return columns
+        ret_columns = sorted(columns, key=itemgetter('h'), reverse=True)
+        for i, c in enumerate(ret_columns):
+            for c2 in ret_columns[:i]:
+                if c['w'] and cls.box_overlap(c, c2)[1] > 0.1:
+                    c['w'] = 0
+                    break
+        return [c for c in ret_columns if c['w']]
 
     @classmethod
     def txt2html(cls, txt):

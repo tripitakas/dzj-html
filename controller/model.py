@@ -107,7 +107,10 @@ class Model(object):
         if order:
             o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             query.sort(o, asc)
-        doc_count = self.db[cls.collection].count_documents(condition)
+        if condition:
+            doc_count = self.db[cls.collection].count_documents(condition)
+        else:
+            doc_count = self.db[cls.collection].estimated_document_count(filter=condition)
         cur_page = int(self.get_query_argument('page', 1))
         page_size = int(self.get_query_argument('page_size', prop(self.config, 'pager.page_size', 10)))
         max_page = math.ceil(doc_count / page_size)
@@ -177,7 +180,7 @@ class Model(object):
         for i, doc in enumerate(docs):
             err = cls.validate(doc)
             if err:
-                error_codes.append([doc.get(cls.primary), err[0][1]])
+                error_codes.append([doc.get(cls.primary), list(err.items())[0][1]])
             elif cls.ignore_existed_check(doc) is False and doc.get(cls.primary) in valid_codes:
                 # 去掉重复数据
                 error_codes.append([doc.get(cls.primary), e.code_duplicated[1]])
