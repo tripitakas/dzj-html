@@ -106,7 +106,9 @@
             </div>
             <div class="char-info{{' hide' if show_char_info == '否' else ''}}">
               <span class="txt">{{d.get('txt', '')}}</span>
-              <span class="submitted {{'' if hasattr(handler, 'task') and handler.task.get('_id') in prop(d, 'tasks.'+handler.task_type, []) else 'hide'}}">√</span>
+              <span class="submitted {{'' if hasattr(handler, 'task') and handler.task.get('_id') in prop(d, 'tasks.'+handler.task_type, []) else 'hide'}}">
+                <i class="icon-check"></i>
+              </span>
             </div>
             <div class="char-check">
               <span class="cc{{' hide' if show_char_info == '否' else ''}}">{{d.get('cc', 0)/1000}}</span>

@@ -272,7 +272,7 @@ def is_txt(**kw):
 def is_txt_type(**kw):
     """ 检查文字类型。"""
     code, message = e.invalid_txt_type
-    regex = r'^[MN*]$'
+    regex = r'^[YMN*]$'
     errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
     return errs or None
 
