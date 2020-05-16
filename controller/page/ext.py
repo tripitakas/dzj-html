@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import re
-from tornado.web import UIModule
-from tornado.escape import to_basestring
 from .page import Page
 from .base import PageHandler
 from controller import errors as e
+from controller import validate as v
 from tornado.escape import native_str
 
 
@@ -54,7 +53,6 @@ class PageTextHandler(PageHandler):
             if not cmp_data:
                 txt_fields = [t[1] for t in txts]
                 cmp_data = self.diff(*[t[0] for t in txts])
-                cmp_data = to_basestring(TextArea(self).render(cmp_data))
             readonly = '/edit' not in self.request.path
             img_url = self.get_web_img(page['name'], 'page')
             return self.render('page_text.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
@@ -63,14 +61,6 @@ class PageTextHandler(PageHandler):
 
         except Exception as error:
             return self.send_db_error(error)
-
-
-class TextArea(UIModule):
-    """ 文字校对的文字区"""
-
-    def render(self, cmp_data):
-        func = lambda d: sorted(d.items(), key=lambda t: t[0])
-        return self.render_string('page_text_area.html', blocks=cmp_data, sort_by_key=func)
 
 
 class PageTxtTaskHandler(PageHandler):
@@ -106,7 +96,7 @@ class PageTxtDiffApi(PageHandler):
             diff_blocks = self.diff(*self.data['texts'])
             if self.data.get('hints'):
                 diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
-            cmp_data = self.render_string('page_text_area.html', blocks=diff_blocks,
+            cmp_data = self.render_string('_txt_diff.html', blocks=diff_blocks,
                                           sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))
             cmp_data = native_str(cmp_data)
             self.send_data_response(dict(cmp_data=cmp_data))

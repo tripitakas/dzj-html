@@ -310,24 +310,17 @@
     });
   });
 
-  // 修改字框
-  $('.action .btn-box').on('click', function () {
+  // 切分操作-修改字框、字序
+  $('.op_cut a').on('click', function () {
     var name = $(this).parent().parent().find('.name').text();
-    var url = '/page/box/edit/' + name;
+    var url = `/page/${$(this).attr("title")}/${name}`;
     location.href = url + '?from=' + encodeFrom();
   });
 
-  // 修改字序
-  $('.action .btn-order').on('click', function () {
+  // 文本匹配-OCR列框、比对文本、校对文本
+  $('.op_text a').on('click', function () {
     var name = $(this).parent().parent().find('.name').text();
-    var url = '/page/order/edit/' + name;
-    location.href = url + '?from=' + encodeFrom();
-  });
-
-  // 修改比对文本
-  $('.action .btn-cmp-txt').on('click', function () {
-    var name = $(this).parent().parent().find('.name').text();
-    var url = '/page/find_cmp/edit/' + name;
+    var url = `/page/${$(this).attr("title")}/${name}`;
     location.href = url + '?from=' + encodeFrom();
   });
 

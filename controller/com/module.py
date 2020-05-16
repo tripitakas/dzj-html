@@ -202,3 +202,12 @@ class TaskConfigModal(UIModule):
         fields = [{'id': 'auto-pick', 'name': '提交后自动领新任务', 'input_type': 'radio', 'options': ['是', '否']}]
         return self.render_string('_config.html', modal_fields=config_fields or fields, id='taskConfigModal',
                                   title=title, buttons=buttons)
+
+
+class TxtDiff(UIModule):
+    def render(self, cmp_data):
+        """ 文字校对的文字区"""
+        return self.render_string(
+            '_txt_diff.html', blocks=cmp_data,
+            sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0])
+        )

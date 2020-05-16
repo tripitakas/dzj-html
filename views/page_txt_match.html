@@ -2,83 +2,39 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>选择比对文本-{{page['name']}}</title>
+  <title>文本匹配-{{page['name']}}</title>
   {% include _base_css.html %}
   {% include _font_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
-  <!--  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>-->
+  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    .m-left {
-      flex: 1;
-      width: 50%;
+    .dropdown-menu.cmp-menu {
+      padding: 10px 15px;
+      min-width: 310px !important;
     }
 
-    .m-right {
-      flex: 1;
-      border-left: 1px solid #ccc;
-      background: var(--Grey_Content);
+    @media screen and (max-width: 1100px) {
+      #enlarge-font, #reduce-font {
+        display: none;
+      }
     }
 
-    .m-right .bd {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+    @media screen and (max-width: 1024px) {
+      .m-header .title {
+        display: none;
+      }
     }
 
-    .m-right .selectable {
-      height: 50%;
-      font-size: 18px;
-      overflow-y: auto;
-      margin-left: 20px;
-      border-bottom: 1px solid #ccc;
+    @media screen and (max-width: 940px) {
+      #enlarge-panel-font, #reduce-panel-font {
+        display: none;
+      }
     }
-
-    .m-right .selectable .more {
-      display: block;
-    }
-
-    .m-right .selected {
-      max-height: 50%;
-      font-size: 18px;
-      width: calc(100% - 30px);
-      height: calc(50% - 30px);
-      margin-bottom: 10px;
-      margin-left: 20px;
-      overflow-y: auto;
-    }
-
-    .m-right kw {
-      color: var(--Brown_Darker);
-    }
-
-    .m-right .cmp-more {
-      cursor: pointer;
-      line-height: 20px;
-      user-select: none;
-      background-color: rgba(207, 207, 207, 0.6);
-      letter-spacing: 4px;
-      display: none;
-      text-align: center;
-      color: white;
-    }
-
-    .m-right .search-pagination {
-      margin-left: 8px;
-      font-size: 16px;
-      padding: 5px 0;
-      height: 30px;
-    }
-
-    #ocrModal {
-      font-size: 18px;
-    }
-
   </style>
-
 </head>
 
 <body class="widescreen">
@@ -89,41 +45,80 @@
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
-        <div class="btn-group title">切分校对</div>
+        <div class="btn-group title">文本匹配</div>
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
         <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
         <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
         <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
         <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+        <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板文字"></div>
+        <div id="toggle-panel-no" class="btn-txt icon-panel-no" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板序号"></div>
+        <div id="enlarge-panel-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加浮动面板字号"></div>
+        <div id="reduce-panel-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少浮动面板字号"></div>
       </div>
       <div class="right">
-        <div id="select-txt" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="选中文本"></div>
-        <div id="show-txts" class="btn-txt icon-article" data-toggle="tooltip" data-placement="bottom" title="显示OCR文本"></div>
+        <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
+        <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
+        <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
+        <div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
+        <div id="toggle-empty" class="btn-txt icon-empty" data-toggle="tooltip" data-placement="bottom" title="显示空位符"></div>
+        <div id="delete-line" class="btn-txt icon-delete-line" data-toggle="tooltip" data-placement="bottom" title="删除当前行"></div>
+        <div id="save-doubt" class="btn-txt icon-doubt " data-toggle="tooltip" data-placement="bottom" title="存疑选中文本"></div>
+        <div id="check-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="检查图文匹配"></div>
         <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
       </div><!--right-->
     </div>
     <div class="m-body flex">
-      <div class="m-left fl" id="left-region">
-        <div class="bd" id="holder-container">
+      <div id="left-region" class="m-left">
+        <div id="holder-container" class="bd">
           <div id="holder"></div>
         </div>
-      </div><!--left-->
-      <div class="m-right fr" id="right-region">
-        <div class="bd">
-          <div class="selectable" id="selectable">
-            <span class="cmp-more" id="prev" title="更多">···</span>
-            <span class="cmp" id="cmp">加载中···</span>
-            <span class="cmp-more" id="next" title="更多">···</span>
+      </div>
+      <div id="right-region" class="m-right wide-txt">
+        <div id="work-panel" class="sutra-text bd">
+          <div id="work-html" class="html-text">
+            <div class="blocks">
+              {% module TxtDiff(cmp_data=cmp_data) %}
+            </div>
           </div>
-          <div id="pagination" class="search-pagination ms-search-pagination"></div>
-          <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……">
-          {{cmp or ''}}
-          </textarea>
+          <!--/.work-html-->
+          <div id="pfread-dialog" class="pfread-dialog">
+            <div class="dialog-common dialog-abs">
+              <div class="dlg-before"></div>
+              <div id="dlg-items" class="items">
+                <dl class="item">
+                  <dt>比对文本</dt>
+                  <dd class="text option" id="dlg-cmp1"></dd>
+                </dl>
+                <dl class="item">
+                  <dt>字框OCR</dt>
+                  <dd class="text option" id="dlg-base"></dd>
+                </dl>
+              </div>
+              <dl class="item res">
+                <dt>选择结果</dt>
+                <dd class="text">
+                  <span id="dlg-select" contenteditable="true"></span>
+                </dd>
+              </dl>
+              <div class="dlg-after"></div>
+            </div>
+          </div>
+          <!--/.pfread-dialog-->
         </div>
-      </div><!--right-->
+        <div id="text-work" class="sutra-text hide">
+          <textarea class="text-editable"></textarea>
+        </div>
+      </div>
+      <div class="right-toolbar">
+        <i id="btn-raw-txt" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本模式"></i>
+        <i id="btn-html-txt" class="icon-file-text hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
+      </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
@@ -133,13 +128,10 @@
       <span class="fl">
         页编码：<span class="page-name">{{page['name']}}</span>
       </span>
-      <span class="fr">
-      </span>
+      <span class="fr"></span>
     </div>
   </div>
 </div>
-</body>
-
 
 <div class="panel-body" style="padding: 0">
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
@@ -152,20 +144,51 @@
         <div class="modal-body">
           <div class="title">一、工作目标</div>
           <div class="intro">
-            从右侧文本区域，选择与左侧图片最相似的文本，作为下一步文字校对的比对文本。
-            请用先用光标选中文本，然后点击<img src="{{static_url('imgs/icon_select.png')}}"/>按钮，将选中的文本拷贝至结果输入框中。<br/>
-            右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。您只需要选择文本而无需修改，下一步可以做更准确的文字校对工作。
-            为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。
+            根据图片进行文字校对，包括文字和字序两部分。<br/>
+            校对以如实为原则，即图片上是什么字，就输入什么字。如果遇到一些无法输入的字，请先使用相关工具进行查找，
+            比如<a href="http://hanzi.lqdzj.cn" target="_blank">龙泉字库</a>或<a href="http://www.guoxuedashi.com/zidian/bujian" target="_blank">国学大师</a>。
+            确实找不到时，也可以输入<a href="http://www.cbeta.org/data-format/rare-rule.htm">组字式</a>。如果拿不准，请您进行存疑，以便后续环节处理。<br/>
+            如果图片的文本有多个来源，如OCR文本或从古籍文库中选择的相似文本等，系统将会进行横向比对，找出文本间的差异，即所谓的异文。异文将以红色高亮显示。
+            双击异文，将弹框展示各个来源的文本，您可以点选，也可以在选择结果中进行修改。<br/>
+            如果只有OCR文本，则您需要逐字检查；如果有古籍文库中的相似文本，则您只需要检查异文，同文浏览一下即可。<br/>
+            文字校对完毕后，请您做一次图文匹配检查，确保您校对的文字和图片的字框的一致性。<br/>
+            注：请下载<a href=" https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/KaiXinSong.ttf">开心宋</a>或者
+            <a href="https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/hanazono-20170904.zip">花园明朝</a>
+            字体并安装，以便显示UTF-8扩展区域的字符。
           </div>
           <div class="title">二、功能按钮</div>
           <table class="table">
             <tr>
-              <td><i class="icon-check"></i></td>
-              <td>将当前选中的文本拷贝至文本输入框中</td>
+              <td><i class="btn-txt icon-panel-no"></i></td>
+              <td>显示或隐藏浮动面板上的字框序号</td>
             </tr>
             <tr>
-              <td><i class="icon-article"></i></td>
-              <td>显示OCR文本面板。该面板展示了当前OCR的文本内容</td>
+              <td><i class="btn-txt icon-panel-txt"></i></td>
+              <td>显示或隐藏浮动面板上的字框文字</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-font-plus"></i></td>
+              <td>增加浮动面板或者右侧文本区域的字体大小</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-font-minus"></i></td>
+              <td>减少浮动面板或者右侧文本区域的字体大小</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-more"></i></td>
+              <td>修改栏框、列框、字框、字序等。文字校对时，可以修改本页面的切分框数据</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-empty"></i></td>
+              <td>显示或隐藏空位符。空位符是一个占位符，如果异文中选中的文本为空，则显示为空位符，表示此处有异文</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-doubt"></i></td>
+              <td>存疑，以便后续环节处理。请先用鼠标选中文本，然后点击存疑</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-done-all"></i></td>
+              <td>图文匹配检查。检查左侧图片字框以及右侧文字的匹配情况，包括总列数，以及每列字数。针对不匹配的行，右侧将出现红色竖线进行提示。</td>
             </tr>
           </table>
           <div class="title">三、快捷键</div>
@@ -178,109 +201,47 @@
               <td>6/7/8/9</td>
               <td>图片缩小至60%~90%</td>
             </tr>
+            <tr>
+              <td>方向键</td>
+              <td>按照方向键↑→↓←的指示，切换当前字框</td>
+            </tr>
           </table>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <div class="modal-header">OCR</div>
-        <div class="modal-body">
-          {% raw ocr.replace('|', '<br>') %}
         </div>
       </div>
     </div>
   </div>
 </div>
 
-
 {% include _base_js.html %}
 {% include _base_cut.html %}
+<script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/txt-proof.js')}}"></script>
+<script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
   // 页面图和切分框
   $.cut.create({
     readonly: true,
     holder: 'holder',
     image: '{{img_url}}',
+    chars: '{{page["chars"]}}',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
-    name: '{{page["name"]}}_cmp_txt',
-    scrollContainer: '#holder-container',
-    chars: [],
+    name: '{{page["name"]}}_txt',
+    scrollContainer: '#left-region',
   });
+
+  // 初始化设置
   $.cut.bindKeys();
+  $.cut.bindMatchingKeys();
   $.cut.toggleBox(false);
   $.cut.switchCurrentBox(null);
   $('#holder-container').focus();
 
-  // 显示OCR文本
-  $('#show-txts').on('click', () => $('#ocrModal').modal());
-
-  // 初始化加载比对文本
-  $(document).ready(function () {
-    postApi('/page/find_cmp/{{page["name"]}}', {data: {}}, function (data) {
-      $('#cmp').html(data.cmp);
-      $('#pagination').html(data['hit_page_codes'].map(function (pageCode, i) {
-        return "<a" + (i ? '' : ' class="cur"') + " title='" + pageCode + "'>" + (i + 1) + "</a>";
-      }).join(''));
-      $('.cmp-more').css('display', 'inline-block');
-    });
-  });
-
-  // 选择第n个比对文本
-  $(document).on('click', '#pagination a', function () {
-    var $this = $(this);
-    postApi('/page/find_cmp/{{page["name"]}}', {data: {num: $this.text()}}, function (res) {
-      $('#pagination a').removeClass('cur');
-      $this.addClass('cur').attr('title', res.cmp_page_code);
-      $('#cmp').html(res.cmp);
-      $('.selectable .more').remove();
-      $('.selectable .cmp-more').removeClass('hide');
-    });
-  });
-
-  // 加载前一页比对文本
-  $(document).on('click', '.selectable #prev', function () {
-    var pageCode = $('#pagination a.cur').eq(0).attr('title');
-    var data = {cmp_page_code: pageCode, neighbor: 'prev'};
-    postApi('/page/find_cmp/neighbor', {data: data}, function (res) {
-      if (res.txt.length) {
-        $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
-        $('#selectable').animate({scrollTop: $('#cmp').offset().top - 100}, 500);
-      } else {
-        showWarning('提示', '没有更多内容');
-      }
-    });
-  });
-
-  // 加载后一页比对文本
-  $(document).on('click', '.selectable #next', function () {
-    var pageCode = $('#pagination a.cur').eq(0).attr('title');
-    var data = {cmp_page_code: pageCode, neighbor: 'next'};
-    postApi('/page/find_cmp/neighbor', {data: data}, function (res) {
-      if (res.txt.length) {
-        $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
-        $('#selectable').animate({scrollTop: $('#cmp').offset().bottom}, 500);
-      } else {
-        showWarning('提示', '没有更多内容');
-      }
-    });
-  });
-
-  // 选中作为比对本
-  $(document).on('click', '#select-txt', function () {
-    var $selected = $('#selected');
-    $selected.val(($selected.val() + window.getSelection().toString()).trim());
-    $selected.height($selected.prop('scrollHeight'));
-  });
-
-  $(document).on('change', '#selected', function () {
-    var $selected = $('#selected');
-    $selected.height($selected.prop('scrollHeight'));
-  });
+  showOrder = getStorage('togglePanelNo') === '1';
+  showText = getStorage('togglePanelTxt') === '1';
+  $('#toggle-panel-no').toggleClass('active', showOrder);
+  $('#toggle-panel-txt').toggleClass('active', showText);
+  setDialogLabel(txtFields.map((e) => txtDict[e][2]));
 
 </script>

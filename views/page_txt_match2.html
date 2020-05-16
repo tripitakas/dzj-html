@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>文本匹配-{{page['name']}}</title>
+  {% include _base_css.html %}
+  {% include _font_css.html %}
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .m-left {
+      flex: 1;
+      width: 50%;
+    }
+
+    .m-right {
+      flex: 1;
+      border-left: 1px solid #ccc;
+      background: var(--Grey_Content);
+    }
+
+    .line {
+      margin: 6px 0;
+      font-size: 20px;
+      font-weight: 300;
+      line-height: 30px;
+      padding-left: 10px;
+    }
+
+    .mis-match {
+      padding-left: 7px;
+      border-left: 3px solid red;
+    }
+
+  </style>
+
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+        </div>
+        <div class="btn-group title">文本匹配
+          <div class="sub-title">-{{field_name}}</div>
+        </div>
+      </div><!--left-->
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+        <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+      </div>
+      <div class="right">
+        <div id="view-mis-match" class="btn-txt icon-checkmark" data-toggle="tooltip" data-placement="bottom" title="查看不匹配的行"></div>
+        <div id="view" class="btn-txt icon-eye{{'' if txt_match else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="查看"></div>
+        <div id="edit" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="修改"></div>
+        <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
+      </div><!--right-->
+    </div>
+    <div class="m-body flex">
+      <div class="m-left fl" id="left-region">
+        <div class="bd" id="holder-container">
+          <div id="holder"></div>
+        </div>
+      </div><!--left-->
+      <div class="m-right fr" id="right-region wide-txt">
+        {% if txt_match %}
+        <div class="bd mode-view">
+          {% raw handler.char2html(chars, field) %}
+        </div>
+        {% end %}
+        <div id="work-panel" class="sutra-text bd">
+          <div id="work-html" class="html-text">
+            <div class="blocks">
+              {% if isinstance(cmp_data, str) %}
+              {% raw cmp_data %}
+              {% else %}
+              {% module TxtDiff(cmp_data=cmp_data) %}
+              {% end %}
+            </div>
+          </div>
+          <div id="pfread-dialog" class="pfread-dialog">
+            <div class="dialog-common dialog-abs">
+              <div class="dlg-before"></div>
+              <div id="dlg-items" class="items">
+                <dl class="item">
+                  <dt>比对文本</dt>
+                  <dd class="text option" id="dlg-cmp1"></dd>
+                </dl>
+                <dl class="item">
+                  <dt>字框OCR</dt>
+                  <dd class="text option" id="dlg-base"></dd>
+                </dl>
+              </div>
+              <dl class="item res">
+                <dt>选择结果</dt>
+                <dd class="text">
+                  <span id="dlg-select" contenteditable="true"></span>
+                </dd>
+              </dl>
+              <div class="dlg-after"></div>
+            </div>
+          </div>
+        </div>
+      </div><!--right-->
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        页编码：<span class="page-name">{{page['name']}}</span>
+      </span>
+      <span class="fr">
+      </span>
+    </div>
+  </div>
+</div>
+</body>
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、工作目标</div>
+          <div class="intro">
+            从右侧文本区域，选择与左侧图片最相似的文本，作为下一步文字校对的比对文本。
+            请用先用光标选中文本，然后点击<img src="{{static_url('imgs/icon_select.png')}}"/>按钮，将选中的文本拷贝至结果输入框中。<br/>
+            右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。您只需要选择文本而无需修改，下一步可以做更准确的文字校对工作。
+            为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。
+          </div>
+          <div class="title">二、功能按钮</div>
+          <table class="table">
+            <tr>
+              <td><i class="icon-check"></i></td>
+              <td>将当前选中的文本拷贝至文本输入框中</td>
+            </tr>
+            <tr>
+              <td><i class="icon-article"></i></td>
+              <td>显示OCR文本面板。该面板展示了当前OCR的文本内容</td>
+            </tr>
+          </table>
+          <div class="title">三、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="resModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="resModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">不匹配的行</h4>
+        </div>
+        <div class="modal-body">
+          <table class="table">
+            <thead>
+            <tr>
+              <th>行号</th>
+              <th>图片字数</th>
+              <th>文本字数</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+{% include _base_cut.html %}
+<script src="{{static_url('js/cut/proof_keys.js')}}"></script>
+<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/txt-proof.js')}}"></script>
+<script src="{{static_url('js/txt-btn.js')}}"></script>
+<script>
+  // 页面图和切分框
+  $.cut.create({
+    holder: 'holder',
+    image: '{{img_url}}',
+    chars: '{{page["chars"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    name: '{{page["name"]}}_txt_match',
+    scrollContainer: '#holder-container',
+  });
+  $.cut.bindKeys();
+  $.cut.bindMatchingKeys();
+  $.cut.toggleBox(false);
+  $.cut.switchCurrentBox(null);
+  $('#holder-container').focus();
+
+  $('#view-mis-match').on('click', function () {
+    $('#resModal').modal();
+  });
+
+  $('#view').on('click', function () {
+    $('.mode-view').removeClass('hide');
+    $('.mode-edit').addClass('hide');
+  });
+
+  $('#edit').on('click', function () {
+    $('.mode-view').addClass('hide');
+    $('.mode-edit').removeClass('hide');
+  });
+
+  $('#save').on('click', function () {
+    var content = $.map($('.mode-edit .line'), function (line) {
+      return $(line).text();
+    });
+    bsLoading('保存中‧‧‧');
+    postApi('/page/txt_match/{{page["name"]}}', {data: {field: '{{field}}', content: content}}, function (res) {
+      if (res.data.status) {
+        bsShow('成功', '文本匹配成功');
+        location.reload();
+      } else {
+        bsHide();
+        $('.mis-match').removeClass('mis-match');
+        $('#resModal .table tbody').html($.map(res.data.mis_match, function (item) {
+          $('.mode-edit .line').eq(item[0] - 1).addClass('mis-match');
+          return `<tr><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`;
+        }));
+        $('#resModal').modal();
+      }
+    });
+  });
+
+</script>

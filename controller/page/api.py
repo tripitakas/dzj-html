@@ -151,7 +151,18 @@ class PageTxtMatchApi(PageHandler):
     def post(self, page_name):
         """ 提交文本匹配"""
         try:
-            self.send_data_response()
+            rules = [(v.not_empty, 'field', 'content')]
+            self.validate(self.data, rules)
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            r = self.check_match(page['chars'], self.data['content'])
+            if not r['status']:  # 不匹配时，返回失配信息
+                self.send_data_response(r)
+            else:  # 匹配时，进行回写
+                chars = self.write_back_txt(page['chars'], self.data['content'], self.data['field'])
+                self.db.page.update_one({'_id', page['_id']}, {'$set': {'chars': chars}})
+                self.send_data_response(r)
 
         except self.DbError as error:
             return self.send_db_error(error)

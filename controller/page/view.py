@@ -3,6 +3,8 @@
 
 import re
 from bson import json_util
+from tornado.web import UIModule
+from tornado.escape import to_basestring
 from .page import Page
 from .base import PageHandler
 from controller import errors as e
@@ -25,6 +27,8 @@ class PageListHandler(PageHandler):
         {'id': 'box_ready', 'name': '切分就绪'},
         {'id': 'remark_box', 'name': '切分备注'},
         {'id': 'remark_text', 'name': '文字备注'},
+        {'id': 'op_cut', 'name': '切分操作'},
+        {'id': 'op_text', 'name': '文本匹配'},
     ]
     info_fields = [
         'name', 'source', 'box_ready', 'layout', 'remark_box', 'remark_text'
@@ -45,9 +49,6 @@ class PageListHandler(PageHandler):
     actions = [
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
-        {'action': 'btn-box', 'label': '字框'},
-        {'action': 'btn-order', 'label': '字序'},
-        {'action': 'btn-cmp-txt', 'label': '比对文本'},
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除', 'url': '/api/page/delete'},
     ]
@@ -71,6 +72,10 @@ class PageListHandler(PageHandler):
                 '%s/%s' % (self.get_task_name(t), self.get_status_name(status))
                 for t, status in value.items()
             ])
+        if key == 'op_cut':
+            value = '<a title="box">字框</a><a title="order">字序</a>'
+        if key == 'op_text':
+            value = '<a title="ocr_col">OCR列框</a><a title="cmp_txt">比对文本</a><a title="txt">校对文本</a>'
         return h.format_value(value, key, doc)
 
     def get_duplicate_condition(self):
@@ -193,8 +198,7 @@ class PageInfoHandler(PageHandler):
 
 
 class PageBoxHandler(PageHandler):
-    URL = ['/page/box/@page_name',
-           '/page/box/edit/@page_name']
+    URL = '/page/box/@page_name'
 
     def get(self, page_name):
         """ 切分校对页面"""
@@ -213,8 +217,7 @@ class PageBoxHandler(PageHandler):
 
 
 class PageOrderHandler(PageHandler):
-    URL = ['/page/order/@page_name',
-           '/page/order/edit/@page_name']
+    URL = '/page/order/@page_name'
 
     def get(self, page_name):
         """ 字序校对页面"""
@@ -236,7 +239,7 @@ class PageOrderHandler(PageHandler):
 
 
 class PageTxtMatchHandler(PageHandler):
-    URL = '/page/(col_txt|cmp_txt|txt)/@page_name'
+    URL = '/page/(ocr_col|cmp_txt|txt)/@page_name'
 
     def get(self, field, page_name):
         """ 文字匹配页面"""
@@ -245,16 +248,19 @@ class PageTxtMatchHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             self.pack_boxes(page)
+            field_name = Page.get_field_name(field)
             img_url = self.get_web_img(page['name'], 'page')
-            self.render('page_txt_match.html', page=page, img_url=img_url)
+            txt_match = self.prop(page, 'txt_match.' + field)
+            cmp_data = self.match_diff(self.get_box_ocr(page['chars']), page.get(field))
+            self.render('page_txt_match.html', page=page, img_url=img_url, field=field, cmp_data=cmp_data,
+                        field_name=field_name, txt_match=txt_match)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
 class PageFindCmpHandler(PageHandler):
-    URL = ['/page/find_cmp/@page_name',
-           '/page/find_cmp/edit/@page_name']
+    URL = '/page/find_cmp/@page_name'
 
     def get(self, page_name):
         """ 寻找比对文本页面"""

@@ -138,12 +138,15 @@ function parseJSON(s) {
 $("[data-toggle='tooltip']").tooltip();
 $('body').on('click', '[data-stopPropagation]', (e) => e.stopPropagation());
 
-// 共通函数
+// 帮助
 $('#help').on('click', () => $('#helpModal').modal());
+
+// 关闭提示
 $('.alert .close').on('click', function () {
   $(this).parent().addClass('hide');
 });
 
+// 离开页面
 function leave() {
   decodeFrom() ? window.location = decodeFrom() : window.history.back();
 }

@@ -25,7 +25,7 @@ class Page(Model):
         {'id': 'chars', 'name': '字框数据'},
         {'id': 'ocr', 'name': '字框OCR'},
         {'id': 'ocr_col', 'name': '列框OCR'},
-        {'id': 'cmp', 'name': '比对文本'},
+        {'id': 'cmp_txt', 'name': '比对文本'},
         {'id': 'txt', 'name': '审定文本'},
         {'id': 'box_ready', 'name': '切分就绪'},
         {'id': 'chars_col', 'name': '字序'},

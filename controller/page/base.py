@@ -327,41 +327,42 @@ class PageHandler(TaskHandler, Page, Box):
                 if pre.get('block_no') and c.get('block_no') and pre['block_no'] != c['block_no']:  # 换栏
                     column_char_num.append(num)
                     num = 1
-                elif pre.get('line_no') and c.get('line_no') and pre['line_no'] != c['line_no']:  # 换行
+                elif pre.get('column_no') and c.get('column_no') and pre['column_no'] != c['column_no']:  # 换行
                     column_char_num.append(num)
                     num = 1
                 else:
                     num += 1
+                pre = c
             column_char_num.append(num)
         # 获取每行文字数
-        txt_lines = re.sub(r'[\|\n]+', '|', txt).split('|')
+        txt_lines = txt if isinstance(txt, list) else re.sub(r'[\|\n]+', '|', txt).split('|')
         line_char_num = [len(line) for line in txt_lines]
         # 进行比对检查
         mis_match = []
         if len(column_char_num) < len(line_char_num):
             for i, num in enumerate(column_char_num):
                 if num != line_char_num[i]:
-                    mis_match.append([i, num, line_char_num[i]])
+                    mis_match.append([i + 1, num, line_char_num[i]])
             for i in range(len(column_char_num), len(line_char_num)):
-                mis_match.append([i, 0, line_char_num[i]])
+                mis_match.append([i + 1, 0, line_char_num[i]])
         else:
             for i, num in enumerate(line_char_num):
                 if num != column_char_num[i]:
-                    mis_match.append([i, column_char_num[i], num])
+                    mis_match.append([i + 1, column_char_num[i], num])
             for i in range(len(line_char_num), len(column_char_num)):
-                mis_match.append([i, column_char_num[i], 0])
+                mis_match.append([i + 1, column_char_num[i], 0])
         # 输出结果，r表示是否匹配，mis_match表示不匹配的情况
         r = len(column_char_num) == len(line_char_num) and not mis_match
-        return r, mis_match, column_char_num, line_char_num
+        return dict(status=r, mis_match=mis_match, column_char_num=column_char_num, line_char_num=line_char_num)
 
     @staticmethod
-    def update_chars_txt(chars, txt):
+    def write_back_txt(chars, txt, field):
         """ 将txt回写到chars中。假定图文匹配"""
         txt = re.sub(r'[\|\n]+', '', txt)
         if len(chars) != len(txt):
             return False
         for i, c in enumerate(chars):
-            c['txt'] = txt[i]
+            c[field] = txt[i]
         return chars
 
     @classmethod
@@ -398,6 +399,59 @@ class PageHandler(TaskHandler, Page, Box):
                 continue
             if s['base'] in [' ', '\u3000'] and not s.get('cmp1') and not s.get('cmp2'):
                 s['is_same'] = True
+            s['offset'] = s['range'][0]
+            blocks[b_no][l_no].append(s)
+        return blocks
+
+    @classmethod
+    def match_diff(cls, ocr_char, cmp1):
+        """ 生成文字匹配的segment
+        :param ocr_char OCR字框文本
+        :param cmp1 列文本、比对文本(从cbeta选择得到)或校对结果
+        针对异文的几种情况，处理如下：
+        1. ocr_char为空，直接舍弃该segment
+        2. ocr_char不为空而cmp1为空，则根据ocr_char的长度自动补齐cmp(占位符为□)
+        3. 如果ocr_char和cmp1的长度相同，则视为同文
+        """
+        segments = []
+        pre_empty_line_no = 0
+        block_no, line_no = 1, 1
+        diff_segments = Diff.diff(ocr_char, cmp1)[0]
+        # 1. 处理异文的几种情况
+        diff_segments = [s for s in diff_segments if s['base']]
+        for s in diff_segments:
+            if s['is_same'] and s['base'] == '\n':
+                s['cmp1'] = '\n'
+            if not s['is_same'] and not s['cmp1']:
+                s['cmp1'] = '□' * len(s['base'])
+            if len(s['base']) == len(s['cmp1']):
+                s['is_same'] = True
+            s['base'], s['cmp1'] = s['cmp1'], s['base']
+        # 2. 设置栏号和行号
+        for s in diff_segments:
+            if s['is_same'] and s['base'] == '\n':  # 当前为空行，即换行
+                if not pre_empty_line_no:  # 连续空行仅保留第一个
+                    s['block_no'], s['line_no'] = block_no, line_no
+                    segments.append(s)
+                    line_no += 1
+                pre_empty_line_no += 1
+            else:  # 当前非空行
+                if pre_empty_line_no > 1:  # 之前有多个空行，即换栏
+                    line_no = 1
+                    block_no += 1
+                s['block_no'], s['line_no'] = block_no, line_no
+                segments.append(s)
+                pre_empty_line_no = 0
+        # 3.结构化，以便页面输出
+        blocks = {}
+        for s in segments:
+            b_no, l_no = s['block_no'], s['line_no']
+            if not blocks.get(b_no):
+                blocks[b_no] = {}
+            if not blocks[b_no].get(l_no):
+                blocks[b_no][l_no] = []
+            if s['is_same'] and s['base'] == '\n':  # 跳过空行
+                continue
             s['offset'] = s['range'][0]
             blocks[b_no][l_no].append(s)
         return blocks

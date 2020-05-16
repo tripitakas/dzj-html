@@ -1,11 +1,11 @@
-from . import view, api, ocr, bak
+from . import view, api, ocr, ext
 
 views = [
     view.PageListHandler, view.PageBrowseHandler, view.PageViewHandler, view.PageInfoHandler,
     view.PageBoxHandler, view.PageOrderHandler, view.PageFindCmpHandler,
     view.PageTaskListHandler, view.PageTaskStatHandler, view.PageTaskResumeHandler,
-    view.PageCutTaskHandler, bak.PageTxtTaskHandler, view.PageTxtMatchHandler,
-    bak.PageTxtHandler, bak.PageTextHandler,
+    view.PageCutTaskHandler, ext.PageTxtTaskHandler, view.PageTxtMatchHandler,
+    ext.PageTxtHandler, ext.PageTextHandler,
 ]
 
 handlers = [
@@ -14,7 +14,5 @@ handlers = [
     api.PageBoxApi, api.CharBoxApi, api.PageOrderApi, api.PageCmpTxtApi, api.PageCmpTxtNeighborApi,
     api.PageGenCharsApi, api.PageSourceApi,
     api.PageTaskPublishApi, api.PageCutTaskApi, api.PageTxtMatchApi,
-    bak.PageTxtDiffApi, bak.PageDetectCharsApi,
+    ext.PageTxtDiffApi, ext.PageDetectCharsApi,
 ]
-
-modules = {'TextArea': bak.TextArea}
