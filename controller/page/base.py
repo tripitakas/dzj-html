@@ -196,17 +196,12 @@ class PageHandler(TaskHandler, Page, Box):
     def get_txt(self, page, key):
         if key == 'txt':
             return page.get('txt') or ''
-        if key == 'cmp':
-            return page.get('cmp') or ''
+        if key == 'cmp_txt':
+            return page.get('cmp_txt') or ''
         if key == 'ocr':
-            return self.get_box_ocr(page.get('chars'))
+            return page.get('ocr') or self.get_box_ocr(page.get('chars'))
         if key == 'ocr_col':
-            return self.get_box_ocr(page.get('columns'))
-
-    def get_txts(self, page):
-        txts = [(self.get_txt(page, f), f, Page.get_field_name(f)) for f in ['txt', 'ocr', 'ocr_col', 'cmp']]
-        txts = [t for t in txts if t[0]]
-        return txts
+            return page.get('ocr_col') or self.get_box_ocr(page.get('columns'))
 
     @classmethod
     def get_box_ocr(cls, boxes):
@@ -424,7 +419,7 @@ class PageHandler(TaskHandler, Page, Box):
             if s['is_same'] and s['base'] == '\n':
                 s['cmp1'] = '\n'
             if not s['is_same'] and not s['cmp1']:
-                s['cmp1'] = '□' * len(s['base'])
+                s['cmp1'] = '■' * len(s['base'])
             if len(s['base']) == len(s['cmp1']):
                 s['is_same'] = True
             s['base'], s['cmp1'] = s['cmp1'], s['base']

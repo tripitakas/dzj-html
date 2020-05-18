@@ -157,18 +157,17 @@ class PageTxtMatchApi(PageHandler):
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             r = self.check_match(page['chars'], self.data['content'])
-            if not r['status']:  # 不匹配时，返回失配信息
-                self.send_data_response(r)
-            else:  # 匹配时，进行回写
-                chars = self.write_back_txt(page['chars'], self.data['content'], self.data['field'])
-                self.db.page.update_one({'_id', page['_id']}, {'$set': {'chars': chars}})
-                self.send_data_response(r)
+            if r['status'] and not self.data.get('only_check'):
+                content, field = self.data['content'].replace('\n', '|'), self.data['field']
+                chars = self.write_back_txt(page['chars'], content, field)
+                self.db.page.update_one({'_id': page['_id']}, {'$set': {field: content, 'chars': chars}})
+            self.send_data_response(r)
 
         except self.DbError as error:
             return self.send_db_error(error)
 
 
-class PageTxtMatchApi(PageHandler):
+class PageTxtMatchDiffApi(PageHandler):
     URL = '/api/page/txt/match'
 
     def post(self):
