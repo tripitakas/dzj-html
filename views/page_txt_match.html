@@ -12,6 +12,10 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
+    .right-toolbar .tooltip-inner {
+      word-break: keep-all;
+    }
+
     .dropdown-menu.cmp-menu {
       padding: 10px 15px;
       min-width: 310px !important;
@@ -45,7 +49,9 @@
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
-        <div class="btn-group title">文本匹配</div>
+        <div class="btn-group title">文本匹配
+          <div class="sub-title">-{{field_name}}</div>
+        </div>
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
@@ -57,18 +63,10 @@
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
         <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板文字"></div>
-        <div id="toggle-panel-no" class="btn-txt icon-panel-no" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板序号"></div>
-        <div id="enlarge-panel-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加浮动面板字号"></div>
-        <div id="reduce-panel-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少浮动面板字号"></div>
       </div>
       <div class="right">
-        <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
-        <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
         <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
         <div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
-        <div id="toggle-empty" class="btn-txt icon-empty" data-toggle="tooltip" data-placement="bottom" title="显示空位符"></div>
-        <div id="delete-line" class="btn-txt icon-delete-line" data-toggle="tooltip" data-placement="bottom" title="删除当前行"></div>
-        <div id="save-doubt" class="btn-txt icon-doubt " data-toggle="tooltip" data-placement="bottom" title="存疑选中文本"></div>
         <div id="check-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="检查图文匹配"></div>
         <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
       </div><!--right-->
@@ -92,11 +90,11 @@
               <div class="dlg-before"></div>
               <div id="dlg-items" class="items">
                 <dl class="item">
-                  <dt>比对文本</dt>
+                  <dt>字框OCR</dt>
                   <dd class="text option" id="dlg-cmp1"></dd>
                 </dl>
                 <dl class="item">
-                  <dt>字框OCR</dt>
+                  <dt>{{field_name}}</dt>
                   <dd class="text option" id="dlg-base"></dd>
                 </dl>
               </div>
@@ -117,7 +115,7 @@
       </div>
       <div class="right-toolbar">
         <i id="btn-raw-txt" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本模式"></i>
-        <i id="btn-html-txt" class="icon-file-text hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
+        <i id="btn-html-txt" class="icon-file-text diff hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -237,11 +235,17 @@
   $.cut.toggleBox(false);
   $.cut.switchCurrentBox(null);
   $('#holder-container').focus();
-
-  showOrder = getStorage('togglePanelNo') === '1';
   showText = getStorage('togglePanelTxt') === '1';
-  $('#toggle-panel-no').toggleClass('active', showOrder);
   $('#toggle-panel-txt').toggleClass('active', showText);
-  setDialogLabel(txtFields.map((e) => txtDict[e][2]));
+
+  // 回到工作面板
+  $('#btn-html-txt').on('click', function (e) {
+    e.stopPropagation();
+    var texts = ['{{char_txt}}', $('#text-work textarea').val()];
+    postApi('/page/txt/match', {data: {texts: texts}}, function (res) {
+      $('#work-html .blocks').html(res['cmp_data']);
+      toggleWorkText('html');
+    });
+  });
 
 </script>

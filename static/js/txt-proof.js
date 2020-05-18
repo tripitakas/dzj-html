@@ -386,7 +386,7 @@ $('#btn-raw-txt').on('click', function () {
 });
 
 // 回到工作面板
-$('#btn-html-txt').on('click', function () {
+$('#btn-html-txt:not(.diff)').on('click', function () {
   // 用工作文本替代底本与比对文本比对
   var texts = txtFields.map((txt) => getText(txt));
   texts[0] = $('#text-work textarea').val();

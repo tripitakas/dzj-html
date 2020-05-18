@@ -13,6 +13,6 @@ handlers = [
     api.PageDeleteApi, api.PageUpsertApi,
     api.PageBoxApi, api.CharBoxApi, api.PageOrderApi, api.PageCmpTxtApi, api.PageCmpTxtNeighborApi,
     api.PageGenCharsApi, api.PageSourceApi,
-    api.PageTaskPublishApi, api.PageCutTaskApi, api.PageTxtMatchApi,
+    api.PageTaskPublishApi, api.PageCutTaskApi, api.PageTxtMatchApi, api.PageTxtMatchApi,
     ext.PageTxtDiffApi, ext.PageDetectCharsApi,
 ]

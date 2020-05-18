@@ -78,7 +78,7 @@ role_route_maps = {
             '/api/task/return/@task_id': ['POST'],
             '/page/@page_name': ['GET'],
             '/api/page/find_cmp/neighbor': ['POST'],
-            '/api/page/txt/(diff|detect_chars)': ['POST'],
+            '/api/page/txt/(diff|detect_chars|match)': ['POST'],
             '/char/@char_name': ['GET'],
             '/api/chars/(txt|txt_type|box)': ['POST'],
             '/api/char/(txt|box)/@char_name': ['POST'],

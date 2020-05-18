@@ -168,6 +168,24 @@ class PageTxtMatchApi(PageHandler):
             return self.send_db_error(error)
 
 
+class PageTxtMatchApi(PageHandler):
+    URL = '/api/page/txt/match'
+
+    def post(self):
+        """ 用户提交纯文本后重新比较，并设置修改痕迹"""
+        try:
+            rules = [(v.not_empty, 'texts')]
+            self.validate(self.data, rules)
+            diff_blocks = self.match_diff(*self.data['texts'])
+            cmp_data = self.render_string('_txt_diff.html', blocks=diff_blocks,
+                                          sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))
+            cmp_data = native_str(cmp_data)
+            self.send_data_response(dict(cmp_data=cmp_data))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class PageCmpTxtApi(PageHandler):
     URL = '/api/page/find_cmp/@page_name'
 

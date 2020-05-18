@@ -412,6 +412,7 @@ class PageHandler(TaskHandler, Page, Box):
         1. ocr_char为空，直接舍弃该segment
         2. ocr_char不为空而cmp1为空，则根据ocr_char的长度自动补齐cmp(占位符为□)
         3. 如果ocr_char和cmp1的长度相同，则视为同文
+        注：算法会在segments中将base和cmp1进行对调，以便前端显示
         """
         segments = []
         pre_empty_line_no = 0

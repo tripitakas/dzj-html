@@ -3,8 +3,6 @@
 
 import re
 from bson import json_util
-from tornado.web import UIModule
-from tornado.escape import to_basestring
 from .page import Page
 from .base import PageHandler
 from controller import errors as e
@@ -248,12 +246,14 @@ class PageTxtMatchHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             self.pack_boxes(page)
+            char_txt = self.get_box_ocr(page['chars'])
+            cmp_txt = self.get_box_ocr(page['columns'])
+            cmp_data = self.match_diff(char_txt, cmp_txt)
             field_name = Page.get_field_name(field)
             img_url = self.get_web_img(page['name'], 'page')
             txt_match = self.prop(page, 'txt_match.' + field)
-            cmp_data = self.match_diff(self.get_box_ocr(page['chars']), page.get(field))
-            self.render('page_txt_match.html', page=page, img_url=img_url, field=field, cmp_data=cmp_data,
-                        field_name=field_name, txt_match=txt_match)
+            self.render('page_txt_match.html', page=page, img_url=img_url, char_txt=char_txt, cmp_data=cmp_data,
+                        field=field, field_name=field_name, txt_match=txt_match)
 
         except Exception as error:
             return self.send_db_error(error)
