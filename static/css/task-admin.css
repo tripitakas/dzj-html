@@ -117,12 +117,12 @@
   width: 100% !important;
 }
 
-#publishModal .modal-body {
-  padding: 5px 0;
+.modal .control-label {
+  padding: 6px 0;
 }
 
-#publishModal .control-label {
-  padding: 6px 0;
+#publishModal .modal-body {
+  padding: 5px 0;
 }
 
 #publishModal .modal-body > div {

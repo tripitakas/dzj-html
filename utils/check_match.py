@@ -16,9 +16,12 @@ from controller.base import BaseHandler as Bh
 from controller.page.base import PageHandler as Ph
 
 
-def check_match(db=None, db_name='tripitaka', uri='localhost', field=None,
-                condition=None, page_names=None, username=None):
-    """ 检查图文是否匹配"""
+def check_match(db=None, db_name='tripitaka', uri='localhost', condition=None, page_names=None,
+                fields=None, publish_task=True, username=None):
+    """ 检查图文是否匹配
+    :param fields 检查哪个字段，包括cmp_txt/ocr_col/txt
+    :param publish_task，如果图文不匹配，是否发布相关任务
+    """
     db = db or pymongo.MongoClient(uri)[db_name]
     if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
@@ -29,25 +32,34 @@ def check_match(db=None, db_name='tripitaka', uri='localhost', field=None,
         condition = {}
 
     once_size = 50
+    fields = ['ocr_col', 'cmp_txt', 'txt'] if not fields else fields.split(',') if isinstance(fields, str) else fields
     total_count = db.page.count_documents(condition)
     log_id = Bh.add_op_log(db, 'check_match', 'ongoing', [], username)
     for i in range(int(math.ceil(total_count / once_size))):
-        match, mis_match, matched_before = [], [], []
+        match, mis_match = [], []
         pages = list(db.page.find(condition).skip(i * once_size).limit(once_size))
         for page in pages:
             print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), page['name']))
-            if hp.prop(page, 'txt_match.' + field) is True:
-                matched_before.append(page['name'])
-                continue
-            r = Ph.check_match(page['chars'], Ph.get_txt(page, field))
-            if r['status'] is True:
-                match.append(page['name'])
-                chars = Ph.write_back_txt(page['chars'], Ph.get_txt(page, field), field)
-                db.page.update_one({'_id': page['_id']}, {'$set': {'chars': chars, 'txt_match.' + field: True}})
-            else:
-                mis_match.append(page['name'])
-                db.page.update_one({'_id': page['_id']}, {'$set': {'txt_match.' + field: False}})
-        log = dict(match=match, mis_match=mis_match, matched_before=matched_before)
+            update, chars, changed = dict(), page['chars'], False
+            for field in fields:
+                if not Ph.get_txt(page, field):
+                    continue
+                if hp.prop(page, 'txt_match.' + field) is True:
+                    match.append([page['name'], field])
+                    continue
+                r = Ph.check_match(page['chars'], Ph.get_txt(page, field))
+                if r['status'] is True:
+                    changed = True
+                    match.append([page['name'], field])
+                    Ph.write_back_txt(chars, Ph.get_txt(page, field), field)
+                    update.update({'txt_match.' + field: True})
+                else:
+                    mis_match.append([page['name'], field])
+                    update.update({'txt_match.' + field: False})
+            if changed:
+                update.update({'chars': chars})
+            db.page.update_one({'_id': page['_id']}, {'$set': update})
+        log = dict(match=match, mis_match=mis_match)
         db.oplog.update_one({'_id': log_id}, {'$addToSet': {'content': {k: v for k, v in log.items() if v}}})
     db.oplog.update_one({'_id': log_id}, {'$set': {'status': 'finished'}})
 

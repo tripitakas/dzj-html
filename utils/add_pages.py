@@ -86,8 +86,8 @@ class AddPage(object):
                 if not path.exists(dst_file) or overwrite:
                     shutil.copy(path.join(root, fn), dst_file)
 
-    def add_pages_text(self, page_names, src_dir, field='ocr', overwrite=False):
-        """ 更新数据库page表的tex字段"""
+    def add_pages_text(self, page_names, src_dir, field, overwrite=False):
+        """ 更新数据库page表的text字段"""
         if not path.exists(src_dir):
             return
         for root, dirs, files in walk(src_dir):
@@ -115,20 +115,17 @@ class AddPage(object):
             meta['name'] = name
             fields1 = ['width', 'height']
             meta.update({k: int(v) for k, v in info.get('imgsize', info).items() if v and k in fields1})
-            fields2 = ['source', 'blocks', 'columns', 'chars', 'ocr', 'ocr_col', 'char_ocr', 'create_time',
-                       'text', 'text_proof_1']  # 将文字审定的text也导入，text_proof_1 用于 fix_txt_back.py
+            # 将文字审定的text也导入，text_proof_1 用于 fix_txt_back.py
+            fields2 = ['source', 'blocks', 'columns', 'chars', 'create_time']
             meta.update({k: v for k, v in info.items() if v and k in fields2})
+            fields3 = ['ocr', 'ocr_col']
+            meta.update({k: Ph.get_txt(meta, k).replace(' ', '') for k in fields3})
             meta['source'] = self.source if self.source else meta.get('source')
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
-            Ph.apply_col_txt(page)
             Ph.update_box_cid(meta['chars'])
             Ph.update_box_cid(meta['blocks'])
             Ph.update_box_cid(meta['columns'])
-            for f in ['ocr', 'ocr_col']:
-                if meta.get(f):
-                    meta[f] = '|'.join(meta[f]) if isinstance(meta[f], list) else meta[f]
-                    meta[f] = meta[f].replace('\n', '|').strip('|')
             if not meta.get('create_time'):
                 meta['create_time'] = datetime.now()
             elif isinstance(meta.get('create_time'), str):
@@ -182,7 +179,7 @@ class AddPage(object):
 
 
 def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', source='', check_id=False, reorder=False, reset=True,
+         txt_field='', kind='', source='', check_id=False, reorder=False, reset=True,
          use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数
@@ -213,7 +210,8 @@ def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='
     add = AddPage(db, source, update, check_only, use_local_img, check_id, reorder)
     page_names = add.add_pages_box(json_path, kind)
     add.copy_pages_img(page_names, img_path)
-    add.add_pages_text(page_names, txt_path, txt_field)
+    if txt_field:
+        add.add_pages_text(page_names, txt_path, txt_field)
 
     return 'add %s pages' % len(page_names)
 

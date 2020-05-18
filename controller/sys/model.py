@@ -49,6 +49,8 @@ class Oplog(Model):
         'gen_chars': '生成字表',
         'extract_img': '生成字图',
         'publish_task': '发布任务',
+        'check_match': '检查图文匹配',
+        'find_cmp': '寻找比对文本',
     }
 
     field_names = {
@@ -63,7 +65,9 @@ class Oplog(Model):
         'cut_column_success': '列图生成成功',
         'cut_column_failed': '列图生成失败',
         'task_type': '任务类型',
-        'task_params': '任务参数',
+        'match': '匹配',
+        'mis_match': '不匹配',
+        'matched_before': '曾匹配',
         **PageTaskPublishApi.field_names,
     }
 

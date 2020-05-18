@@ -232,7 +232,7 @@ role_route_maps = {
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
             '/api/page': ['POST'],
-            '/api/page/(delete|source|gen_chars)': ['POST'],
+            '/api/page/(delete|source|start_gen_chars|start_check_match)': ['POST'],
             '/page/(box|order|ocr_col|cmp_txt|txt)/@page_name': ['GET'],
             '/api/page/(box|order|txt_match)/@page_name': ['POST'],
             '/char/(list|browse|statistic)': ['GET'],

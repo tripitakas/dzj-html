@@ -194,8 +194,8 @@ class CharTaskPublishApi(CharHandler):
         return ''.join([str(p[field]) for p in task.get('params', [])])
 
     def task_meta(self, task_type, params, cnt):
-        num = self.data.get('num')
         batch = self.data['batch']
+        num = int(self.data.get('num') or 1)
         priority = self.data.get('priority') or 2
         pre_tasks = self.data.get('pre_tasks') or []
         txt_kind = ''.join([p.get('ocr_txt') or '' for p in params])
@@ -211,7 +211,7 @@ class CharTaskPublishApi(CharHandler):
         log = []
         source = self.data['source']
         task_type = self.data['task_type']
-        num = self.data.get('num') or 1  # 默认校次为1
+        num = int(self.data.get('num') or 1)  # 默认校次为1
 
         # 统计字频
         field = 'ocr_txt'  # 以哪个字段进行聚类

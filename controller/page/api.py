@@ -189,6 +189,31 @@ class PageTxtMatchDiffApi(PageHandler):
             return self.send_db_error(error)
 
 
+class PageCheckMatchApi(BaseHandler):
+    URL = '/api/page/start_check_match'
+
+    def post(self):
+        """ 启动检查图文匹配脚本"""
+        try:
+            rules = [(v.not_empty, 'field', 'publish_task')]
+            self.validate(self.data, rules)
+            condition = '{}'
+            if self.data.get('page_names'):
+                condition = ','.join(self.data['page_names'])
+            elif self.data.get('search'):
+                condition = Page.get_page_search_condition(self.data['search'])[0] or {}
+                condition = json.dumps(condition)
+            script = 'nohup python3 %s/utils/check_match.py --condition="%s" --fields="%s" --publish_task="%s" --username="%s" >> log/check_match.log 2>&1 &'
+            fields = ','.join(self.data['field'])
+            script = script % (h.BASE_DIR, condition, fields, self.data['publish_task'], self.username)
+            print(script)
+            os.system(script)
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class PageCmpTxtApi(PageHandler):
     URL = '/api/page/find_cmp/@page_name'
 
@@ -233,6 +258,30 @@ class PageCmpTxtNeighborApi(PageHandler):
             return self.send_db_error(error)
 
 
+class PageFindCmpApi(BaseHandler):
+    URL = '/api/page/start_find_cmp'
+
+    def post(self):
+        """ 启动寻找比对文本脚本"""
+        try:
+            rules = [(v.not_all_empty, 'page_names', 'search', 'all')]
+            self.validate(self.data, rules)
+            script = 'nohup python3 %s/utils/gen_chars.py %s --username="%s" >> log/gen_chars.log 2>&1 &'
+            if self.data.get('page_names'):
+                script = script % (h.BASE_DIR, '--page_names=' + ','.join(self.data['page_names']), self.username)
+            elif self.data.get('search'):
+                condition = Page.get_page_search_condition(self.data['search'])[0] or {}
+                script = script % (h.BASE_DIR, '--condition=' + json.dumps(condition), self.username)
+            else:
+                script = script % (h.BASE_DIR, '--condition={}', self.username)
+            print(script)
+            os.system(script)
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class PageDeleteApi(BaseHandler):
     URL = '/api/page/delete'
 
@@ -255,7 +304,7 @@ class PageDeleteApi(BaseHandler):
 
 
 class PageGenCharsApi(BaseHandler):
-    URL = '/api/page/gen_chars'
+    URL = '/api/page/start_gen_chars'
 
     def post(self):
         """ 批量生成字表"""
@@ -321,11 +370,8 @@ class PageTaskPublishApi(PageHandler):
     URL = r'/api/page/task/publish'
 
     field_names = {
-        'published': '任务已发布',
-        'pending': '任务被悬挂',
-        'finished_before': '任务已完成',
-        'un_existed': '页面不存在',
-        'published_before': '任务曾经发布',
+        'published': '任务已发布', 'pending': '任务被悬挂', 'finished_before': '任务已完成',
+        'un_existed': '页面不存在', 'published_before': '任务曾经发布',
     }
 
     def post(self):
@@ -354,7 +400,7 @@ class PageTaskPublishApi(PageHandler):
         if page_names:
             if isinstance(page_names, str):
                 self.data['page_names'] = page_names.split(',')
-            return
+            pages = list(self.db.page.find({'name': {'$in': page_names}}, {'name': 1, }))
         names_file = self.request.files.get('names_file')
         if names_file:
             names_str = str(names_file[0]['body'], encoding='utf-8').strip('\n')
@@ -411,6 +457,7 @@ class PageTaskPublishApi(PageHandler):
                 log['pending'] = set(un_finished | un_published)
                 # 前置任务未完成的情况，发布为PENDING
                 page_names = set(page_names) - log['pending']
+
                 if page_names:
                     self.create_tasks(page_names, self.STATUS_PUBLISHED, {t: self.STATUS_FINISHED for t in pre_tasks})
                     log['published'] = page_names
@@ -421,16 +468,29 @@ class PageTaskPublishApi(PageHandler):
         return {k: list(l) for k, l in log.items() if l}
 
     def create_tasks(self, page_names, status, pre_tasks=None):
-        def get_task(page_name):
+        def get_task(page_name, params=None):
             steps = self.data.get('steps') and dict(todo=self.data['steps'])
-            return dict(task_type=self.data['task_type'], num=self.data.get('num'), batch=self.data['batch'],
+            return dict(task_type=task_type, num=int(self.data.get('num') or 1), batch=self.data['batch'],
                         collection='page', id_name='name', doc_id=page_name, status=status, steps=steps,
-                        priority=self.data['priority'], pre_tasks=pre_tasks, params=None, result={},
+                        priority=self.data['priority'], pre_tasks=pre_tasks, params=params, result={},
                         create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                         publish_user_id=self.user_id, publish_by=self.username)
 
+        task_type = self.data['task_type']
         if page_names:
-            self.db.task.insert_many([get_task(name) for name in page_names], ordered=False)
-            num = '_' + str(self.data['num']) if self.data.get('num') else ''
-            update = {'tasks.' + self.data['task_type'] + num: self.STATUS_PUBLISHED}
-            self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
+            if task_type == 'txt_match':
+                pages = list(self.db.page.find({'name': {'$in': list(page_names)}}))
+                tasks, fields = [], self.data['fields']
+                for page in pages:
+                    for field in fields:
+                        # field对应的文本存在且不匹配时才发布任务
+                        if self.prop(page, 'txt_match.' + field) is not True and self.get_txt(page, field):
+                            tasks.append(get_task(page['name'], dict(field=field)))
+                self.db.task.insert_many(tasks, ordered=False)
+                update = {'tasks.%s#%s' % (task_type, f): self.STATUS_PUBLISHED for f in fields}
+                self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
+            else:
+                self.db.task.insert_many([get_task(name) for name in page_names], ordered=False)
+                num = '#' + str(self.data['num']) if self.data.get('num') else ''
+                update = {'tasks.%s#%s' % (task_type, num): self.STATUS_PUBLISHED}
+                self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})

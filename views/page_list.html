@@ -178,11 +178,11 @@
                 {% end %}
               </select>
             </div>
-            <h4 class="col-sm-2 control-label">OCR列文</h4>
+            <h4 class="col-sm-2 control-label">校对文本</h4>
             <div class="col-sm-10">
-              <select class="form-control ocr_col">
+              <select class="form-control review_txt">
                 {% for k,v in match_statuses.items() %}
-                {% if params.get('ocr_col', '') == k %}
+                {% if params.get('review_txt', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -190,11 +190,11 @@
                 {% end %}
               </select>
             </div>
-            <h4 class="col-sm-2 control-label">校对文本</h4>
+            <h4 class="col-sm-2 control-label">OCR列文</h4>
             <div class="col-sm-10">
-              <select class="form-control review_txt">
+              <select class="form-control ocr_col">
                 {% for k,v in match_statuses.items() %}
-                {% if params.get('review_txt', '') == k %}
+                {% if params.get('ocr_col', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -240,6 +240,12 @@
         <div class="num"></div>
         <h4 class="control-label label-steps">选择子步骤</h4>
         <div class="steps"></div>
+        <h4 class="control-label label-fields hide">选择字段</h4>
+        <div class="fields hide">
+          <label class="checkbox-inline"><input type="checkbox" class="ocr_col" title="ocr_col" checked>OCR列文</label>
+          <label class="checkbox-inline"><input type="checkbox" class="cmp_txt" title="cmp_txt" checked>比对文本</label>
+          <label class="checkbox-inline"><input type="checkbox" class="txt" title="txt" checked>校对文本</label>
+        </div>
         <h4 class="control-label">选择优先级</h4>
         <div class="priority">
           <label class="radio-inline"><input type="radio" name="priority" value="3">高</label>
@@ -280,6 +286,35 @@
     </div>
   </div>
 </div>
+<div id="checkModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="checkModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">检查图文匹配</h4>
+      </div>
+      <div class="modal-body">
+        <h4 class="control-label">检查哪些字段</h4>
+        <div class="field">
+          {% for k, name in handler.match_fields.items() %}
+          <label class="checkbox-inline">
+            <input type="checkbox" class="{{k}}" title="{{k}}" checked>{{name}}
+          </label>
+          {% end %}
+        </div>
+        <h4 class="control-label">不匹配时，是否自动发布任务？</h4>
+        <div class="publish_task">
+          <label class="radio-inline"><input type="radio" name="publish_task" value="是" checked>是</label>
+          <label class="radio-inline"><input type="radio" name="publish_task" value="否">否</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
 {% end %}
 
 {% block custom-js %}
@@ -313,11 +348,28 @@
     if (!pageNames.length)
       return showWarning('请选择', '当前没有选中任何记录。');
     showConfirm('', `将对选中的${pageNames.length}条记录生成字表`, function () {
-      postApi('/page/gen_chars', {data: {page_names: pageNames}}, (res) => {
+      postApi('/page/start_gen_chars', {data: {page_names: pageNames}}, (res) => {
         Swal0.fire({
           type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
           footer: '详情可以查看<a href="/sys/oplog/latest/gen_chars">日志</a>'
         });
+      });
+    });
+  });
+
+  // 检查图文匹配
+  $('.operation .btn-check-match').on('click', function () {
+    $('#checkModal').modal();
+  });
+  $('#checkModal .modal-confirm').on('click', function () {
+    var field = $.map($('#checkModal .field :checked'), function (item) {
+      return $(item).attr('title');
+    });
+    var publishTask = $('#checkModal .publish_task :checked').val() === '是';
+    postApi('/page/start_check_match', {data: {field: field, publish_task: publishTask}}, (res) => {
+      Swal0.fire({
+        type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
+        footer: '详情可以查看<a href="/sys/oplog/latest/check_match">日志</a>'
       });
     });
   });
@@ -392,8 +444,9 @@
   var taskTypes = decodeJSON('{{handler.task_types}}');
   var publishFields = [
     {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
-    {id: 'steps', input_type: 'checkbox'}, {id: 'priority', input_type: 'radio'},
-    {id: 'num', input_type: 'radio'}, {id: 'force', input_type: 'radio'}
+    {id: 'steps', input_type: 'checkbox'}, {id: 'fields', input_type: 'checkbox'},
+    {id: 'priority', input_type: 'radio'}, {id: 'num', input_type: 'radio'},
+    {id: 'force', input_type: 'radio'}
   ];
   // 弹框
   $('.btn-publish a').on('click', function () {
@@ -413,10 +466,14 @@
     }).join(''));
     // 校次
     var num = taskTypes[taskType].num || [];
+    $publishModal.find('.num').toggleClass('hide', !num.length);
     $publishModal.find('.label-num').toggleClass('hide', !num.length);
     $publishModal.find('.num').html($.map(num, function (item) {
       return `<label class="radio-inline"><input type="radio" name="num" value="${item}" ${item === 1 ? "checked" : ""}>${item}</label>`;
     }).join(''));
+    // 选择字段
+    $publishModal.find('.fields').toggleClass('hide', taskType !== 'txt_match');
+    $publishModal.find('.label-fields').toggleClass('hide', taskType !== 'txt_match');
     // 检索参数
     $publishModal.find('#search-param').val(location.search);
     // 选中页码
@@ -434,6 +491,7 @@
     var isFile = false;
     var formData = new FormData();
     var data = getModal($publishModal, publishFields);
+    console.log(data);
     var source = $publishModal.find('.tab-pane.active').attr('id');
     switch (source) {
       case 'source-search':

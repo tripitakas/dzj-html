@@ -191,7 +191,7 @@
         data['search'] = '';
         break;
     }
-    postApi('/page/gen_chars', {data: data}, function () {
+    postApi('/page/start_gen_chars', {data: data}, function () {
       Swal0.fire({
         type: 'success', title: '成功', html: '已成功启动脚本。',
         footer: `详情可查看<a href="/sys/oplog/latest/gen_chars" target="_blank">日志</a>`

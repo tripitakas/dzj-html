@@ -38,8 +38,8 @@ class PageListHandler(PageHandler):
         {'operation': 'btn-duplicate', 'label': '查找重复'},
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'bat-gen-chars', 'label': '生成字表'},
-        {'operation': 'bat-check-match', 'label': '检查图文匹配'},
-        {'operation': 'bat-fetch-cmp', 'label': '获取比对文本'},
+        {'operation': 'btn-check-match', 'label': '检查图文匹配'},
+        {'operation': 'btn-fetch-cmp', 'label': '获取比对文本'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True).items()
@@ -65,6 +65,7 @@ class PageListHandler(PageHandler):
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
     }
+    match_fields = {'cmp_txt': '比对文本', 'ocr_col': 'OCR列文', 'txt': '校对文本'}
     match_statuses = {'': '', True: '匹配', False: '不匹配'}
 
     def format_value(self, value, key=None, doc=None):
@@ -75,10 +76,11 @@ class PageListHandler(PageHandler):
                 for t, status in value.items()
             ])
         if key == 'op_text':
-            d = [('ocr_col', 'OCR列文'), ('cmp_txt', '比对文本'), ('txt', '校对文本')]
             t = {True: '√', False: '×'}
-            s = '<a title="%s">%s%s</a>'
-            return '<br/>'.join([s % (k, name, t.get(self.prop(doc, 'txt_match.' + k)) or '') for k, name in d])
+            return '<br/>'.join([
+                '<a title="%s">%s%s</a>' % (k, name, t.get(self.prop(doc, 'txt_match.' + k)) or '')
+                for k, name in self.match_fields.items()
+            ])
         return h.format_value(value, key, doc)
 
     def get_duplicate_condition(self):
@@ -241,11 +243,39 @@ class PageOrderHandler(PageHandler):
             return self.send_db_error(error)
 
 
+class PageTaskCutHandler(PageHandler):
+    URL = ['/task/(cut_proof|cut_review)/@task_id',
+           '/task/do/(cut_proof|cut_review)/@task_id',
+           '/task/browse/(cut_proof|cut_review)/@task_id',
+           '/task/update/(cut_proof|cut_review)/@task_id']
+
+    def get(self, task_type, task_id):
+        """ 切分校对、审定页面"""
+        page = self.db.page.find_one({'name': self.task['doc_id']})
+        if not page:
+            self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+        self.pack_boxes(page)
+        img_url = self.get_web_img(page['name'], 'page')
+        if self.steps['current'] == 'order':
+            reorder = self.get_query_argument('reorder', '')
+            if reorder:
+                page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
+            chars_col = self.get_chars_col(page['chars'])
+            self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=self.readonly)
+        else:
+            self.set_box_access(page, 'task')
+            self.render('page_box.html', page=page, img_url=img_url, readonly=self.readonly)
+
+
 class PageTxtMatchHandler(PageHandler):
     URL = '/page/(ocr_col|cmp_txt|txt)/@page_name'
 
     def get(self, field, page_name):
         """ 文字匹配页面"""
+        self.txt_match(self, field, page_name)
+
+    @staticmethod
+    def txt_match(self, field, page_name):
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -265,6 +295,18 @@ class PageTxtMatchHandler(PageHandler):
 
         except Exception as error:
             return self.send_db_error(error)
+
+
+class PageTaskTxtMatchHandler(PageHandler):
+    URL = ['/task/txt_match/@task_id',
+           '/task/do/txt_match/@task_id',
+           '/task/browse/txt_match/@task_id',
+           '/task/update/txt_match/@task_id']
+
+    def get(self, task_id):
+        """ 图文匹配页面"""
+        page_name, field = self.task['doc_id'], self.prop(self.task, 'params.field')
+        PageTxtMatchHandler.txt_match(self, field, page_name)
 
 
 class PageFindCmpHandler(PageHandler):
@@ -405,27 +447,3 @@ class PageTaskResumeHandler(PageHandler):
 
         except Exception as error:
             return self.send_db_error(error)
-
-
-class PageCutTaskHandler(PageHandler):
-    URL = ['/task/(cut_proof|cut_review)/@task_id',
-           '/task/do/(cut_proof|cut_review)/@task_id',
-           '/task/browse/(cut_proof|cut_review)/@task_id',
-           '/task/update/(cut_proof|cut_review)/@task_id']
-
-    def get(self, task_type, task_id):
-        """ 切分校对、审定页面"""
-        page = self.db.page.find_one({'name': self.task['doc_id']})
-        if not page:
-            self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
-        self.pack_boxes(page)
-        img_url = self.get_web_img(page['name'], 'page')
-        if self.steps['current'] == 'order':
-            reorder = self.get_query_argument('reorder', '')
-            if reorder:
-                page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
-            chars_col = self.get_chars_col(page['chars'])
-            self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=self.readonly)
-        else:
-            self.set_box_access(page, 'task')
-            self.render('page_box.html', page=page, img_url=img_url, readonly=self.readonly)
