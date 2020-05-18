@@ -29,8 +29,8 @@ class ComLeft(UIModule):
                 dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/cluster_review'),
                 dict(name='生僻校对', icon='icon-subitem', link='/task/lobby/rare_proof'),
                 dict(name='生僻审定', icon='icon-subitem', link='/task/lobby/rare_review'),
-                dict(name='文字校对', icon='icon-subitem', link='/task/lobby/txt_proof'),
-                dict(name='文字审定', icon='icon-subitem', link='/task/lobby/txt_review'),
+                dict(name='图文匹配', icon='icon-subitem', link='/task/lobby/txt_match'),
+                dict(name='比对文本', icon='icon-subitem', link='/task/lobby/find_cmp'),
             ]),
             dict(name='我的任务', icon='icon-task-my', id='task-my', sub_items=[
                 dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
@@ -39,8 +39,8 @@ class ComLeft(UIModule):
                 dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review'),
                 dict(name='生僻校对', icon='icon-subitem', link='/task/my/rare_proof'),
                 dict(name='生僻审定', icon='icon-subitem', link='/task/my/rare_review'),
-                dict(name='文字校对', icon='icon-subitem', link='/task/my/txt_proof'),
-                dict(name='文字审定', icon='icon-subitem', link='/task/my/txt_review'),
+                dict(name='图文匹配', icon='icon-subitem', link='/task/my/txt_match'),
+                dict(name='比对文本', icon='icon-subitem', link='/task/my/find_cmp'),
             ]),
             dict(name='任务管理', icon='icon-task-admin', id='task-admin', sub_items=[
                 dict(name='页任务', icon='icon-subitem', link='/page/task/list'),

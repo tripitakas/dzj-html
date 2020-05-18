@@ -169,6 +169,16 @@ role_route_maps = {
             '/api/task/(do|update)/rare_review/@task_id': ['POST'],
         }
     },
+    '文字预处理员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/task/(lobby|my)/(find_cmp|txt_match)': ['GET'],
+            '/api/task/pick/(find_cmp|txt_match)': ['POST'],
+            '/task/(do|update)/(find_cmp|txt_match)/@task_id': ['GET'],
+            '/api/task/(do|update)/(find_cmp|txt_match)/@task_id': ['POST'],
+        }
+    },
     '文字专家': {
         'is_assignable': True,
         'roles': ['工作人员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],

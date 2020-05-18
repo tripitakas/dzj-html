@@ -27,6 +27,7 @@ class Page(Model):
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'cmp_txt', 'name': '比对文本'},
         {'id': 'txt', 'name': '审定文本'},
+        {'id': 'txt_match', 'name': '图文是否匹配'},
         {'id': 'box_ready', 'name': '切分就绪'},
         {'id': 'chars_col', 'name': '字序'},
         {'id': 'tasks', 'name': '任务'},
@@ -91,9 +92,15 @@ class Page(Model):
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
-        for field in ['cut_proof', 'cut_review', 'txt_proof', 'txt_review', 'ocr_box', 'oct_txt']:
+        for field in ['cut_proof', 'cut_review', 'ocr_box', 'oct_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({'tasks.' + field: None if value == 'un_published' else value})
+        for field in ['cmp_txt', 'ocr_col', 'review_txt']:
+            value = h.get_url_param(field, request_query)
+            t = {'True': True, 'False': False}
+            if t.get(value) is not None:
+                params[field] = value
+                condition.update({'txt_match.' + field.replace('review_', ''): t.get(value)})
         return condition, params

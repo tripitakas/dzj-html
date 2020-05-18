@@ -142,30 +142,6 @@
                 {% end %}
               </select>
             </div>
-            <h4 class="col-sm-2 control-label">文字校对</h4>
-            <div class="col-sm-10">
-              <select class="form-control txt_proof">
-                {% for k,v in task_statuses.items() %}
-                {% if params.get('txt_proof', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-            <h4 class="col-sm-2 control-label">文字审定</h4>
-            <div class="col-sm-10">
-              <select class="form-control txt_review">
-                {% for k,v in task_statuses.items() %}
-                {% if params.get('txt_review', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
             <h4 class="col-sm-2 control-label">OCR字框</h4>
             <div class="col-sm-10">
               <select class="form-control ocr_box">
@@ -183,6 +159,42 @@
               <select class="form-control ocr_txt">
                 {% for k,v in task_statuses.items() %}
                 {% if params.get('ocr_txt', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
+            <h4 class="col-sm-2 control-label">比对文本</h4>
+            <div class="col-sm-10">
+              <select class="form-control cmp_txt">
+                {% for k,v in match_statuses.items() %}
+                {% if params.get('cmp_txt', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
+            <h4 class="col-sm-2 control-label">OCR列文</h4>
+            <div class="col-sm-10">
+              <select class="form-control ocr_col">
+                {% for k,v in match_statuses.items() %}
+                {% if params.get('ocr_col', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
+            <h4 class="col-sm-2 control-label">校对文本</h4>
+            <div class="col-sm-10">
+              <select class="form-control review_txt">
+                {% for k,v in match_statuses.items() %}
+                {% if params.get('review_txt', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -310,14 +322,21 @@
     });
   });
 
-  // 切分操作-修改字框、字序
-  $('.op_cut a').on('click', function () {
+  // 修改字框
+  $('.btn-box').on('click', function () {
     var name = $(this).parent().parent().find('.name').text();
-    var url = `/page/${$(this).attr("title")}/${name}`;
+    var url = '/page/box/' + name;
     location.href = url + '?from=' + encodeFrom();
   });
 
-  // 文本匹配-OCR列框、比对文本、校对文本
+  // 修改字序
+  $('.btn-order').on('click', function () {
+    var name = $(this).parent().parent().find('.name').text();
+    var url = '/page/order/' + name;
+    location.href = url + '?from=' + encodeFrom();
+  });
+
+  // 文本匹配-OCR列文、比对文本、校对文本
   $('.op_text a').on('click', function () {
     var name = $(this).parent().parent().find('.name').text();
     var url = `/page/${$(this).attr("title")}/${name}`;
@@ -335,7 +354,7 @@
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
   var inputFields = ['name', 'source', 'txt', 'remark_box', 'remark_text'];
-  var selectFields = ['cut_proof', 'cut_review', 'txt_proof', 'txt_review', 'ocr_box', 'ocr_txt'];
+  var selectFields = ['cut_proof', 'cut_review', 'ocr_box', 'ocr_txt', 'cmp_txt', 'ocr_col', 'review_txt'];
   $searchModal.find('.modal-confirm').on('click', function () {
     var search = '';
     inputFields.forEach(function (field) {

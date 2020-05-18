@@ -160,7 +160,11 @@ class PageTxtMatchApi(PageHandler):
             if r['status'] and not self.data.get('only_check'):
                 content, field = self.data['content'].replace('\n', '|'), self.data['field']
                 chars = self.write_back_txt(page['chars'], content, field)
-                self.db.page.update_one({'_id': page['_id']}, {'$set': {field: content, 'chars': chars}})
+                txt_match = page.get('txt_match') or {}
+                txt_match.update({field: True})
+                self.db.page.update_one({'_id': page['_id']}, {'$set': {
+                    field: content, 'chars': chars, 'txt_match': txt_match,
+                }})
             self.send_data_response(r)
 
         except self.DbError as error:

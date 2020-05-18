@@ -24,8 +24,7 @@ class PageListHandler(PageHandler):
         {'id': 'tasks', 'name': '任务'},
         {'id': 'box_ready', 'name': '切分就绪'},
         {'id': 'remark_box', 'name': '切分备注'},
-        {'id': 'remark_text', 'name': '文字备注'},
-        {'id': 'op_cut', 'name': '切分操作'},
+        {'id': 'remark_text', 'name': '文本备注'},
         {'id': 'op_text', 'name': '文本匹配'},
     ]
     info_fields = [
@@ -39,12 +38,16 @@ class PageListHandler(PageHandler):
         {'operation': 'btn-duplicate', 'label': '查找重复'},
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'bat-gen-chars', 'label': '生成字表'},
+        {'operation': 'bat-check-match', 'label': '检查图文匹配'},
+        {'operation': 'bat-fetch-cmp', 'label': '获取比对文本'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True).items()
         ]},
     ]
     actions = [
+        {'action': 'btn-box', 'label': '字框'},
+        {'action': 'btn-order', 'label': '字序'},
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-update', 'label': '更新'},
@@ -62,6 +65,7 @@ class PageListHandler(PageHandler):
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
     }
+    match_statuses = {'': '', True: '匹配', False: '不匹配'}
 
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""
@@ -70,10 +74,11 @@ class PageListHandler(PageHandler):
                 '%s/%s' % (self.get_task_name(t), self.get_status_name(status))
                 for t, status in value.items()
             ])
-        if key == 'op_cut':
-            value = '<a title="box">字框</a><a title="order">字序</a>'
         if key == 'op_text':
-            value = '<a title="ocr_col">OCR列框</a><a title="cmp_txt">比对文本</a><a title="txt">校对文本</a>'
+            d = [('ocr_col', 'OCR列文'), ('cmp_txt', '比对文本'), ('txt', '校对文本')]
+            t = {True: '√', False: '×'}
+            s = '<a title="%s">%s%s</a>'
+            return '<br/>'.join([s % (k, name, t.get(self.prop(doc, 'txt_match.' + k)) or '') for k, name in d])
         return h.format_value(value, key, doc)
 
     def get_duplicate_condition(self):
@@ -100,8 +105,8 @@ class PageListHandler(PageHandler):
             fields = ['chars', 'columns', 'blocks', 'cmp', 'ocr', 'ocr_col', 'txt']
             docs, pager, q, order = Page.find_by_page(self, condition, None, 'page_code', {f: 0 for f in fields})
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        task_statuses=self.task_statuses, format_value=self.format_value,
-                        **kwargs)
+                        task_statuses=self.task_statuses, match_statuses=self.match_statuses,
+                        format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)

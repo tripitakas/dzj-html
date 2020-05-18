@@ -57,20 +57,20 @@ class Task(Model):
             'steps': [['box', '字框'], ['order', '字序']],
             'pre_tasks': ['cut_proof'], 'publishable': True,
         },
-        'txt_proof': {
-            'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3], 'publishable': True,
-        },
-        'txt_review': {
-            'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
-            'pre_tasks': ['txt_proof'], 'publishable': True,
-        },
         'ocr_box': {
             'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
             'publishable': True,
         },
         'ocr_txt': {
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': True,
+        },
+        'txt_match': {
+            'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': True,
+        },
+        'find_cmp': {
+            'name': '比对文本', 'data': {'collection': 'page', 'id': 'name'},
             'publishable': True,
         },
         'cluster_proof': {

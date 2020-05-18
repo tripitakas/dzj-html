@@ -193,15 +193,21 @@ class PageHandler(TaskHandler, Page, Box):
 
         return dict(chars=chars, blocks=blocks, columns=columns)
 
-    def get_txt(self, page, key):
+    @classmethod
+    def get_txt(cls, page, key):
         if key == 'txt':
             return page.get('txt') or ''
         if key == 'cmp_txt':
             return page.get('cmp_txt') or ''
         if key == 'ocr':
-            return page.get('ocr') or self.get_box_ocr(page.get('chars'))
+            return page.get('ocr') or cls.get_box_ocr(page.get('chars'))
         if key == 'ocr_col':
-            return page.get('ocr_col') or self.get_box_ocr(page.get('columns'))
+            return page.get('ocr_col') or cls.get_box_ocr(page.get('columns'))
+
+    def get_txts(self, page):
+        txts = [(self.get_txt(page, f), f, Page.get_field_name(f)) for f in ['txt', 'ocr', 'ocr_col', 'cmp']]
+        txts = [t for t in txts if t[0]]
+        return txts
 
     @classmethod
     def get_box_ocr(cls, boxes):
@@ -359,6 +365,7 @@ class PageHandler(TaskHandler, Page, Box):
         for i, c in enumerate(chars):
             c[field] = txt[i]
         return chars
+
 
     @classmethod
     def diff(cls, base, cmp1='', cmp2='', cmp3=''):
