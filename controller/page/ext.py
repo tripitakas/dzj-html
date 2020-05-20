@@ -63,7 +63,7 @@ class PageTextHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTxtTaskHandler(PageHandler):
+class PageTaskTxtHandler(PageHandler):
     URL = ['/task/(txt_proof|txt_review)/@task_id',
            '/task/do/(txt_proof|txt_review)/@task_id',
            '/task/browse/(txt_proof|txt_review)/@task_id',
@@ -83,6 +83,18 @@ class PageTxtTaskHandler(PageHandler):
         txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
         self.render('page_txt.html', page=page, chars=chars, chars_col=chars_col, char_dict=char_dict,
                     txt_types=txt_types, img_url=img_url, readonly=self.readonly)
+
+
+class PageDetectCharsApi(PageHandler):
+    URL = '/api/page/txt/detect_chars'
+
+    def post(self):
+        """ 根据文本行内容识别宽字符"""
+        try:
+            mb4 = [[self.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
+            self.send_data_response(mb4)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class PageTxtDiffApi(PageHandler):
@@ -114,15 +126,3 @@ class PageTxtDiffApi(PageHandler):
                 if s['base'] == h['base'] and s['cmp1'] == h['cmp1']:
                     s['selected'] = True
         return diff_blocks
-
-
-class PageDetectCharsApi(PageHandler):
-    URL = '/api/page/txt/detect_chars'
-
-    def post(self):
-        """ 根据文本行内容识别宽字符"""
-        try:
-            mb4 = [[self.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
-            self.send_data_response(mb4)
-        except Exception as error:
-            return self.send_db_error(error)

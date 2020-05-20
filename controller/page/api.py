@@ -211,7 +211,7 @@ class PageTxtMatchDiffApi(PageHandler):
             return self.send_db_error(error)
 
 
-class PageCheckMatchApi(BaseHandler):
+class PageStartCheckMatchApi(BaseHandler):
     URL = '/api/page/start_check_match'
 
     def post(self):
@@ -280,24 +280,12 @@ class PageCmpTxtNeighborApi(PageHandler):
             return self.send_db_error(error)
 
 
-class PageFindCmpApi(BaseHandler):
+class PageStartFindCmpApi(BaseHandler):
     URL = '/api/page/start_find_cmp'
 
     def post(self):
         """ 启动寻找比对文本脚本"""
         try:
-            rules = [(v.not_all_empty, 'page_names', 'search', 'all')]
-            self.validate(self.data, rules)
-            script = 'nohup python3 %s/utils/gen_chars.py %s --username="%s" >> log/gen_chars.log 2>&1 &'
-            if self.data.get('page_names'):
-                script = script % (h.BASE_DIR, '--page_names=' + ','.join(self.data['page_names']), self.username)
-            elif self.data.get('search'):
-                condition = Page.get_page_search_condition(self.data['search'])[0] or {}
-                script = script % (h.BASE_DIR, '--condition=' + json.dumps(condition), self.username)
-            else:
-                script = script % (h.BASE_DIR, '--condition={}', self.username)
-            print(script)
-            os.system(script)
             self.send_data_response()
 
         except self.DbError as error:
@@ -325,7 +313,7 @@ class PageDeleteApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class PageGenCharsApi(BaseHandler):
+class PageStartGenCharsApi(BaseHandler):
     URL = '/api/page/start_gen_chars'
 
     def post(self):
