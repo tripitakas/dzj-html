@@ -11,10 +11,10 @@ views = [
 
 handlers = [
     ocr.FetchTasksApi, ocr.SubmitTasksApi, ocr.ConfirmFetchApi,
-    api.PageDeleteApi, api.PageUpsertApi,
-    api.PageBoxApi, api.CharBoxApi, api.PageOrderApi, api.PageCmpTxtApi, api.PageCmpTxtNeighborApi,
-    api.PageGenCharsApi, api.PageSourceApi,
-    api.PageTaskPublishApi, api.PageCutTaskApi, api.PageTxtMatchApi, api.PageTxtMatchDiffApi,
-    api.PageCheckMatchApi, api.PageFindCmpApi,
+    api.PageDeleteApi, api.PageUpsertApi, api.PageGenCharsApi, api.PageSourceApi,
+    api.PageBoxApi, api.CharBoxApi, api.PageOrderApi, api.PageTaskCutApi,
+    api.PageCmpTxtApi, api.PageCmpTxtNeighborApi,
+    api.PageTxtMatchApi, api.PageTxtMatchDiffApi, api.PageTaskTxtMatchApi,
+    api.PageTaskPublishApi, api.PageCheckMatchApi, api.PageFindCmpApi,
     ext.PageTxtDiffApi, ext.PageDetectCharsApi,
 ]

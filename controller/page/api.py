@@ -115,7 +115,7 @@ class PageOrderApi(PageHandler):
         self.add_log('update_order', target_id=page['_id'], target_name=page['name'])
 
 
-class PageCutTaskApi(PageHandler):
+class PageTaskCutApi(PageHandler):
     URL = ['/api/task/do/(cut_proof|cut_review)/@task_id',
            '/api/task/update/(cut_proof|cut_review)/@task_id']
 
@@ -151,31 +151,53 @@ class PageTxtMatchApi(PageHandler):
     def post(self, page_name):
         """ 提交文本匹配"""
         try:
-            rules = [(v.not_empty, 'field', 'content')]
-            self.validate(self.data, rules)
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            r = self.check_match(page['chars'], self.data['content'])
-            if r['status'] and not self.data.get('only_check'):
-                content, field = self.data['content'].replace('\n', '|'), self.data['field']
-                chars = self.write_back_txt(page['chars'], content, field)
-                txt_match = page.get('txt_match') or {}
-                txt_match.update({field: True})
-                self.db.page.update_one({'_id': page['_id']}, {'$set': {
-                    field: content, 'chars': chars, 'txt_match': txt_match,
-                }})
+            r = self.save_txt_match(self, page_name)
             self.send_data_response(r)
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+    @staticmethod
+    def save_txt_match(self, page_name):
+        rules = [(v.not_empty, 'field', 'content')]
+        self.validate(self.data, rules)
+        page = self.db.page.find_one({'name': page_name})
+        if not page:
+            return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+        r = self.check_match(page['chars'], self.data['content'])
+        if r['status'] and not self.data.get('only_check'):
+            content, field = self.data['content'].replace('\n', '|'), self.data['field']
+            chars = self.write_back_txt(page['chars'], content, field)
+            txt_match = page.get('txt_match') or {}
+            txt_match.update({field: True})
+            self.db.page.update_one({'_id': page['_id']}, {'$set': {
+                field: content, 'chars': chars, 'txt_match': txt_match,
+            }})
+        return r
+
+
+class PageTaskTxtMatchApi(PageHandler):
+    URL = ['/api/task/do/txt_match/@task_id',
+           '/api/task/update/txt_match/@task_id']
+
+    def post(self, task_id):
+        """ 文本匹配提交"""
+        try:
+
+            r = PageTxtMatchApi.save_txt_match(self, self.task['doc_id'])
+            self.send_data_response(r)
+            if r['status']:
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'status': self.STATUS_FINISHED}})
+                self.update_page_status(self.STATUS_FINISHED, self.task)
 
         except self.DbError as error:
             return self.send_db_error(error)
 
 
 class PageTxtMatchDiffApi(PageHandler):
-    URL = '/api/page/txt/match'
+    URL = '/api/page/txt_match/diff'
 
     def post(self):
-        """ 用户提交纯文本后重新比较，并设置修改痕迹"""
+        """ 图文匹配文本比较"""
         try:
             rules = [(v.not_empty, 'texts')]
             self.validate(self.data, rules)
