@@ -212,10 +212,9 @@ class PageBoxHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             self.pack_boxes(page)
-            self.set_box_access(page, 'raw')
-            readonly = '/edit' not in self.request.path
+            self.set_box_access(page)
             img_url = self.get_web_img(page['name'], 'page')
-            self.render('page_box.html', page=page, img_url=img_url, readonly=readonly)
+            self.render('page_box.html', page=page, img_url=img_url, readonly=False)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -231,13 +230,12 @@ class PageOrderHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             self.pack_boxes(page)
-            readonly = '/edit' not in self.request.path
             img_url = self.get_web_img(page['name'], 'page')
             reorder = self.get_query_argument('reorder', '')
             if reorder:
                 page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
             chars_col = self.get_chars_col(page['chars'])
-            self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=readonly)
+            self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=False)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -263,7 +261,7 @@ class PageTaskCutHandler(PageHandler):
             chars_col = self.get_chars_col(page['chars'])
             self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=self.readonly)
         else:
-            self.set_box_access(page, 'task')
+            self.set_box_access(page, task_type)
             self.render('page_box.html', page=page, img_url=img_url, readonly=self.readonly)
 
 

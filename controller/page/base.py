@@ -8,7 +8,6 @@ from .tool.diff import Diff
 from controller import auth
 from controller import errors as e
 from controller import helper as hp
-from tornado.escape import url_escape
 from controller.page.page import Page
 from controller.task.base import TaskHandler
 
@@ -40,7 +39,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @staticmethod
     def get_required_type_and_point(char):
-        """ 获取修改char的txt所需的积分"""
+        """ 获取修改char的box所需的积分"""
         ratio = {'cut_proof': 1000, 'cut_review': 500}
         for task_type in ['cut_review', 'cut_proof']:
             tasks = hp.prop(char, 'tasks.' + task_type, [])
@@ -51,9 +50,9 @@ class PageHandler(TaskHandler, Page, Box):
     @staticmethod
     def get_user_point(self, task_type):
         """ 针对指定的任务类型，获取用户积分"""
-        return self.db.task.count_documents({
-            'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED
-        })
+        condition = {'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED}
+        tasks = list(self.db.task.find(condition, {'char_count': 1}))
+        return sum([t['char_count'] for t in tasks])
 
     @classmethod
     def check_box_level_and_point(cls, self, char, task_type=None, send_error_response=True):
@@ -97,7 +96,7 @@ class PageHandler(TaskHandler, Page, Box):
     @staticmethod
     def apply_col_txt(page):
         """ 将columns的ocr_txt赋值给chars字段col_txt"""
-        changed = False
+        match = True
         for co in page.get('columns', []):
             co_txt = co.get('ocr_txt')
             if not co_txt:
@@ -106,11 +105,9 @@ class PageHandler(TaskHandler, Page, Box):
             chars.sort(key=itemgetter('block_no', 'column_no', 'char_no'))
             length = len(chars)
             if len(co_txt) == length:  # 字数相等
-                changed = True
                 for i, c in enumerate(chars):
                     c['col_txt'] = co_txt[i]
             elif len(co_txt) == length - 1:  # 字数少1
-                changed = True
                 for i, c in enumerate(chars):
                     cot = co_txt[i] if i < length - 1 else ''
                     cont = co_txt[i + 1] if i < length - 2 else ''
@@ -120,12 +117,13 @@ class PageHandler(TaskHandler, Page, Box):
                         c['col_txt'] = c['ocr_txt'] = cot
                     elif cot != c.get('ocr_txt') and (cot == cnt or cont == cnnt):
                         c['col_txt'] = ''
-                        co_txt = co_txt[:i] + '□' + co_txt[i:]
+                        co_txt = co_txt[:i] + '■' + co_txt[i:]
                     else:
                         c['col_txt'] = cot
             else:
-                co['un_equal'] = True
-        return changed
+                match = False
+                co['un_match'] = True
+        page['txt_match']['ocr_col'] = match
 
     @staticmethod
     def apply_cmp_txt(page):
@@ -134,54 +132,57 @@ class PageHandler(TaskHandler, Page, Box):
         return changed
 
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
-        """ 合并用户提交和数据库中已有数据"""
+        """ 合并用户提交和数据库中已有数据，过程中将进行权限检查"""
         post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
         # 检查删除
         post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
         to_delete = [b for b in page[box_type] if b['cid'] not in post_cids]
-        can_delete = [b['cid'] for b in to_delete if self.can_write(b, task_type)]
-        cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
-        boxes = [b for b in page[box_type] if b['cid'] not in can_delete]
+        deleted = [b['cid'] for b in to_delete if self.can_write(b, task_type)]
+        # cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
+        # 将可删除的字框删除，保留其它字框
+        boxes = [b for b in page[box_type] if b['cid'] not in deleted]
         # 检查修改
         change_cids = [b.get('cid') for b in post_boxes if b.get('changed') is True]
         to_change = [b for b in boxes if b['cid'] in change_cids]
         can_change = [b for b in to_change if self.can_write(b, task_type)]
-        cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_delete]
+        # cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_change]
+        changed = []
         for b in can_change:
-            b.pop('changed', 0)
             pb = post_box_dict.get(b['cid'])
             if self.is_box_pos_equal(b, pb):
+                b.pop('changed', 0)
                 continue
             update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
             my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
             box_logs = b.get('box_logs') or [{k: b.get(k) for k in ['x', 'y', 'w', 'h']}]
             box_logs.append(my_log)
-            status = 'added#changed' if b.get('status') == 'added' else 'changed'
-            update.update({'box_logs': box_logs, 'status': status})
+            update.update({'box_logs': box_logs})
             b.update(update)
+            changed.append({'cid': b['cid'], 'pos': {'x': b['x'], 'y': b['y'], 'w': b['w'], 'h': b['h']}})
         # 检查新增
-        added = [b for b in post_boxes if b.get('added') is True]
-        for pb in added:
-            pb.pop('added', 0)
+        to_add = [b for b in post_boxes if b.get('added') is True]
+        added = []
+        for pb in to_add:
             update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
             my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
-            pb.update({'box_logs': [my_log], 'status': 'added'})
-        boxes.extend(added)
+            pb.update({'box_logs': [my_log]})
+            added.append({'cid': pb['cid'], 'pos': {'x': pb['x'], 'y': pb['y'], 'w': pb['w'], 'h': pb['h']}})
+        boxes.extend(to_add)
         page[box_type] = boxes
-        return boxes, cannot_delete, cannot_change
+        return dict(deleted=deleted, changed=changed, added=added)
 
     def get_box_update(self, post_data, page):
         """ 获取切分校对的提交"""
-        # 合并用户提交和已有数据
-        self.merge_post_boxes(post_data['chars'], 'chars', page)
-        self.merge_post_boxes(post_data['blocks'], 'blocks', page)
-        self.merge_post_boxes(post_data['columns'], 'columns', page)
         # 过滤页面外的切分框
         blocks, columns, chars = self.filter_box(page, page['width'], page['height'])
         # 更新cid
         self.update_box_cid(chars)
         self.update_box_cid(blocks)
         self.update_box_cid(columns)
+        # 合并用户提交和已有数据
+        self.merge_post_boxes(post_data['blocks'], 'blocks', page, self.task_type)
+        self.merge_post_boxes(post_data['columns'], 'columns', page, self.task_type)
+        char_updated = self.merge_post_boxes(post_data['chars'], 'chars', page, self.task_type)
         # 重新排序
         blocks = self.calc_block_id(blocks)
         columns = self.calc_column_id(columns, blocks)
@@ -190,8 +191,8 @@ class PageHandler(TaskHandler, Page, Box):
         if post_data.get('auto_adjust'):
             blocks = self.adjust_blocks(blocks, chars)
             columns = self.adjust_columns(columns, chars)
-
-        return dict(chars=chars, blocks=blocks, columns=columns)
+        page_updated = dict(chars=chars, blocks=blocks, columns=columns)
+        return page_updated, char_updated
 
     @classmethod
     def get_txt(cls, page, key):
@@ -204,10 +205,11 @@ class PageHandler(TaskHandler, Page, Box):
         if key == 'ocr_col':
             return page.get('ocr_col') or cls.get_box_ocr(page.get('columns'))
 
-    def get_txts(self, page):
-        txts = [(self.get_txt(page, f), f, Page.get_field_name(f)) for f in ['txt', 'ocr', 'ocr_col', 'cmp']]
-        txts = [t for t in txts if t[0]]
-        return txts
+    @classmethod
+    def get_txts(cls, page, fields=None):
+        fields = fields or ['txt', 'ocr', 'ocr_col', 'cmp_txt']
+        txts = [(cls.get_txt(page, f), f, Page.get_field_name(f)) for f in fields]
+        return [t for t in txts if t[0]]
 
     @classmethod
     def get_box_ocr(cls, boxes):
@@ -224,20 +226,6 @@ class PageHandler(TaskHandler, Page, Box):
             txt += b.get('ocr_txt', '')
             pre = b
         return txt.strip('|')
-
-    @classmethod
-    def txt2html(cls, txt):
-        """ 把文本转换为html，文本以空行或者||为分栏"""
-        if re.match('<[a-z]+.*>.*</[a-z]+>', txt):
-            return txt
-        txt = '|'.join(txt) if isinstance(txt, list) else txt
-        assert isinstance(txt, str)
-        html, blocks = '', txt.split('||')
-        line = '<li class="line"><span contenteditable="true" class="same" base="%s">%s</span></li>'
-        for block in blocks:
-            lines = block.split('|')
-            html += '<ul class="block">%s</ul>' % ''.join([line % (l, l) for l in lines])
-        return html
 
     @classmethod
     def char2html(cls, chars, field='txt'):
@@ -273,49 +261,6 @@ class PageHandler(TaskHandler, Page, Box):
                     txt += line_txt + '|'
             txt += '|'
         return re.sub(r'\|{2,}', '||', txt.rstrip('|'))
-
-    def get_cmp_data(self):
-        """ 获取比对文本、存疑文本"""
-        texts, doubts = [], []
-        if 'text_proof_' in self.task_type:
-            doubts.append([self.prop(self.task, 'result.doubt', ''), '我的存疑'])
-            for field in ['text', 'ocr', 'ocr_col', 'cmp']:
-                if self.get_txt(field):
-                    texts.append([self.get_txt(field), field, Page.get_field_name(field)])
-        elif self.task_type == 'text_review':
-            doubts.append([self.prop(self.task, 'result.doubt', ''), '我的存疑'])
-            proof_doubt = ''
-            condition = dict(task_type={'$regex': 'text_proof'}, doc_id=self.page_name, status=self.STATUS_FINISHED)
-            for task in list(self.db.task.find(condition)):
-                txt = self.html2txt(self.prop(task, 'result.txt_html', ''))
-                texts.append([txt, task['task_type'], self.get_task_name(task['task_type'])])
-                proof_doubt += self.prop(task, 'result.doubt', '')
-            if proof_doubt:
-                doubts.append([proof_doubt, '校对存疑'])
-        elif self.task_type == 'text_hard':
-            doubts.append([self.prop(self.task, 'result.doubt', ''), '难字列表'])
-            condition = dict(task_type='text_review', doc_id=self.page['name'], status=self.STATUS_FINISHED)
-            review_task = self.db.task.find_one(condition)
-            review_doubt = self.prop(review_task, 'result.doubt', '')
-            if review_doubt:
-                doubts.append([review_doubt, '审定存疑'])
-        return texts, doubts
-
-    def get_txt_html_update(self, txt_html):
-        """ 获取page的txt_html字段的更新"""
-        text = self.html2txt(txt_html)
-        is_match = self.check_match(self.page.get('chars'), text)[0]
-        update = {'text': text, 'txt_html': txt_html, 'is_match': is_match}
-        if is_match:
-            update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
-        return update
-
-    @classmethod
-    def check_utf8mb4(cls, seg, base=None):
-        column_strip = re.sub(r'\s', '', base or seg.get('base', ''))
-        char_codes = [(c, url_escape(c)) for c in list(column_strip)]
-        seg['utf8mb4'] = ','.join([c for c, es in char_codes if len(es) > 9])
-        return seg
 
     @staticmethod
     def check_match(chars, txt):
@@ -365,7 +310,6 @@ class PageHandler(TaskHandler, Page, Box):
         for i, c in enumerate(chars):
             c[field] = txt[i]
         return chars
-
 
     @classmethod
     def diff(cls, base, cmp1='', cmp2='', cmp3=''):

@@ -57,7 +57,7 @@ class Oplog(Model):
         'valid_pages': '有效页码',
         'invalid_pages': '无效页码',
         'inserted_char': '已插入字码',
-        'existed_char': '已存在字码',
+        'updated_char': '已更新字码',
         'invalid_char': '无效字码',
         'cut_char_success': '字图生成成功',
         'cut_char_failed': '字图生成失败',

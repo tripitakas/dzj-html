@@ -49,12 +49,13 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
     for i in range(int(math.ceil(total_count / once_size))):
         pages = list(db.page.find(condition, {k: 1 for k in fields1}).skip(i * once_size).limit(once_size))
         # 查找、分类chars
-        chars, invalid_chars, invalid_pages, valid_pages = [], [], [], []
+        chars, char_names, invalid_chars, invalid_pages, valid_pages = [], [], [], [], []
         for p in pages:
             try:
                 id2col = {col['column_id']: {k: col[k] for k in ['cid', 'x', 'y', 'w', 'h']} for col in p['columns']}
                 for c in p['chars']:
                     try:
+                        char_names.append('%s_%s' % (p['name'], c['cid']))
                         m = dict(page_name=p['name'], txt_level=0)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
@@ -85,8 +86,14 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
         if un_existed:
             db.char.insert_many(un_existed, ordered=False)
         print('insert new %s records: %s' % (len(un_existed), ','.join([c['name'] for c in un_existed])))
-        log = dict(inserted_char=[c['name'] for c in un_existed], existed_char=[c['name'] for c in existed],
-                   invalid_char=invalid_chars, valid_pages=valid_pages, invalid_pages=invalid_pages,
+        # 删除多余的chars
+        deleted = list(db.char.find({'page_name': {'$in': page_names}, 'name': {'$nin': char_names}}, {'name': 1}))
+        db.char.delete_many({'_id': {'$in': [d['_id'] for d in deleted]}})
+        print('delete %s records: %s' % (len(deleted), ','.join([c['name'] for c in deleted])))
+
+        log = dict(inserted_char=[c['name'] for c in un_existed], updated_char=[c['name'] for c in existed],
+                   deleted_char=[c['name'] for c in deleted], invalid_char=invalid_chars,
+                   valid_pages=valid_pages, invalid_pages=invalid_pages,
                    create_time=datetime.now())
         db.oplog.update_one({'_id': log_id}, {'$addToSet': {'content': log}})
     db.oplog.update_one({'_id': log_id}, {'$set': {'status': 'finished'}})

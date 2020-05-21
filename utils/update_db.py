@@ -13,6 +13,7 @@ from pymongo.errors import PyMongoError
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
+from controller import helper as hp
 from controller.page.tool.variant import variants
 from controller.page.base import PageHandler as Ph
 
@@ -128,9 +129,12 @@ def apply_col_txt(db):
         pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('processing %s: %s chars' % (page['name'], len(page['chars'])))
-            r = Ph.apply_col_txt(page)
-            if r:
-                db.page.update_one({'_id': page['_id']}, {'$set': {'columns': page['columns'], 'chars': page['chars']}})
+            if hp.prop(page, 'txt_match.ocr_col') is None:
+                Ph.apply_col_txt(page)
+                db.page.update_one({'_id': page['_id']}, {'$set': {
+                    'columns': page['columns'], 'chars': page['chars'],
+                    'txt_match.ocr_col': page['txt_match']['ocr_col']
+                }})
 
 
 def migrate_fields_to_char(db, fields=None):

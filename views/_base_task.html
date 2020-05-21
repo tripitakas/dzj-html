@@ -1,4 +1,4 @@
-{% if hasattr(handler, 'task_type') %}
+{% if hasattr(handler, 'task_type') and handler.task_type %}
 <div class="panel-body" style="padding: 0">
   {% module ReturnModal() %}
   {% module TaskRemarkModal() %}

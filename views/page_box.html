@@ -47,7 +47,7 @@
       </div>
       <div class="right">
         <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
-        {% if hasattr(handler, 'task_type') %} {% include _task_btns.html %} {% end %}
+        {% include _task_btns.html %}
       </div><!--right-->
     </div>
     <div class="m-body flex">
@@ -62,7 +62,6 @@
     <div class="m-footer">
       <span class="fl">
         页编码：<span class="page-name">{{page['name']}}</span>
-        权限：<span class="page-info">{{'只读' if readonly else '读写'}}</span>
       </span>
       <span class="fr">
         当前字框：<span class="char-name">未选中</span><span class="char-info"></span>
@@ -123,7 +122,7 @@
 
 {% include _base_js.html %}
 {% include _base_cut.html %}
-{% if hasattr(handler, 'task_type') %} {% include _base_task.html %} {% end %}
+{% include _base_task.html %}
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script>
   // 页面图

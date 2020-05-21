@@ -6,7 +6,7 @@ from .page import Page
 from .base import PageHandler
 from controller import errors as e
 from controller import validate as v
-from tornado.escape import native_str
+from tornado.escape import native_str, url_escape
 
 
 class PageTxtHandler(PageHandler):
@@ -95,6 +95,13 @@ class PageDetectCharsApi(PageHandler):
             self.send_data_response(mb4)
         except Exception as error:
             return self.send_db_error(error)
+
+    @classmethod
+    def check_utf8mb4(cls, seg, base=None):
+        column_strip = re.sub(r'\s', '', base or seg.get('base', ''))
+        char_codes = [(c, url_escape(c)) for c in list(column_strip)]
+        seg['utf8mb4'] = ','.join([c for c, es in char_codes if len(es) > 9])
+        return seg
 
 
 class PageTxtDiffApi(PageHandler):

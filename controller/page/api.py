@@ -16,13 +16,14 @@ from controller import errors as e
 from controller import helper as h
 from controller import validate as v
 from controller.base import BaseHandler
+from utils.gen_chars import gen_chars
 
 
 class PageBoxApi(PageHandler):
     URL = ['/api/page/box/@page_name']
 
     def post(self, page_name):
-        """ 提交切分校对"""
+        """ 提交切分校对。切分数据以page表为准，box_level/box_logs等记录在page表中，坐标信息同步更新char表"""
         try:
             r = self.save_box(self, page_name)
             self.send_data_response(r)
@@ -37,9 +38,12 @@ class PageBoxApi(PageHandler):
             self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
-        # todo 完善数据权限检查和日志记录
-        update = self.get_box_update(self.data, page)
-        self.db.page.update_one({'_id': page['_id']}, {'$set': update})
+
+        page_updated, char_updated = self.get_box_update(self.data, page)
+        # 更新page表
+        self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})
+        # 更新char表
+        gen_chars(db=self.db, page_names=page_name, username=self.username)
         valid, message, box_type, out_boxes = self.check_box_cover(page)
         self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
         return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
@@ -78,7 +82,6 @@ class CharBoxApi(PageHandler):
             update = {**self.data['pos'], 'box_logs': logs, 'box_level': box_level}
             self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {'chars.$': update}})
             self.db.char.update_one({'name': char_name}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
-            # todo 待完善：切分数据以page和char哪个为准，更新哪些字段，是否马上切图并上传oss
 
             self.send_data_response()
 
@@ -108,7 +111,7 @@ class PageOrderApi(PageHandler):
             return self.send_error_response(e.cid_not_identical, message='检测到字框有增减，请刷新页面')
         if len(self.data['chars_col']) != len(page['columns']):
             return self.send_error_response(e.col_not_identical, message='提交的字序中列数有变化，请检查')
-        # todo 完善数据权限检查和日志记录
+        # 字序校对不记录日志，仅提供给任务所有者以及数据管理员修改
         chars = self.update_char_order(page['chars'], self.data['chars_col'])
         update = dict(chars=chars, chars_col=self.data['chars_col'])
         self.db.page.update_one({'_id': page['_id']}, {'$set': update})
@@ -467,7 +470,6 @@ class PageTaskPublishApi(PageHandler):
                 log['pending'] = set(un_finished | un_published)
                 # 前置任务未完成的情况，发布为PENDING
                 page_names = set(page_names) - log['pending']
-
                 if page_names:
                     self.create_tasks(page_names, self.STATUS_PUBLISHED, {t: self.STATUS_FINISHED for t in pre_tasks})
                     log['published'] = page_names
@@ -478,29 +480,32 @@ class PageTaskPublishApi(PageHandler):
         return {k: list(l) for k, l in log.items() if l}
 
     def create_tasks(self, page_names, status, pre_tasks=None):
-        def get_task(page_name, params=None):
+        def get_task(page_name, char_count=None, params=None):
             steps = self.data.get('steps') and dict(todo=self.data['steps'])
             return dict(task_type=task_type, num=int(self.data.get('num') or 1), batch=self.data['batch'],
-                        collection='page', id_name='name', doc_id=page_name, status=status, steps=steps,
-                        priority=self.data['priority'], pre_tasks=pre_tasks, params=params, result={},
+                        collection='page', id_name='name', doc_id=page_name, char_count=char_count, status=status,
+                        steps=steps, priority=self.data['priority'], pre_tasks=pre_tasks, params=params, result={},
                         create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                         publish_user_id=self.user_id, publish_by=self.username)
 
         task_type = self.data['task_type']
         if page_names:
+            pages = list(self.db.page.find({'name': {'$in': list(page_names)}}))
             if task_type == 'txt_match':
-                pages = list(self.db.page.find({'name': {'$in': list(page_names)}}))
                 tasks, fields = [], self.data['fields']
                 for page in pages:
                     for field in fields:
                         # field对应的文本存在且不匹配时才发布任务
                         if self.prop(page, 'txt_match.' + field) is not True and self.get_txt(page, field):
-                            tasks.append(get_task(page['name'], dict(field=field)))
+                            tasks.append(get_task(page['name'], len(page['chars']), dict(field=field)))
                 self.db.task.insert_many(tasks, ordered=False)
                 update = {'tasks.%s#%s' % (task_type, f): self.STATUS_PUBLISHED for f in fields}
                 self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
             else:
-                self.db.task.insert_many([get_task(name) for name in page_names], ordered=False)
+                tasks = []
+                for page in pages:
+                    tasks.append(get_task(page['name'], len(page['chars'])))
+                self.db.task.insert_many(tasks, ordered=False)
                 num = '#' + str(self.data['num']) if self.data.get('num') else ''
                 update = {'tasks.%s#%s' % (task_type, num): self.STATUS_PUBLISHED}
                 self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
