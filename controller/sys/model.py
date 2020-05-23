@@ -68,6 +68,7 @@ class Oplog(Model):
         'match': '匹配',
         'mis_match': '不匹配',
         'matched_before': '曾匹配',
+        'task_params': '任务参数',
         **PageTaskPublishApi.field_names,
     }
 

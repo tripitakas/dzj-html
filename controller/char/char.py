@@ -12,7 +12,7 @@ class Char(Model):
     fields = [
         {'id': 'name', 'name': '字编码'},
         {'id': 'page_name', 'name': '页编码'},
-        {'id': 'char_id', 'name': 'char_id'},
+        {'id': 'char_id', 'name': '序号'},
         {'id': 'uid', 'name': 'uid', 'remark': 'page_name和char_id的整型值'},
         {'id': 'cid', 'name': 'cid'},
         {'id': 'source', 'name': '分类'},
@@ -23,7 +23,7 @@ class Char(Model):
         {'id': 'pos', 'name': '坐标'},
         {'id': 'column', 'name': '所属列'},
         {'id': 'ocr_txt', 'name': '字框OCR'},
-        {'id': 'col_txt', 'name': '列框OCR'},
+        {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
         {'id': 'txt', 'name': '原字'},

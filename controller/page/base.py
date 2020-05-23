@@ -94,8 +94,8 @@ class PageHandler(TaskHandler, Page, Box):
         self.pop_fields(page['columns'], 'box_logs')
 
     @staticmethod
-    def apply_col_txt(page):
-        """ 将columns的ocr_txt赋值给chars字段col_txt"""
+    def apply_ocr_col(page):
+        """ 将columns的ocr_txt赋值给chars字段ocr_col"""
         match = True
         for co in page.get('columns', []):
             co_txt = co.get('ocr_txt')
@@ -106,7 +106,7 @@ class PageHandler(TaskHandler, Page, Box):
             length = len(chars)
             if len(co_txt) == length:  # 字数相等
                 for i, c in enumerate(chars):
-                    c['col_txt'] = co_txt[i]
+                    c['ocr_col'] = co_txt[i]
             elif len(co_txt) == length - 1:  # 字数少1
                 for i, c in enumerate(chars):
                     cot = co_txt[i] if i < length - 1 else ''
@@ -114,12 +114,12 @@ class PageHandler(TaskHandler, Page, Box):
                     cnt = chars[i + 1].get('ocr_txt') if i < length - 1 else ''
                     cnnt = chars[i + 2].get('ocr_txt') if i < length - 2 else ''
                     if not c.get('ocr_txt') and cot != cnt:
-                        c['col_txt'] = c['ocr_txt'] = cot
+                        c['ocr_col'] = c['ocr_txt'] = cot
                     elif cot != c.get('ocr_txt') and (cot == cnt or cont == cnnt):
-                        c['col_txt'] = ''
+                        c['ocr_col'] = ''
                         co_txt = co_txt[:i] + '■' + co_txt[i:]
                     else:
-                        c['col_txt'] = cot
+                        c['ocr_col'] = cot
             else:
                 match = False
                 co['un_match'] = True

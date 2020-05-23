@@ -131,8 +131,8 @@
           <div class="item ocr-alternatives">
             <label class="head">候选文字<span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="红色下划线来自于OCR列引擎，绿色下划线来自于比对文本，其余来自于OCR字引擎"></span></label>
             <div class="body">
-              {% if c.get('col_txt') %}
-              <span class="txt-item col-txt">{{c['col_txt']}}</span>
+              {% if c.get('ocr_col') %}
+              <span class="txt-item ocr-col">{{c['ocr_col']}}</span>
               {% end %}
               {% if c.get('cmp_txt') %}
               <span class="txt-item cmp-txt">{{c['cmp_txt']}}</span>
@@ -189,7 +189,7 @@
             <div class="body">
               <input class="form-control txt" placeholder="请输入字框中的文字"/>
               <div class="txt-types">
-                {% for k, v in handler.txt_types.items() %}
+                {% for k, v in Char.txt_types.items() %}
                 <label class="radio-item radio-inline">
                   <input type="radio" name="txt-type" value="{{k}}">{{v}}
                 </label>
@@ -420,40 +420,6 @@
 
   $('#resultModal .modal-confirm').on('click', function () {
     location.reload();
-  });
-
-  // 提交文字修改
-  $('#submit-txt').on('click', function () {
-    var id = $('#currentId').val();
-    var name = $('#currentName').val();
-    var data = {
-      task_type: taskType,
-      txt: $('.proof .txt').val() || '',
-      nor_txt: $('.proof .nor-txt').val() || '',
-      txt_type: $('.txt-types :checked').val() || '',
-      remark: $('.proof .remark').val() || '',
-    };
-    postApi('/char/txt/' + name, {data: data}, function (res) {
-      updateLogs(res.txt_logs);
-      location.href = setAnchor(name);
-      data.txt_logs = res.txt_logs;
-      chars[id] = $.extend(chars[id], data);
-      var $curItem = $('#' + name);
-      $curItem.find('.txt').text(data.txt);
-      var index = $curItem.attr('class').search(/proof\d/);
-      var no = $curItem.attr('class').substr(index + 5, 1);
-      $curItem.removeClass('proof' + no).addClass('proof' + (parseInt(no) + 1));
-      bsShow('成功！', '已保存成功', 'success', 1000, '#s-alert');
-    });
-  });
-
-  // 提交字框修改
-  $('#submit-box').on('click', function () {
-    var name = $('#currentName').val();
-    var data = {'pos': getBox()['pos'], 'task_type': taskType};
-    postApi('/char/box/' + name, {data: data}, function (res) {
-      bsShow('成功！', '已保存成功', 'success', 1000);
-    });
   });
 
   // 提交当前页

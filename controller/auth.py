@@ -76,6 +76,8 @@ role_route_maps = {
             '/char/@char_name': ['GET'],
             '/api/chars/(txt|txt_type|box)': ['POST'],
             '/api/char/(txt|box)/@char_name': ['POST'],
+            '/page/box/@page_name': ['GET'],
+            '/api/page/box/@page_name': ['POST'],
         }
     },
     '切分校对员': {
@@ -103,24 +105,14 @@ role_route_maps = {
         'roles': ['切分校对员', '切分审定员'],
         'routes': {}
     },
-    '文字校对员': {
+    '文字预处理员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/task/(lobby|my)/txt_proof': ['GET'],
-            '/api/task/pick/txt_proof': ['POST'],
-            '/task/(do|update)/txt_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/txt_proof/@task_id': ['POST'],
-        }
-    },
-    '文字审定员': {
-        'is_assignable': True,
-        'roles': ['工作人员'],
-        'routes': {
-            '/task/(lobby|my)/txt_review': ['GET'],
-            '/api/task/pick/txt_review': ['POST'],
-            '/task/(do|update)/txt_review/@task_id': ['GET'],
-            '/api/task/(do|update)/txt_review/@task_id': ['POST'],
+            '/task/(lobby|my)/(find_cmp|txt_match)': ['GET'],
+            '/api/task/pick/(find_cmp|txt_match)': ['POST'],
+            '/task/(do|update)/(find_cmp|txt_match)/@task_id': ['GET'],
+            '/api/task/(do|update)/(find_cmp|txt_match)/@task_id': ['POST'],
         }
     },
     '聚类校对员': {
@@ -163,19 +155,9 @@ role_route_maps = {
             '/api/task/(do|update)/rare_review/@task_id': ['POST'],
         }
     },
-    '文字预处理员': {
-        'is_assignable': True,
-        'roles': ['工作人员'],
-        'routes': {
-            '/task/(lobby|my)/(find_cmp|txt_match)': ['GET'],
-            '/api/task/pick/(find_cmp|txt_match)': ['POST'],
-            '/task/(do|update)/(find_cmp|txt_match)/@task_id': ['GET'],
-            '/api/task/(do|update)/(find_cmp|txt_match)/@task_id': ['POST'],
-        }
-    },
     '文字专家': {
         'is_assignable': True,
-        'roles': ['工作人员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],
+        'roles': ['工作人员', '文字预处理员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],
         'routes': {}
     },
     'OCR加工员': {

@@ -7,7 +7,7 @@ from .char import Char
 from .base import CharHandler
 from controller import helper as h
 from controller import errors as e
-from controller.base import BaseHandler
+from controller.page.base import PageHandler
 
 
 class CharListHandler(CharHandler):
@@ -31,7 +31,7 @@ class CharListHandler(CharHandler):
         {'id': 'txt', 'name': '原字'},
         {'id': 'nor_txt', 'name': '正字'},
         {'id': 'ocr_txt', 'name': '字框OCR'},
-        {'id': 'col_txt', 'name': '列框OCR'},
+        {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
         {'id': 'txt_logs', 'name': '校对记录'},
@@ -114,13 +114,35 @@ class CharListHandler(CharHandler):
 class CharViewHandler(CharHandler, Char):
     URL = '/char/@char_name'
 
+    def format_value(self, value, key=None, doc=None):
+        """ 格式化task表的字段输出"""
+        if key in ['cc', 'sc'] and value:
+            return value / 1000
+        if key in ['pos', 'column'] and value:
+            return ', '.join(['%s:%s' % (k, v) for k, v in value.items()])
+        return h.format_value(value, key, doc)
+
     def get(self, char_name):
         """ 查看Char页面"""
         try:
             char = self.db.char.find_one({'name': char_name})
             if not char:
-                return self.send_error_response(e.no_object, message='没有找到数据%s' % char)
-            self.render('char_view.html', char=char, Char=Char)
+                return self.send_error_response(e.no_object, message='没有找到数据%s' % char_name)
+            projection = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1}
+            page = self.db.page.find_one({'name': char['page_name'], 'chars.cid': char['cid']}, projection)
+            if page and page['chars'][0].get('box_logs'):
+                char['box_logs'] = page['chars'][0]['box_logs']
+            if page and page['chars'][0].get('box_level'):
+                char['box_level'] = page['chars'][0]['box_level']
+            base_fields = ['name', 'page_name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column',
+                           'txt', 'nor_txt', 'txt_type', 'txt_level', 'box_level', 'remark']
+            img_url = self.get_web_img(page['name'], 'page')
+            txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
+            print(txt_auth)
+            box_auth = PageHandler.check_box_level_and_point(self, char, None, False) is True
+            print(box_auth)
+            self.render('char_view.html', char=char, page=page, base_fields=base_fields, img_url=img_url,
+                        txt_auth=txt_auth, box_auth=box_auth, Char=Char)
 
         except Exception as error:
             return self.send_db_error(error)

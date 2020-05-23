@@ -4,11 +4,36 @@
   <meta charset="UTF-8">
   <title>{{char['name']}}</title>
   {% include _base_css.html %}
-  <link href="{{static_url('css/info.css')}}" rel="stylesheet">
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/txt.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/char.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    .btn.disabled {
+      color: #aaa;
+    }
+
+    #right-region {
+      width: 420px;
+      max-width: 420px;
+    }
+
+    #center-region {
+      border: none;
+      max-width: 60px;
+      position: relative;
+      background: transparent;
+    }
+
+    #submit-box {
+      bottom: 10px;
+      margin: auto 3px;
+      position: absolute;
+    }
+  </style>
 </head>
 
 <body class="widescreen">
@@ -23,50 +48,128 @@
           <a href="#">{{char['name']}}</a>
         </div>
       </div>
-      <div class="center"></div>
-      <div class="right"></div>
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+      </div>
+      <div class="right">
+      </div>
     </div>
-    <div class="m-body no-footer">
-      <div class="wrapper" style="width: 960px; margin: auto">
-        <div class="block">
-          <div class="char-img"><img src="{{handler.get_web_img(char['name'], 'char')}}"/></div>
-        </div>
-        <div class="block">
-          <div class="block-head">基本信息</div>
-          {% for k, v in char.items() %}
-          {% if k not in ['box_logs', 'txt_logs']%}
-          <div class="info">
-            <label class="label">{{Char.get_field_name(k)}}</label>
-            <span class="value">{{v}}</span>
-          </div>
-          {% end %}
-          {% end %}
-        </div>
-        <div class="block">
-          <div class="block-head">切分历史</div>
-          {% for log in char.get('box_logs', []) %}
-          {% for k,v in log.items() %}
-          <div class="info">
-            <label class="label">{{Char.get_field_name(k)}}</label>
-            <span class="value">{% raw handler.format_value(v, k) %}</span>
-          </div>
-          {% end %}
-          {% end %}
-        </div>
-        <div class="block">
-          <div class="block-head">文字历史</div>
-          {% for log in char.get('txt_logs', []) %}
-          <div class="item">
-            {% for k,v in log.items() %}
-            <div class="info">
-              <label class="label">{{Char.get_field_name(k)}}</label>
-              <span class="value">{% raw handler.format_value(v, k) %}</span>
+    <div class="m-body flex pfread">
+      <div id="left-region" class="left bd">
+        <div id="holder"></div>
+      </div>
+      <div id="center-region" class="right bd">
+        <button class="btn btn-primary{{'' if box_auth else ' disabled'}}" id="submit-box">确认</button>
+      </div>
+      <div id="right-region" class="right bd work-panel">
+        <input type="hidden" id="currentId" value="{{char['_id']}}">
+        <input type="hidden" id="currentName" value="{{char['name']}}">
+        <div class="items txt-list">
+          <div class="item cur-meta">
+            <label class="head">基本信息</label>
+            <div class="body">
+              <div class="log">
+                <div class="log-meta">
+                  {% for f in base_fields %}
+                  {% if f in char %}
+                  <label>{{Char.get_field_name(f)}}</label>
+                  <span>{{handler.format_value(char[f], f, char)}}</span><br/>
+                  {% end %}
+                  {% end %}
+                </div>
+              </div>
             </div>
-            {% end %}
+          </div>
+          <div class="item ocr-alternatives">
+            <label class="head">候选文字</label>
+            <div class="body">
+              {% if char.get('ocr_col') %}
+              <span class="txt-item ocr-col">{{char['ocr_col']}}</span>
+              {% end %}
+              {% if char.get('cmp_txt') %}
+              <span class="txt-item cmp-txt">{{char['cmp_txt']}}</span>
+              {% end %}
+              {% for t in char.get('alternatives', '')%}
+              <span class="txt-item">{{t}}</span>
+              {% end %}
+            </div>
+          </div>
+          {% if char.get('txt_logs')%}
+          <div class="item logs">
+            <label class="head">文字校对记录</label>
+            <div class="body">
+              {% for log in char.get('txt_logs', '')%}
+              <div class="log current">
+                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('nor_txt')}}</span></div>
+                <div class="log-meta">
+                  {% for f in ['txt', 'nor_txt', 'txt_type', 'remark'] %}
+                  {% if log.get(f) %}<label>{{Char.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>{% end %}
+                  {% end %}
+                  {% if log.get('username') %}<label>校对人</label><span>{{log['username']}}</span><br/>{% end %}
+                  {% if log.get('create_time') %}<label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>{% end %}
+                  {% if log.get('updated_time') %}<label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>{% end %}
+                </div>
+              </div>
+              {% end %}
+            </div>
           </div>
           {% end %}
+          {% if char.get('box_logs')%}
+          <div class="item logs">
+            <label class="head">切分校对记录</label>
+            <div class="body">
+              {% for log in char.get('box_logs', '')%}
+              <div class="log">
+                <div class="log-meta">
+                  {% if log.get('x') %}<label>坐标</label><span>{{', '.join(['%s:%s'%(f,log.get(f)) for f in ['x','y','w','h']])}}</span><br/>{% end %}
+                  {% if log.get('username') %}<label>校对人</label><span>{{log['username']}}</span><br/>{% end %}
+                  {% if log.get('create_time') %}<label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>{% end %}
+                  {% if log.get('updated_time') %}<label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>{% end %}
+                </div>
+              </div>
+              {% end %}
+            </div>
+          </div>
+          {% end %}
+        </div>
+        <div class="items user-work">
+          <div class="item proof">
+            <label class="head">
+              请您校对
+              <span class="icon-info proof-help" data-toggle="tooltip" data-placement="left" title="如果您输入的文字和图片用字不是同一个字，即有多笔少划或者字形结构上的不同，但是属于同一个正字，则二者构成异体字。"></span>
+            </label>
+            <div class="body">
+              <input class="form-control txt" placeholder="请录入原字"/>
+              <div class="txt-types">
+                {% for k, v in Char.txt_types.items() %}
+                <label class="radio-item radio-inline">
+                  <input type="radio" name="txt-type" value="{{k}}">{{v}}
+                </label>
+                {% end %}
+              </div>
+              <input class="form-control nor-txt" placeholder="请录入正字"/>
+              <input class="form-control remark" placeholder="备注，如果有的话"/>
+            </div>
+            <div class="tail submit" style="margin-top: 5px">
+              <span id="m-alert" class="alert hide">
+                <a class="close">×</a><strong class="title"></strong><span class="text"></span>
+              </span>
+              <button class="btn btn-primary fr{{'' if box_auth else ' disabled'}}" id="submit-txt">确认</button>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        字框权限：<span class="box-auth">{{'读写' if box_auth else '只读'}}</span>
+      </span>
+      <span class="fr">
+        文字权限：<span class="txt-auth">{{'读写' if txt_auth else '只读'}}</span>
+      </span>
     </div>
   </div>
 </div>
@@ -78,13 +181,58 @@
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
           <h4 class="modal-title">帮助文档</h4>
         </div>
+        <div class="modal-body">
+          <div class="title">一、简介</div>
+          <div class="intro">
+            页面浏览可以针对一个页面集合逐条浏览，页面集合有检索参数决定。 浏览时可以看到页面的切分信息、文本信息、任务信息等。其中，
+            栏框、列框、字框等切分信息以及审定文本可以通过更多按钮进行修改，字框OCR和列框OCR可以直接在本页面修改保存。<br/>
+            另外，本页面还可以发布任务。<br/>
+            <b>注：</b>点击上一页或下一页时，系统将记住文本区域的显示或隐藏状态，从而可以选择仅仅浏览切分信息，或者同时浏览文本信息。
+          </div>
+          <div class="title">二、操作</div>
+          <table class="table">
+            <tr>
+              <td><img src="{{static_url('imgs/icon_back.png')}}"/></td>
+              <td>返回</td>
+            </tr>
+            <tr>
+              <td><i class="icon-image"></i></td>
+              <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
+            </tr>
+            <tr>
+              <td><i class="icon-txt"></i></td>
+              <td>打开或关闭右侧文本。关闭文本可以更好的查看切分信息</td>
+            </tr>
+            <tr>
+              <td><i class="icon-blur"></i></td>
+              <td>图片虚化处理。虚化后可以更好的看清字框、字序等信息</td>
+            </tr>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 {% include _base_js.html %}
+{% include _base_cut.html %}
+<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/char.js')}}"></script>
 <script>
+  // 公共参数
+  var taskType = '';
+
+  $.cut.create({
+    readonly: true,
+    holder: 'holder',
+    image: '{{img_url}}',
+    name: '{{page["name"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    chars: '{{[char["pos"]]}}',
+    scrollContainer: '#left-region',
+  });
+  $.cut.bindKeys();
 
 </script>
 

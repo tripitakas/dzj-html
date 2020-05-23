@@ -36,6 +36,10 @@
         <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
         <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-order" class="btn-txt icon-char-order" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+        <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
+        <div class="btn-group more-group hide" id="more-group">
+          <span id="btn-box" class="btn btn-default btn-sm" type="button">修改字框</span>
+        </div>
       </div>
       <div class="right">
         <div id="btn-show-txts" class="btn-group" title="查看文本">
@@ -175,13 +179,19 @@
 
 <script>
   // 切换文本
-  $('.btn-show-txt').click(function () {
+  $('.btn-show-txt').on('click', function () {
     $('.btn-show-txt').removeClass('active');
     $(this).addClass('active');
     $('.sutra-text').addClass('hide');
     $('.' + $(this).attr('data-id')).removeClass('hide');
     $('.m-footer .txt-info').html('当前文本：' + $(this).text());
   });
+
+  // 修改字框
+  $('#btn-box').on('click', function () {
+    location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
+  });
+
 
 </script>
 

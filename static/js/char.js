@@ -180,7 +180,7 @@ function updateWorkPanel(ch) {
   $('#currentId').val(ch._id.$oid);
   $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
   // 更新候选文字
-  var options = ch.col_txt ? `<span class="txt-item col-txt${ch.col_txt === ch.txt ? ' active' : ''}">${ch.col_txt}</span>` : '';
+  var options = ch.ocr_col ? `<span class="txt-item ocr-col${ch.ocr_col === ch.txt ? ' active' : ''}">${ch.ocr_col}</span>` : '';
   options += ch.cmp_txt ? `<span class="txt-item cmp-txt${ch.cmp_txt === ch.txt ? ' active' : ''}">${ch.cmp_txt}</span>` : '';
   options += (ch.alternatives || '').split('').map(function (c) {
     return `<span class="txt-item${c === ch.txt ? ' active' : ''}">${c}</span>`;
@@ -219,4 +219,39 @@ $('.m-footer .page-name').on('click', function () {
 // 查看char页面
 $('.m-footer .char-name').on('click', function () {
   window.open('/char/' + $('#currentName').val(), '_blank');
+});
+
+/** 提交后台 */
+// 提交文字修改
+$('#submit-txt').on('click', function () {
+  var id = $('#currentId').val();
+  var name = $('#currentName').val();
+  var data = {
+    task_type: taskType,
+    txt: $('.proof .txt').val() || '',
+    nor_txt: $('.proof .nor-txt').val() || '',
+    txt_type: $('.txt-types :checked').val() || '',
+    remark: $('.proof .remark').val() || '',
+  };
+  postApi('/char/txt/' + name, {data: data}, function (res) {
+    updateLogs(res.txt_logs);
+    location.href = setAnchor(name);
+    data.txt_logs = res.txt_logs;
+    chars[id] = $.extend(chars[id], data);
+    var $curItem = $('#' + name);
+    $curItem.find('.txt').text(data.txt);
+    var index = $curItem.attr('class').search(/proof\d/);
+    var no = $curItem.attr('class').substr(index + 5, 1);
+    $curItem.removeClass('proof' + no).addClass('proof' + (parseInt(no) + 1));
+    bsShow('成功！', '已保存成功', 'success', 1000, '#s-alert');
+  });
+});
+
+// 提交字框修改
+$('#submit-box').on('click', function () {
+  var name = $('#currentName').val();
+  var data = {'pos': getBox()['pos'], 'task_type': taskType};
+  postApi('/char/box/' + name, {data: data}, function (res) {
+    bsShow('成功！', '已保存成功', 'success', 1000);
+  });
 });

@@ -45,7 +45,7 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
     total_count = db.page.count_documents(condition)
     log_id = Bh.add_op_log(db, 'gen_chars', 'ongoing', [], username)
     fields1 = ['name', 'source', 'columns', 'chars']
-    fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'col_txt', 'cmp_txt', 'alternatives']
+    fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
     for i in range(int(math.ceil(total_count / once_size))):
         pages = list(db.page.find(condition, {k: 1 for k in fields1}).skip(i * once_size).limit(once_size))
         # 查找、分类chars
@@ -63,7 +63,7 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
                         m['txt'] = c.get('txt') or c.get('ocr_txt')
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
-                        m['un_equal'] = c.get('col_txt', '1') != c.get('alternatives', ['2'])[0]
+                        m['un_equal'] = c.get('ocr_col', '1') != c.get('alternatives', ['2'])[0]
                         m['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
                         chars.append(m)
                     except KeyError as e:
