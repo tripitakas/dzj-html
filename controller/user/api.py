@@ -7,6 +7,7 @@
 import random
 import logging
 import smtplib
+import re
 from os import path
 from bson import json_util
 from bson.objectid import ObjectId
@@ -121,7 +122,8 @@ class RegisterApi(BaseHandler):
                 (v.is_password, 'password'),
                 (v.not_existed, self.db.user, 'phone', 'email')
             ]
-            if not options.testing and self.data.get('email') and self.config['email']['key'] not in ['', None, '待配置']:
+            if not options.testing and self.data.get('email') and self.config['email']['key'] not in ['', None, '待配置']\
+                    and not re.match(r'ocr-processor.*@tripitakas\.net', self.data['email']):
                 rules.append((v.not_empty, 'email_code'))
                 rules.append((v.code_verify_timeout, self.db.verify, 'email', 'email_code'))
             if not options.testing and self.data.get('phone'):
