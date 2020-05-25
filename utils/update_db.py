@@ -139,7 +139,17 @@ def migrate_fields_to_char(db, fields=None):
                 db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
 
 
-def main(db_name='tripitaka', uri='localhost', func='migrate_fields_to_char', **kwargs):
+def update_task_char_count(db):
+    """ 更新页任务的char_count"""
+    page_tasks = db.task.find({'char_count': None, 'collection': 'page'}, {'doc_id': 1})
+    page_names = [p['doc_id'] for p in list(page_tasks)]
+    pages = db.page.find({'name': {'$in': page_names}}, {'chars': 1})
+    for p in pages:
+        cnt = len(p['chars'])
+        db.task.update({'char_count': None, 'collection': 'page', 'doc_id': p['name']}, {'$set': {'char_count': cnt}})
+
+
+def main(db_name='tripitaka', uri='localhost', func='update_task_char_count', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
