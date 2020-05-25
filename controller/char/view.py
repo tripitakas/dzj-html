@@ -81,12 +81,21 @@ class CharListHandler(CharHandler):
 
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""
+
+        def log2str(log):
+            val = '|'.join(log[f] for f in ['txt', 'nor_txt', 'txt_type', 'remark', 'user_name'] if log.get(f))
+            if log.get('updated_time'):
+                val = val + '|' + h.get_date_time('%Y-%m-%d %H:%M', log.get('updated_time'))
+            return val
+
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'txt_type' and value:
             return self.txt_types.get(value, value)
         if key in ['cc', 'sc'] and value:
             return value / 1000
+        if key == 'txt_logs' and value:
+            return '<br/>'.join([log2str(log) for log in value])
         if key == 'has_img' and value not in [None, False]:
             return r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['name'], 'char')
         return h.format_value(value, key, doc)
@@ -120,6 +129,8 @@ class CharViewHandler(CharHandler, Char):
             return value / 1000
         if key in ['pos', 'column'] and value:
             return ', '.join(['%s:%s' % (k, v) for k, v in value.items()])
+        if key == 'txt_type':
+            return Char.txt_types.get(value) or value
         return h.format_value(value, key, doc)
 
     def get(self, char_name):
@@ -138,9 +149,7 @@ class CharViewHandler(CharHandler, Char):
                            'txt', 'nor_txt', 'txt_type', 'txt_level', 'box_level', 'remark']
             img_url = self.get_web_img(page['name'], 'page')
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
-            print(txt_auth)
             box_auth = PageHandler.check_box_level_and_point(self, char, None, False) is True
-            print(box_auth)
             self.render('char_view.html', char=char, page=page, base_fields=base_fields, img_url=img_url,
                         txt_auth=txt_auth, box_auth=box_auth, Char=Char)
 

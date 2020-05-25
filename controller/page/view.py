@@ -79,7 +79,7 @@ class PageListHandler(PageHandler):
             t = {True: '√', False: '×'}
             return '<br/>'.join([
                 '<a title="%s">%s%s</a>' % (k, name, t.get(self.prop(doc, 'txt_match.' + k)) or '')
-                for k, name in self.match_fields.items()
+                for k, name in self.match_fields.items() if self.get_txt(doc, k)
             ])
         return h.format_value(value, key, doc)
 
@@ -104,8 +104,8 @@ class PageListHandler(PageHandler):
                 condition, params = self.get_duplicate_condition()
             else:
                 condition, params = Page.get_page_search_condition(self.request.query)
-            fields = ['chars', 'columns', 'blocks', 'cmp', 'ocr', 'ocr_col', 'txt']
-            docs, pager, q, order = Page.find_by_page(self, condition, None, 'page_code', {f: 0 for f in fields})
+            # fields = ['chars', 'columns', 'blocks', 'cmp_txt', 'ocr', 'ocr_col', 'txt']
+            docs, pager, q, order = Page.find_by_page(self, condition, None, 'page_code', None)
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, match_statuses=self.match_statuses,
                         format_value=self.format_value, **kwargs)

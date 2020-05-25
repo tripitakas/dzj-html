@@ -38,12 +38,9 @@ class PageBoxApi(PageHandler):
             self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
-
         page_updated, char_updated = self.get_box_update(self.data, page)
-        # 更新page表
-        self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})
-        # 更新char表
-        gen_chars(db=self.db, page_names=page_name, username=self.username)
+        self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})  # 更新page表
+        gen_chars(db=self.db, page_names=page_name, username=self.username)  # 更新char表
         valid, message, box_type, out_boxes = self.check_box_cover(page)
         self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
         return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
@@ -58,8 +55,8 @@ class CharBoxApi(PageHandler):
         try:
             rules = [(v.not_empty, 'pos')]
             self.validate(self.data, rules)
-            page_name, cid = '_'.join(char_name.split('_')[:-1]), char_name.split('_')[-1]
-            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, {'name': 1, 'chars.$': 1})
+            page_name, cid = '_'.join(char_name.split('_')[:-1]), int(char_name.split('_')[-1])
+            page = self.db.page.find_one({'name': page_name, 'chars.cid': cid}, {'name': 1, 'chars.$': 1})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             # 检查数据等级和积分
@@ -80,8 +77,13 @@ class CharBoxApi(PageHandler):
 
             box_level = self.get_user_box_level(self, self.data.get('task_type'))
             update = {**self.data['pos'], 'box_logs': logs, 'box_level': box_level}
-            self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {'chars.$': update}})
+            self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
+                'chars.$.x': update['x'], 'chars.$.y': update['y'], 'chars.$.w': update['w'], 'chars.$.h': update['h'],
+                'chars.$.box_level': update['box_level'], 'chars.$.box_logs': update['box_logs']
+            }})
             self.db.char.update_one({'name': char_name}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
+            self.send_data_response(dict(box_logs=logs))
+            self.add_log('update_box', None, char_name, update)
 
             self.send_data_response()
 
@@ -325,14 +327,14 @@ class PageStartGenCharsApi(BaseHandler):
             rules = [(v.not_all_empty, 'page_names', 'search', 'all')]
             self.validate(self.data, rules)
             script = 'nohup python3 %s/utils/gen_chars.py %s --username="%s" >> log/gen_chars.log 2>&1 &'
+            condition = '--condition={}'
             if self.data.get('page_names'):
-                script = script % (h.BASE_DIR, '--page_names=' + ','.join(self.data['page_names']), self.username)
+                condition = '--page_names="' + ','.join(self.data['page_names']) + '"'
             elif self.data.get('search'):
                 condition = Page.get_page_search_condition(self.data['search'])[0] or {}
-                script = script % (h.BASE_DIR, '--condition=' + json.dumps(condition), self.username)
-            else:
-                script = script % (h.BASE_DIR, '--condition={}', self.username)
-            print(script)
+                condition = '--condition="' + json.dumps(condition) + '"'
+            script = script % (h.BASE_DIR, condition, self.username)
+            # print(script)
             os.system(script)
             self.send_data_response()
 

@@ -178,8 +178,8 @@
 .flex .work-panel {
   flex: 1;
   height: 100%;
-  width: 380px;
-  max-width: 380px;
+  width: 420px;
+  max-width: 420px;
   background: var(--Grey_Content);
   display: flex;
   flex-direction: column;
@@ -222,7 +222,7 @@
   display: inline-block;
   cursor: pointer;
   text-align: center;
-  margin: 0 10px 5px 0;
+  margin: 0 15px 5px 0;
   border: 1px solid #ccc;
 }
 
@@ -249,10 +249,14 @@
   flex-wrap: wrap;
 }
 
-.log:not(:last-child) {
+.log {
   display: flex;
   margin-bottom: 10px;
   border-bottom: 1px dotted #ccc;
+}
+
+.log:last-child {
+  border-bottom: none;
 }
 
 .log .log-head {

@@ -153,8 +153,8 @@ function updateColumnImg(ch) {
 }
 
 /** 右侧工作面板 */
-// 更新校对记录
-function updateLogs(logs) {
+// 更新文字校对历史
+function updateTxtLogs(logs) {
   var html = (logs || []).map(function (log) {
     var txt = log.txt || log.nor_txt || '';
     var head = `<span class="log-txt txt-item">${/[0-9]/.test(txt) ? '' : txt}</span>`;
@@ -167,8 +167,25 @@ function updateLogs(logs) {
     meta += log.updated_time ? `<label>更新时间</label><span>${toLocalTime(log.updated_time)}</span><br/>` : '';
     return `<div class="log"><div class="log-head">${head}</div><div class="log-meta">${meta}</div></div>`;
   }).join('');
-  $('.logs .body').html(html);
-  $('.logs').toggleClass('hide', !html.length);
+  $('.txt-logs .body').html(html);
+  $('.txt-logs').toggleClass('hide', !html.length);
+}
+
+// 更新切分校对历史
+function updateBoxLogs(logs) {
+  console.log(logs);
+  var html = (logs || []).map(function (log) {
+    var pos = ['x', 'y', 'w', 'h'].map(function (item) {
+      return item + ':' + log.pos[item];
+    }).join(', ');
+    var meta = log.pos ? `<label>坐标</label><span>${pos}</span><br/>` : '';
+    meta += log.username ? `<label>校对人</label><span>${log.username}</span><br/>` : '';
+    meta += log.create_time ? `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>` : '';
+    meta += log.updated_time ? `<label>更新时间</label><span>${toLocalTime(log.updated_time)}</span><br/>` : '';
+    return `<div class="log"><div class="log-meta">${meta}</div></div>`;
+  }).join('');
+  $('.box-logs .body').html(html);
+  $('.box-logs').toggleClass('hide', !html.length);
 }
 
 // 更新工作面板
@@ -187,7 +204,8 @@ function updateWorkPanel(ch) {
   }).join('');
   $('.ocr-alternatives .body').html(options);
   // 更新校对历史
-  updateLogs(ch.txt_logs);
+  updateTxtLogs(ch.txt_logs);
+  updateBoxLogs(ch.box_logs);
   // 更新请您校对
   $('.proof .remark').val('');
   $('.proof .txt').val(ch.txt || ch.ocr_txt);
@@ -234,7 +252,7 @@ $('#submit-txt').on('click', function () {
     remark: $('.proof .remark').val() || '',
   };
   postApi('/char/txt/' + name, {data: data}, function (res) {
-    updateLogs(res.txt_logs);
+    updateTxtLogs(res.txt_logs);
     location.href = setAnchor(name);
     data.txt_logs = res.txt_logs;
     chars[id] = $.extend(chars[id], data);
@@ -253,5 +271,6 @@ $('#submit-box').on('click', function () {
   var data = {'pos': getBox()['pos'], 'task_type': taskType};
   postApi('/char/box/' + name, {data: data}, function (res) {
     bsShow('成功！', '已保存成功', 'success', 1000);
+    updateBoxLogs(res.box_logs);
   });
 });

@@ -129,51 +129,45 @@
         <input type="hidden" id="currentName">
         <div class="items txt-list">
           <div class="item ocr-alternatives">
-            <label class="head">候选文字<span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="红色下划线来自于OCR列引擎，绿色下划线来自于比对文本，其余来自于OCR字引擎"></span></label>
+            <label class="head">候选文字
+              <span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="红色下划线来自于OCR列引擎，绿色下划线来自于比对文本，其余来自于OCR字引擎"></span>
+            </label>
             <div class="body">
-              {% if c.get('ocr_col') %}
-              <span class="txt-item ocr-col">{{c['ocr_col']}}</span>
-              {% end %}
-              {% if c.get('cmp_txt') %}
-              <span class="txt-item cmp-txt">{{c['cmp_txt']}}</span>
-              {% end %}
-              {% for t in c.get('alternatives', '')%}
-              <span class="txt-item">{{t}}</span>
-              {% end %}
+              {% if c.get('ocr_col') %}<span class="txt-item ocr-col">{{c['ocr_col']}}</span>{% end %}
+              {% if c.get('cmp_txt') %}<span class="txt-item cmp-txt">{{c['cmp_txt']}}</span>{% end %}
+              {% for t in c.get('alternatives', '')%}<span class="txt-item">{{t}}</span>{% end %}
             </div>
           </div>
-          <div class="item cur-meta hide">
-            <label class="head">当前信息</label>
+          <div class="item logs txt-logs">
+            <label class="head">文字校对历史</label>
             <div class="body">
-              <div class="log">
-                <div class="log-head">
-                  <span class="log-txt txt-item">{{c.get('txt') or c.get('nor_txt')}}</span>
-                </div>
-                <div class="log-meta">
-                  {% for f in [i for i in ['name', 'page_name', 'txt', 'nor_txt', 'txt_type'] if c.get(i)]%}
-                  <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
-                  {% end %}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="item logs">
-            <label class="head">校对记录</label>
-            <div class="body">
-              {% for log in c.get('txt_logs', '')%}
+              {% for log in c.get('txt_logs', [])%}
               <div class="log current">
                 <div class="log-head">
                   <span class="log-txt txt-item">{{log.get('txt') or log.get('nor_txt')}}</span>
                 </div>
                 <div class="log-meta">
                   {% for f in ['txt', 'nor_txt', 'txt_type', 'remark'] %}
-                  {% if log.get(f) %}
-                  <label>{{Char.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
+                  {% if log.get(f) %}<label>{{Char.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>{% end %}
                   {% end %}
-                  {% end %}
-                  <label>校对人</label><span>{{log.get('username') or ''}}</span><br/>
-                  <label>创建时间</label><span>{{to_date_str(log.get('create_time') or '')}}</span><br/>
-                  <label>更新时间</label><span>{{to_date_str(log.get('updated_time') or '')}}</span><br/>
+                  {% if log.get('username') %}<label>校对人</label><span>{{log['username']}}</span><br/>{% end %}
+                  {% if log.get('create_time') %}<label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>{% end %}
+                  {% if log.get('updated_time') %}<label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>{% end %}
+                </div>
+              </div>
+              {% end %}
+            </div>
+          </div>
+          <div class="item logs box-logs">
+            <label class="head">切分校对历史</label>
+            <div class="body">
+              {% for log in c.get('box_logs', [])%}
+              <div class="log">
+                <div class="log-meta">
+                  {% if log.get('x') %}<label>坐标</label><span>{{', '.join(['%s:%s'%(f,log.get(f)) for f in ['x','y','w','h']])}}</span><br/>{% end %}
+                  {% if log.get('username') %}<label>校对人</label><span>{{log['username']}}</span><br/>{% end %}
+                  {% if log.get('create_time') %}<label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>{% end %}
+                  {% if log.get('updated_time') %}<label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>{% end %}
                 </div>
               </div>
               {% end %}
