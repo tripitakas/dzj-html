@@ -143,10 +143,10 @@ def update_task_char_count(db):
     """ 更新页任务的char_count"""
     page_tasks = db.task.find({'char_count': None, 'collection': 'page'}, {'doc_id': 1})
     page_names = [p['doc_id'] for p in list(page_tasks)]
-    pages = db.page.find({'name': {'$in': page_names}}, {'chars': 1})
+    pages = db.page.find({'name': {'$in': page_names}}, {'chars': 1, 'name': 1})
     for p in pages:
-        cnt = len(p['chars'])
-        db.task.update({'char_count': None, 'collection': 'page', 'doc_id': p['name']}, {'$set': {'char_count': cnt}})
+        db.task.update_many({'char_count': None, 'collection': 'page', 'doc_id': p['name']},
+                            {'$set': {'char_count': len(p['chars'])}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='update_task_char_count', **kwargs):
