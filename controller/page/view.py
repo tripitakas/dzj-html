@@ -70,6 +70,20 @@ class PageListHandler(PageHandler):
 
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""
+
+        def format_txt(field, show_none=True):
+            txt = self.get_txt(doc, field)
+            if txt:
+                return '<a title="%s">%s%s</a>' % (
+                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.' + field)) or ''
+                )
+            elif show_none:
+                return '<a title="%s">%s%s(无)</a>' % (
+                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.' + field)) or '',
+                )
+            else:
+                return ''
+
         if key == 'tasks' and value:
             return '<br/>'.join([
                 '%s/%s' % (self.get_task_name(t), self.get_status_name(status))
@@ -77,10 +91,7 @@ class PageListHandler(PageHandler):
             ])
         if key == 'op_text':
             t = {True: '√', False: '×'}
-            return '<br/>'.join([
-                '<a title="%s">%s%s</a>' % (k, name, t.get(self.prop(doc, 'txt_match.' + k)) or '')
-                for k, name in self.match_fields.items() if self.get_txt(doc, k)
-            ])
+            return '<br/>'.join([format_txt(k, k != 'txt') for k in ['ocr_col', 'cmp_txt', 'txt']])
         return h.format_value(value, key, doc)
 
     def get_duplicate_condition(self):
@@ -282,7 +293,8 @@ class PageTxtMatchHandler(PageHandler):
             cmp_txt = self.get_txt(page, field)
             field_name = Page.get_field_name(field)
             if not cmp_txt:
-                self.send_error_response(e.no_object, message='页面没有%s' % field_name)
+                links = [('寻找比对文本', '/page/find_cmp/' + page_name)] if field == 'cmp_txt' else None
+                self.send_error_response(e.no_object, message='页面没有%s' % field_name, links=links)
 
             self.pack_boxes(page)
             char_txt = self.get_txt(page, 'ocr')
