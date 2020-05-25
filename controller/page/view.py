@@ -170,8 +170,9 @@ class PageViewHandler(PageHandler):
             img_url = self.get_web_img(page['name'])
             chars_col = self.get_chars_col(page['chars'])
             txt_off = self.get_query_argument('txt', None) == 'off'
+            txt_dict = {t[1]: t for t in txts}
             self.render('page_view.html', page=page, img_url=img_url, chars_col=chars_col, txts=txts,
-                        txt_off=txt_off, cur_cid=cid)
+                        txt_off=txt_off, txt_dict=txt_dict, cur_cid=cid)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -317,11 +318,9 @@ class PageFindCmpHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             self.pack_boxes(page)
-            ocr = self.get_txt(page, 'ocr')
-            cmp = self.get_txt(page, 'cmp')
-            readonly = '/edit' not in self.request.path
             img_url = self.get_web_img(page['name'], 'page')
-            self.render('page_find_cmp.html', page=page, ocr=ocr, cmp=cmp, img_url=img_url, readonly=readonly)
+            self.render('page_find_cmp.html', page=page, img_url=img_url, readonly=True, ocr=self.get_txt(page, 'ocr'),
+                        cmp_txt=self.get_txt(page, 'cmp_txt'), )
 
         except Exception as error:
             return self.send_db_error(error)

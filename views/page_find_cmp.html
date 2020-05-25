@@ -120,7 +120,7 @@
           </div>
           <div id="pagination" class="search-pagination ms-search-pagination"></div>
           <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……">
-          {{cmp or ''}}
+          {{cmp_txt or ''}}
           </textarea>
         </div>
       </div><!--right-->
@@ -281,6 +281,19 @@
   $(document).on('change', '#selected', function () {
     var $selected = $('#selected');
     $selected.height($selected.prop('scrollHeight'));
+  });
+
+  // 获取提交数据
+  function getPostData() {
+    return {cmp_txt: $('#selected').val()};
+  }
+
+  // 保存数据
+  $('#save').on('click', function () {
+    bsLoading('保存中‧‧‧');
+    postApi('/page/cmp_txt/{{page["name"]}}', {data: getPostData()}, function (res) {
+      bsShow('成功!', '已保存。');
+    });
   });
 
 </script>

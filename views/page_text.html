@@ -115,7 +115,7 @@
       </div>
       <div id="right-region" class="m-right wide-txt">
         <div id="work-panel" class="sutra-text bd">
-          <div id="work-html" class="html-text">
+          <div id="cmp-html" class="html-text">
             <div class="blocks">
               {% if isinstance(cmp_data, str) %}
               {% raw cmp_data %}
@@ -124,7 +124,7 @@
               {% end %}
             </div>
           </div>
-          <!--/.work-html-->
+          <!--/.cmp-html-->
           {% if doubts %}
           <div class="char-list doubt-list">
             <div class="char-list-tab">
@@ -179,9 +179,7 @@
         </div>
         {% for i, (txt, field, label) in enumerate(txts) %}
         <div id="text-{{field}}" class="sutra-text hide">
-          <textarea class="text-editable" rows="{{len(txt.split('|'))}}">
-            {% raw txt.replace('|', '\n') %}
-          </textarea>
+          <div class="blocks">{% raw handler.txt2html(txt) %}</div>
         </div>
         {% end %}
       </div>

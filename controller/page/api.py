@@ -241,7 +241,7 @@ class PageStartCheckMatchApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class PageCmpTxtApi(PageHandler):
+class PageFindCmpTxtApi(PageHandler):
     URL = '/api/page/find_cmp/@page_name'
 
     def post(self, page_name):
@@ -280,6 +280,24 @@ class PageCmpTxtNeighborApi(PageHandler):
                 self.send_data_response(dict(txt=txt, code=neighbor['_source']['page_code']))
             else:
                 self.send_data_response(dict(txt='', message='没有更多内容'))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class PageCmpTxtApi(PageHandler):
+    URL = '/api/page/cmp_txt/@page_name'
+
+    def post(self, page_name):
+        """ 提交比对文本"""
+        try:
+            rules = [(v.not_empty, 'cmp_txt')]
+            self.validate(self.data, rules)
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            self.db.page.update_one({'_id': page['_id']}, {'$set': {'cmp_txt': self.data['cmp_txt']}})
+            self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)

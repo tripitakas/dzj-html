@@ -120,23 +120,6 @@ def update_cid(db):
                 db.page.update_one({'_id': page['_id']}, {'$set': update})
 
 
-def apply_ocr_col(db):
-    """ 将page表中columns的文本赋值给chars字段ocr_col"""
-    size = 10
-    page_count = math.ceil(db.page.count_documents({}) / size)
-    for i in range(page_count):
-        project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
-        pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
-        for page in pages:
-            print('processing %s: %s chars' % (page['name'], len(page['chars'])))
-            if hp.prop(page, 'txt_match.ocr_col') is None:
-                Ph.apply_ocr_col(page)
-                db.page.update_one({'_id': page['_id']}, {'$set': {
-                    'columns': page['columns'], 'chars': page['chars'],
-                    'txt_match.ocr_col': page['txt_match']['ocr_col']
-                }})
-
-
 def migrate_fields_to_char(db, fields=None):
     """ 将page表的值同步到char表"""
     fields = fields or ['ocr_col', 'cmp_txt']

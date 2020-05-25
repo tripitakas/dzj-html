@@ -35,8 +35,7 @@ class PageTxtHandler(PageHandler):
 
 
 class PageTextHandler(PageHandler):
-    URL = ['/page/text/@page_name',
-           '/page/text/edit/@page_name']
+    URL = '/page/text/@page_name'
 
     def get(self, page_name):
         """ 文字校对页面"""
@@ -53,11 +52,10 @@ class PageTextHandler(PageHandler):
             if not cmp_data:
                 txt_fields = [t[1] for t in txts]
                 cmp_data = self.diff(*[t[0] for t in txts])
-            readonly = '/edit' not in self.request.path
             img_url = self.get_web_img(page['name'], 'page')
             return self.render('page_text.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
                                txt_fields=txt_fields, cmp_data=cmp_data,
-                               doubts=doubts, readonly=readonly)
+                               doubts=doubts, readonly=True)
 
         except Exception as error:
             return self.send_db_error(error)

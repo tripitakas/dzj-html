@@ -17,35 +17,34 @@
 }
 
 /* 文本区域 */
+#cmp-html {
+  height: 100%;
+  overflow: auto;
+  flex: 1 1 auto;
+}
+
 .sutra-text {
   height: 100%;
 }
 
-.html-text {
-  height: 100%;
-  overflow: auto;
-  flex: 1 1 auto;
-  padding-top: 5px;
-}
-
-.html-text .blocks {
+.blocks {
   margin-left: 10px;
   font-size: 0;
 }
 
-.html-text .block:not(:last-child) {
+.blocks .block:not(:last-child) {
   margin-bottom: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid #ccc;
 }
 
-.html-text .line.current-line {
+.block .line.current-line {
   padding-left: 4px;
   margin-left: -10px;
   border-left: 6px solid rgba(255, 0, 0, .4);
 }
 
-.html-text .line span {
+.block .line span {
   font-size: 20px;
   font-weight: 300;
   margin: 5px 0;
@@ -54,29 +53,29 @@
   word-break: break-all;
 }
 
-.html-text .line span:last-child(:not .empty-place) {
+.block .line span:last-child(:not .empty-place) {
   min-width: 20px;
   min-height: 40px;
   padding-right: 10px;
 }
 
-.html-text .diff {
+.block .diff {
   color: red;
 }
 
-.html-text .same {
+.block .same {
   color: black;
 }
 
-.html-text .selected {
+.block .selected {
   color: green;
 }
 
-.html-text .variant {
+.block .variant {
   color: black;
 }
 
-.html-text span.empty-place {
+.block span.empty-place {
   border: 0;
   width: 4px;
   height: 24px;
@@ -86,23 +85,23 @@
   background-color: var(--Brown_Darker);
 }
 
-.html-text span.empty-place.selected {
+.block span.empty-place.selected {
   background-color: green;
 }
 
-.html-text .current-span {
+.block .current-span {
   border: 1px solid #C1C1C1;
 }
 
-.html-text .variant-highlight {
+.block .variant-highlight {
   color: blue;
 }
 
-.html-text .hidden {
+.block .hidden {
   display: none;
 }
 
-.html-text .delete {
+.block .delete {
   display: none !important;
 }
 
@@ -110,7 +109,7 @@
   width: 100%;
   height: auto;
   overflow-y: hidden;
-  padding-left: 5px;
+  padding-left: 10px;
   font-size: 20px;
   font-weight: 300;
   line-height: 40px;

@@ -41,7 +41,7 @@ function previousDiff() {
     return;
   $diff.eq(idx - 1).click().dblclick();
   if ($('.dialog-abs').offset().top < 55) {
-    $('#work-html').animate({scrollTop: $('.dialog-abs').offset().top - 50}, 300);
+    $('#cmp-html').animate({scrollTop: $('.dialog-abs').offset().top - 50}, 300);
     setTimeout(() => $diff.eq(idx - 1).click().dblclick(), 500);
   }
 }
@@ -54,8 +54,8 @@ function nextDiff() {
   var $diff = $('.diff');
   var idx = $diff.index($('.current-diff'));
   $diff.eq(idx + 1).click().dblclick();
-  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('#work-html').height()) {
-    $('.right #work-html').animate({scrollTop: $('.dialog-abs').offset().top + 50}, 300);
+  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('#cmp-html').height()) {
+    $('.right #cmp-html').animate({scrollTop: $('.dialog-abs').offset().top + 50}, 300);
     setTimeout(() => $diff.eq(idx + 1).click().dblclick(), 500);
   }
 }

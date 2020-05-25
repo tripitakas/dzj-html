@@ -93,43 +93,31 @@ class PageHandler(TaskHandler, Page, Box):
         self.pop_fields(page['blocks'], 'box_logs')
         self.pop_fields(page['columns'], 'box_logs')
 
-    @staticmethod
-    def apply_ocr_col(page):
-        """ 将columns的ocr_txt赋值给chars字段ocr_col"""
+    @classmethod
+    def apply_txt(cls, page, field):
+        """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种情况
+        用field文本和ocr文本进行diff，针对异文的几种情况：
+        1. 如果ocr文本为空，则丢弃field文本
+        2. 如果ocr文本为换行，则补充field文本为换行
+        3. 如果field文本为空，则根据ocr文本长度，填充■
+        4. 如果ocr文本和field文本长度不一致，则认为不匹配
+        """
+        if page['txt_match'].get(field) in [True, False]:
+            return page['txt_match'][field]
         match = True
-        for co in page.get('columns', []):
-            co_txt = co.get('ocr_txt')
-            if not co_txt:
-                continue
-            chars = [c for c in page['chars'] if c['block_no'] == co['block_no'] and c['column_no'] == co['column_no']]
-            chars.sort(key=itemgetter('block_no', 'column_no', 'char_no'))
-            length = len(chars)
-            if len(co_txt) == length:  # 字数相等
-                for i, c in enumerate(chars):
-                    c['ocr_col'] = co_txt[i]
-            elif len(co_txt) == length - 1:  # 字数少1
-                for i, c in enumerate(chars):
-                    cot = co_txt[i] if i < length - 1 else ''
-                    cont = co_txt[i + 1] if i < length - 2 else ''
-                    cnt = chars[i + 1].get('ocr_txt') if i < length - 1 else ''
-                    cnnt = chars[i + 2].get('ocr_txt') if i < length - 2 else ''
-                    if not c.get('ocr_txt') and cot != cnt:
-                        c['ocr_col'] = c['ocr_txt'] = cot
-                    elif cot != c.get('ocr_txt') and (cot == cnt or cont == cnnt):
-                        c['ocr_col'] = ''
-                        co_txt = co_txt[:i] + '■' + co_txt[i:]
-                    else:
-                        c['ocr_col'] = cot
-            else:
+        diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field))[0]
+        diff_segments = [s for s in diff_segments if s['base']]
+        for s in diff_segments:
+            if s['is_same'] and s['base'] == '\n':
+                s['cmp1'] = '\n'
+            if not s['is_same'] and not s['cmp1']:
+                s['cmp1'] = '■' * len(s['base'])
+            if len(s['base']) != len(s['cmp1']):
                 match = False
-                co['un_match'] = True
-        page['txt_match']['ocr_col'] = match
-
-    @staticmethod
-    def apply_cmp_txt(page):
-        """ 将寻找的比对文本逐个赋值给chars字段cmp_txt"""
-        changed = False
-        return changed
+        txt2apply = ''.join([s['cmp1'] for s in diff_segments])
+        if match:
+            cls.write_back_txt(page['chars'], field, field)
+        return match, txt2apply
 
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
         """ 合并用户提交和数据库中已有数据，过程中将进行权限检查"""
@@ -261,6 +249,20 @@ class PageHandler(TaskHandler, Page, Box):
                     txt += line_txt + '|'
             txt += '|'
         return re.sub(r'\|{2,}', '||', txt.rstrip('|'))
+
+    @classmethod
+    def txt2html(cls, txt):
+        """ 把文本转换为html，文本以空行或者||为分栏"""
+        if re.match('<[a-z]+.*>.*</[a-z]+>', txt):
+            return txt
+        txt = '|'.join(txt) if isinstance(txt, list) else txt
+        assert isinstance(txt, str)
+        html, blocks = '', txt.split('||')
+        line = '<li class="line"><span contenteditable="true" class="same" base="%s">%s</span></li>'
+        for block in blocks:
+            lines = block.split('|')
+            html += '<ul class="block">%s</ul>' % ''.join([line % (l, l) for l in lines])
+        return html
 
     @staticmethod
     def check_match(chars, txt):

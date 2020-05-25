@@ -13,7 +13,7 @@ var offsetInSpan = null;                  // 当前选中范围开始位置
 var currentSpan = [null];                 // $(当前span)，是否第一个
 
 function getBlock(blockNo) {
-  return $('#work-html .block').eq(blockNo - 1);
+  return $('.sutra-text:not(.hide) .block').eq(blockNo - 1);
 }
 
 function getLine(blockNo, lineNo) {
@@ -21,7 +21,7 @@ function getLine(blockNo, lineNo) {
 }
 
 function getBlockNo(block) {
-  return $('#work-html .block').index(block) + 1;
+  return $(block).parent('.blocks').find('.block').index(block) + 1;
 }
 
 function getLineNo(line) {
@@ -107,7 +107,7 @@ function highlightBox($span, first, keyCode) {
   var line_no = getLineNo($line);
   var $block = $line.parent();
   var block_no = getBlockNo($block);
-  var offset0 = parseInt($span.attr('offset'));
+  var offset0 = parseInt($span.attr('offset') || 0);
   offsetInSpan = offsetInSpan ? offsetInSpan : getCursorPosition($span[0]);
   offsetInSpan = offsetInSpan + (keyCode === 39 ? 1 : keyCode === 37 ? -1 : 0);
   offsetInSpan = offsetInSpan || 1;
@@ -199,16 +199,17 @@ $.cut.onBoxChanged(function (char, box, reason) {
 });
 
 // 记下当前span
-$('.line > span').on('mousedown', function () {
+$(document).on('mousedown', '.line > span', function () {
   currentSpan[0] = $(this);
 });
 
 // 记下选中位置
-$('.line > span').on('mouseup', function () {
+$(document).on('mouseup', '.line > span', function () {
   offsetInSpan = getCursorPosition(this);
+  console.log(offsetInSpan);
 });
 
-$('.line > span').on('keydown', function (e) {
+$(document).on('keydown', '.line > span', function (e) {
   var keyCode = e.keyCode || e.which;
   highlightBox($(this), false, keyCode);
 });
@@ -257,7 +258,7 @@ $(document).on('dblclick', '.diff', function (e) {
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
   // 当弹框超出文字框时，向上弹出
   var o_t = $dlg.offset().top;
-  var r_h = $(".html-text").height();
+  var r_h = $("#cmp-html").height();
   var d_h = $('.dialog-abs').height();
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
   if (o_t + d_h > r_h) {
@@ -293,7 +294,7 @@ $('.m-right').on('click', function (e) {
 });
 
 // 滚动文本区滚动条
-$('#work-html').on('scroll', function () {
+$('#cmp-html').on('scroll', function () {
   $dlg.offset({top: 0, left: 0}).hide();
 });
 
@@ -312,8 +313,8 @@ $(document).on('DOMSubtreeModified', '#dlg-select', function () {
 
 /** 文本比对相关代码 */
 
-function getWorkText() {
-  return $.map($('#work-html .block'), function (block) {
+function getText(txtId) {
+  return $.map($(txtId + ' .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
       return $.map($(line).find('span'), function (span) {
         return $(span).text();
@@ -323,16 +324,8 @@ function getWorkText() {
 }
 
 function showTxt(txtId) {
-  if (txtId === 'text-work') {
-    $('#text-work textarea').val(getWorkText());
-  }
   $('.sutra-text').addClass('hide');
   $('#' + txtId).removeClass('hide');
-  resetHeight($('#' + txtId + ' textarea'));
-}
-
-function getText(txtType) {
-  return $('#text-' + txtType).find('textarea').val();
 }
 
 function setDialogLabel(labels) {
@@ -344,6 +337,8 @@ function setDialogLabel(labels) {
 
 // 查看文本
 $('.btn-show-txt').on('click', function () {
+  $('.btn-show-txt').removeClass('active');
+  $(this).addClass('active');
   showTxt($(this).attr('data-id'));
 });
 
@@ -358,12 +353,13 @@ $('#btn-cmp-txt').on('click', function () {
   });
   if (!cmps.length)
     return showTips('提示', '请选择校本');
-  var texts = [base].concat(cmps).map((field) => getText(field));
+  var texts = [base].concat(cmps).map((field) => getText('#text_' + field));
   postApi('/page/txt/diff', {data: {texts: texts}}, function (res) {
-    $('#work-html .blocks').html(res['cmp_data']);
-    showTxt('work-panel');
-    setDialogLabel([base].concat(cmps).map((field) => textDict[field][2]));
-    textFields = [base].concat(cmps).map((field) => textDict[field][1]);
+    $('#cmp-html .blocks').html(res['cmp_data']);
+    showTxt('text_cmp_html');
+    setDialogLabel([base].concat(cmps).map((field) => txtDict[field][2]));
+    if (typeof txtFields !== 'undefined')
+      txtFields = [base].concat(cmps).map((field) => txtDict[field][1]);
   });
 });
 
@@ -374,7 +370,7 @@ function toggleWorkText(mode) {
     $('#btn-html-txt').removeClass('hide');
   }
   if (mode === 'html') {
-    showTxt('work-panel');
+    showTxt('text_cmp_html');
     $('#btn-raw-txt').removeClass('hide');
     $('#btn-html-txt').addClass('hide');
   }
@@ -388,15 +384,15 @@ $('#btn-raw-txt').on('click', function () {
 // 回到工作面板
 $('#btn-html-txt:not(.diff)').on('click', function () {
   // 用工作文本替代底本与比对文本比对
-  var texts = txtFields.map((txt) => getText(txt));
+  var texts = txtFields.map((txt) => getText('#text_' + txt));
   texts[0] = $('#text-work textarea').val();
-  var hints = $.map($('#work-html .selected'), function (i) {
+  var hints = $.map($('#cmp-html .selected'), function (i) {
     var lineNo = getLineNo($(i).parent());
     var blockNo = getBlockNo($(i).parent().parent());
     return {line_no: lineNo, block_no: blockNo, base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')}
   });
   postApi('/page/txt/diff', {data: {texts: texts, hints: hints}}, function (res) {
-    $('#work-html .blocks').html(res['cmp_data']);
+    $('#cmp-html .blocks').html(res['cmp_data']);
     toggleWorkText('html');
   });
 });
@@ -487,7 +483,7 @@ $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
   var $tr = $(this), id = $tr.attr('data'), $li = $('#' + id);
   var pos = findSpanByOffset($li, parseInt($tr.attr('data-offset')));
   var txt = $tr.find('td:nth-child(3)').text();
-  $('#work-html').animate({scrollTop: $li.offset().top}, 100);
+  $('#cmp-html').animate({scrollTop: $li.offset().top}, 100);
   if (pos[0]) {
     highlightInSpan(pos[0][0], pos[1], pos[1] + txt.length);
     setCurrent(pos[0]);
@@ -502,7 +498,7 @@ function checkMismatch(report, fromApi) {
   var mismatch = [];
   var lineCountMisMatch = '', ocrColumns = [];
   // 文本区每行的栏号和列号
-  var lineNos = $('#work-html .line').map(function (i, line) {
+  var lineNos = $('#cmp-html .line').map(function (i, line) {
     var blockNo = getBlockNo($(line).parent());
     var lineNo = getLineNo($(line));
     return {blockNo: blockNo, lineNo: lineNo};
@@ -611,7 +607,7 @@ $(document).on('paste', 'span', function (e) {
 });
 
 // 自动保存修改
-$('#work-html').on('DOMSubtreeModified', markChanged);
+$('#cmp-html').on('DOMSubtreeModified', markChanged);
 
 function markChanged() {
 }

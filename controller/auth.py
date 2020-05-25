@@ -27,6 +27,13 @@ url_placeholder = {
     'task_type': r'ocr_\w+|cut_\w+|txt_\w+|cluster_\w+|rare_\w+',
 }
 
+""" 
+角色权限对应表。定义系统中的所有角色以及对应的route权限，将属于同一业务的route分配给同一个角色，
+用户通过拥有角色来拥有对应的route权限。角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
+roles：角色所继承的父角色；
+routes：角色可以访问的权限集合；
+is_assignable：角色是否可被分配。
+"""
 role_route_maps = {
     '单元测试用户': {
         'is_assignable': False,
@@ -70,14 +77,14 @@ role_route_maps = {
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],
             '/page/@page_name': ['GET'],
-            '/api/page/find_cmp/neighbor': ['POST'],
+            '/page/box/@page_name': ['GET'],
+            '/api/page/box/@page_name': ['POST'],
             '/api/page/txt_match/diff': ['POST'],
+            '/api/page/find_cmp/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
             '/char/@char_name': ['GET'],
             '/api/chars/(txt|txt_type|box)': ['POST'],
             '/api/char/(txt|box)/@char_name': ['POST'],
-            '/page/box/@page_name': ['GET'],
-            '/api/page/box/@page_name': ['POST'],
         }
     },
     '切分校对员': {
@@ -209,8 +216,8 @@ role_route_maps = {
             '/page/(browse|info)/@page_name': ['GET'],
             '/api/page': ['POST'],
             '/api/page/(delete|source|start_gen_chars|start_check_match)': ['POST'],
-            '/page/(box|order|ocr_col|cmp_txt|txt)/@page_name': ['GET'],
-            '/api/page/(box|order|txt_match)/@page_name': ['POST'],
+            '/page/(box|order|find_cmp|ocr_col|cmp_txt|txt|text)/@page_name': ['GET'],
+            '/api/page/(box|order|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
             '/char/(list|browse|statistic)': ['GET'],
             '/api/char/(delete|source|extract_img)': ['POST'],
         }
@@ -254,13 +261,6 @@ role_route_maps = {
         }
     },
 }
-""" 
-角色权限对应表。定义系统中的所有角色以及对应的route权限，将属于同一业务的route分配给同一个角色，
-用户通过拥有角色来拥有对应的route权限。角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
-roles：角色所继承的父角色；
-routes：角色可以访问的权限集合；
-is_assignable：角色是否可被分配。
-"""
 
 
 def get_assignable_roles():

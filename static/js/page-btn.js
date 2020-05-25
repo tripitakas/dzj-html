@@ -146,6 +146,6 @@ $(document).on('click', '.m-footer .char-name', function () {
   var from = decodeFrom();
   var cid = $(this).text().split('#')[1];
   var charName = $('.m-footer .page-name').text() + '_' + cid;
-  location.href = '/char/' + charName + (from ? '?from=' + from : '');
+  window.open('/char/' + charName + (from ? '?from=' + from : ''), '_blank');
 });
 

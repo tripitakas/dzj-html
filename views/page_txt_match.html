@@ -80,12 +80,12 @@
       </div>
       <div id="right-region" class="m-right wide-txt">
         <div id="work-panel" class="sutra-text bd">
-          <div id="work-html" class="html-text">
+          <div id="cmp-html" class="html-text">
             <div class="blocks">
               {% module TxtDiff(cmp_data=cmp_data) %}
             </div>
           </div>
-          <!--/.work-html-->
+          <!--/.cmp-html-->
           <div id="pfread-dialog" class="pfread-dialog">
             <div class="dialog-common dialog-abs">
               <div class="dlg-before"></div>
@@ -270,14 +270,14 @@
     e.stopPropagation();
     var texts = ['{{char_txt}}', $('#text-work textarea').val()];
     postApi('/page/txt_match/diff', {data: {texts: texts}}, function (res) {
-      $('#work-html .blocks').html(res['cmp_data']);
+      $('#cmp-html .blocks').html(res['cmp_data']);
       toggleWorkText('html');
     });
   });
 
   $('#check-mis-match').on('click', function () {
     bsLoading('检查中‧‧‧');
-    var data = {field: '{{field}}', content: getWorkText(), only_check: true};
+    var data = {field: '{{field}}', content: getText('#cmp-html'), only_check: true};
     postApi('/page/txt_match/{{page["name"]}}', {data: data}, function (res) {
       bsHide();
       if (res.data.status) {
@@ -295,7 +295,7 @@
 
   // 获取提交数据
   function getPostData() {
-    return {field: '{{field}}', content: getWorkText()};
+    return {field: '{{field}}', content: getText('#cmp-html')};
   }
 
   // 保存数据

@@ -37,7 +37,7 @@ def find(q, index='cb4ocr-ik'):
     return r['hits']['hits']
 
 
-def find_one(ocr, num=1):
+def find_one(ocr, num=1, only_match=False):
     """ 从ES中寻找与ocr最匹配的document，返回第num个结果 """
     ocr = ''.join(ocr) if isinstance(ocr, list) else ocr.replace('|', '')
     ret = find(ocr)
@@ -47,7 +47,10 @@ def find_one(ocr, num=1):
     cb = ''.join(ret[num - 1]['_source']['origin'])
     diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
     txt = ''.join(['<kw>%s</kw>' % d['cb'] if d.get('is_same') else d['cb'] for d in diff])
-
+    if only_match:
+        start = txt.find('<kw>')
+        end = txt.rfind('</kw>')
+        txt = re.sub(r'</?kw>', '', txt[start: end])
     return txt, hit_page_codes
 
 
