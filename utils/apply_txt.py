@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# python3 utils/update_db.py --uri=uri --func=init_variants
+# python3 utils/apply_txt.py --uri=uri --func=find_cmp
 
 import re
 import sys
@@ -53,7 +53,7 @@ def main(db_name='tripitaka', uri='localhost', func='find_cmp', **kwargs):
 
 
 if __name__ == '__main__':
-    main(func='apply_txt', field='cmp_txt')
-    # import fire
-    #
-    # fire.Fire(main)
+    # main(func='apply_txt', field='cmp_txt')
+    import fire
+
+    fire.Fire(main)
