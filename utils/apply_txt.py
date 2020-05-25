@@ -21,7 +21,7 @@ from controller.page.base import PageHandler as Ph
 def find_cmp(db):
     """ 寻找比对文本"""
     size = 10
-    page_count = math.ceil(db.page.count_documents({}) / size)
+    page_count = math.ceil(db.page.count_documents({'cmp_txt': {'$ne': None}}) / size)
     for i in range(page_count):
         pages = list(db.page.find({'cmp_txt': {'$ne': None}}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
@@ -36,7 +36,7 @@ def apply_txt(db, field):
     """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种情况"""
     assert field in ['ocr_col', 'cmp_txt', 'txt']
     size = 10
-    page_count = math.ceil(db.page.count_documents({}) / size)
+    page_count = math.ceil(db.page.count_documents({'txt_match.' + field: {'$ne': None}}) / size)
     for i in range(page_count):
         pages = list(db.page.find({'txt_match.' + field: {'$ne': None}}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
