@@ -11,7 +11,10 @@ from controller.helper import load_config
 
 def get_hosts():
     config = load_config()
-    return [dict(host='dev.tripitakas.net')] if options.testing else [config.get('esearch', {})]
+    hosts = [config.get('esearch', {})]
+    if hasattr(options, 'testing') and options.testing:
+        hosts = [dict(host='dev.tripitakas.net')]
+    return hosts
 
 
 def find(q, index='cb4ocr-ik'):
