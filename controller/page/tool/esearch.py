@@ -10,8 +10,8 @@ from controller.helper import load_config
 
 
 def get_hosts():
-    config = load_config()
-    hosts = [config.get('esearch', {})]
+    config = load_config() or {}
+    hosts = [config.get('esearch') or {'host': '47.95.216.233', 'post': 9200}]
     if hasattr(options, 'testing') and options.testing:
         hosts = [dict(host='dev.tripitakas.net')]
     return hosts
