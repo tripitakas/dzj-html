@@ -66,7 +66,7 @@ class PageListHandler(PageHandler):
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
     }
     match_fields = {'cmp_txt': '比对文本', 'ocr_col': 'OCR列文', 'txt': '校对文本'}
-    match_statuses = {'': '', True: '匹配', False: '不匹配'}
+    match_statuses = {'': '', None: '无', True: '匹配', False: '不匹配'}
 
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""

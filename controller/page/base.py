@@ -102,7 +102,7 @@ class PageHandler(TaskHandler, Page, Box):
         3. 如果field文本为空，则根据ocr文本长度，填充■
         4. 如果ocr文本和field文本长度不一致，则认为不匹配
         """
-        if page['txt_match'].get(field) in [True, False]:
+        if cls.prop(page, 'txt_match.' + field) in [True, False]:
             return page['txt_match'][field]
         match = True
         diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field))[0]

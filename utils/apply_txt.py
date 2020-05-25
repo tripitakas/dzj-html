@@ -46,6 +46,8 @@ def apply_txt(db, field):
     for i in range(page_count):
         pages = list(db.page.find(condition).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
+            if not Ph.get_txt(page, field):
+                continue
             print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             match, txt = Ph.apply_txt(page, field)
             update = {'chars': page['chars'], 'txt_match.' + field: True} if match else {'txt_match.' + field: False}
