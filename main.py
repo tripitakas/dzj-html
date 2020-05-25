@@ -30,7 +30,7 @@ if __name__ == '__main__':
         ssl_options = not opt.debug and app.site.get('https') or None
         server = HTTPServer(app, xheaders=True, ssl_options=ssl_options)
         sockets = netutil.bind_sockets(opt.port, family=socket.AF_INET)
-        fork_id = 0 if 1 or opt.num_processes == 1 or opt.debug or os.name == 'nt' \
+        fork_id = 0 if opt.num_processes == 1 or opt.debug or os.name == 'nt' \
             else process.fork_processes(opt.num_processes)
         server.add_sockets(sockets)
         protocol = 'https' if ssl_options else 'http'
