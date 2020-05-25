@@ -21,9 +21,12 @@ from controller.page.base import PageHandler as Ph
 def find_cmp(db):
     """ 寻找比对文本"""
     size = 10
-    page_count = math.ceil(db.page.count_documents({'cmp_txt': {'$in': [None, '']}}) / size)
+    condition = {'cmp_txt': {'$in': [None, '']}}
+    total_count = db.page.count_documents(condition)
+    print('%s pages to process' % total_count)
+    page_count = math.ceil(total_count / size)
     for i in range(page_count):
-        pages = list(db.page.find({'cmp_txt': {'$in': [None, '']}}).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(condition).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             ocr = Ph.get_txt(page, 'ocr')
@@ -36,9 +39,12 @@ def apply_txt(db, field):
     """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种情况"""
     assert field in ['ocr_col', 'cmp_txt', 'txt']
     size = 10
-    page_count = math.ceil(db.page.count_documents({'txt_match.' + field: None}) / size)
+    condition = {'txt_match.' + field: None}
+    total_count = db.page.count_documents(condition)
+    print('%s pages to process' % total_count)
+    page_count = math.ceil(total_count / size)
     for i in range(page_count):
-        pages = list(db.page.find({'txt_match.' + field: None}).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(condition).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             match, txt = Ph.apply_txt(page, field)
@@ -53,7 +59,7 @@ def main(db_name='tripitaka', uri='localhost', func='find_cmp', **kwargs):
 
 
 if __name__ == '__main__':
-    # main(func='apply_txt', field='cmp_txt')
     import fire
 
     fire.Fire(main)
+    # main(func='apply_txt', field='cmp_txt')

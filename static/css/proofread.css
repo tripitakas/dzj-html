@@ -258,6 +258,8 @@
 
 .pfread-dialog .item {
   margin-bottom: 10px;
+  max-height: 100px;
+  overflow: auto;
 }
 
 .pfread-dialog .item dt {
