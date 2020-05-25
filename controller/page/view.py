@@ -293,8 +293,10 @@ class PageTxtMatchHandler(PageHandler):
             cmp_txt = self.get_txt(page, field)
             field_name = Page.get_field_name(field)
             if not cmp_txt:
-                links = [('寻找比对文本', '/page/find_cmp/' + page_name)] if field == 'cmp_txt' else None
-                self.send_error_response(e.no_object, message='页面没有%s' % field_name, links=links)
+                if field == 'cmp_txt':
+                    self.redirect('/page/find_cmp/' + page_name)
+                else:
+                    self.send_error_response(e.no_object, message='页面没有%s' % field_name)
 
             self.pack_boxes(page)
             char_txt = self.get_txt(page, 'ocr')
