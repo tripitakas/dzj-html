@@ -545,10 +545,10 @@
           .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
-      data.ratioInitial = $(data.holder).width() / p.width;
+      data.ratioInitial = ($(data.holder).width() - 10) / p.width;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
       if (h && !p.widthFull) {
-        data.ratioInitial = Math.max(data.ratioInitial, (h - 6) / p.height);
+        data.ratioInitial = Math.max(data.ratioInitial, (h - 10) / p.height);
       }
       if (p.minRatio) {
         data.ratioInitial = Math.max(data.ratioInitial, p.minRatio);
