@@ -22,11 +22,9 @@ def find_cmp(db):
     """ 寻找比对文本"""
     size = 10
     condition = {'cmp_txt': {'$in': [None, '']}}
-    total_count = db.page.count_documents(condition)
-    print('%s pages to process' % total_count)
-    page_count = math.ceil(total_count / size)
-    for i in range(page_count):
-        pages = list(db.page.find(condition).sort('_id', 1).skip(i * size).limit(size))
+    print('%s pages to process' % db.page.count_documents(condition))
+    while db.page.count_documents(condition):
+        pages = list(db.page.find(condition).sort('_id', 1).limit(size))
         for page in pages:
             print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             ocr = Ph.get_txt(page, 'ocr')
@@ -40,11 +38,9 @@ def apply_txt(db, field):
     assert field in ['ocr_col', 'cmp_txt', 'txt']
     size = 10
     condition = {'txt_match.' + field: None}
-    total_count = db.page.count_documents(condition)
-    print('%s pages to process' % total_count)
-    page_count = math.ceil(total_count / size)
-    for i in range(page_count):
-        pages = list(db.page.find(condition).sort('_id', 1).skip(i * size).limit(size))
+    print('%s pages to process' % db.page.count_documents(condition))
+    while db.page.count_documents(condition):
+        pages = list(db.page.find(condition).sort('_id', 1).limit(size))
         for page in pages:
             if not Ph.get_txt(page, field):
                 continue
