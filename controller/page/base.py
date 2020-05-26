@@ -94,6 +94,11 @@ class PageHandler(TaskHandler, Page, Box):
         self.pop_fields(page['columns'], 'box_logs')
 
     @classmethod
+    def filter_symbol(cls, txt):
+        """ 过滤校勘符号"""
+        return re.sub(r'[YMN]', '', txt)
+
+    @classmethod
     def apply_txt(cls, page, field):
         """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种情况
         用field文本和ocr文本进行diff，针对异文的几种情况：
@@ -112,11 +117,11 @@ class PageHandler(TaskHandler, Page, Box):
                 s['cmp1'] = '\n'
             if not s['is_same'] and not s['cmp1']:
                 s['cmp1'] = '■' * len(s['base'])
-            if len(s['base']) != len(s['cmp1']):
+            if len(s['base']) != len(cls.filter_symbol(s['cmp1'])):
                 match = False
         txt2apply = ''.join([s['cmp1'] for s in diff_segments])
         if match:
-            cls.write_back_txt(page['chars'], field, field)
+            cls.write_back_txt(page['chars'], txt2apply, field)
         return match, txt2apply
 
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
@@ -264,9 +269,10 @@ class PageHandler(TaskHandler, Page, Box):
             html += '<ul class="block">%s</ul>' % ''.join([line % (l, l) for l in lines])
         return html
 
-    @staticmethod
-    def check_match(chars, txt):
+    @classmethod
+    def check_match(cls, chars, txt):
         """ 检查图文是否匹配，包括总行数和每行字数"""
+        txt = cls.filter_symbol(txt)
         # 获取每列字框数
         column_char_num = []
         if chars:
@@ -303,14 +309,20 @@ class PageHandler(TaskHandler, Page, Box):
         r = len(column_char_num) == len(line_char_num) and not mis_match
         return dict(status=r, mis_match=mis_match, column_char_num=column_char_num, line_char_num=line_char_num)
 
-    @staticmethod
-    def write_back_txt(chars, txt, field):
+    @classmethod
+    def write_back_txt(cls, chars, txt, field):
         """ 将txt回写到chars中。假定图文匹配"""
         txt = re.sub(r'[\|\n]+', '', txt)
-        if len(chars) != len(txt):
+        if len(chars) != len(cls.filter_symbol(txt)):
             return False
+        j = 0
         for i, c in enumerate(chars):
-            c[field] = txt[i]
+            if txt[j] in ['Y', 'M', 'N']:
+                chars[i - 1]['txt_type'] = txt[j]
+                j += 1
+            c[field] = txt[j]
+            j += 1
+
         return chars
 
     @classmethod
@@ -373,7 +385,7 @@ class PageHandler(TaskHandler, Page, Box):
                 s['cmp1'] = '\n'
             if not s['is_same'] and not s['cmp1']:
                 s['cmp1'] = '■' * len(s['base'])
-            if len(s['base']) == len(s['cmp1']):
+            if len(s['base']) == len(cls.filter_symbol(s['cmp1'])):
                 s['is_same'] = True
             s['base'], s['cmp1'] = s['cmp1'], s['base']
         # 2. 设置栏号和行号
