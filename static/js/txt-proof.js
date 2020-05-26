@@ -235,19 +235,21 @@ function setCurrent(span) {
 }
 
 // 单击同文、异文
-$(document).on('click', '.same, .diff', function () {
+$(document).on('click', '.diff, .same', function () {
   setCurrent($(this));
   highlightBox($(this));
 });
 
 // 双击异文
 var $dlg = $("#pfread-dialog");
-$(document).on('dblclick', '.diff', function (e) {
+$(document).on('dblclick', '.diff, .same', function (e) {
   e.stopPropagation();
   setCurrent($(this));
   // 设置当前异文
-  $('.current-diff').removeClass('current-diff');
-  $(this).addClass('current-diff');
+  if ($(this).hasClass('diff')) {
+    $('.current-diff').removeClass('current-diff');
+    $(this).addClass('current-diff');
+  }
   // 设置弹框文本
   $("#dlg-base").text($(this).attr("base"));
   $("#dlg-cmp1").text($(this).attr("cmp1"));
