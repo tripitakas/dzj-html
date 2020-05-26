@@ -116,7 +116,7 @@ class PageTool(BoxOrder):
     def get_chars_col(cls, chars):
         """ 按照column_no对chars分组并设置cid。假定chars已排序"""
         ret = []
-        assert chars, 'no chars in get_chars_col'
+        assert chars, '没有字框，可能还未执行OCR切分任务'
         cid_col = [chars[0]['cid']]
         for i, c in enumerate(chars[1:]):
             column_id1 = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
