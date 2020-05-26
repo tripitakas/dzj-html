@@ -549,7 +549,7 @@
       data.ratioInitial = $(data.holder).width() / p.width;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
       if (h && !p.widthFull) {
-        data.ratioInitial = Math.min(data.ratioInitial, (h - 6) / p.height);
+        data.ratioInitial = Math.max(data.ratioInitial, (h - 10) / p.height);
       }
       if (p.minRatio) {
         data.ratioInitial = Math.max(data.ratioInitial, p.minRatio);

@@ -357,7 +357,7 @@
 }
 
 .content-left .pic-nav {
-  position: absolute;
+  position: fixed;
   width: 36px;
   height: 60px;
   background: #333;

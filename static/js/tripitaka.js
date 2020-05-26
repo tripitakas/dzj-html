@@ -177,7 +177,7 @@ function get_sutra_title(tripitaka, sutra_no) {
 
 // 初始化目录
 $(document).ready(function () {
-  if (typeof (volumes) === 'undefined' || typeof (store_pattern) === 'undefined') return;
+  if (typeof (window.volumes) === 'undefined' || typeof (window.store_pattern) === 'undefined') return;
   // 生成目录树
   var tripitaka = location.pathname.match(/\/([A-Z]{2})/)[1];
   var muluHtml = volumes.map(function (item) {

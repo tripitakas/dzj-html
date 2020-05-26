@@ -4,7 +4,7 @@
 <head>
   <title>{{tripitaka.get('name')}}</title>
   {% include _base_css.html %}
-  <link href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.bootcdn.net/ajax/libs/datatables/1.10.20/css/dataTables.bootstrap.min.css" rel="stylesheet">
   <link href="{{static_url('assets/modal-effect/css/component.css')}}" rel="stylesheet">
   <link href="{{static_url('css/tripitaka.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
@@ -311,7 +311,7 @@
 {% if file_exists('static/js/meta/%s-volume.js' % tripitaka_code) %}
 <script src="{{static_url('js/meta/%s-volume.js' % tripitaka_code)}}"></script>
 {% end %}
-<script src="https://cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/datatables/1.10.20/js/dataTables.dataTables.min.js"></script>
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script src="{{static_url('js/tripitaka.js')}}"></script>
@@ -332,7 +332,7 @@
 
   $.cut.create({
     readonly: true,
-    scrollContainer: '#page-picture',
+    scrollContainer: '#left-region',
     name: '{{page["name"]}}',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
