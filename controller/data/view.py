@@ -53,7 +53,7 @@ class TripitakaHandler(BaseHandler):
             if content_pages:
                 content_pages.sort(key=cmp_to_key(cmp_page_code))
                 first, last = content_pages[0], content_pages[-1]
-                cur_page = first if gap else page_name
+                cur_page = first if gap or '_' not in page_name else page_name
                 name_slice = cur_page.split('_')
                 next = '%s_%s' % ('_'.join(name_slice[:-1]), int(name_slice[-1]) + 1)
                 prev = '%s_%s' % ('_'.join(name_slice[:-1]), int(name_slice[-1]) - 1)
