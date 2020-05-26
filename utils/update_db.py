@@ -150,7 +150,7 @@ def update_task_char_count(db):
 
 
 def trim_txt_blank(db):
-    pages = list(db.page.find({'txt': {'$nin': ['', None]}}, {'txt': 1}))
+    pages = list(db.page.find({'txt': {'$nin': ['', None]}}, {'txt': 1, 'name': 1}))
     for p in pages:
         print('processing page %s' % p['name'])
         db.page.update_one({'_id': p['_id']}, {'$set': {'txt': re.sub(r'\s', '', p['txt'])}})
