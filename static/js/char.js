@@ -8,7 +8,7 @@ $('#btn-my-update').on('click', () => location.href = setQueryString('update', '
 $('#btn-all-update').on('click', () => location.href = setQueryString('update', 'all'));
 $('#btn-submitted').on('click', () => location.href = setQueryString('submitted', 'true'));
 $('#btn-not-submitted').on('click', () => location.href = setQueryString('submitted', 'false'));
-$('#btn-un-equal').on('click', () => location.href = setQueryString('un_equal', 'true'));
+$('#btn-diff').on('click', () => location.href = setQueryString('diff', 'true'));
 
 // 按置信度过滤
 $('#btn-filter').on('click', function () {
