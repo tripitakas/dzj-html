@@ -53,7 +53,7 @@
                   <tr>
                     <th>工作类型</th>
                     <th>优先级</th>
-                    <th>页编码</th>
+                    <th>编码</th>
                     <th>状态</th>
                     <th>领取时间</th>
                     <th>操作</th>
@@ -66,7 +66,7 @@
                     <td>
                       <div class="circle-bg">{{Th.get_priority_name(t['priority'])}}</div>
                     </td>
-                    <td>{{t['doc_id']}}</td>
+                    <td>{{t.get('doc_id') or t.get('txt_kind') or ''}}</td>
                     <td>{{Th.get_status_name(t['status'])}}</td>
                     <td>{{to_date_str(t['picked_time'])}}</td>
                     <td>
