@@ -316,9 +316,9 @@ class CharTaskClusterHandler(CharHandler):
 
         def get_user_filter():
             # 异文
-            un_equal = self.get_query_argument('un_equal', 0)
+            un_equal = self.get_query_argument('diff', 0)
             if un_equal == 'true':
-                cond['un_equal'] = True
+                cond['diff'] = True
             # 按修改过滤
             update = self.get_query_argument('update', 0)
             if update == 'my':

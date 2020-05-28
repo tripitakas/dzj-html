@@ -2,11 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import re
+import sys
+from os import path
 from tornado.options import options
 from elasticsearch import Elasticsearch
-from .diff import Diff
-from .variant import normalize
+
+BASE_DIR = path.dirname(path.dirname(path.dirname(path.dirname(__file__))))
+sys.path.append(BASE_DIR)
+
 from controller.helper import load_config
+from controller.page.tool.diff import Diff
+from controller.page.tool.variant import normalize
 
 
 def get_hosts():
@@ -49,12 +55,29 @@ def find_one(ocr, num=1, only_match=False):
     hit_page_codes = [r['_source']['page_code'] for r in ret]
     cb = ''.join(ret[num - 1]['_source']['origin'])
     diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
-    txt = ''.join(['<kw>%s</kw>' % d['cb'] if d.get('is_same') else d['cb'] for d in diff])
     if only_match:
-        start = txt.find('<kw>')
-        end = txt.rfind('</kw>')
-        txt = re.sub(r'</?kw>', '', txt[start: end])
-    return txt, hit_page_codes
+        # 寻找第一个和最后一个同文
+        start, end = None, None
+        for i, d in enumerate(diff):
+            if d.get('is_same') and start is None:
+                start = i
+            if diff[-i - 1].get('is_same') and end is None:
+                end = len(diff) - i - 1
+            if start is not None and end is not None:
+                break
+        diff1 = diff[start: end + 1]
+        # 处理diff1中前面几个异文超长的情况
+        diff2 = [d for d in diff1 if not d.get('is_same')][:4]
+        for d in diff2:
+            if len(d.get('cb', '')) - len(d.get('ocr', '')) > 3:
+                d['cb'] = d['ocr']
+        txt = ''.join([d['cb'] for d in diff1])
+        if end < len(diff) - 1 and not diff[end + 1].get('is_same'):
+            last = diff[end + 1]
+            txt += last['cb'][:len(last['ocr'])]
+    else:
+        txt = ''.join(['<kw>%s</kw>' % d['cb'] if d.get('is_same') else d['cb'] for d in diff])
+    return txt.strip('\n'), hit_page_codes
 
 
 def find_neighbor(page_code, neighbor='next'):
@@ -69,4 +92,12 @@ def find_neighbor(page_code, neighbor='next'):
 
 
 if __name__ == '__main__':
-    print([r['_source'] for r in find('由業非以自性滅，故無賴耶亦能生')])
+    import pymongo
+
+    # print([r['_source'] for r in find('由業非以自性滅，故無賴耶亦能生')])
+    local_db = pymongo.MongoClient('mongodb://localhost')['tripitaka']
+    page = local_db.page.find_one({'name': 'GL_1047_1_11'}, {'ocr': 1})
+    ocr1 = page['ocr']
+    ocr1 = re.sub(r'[■\|]', '', ocr1)
+    txt1 = find_one(ocr1, only_match=True)[0]
+    print(txt1)

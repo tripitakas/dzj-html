@@ -176,7 +176,8 @@ class Diff(object):
             start += len(seg[lbl['base']])
             if seg['is_same'] and seg[lbl['base']] == '\n':
                 start = 0
-
+        if line_segments[-1]['is_same'] and line_segments[-1][lbl['base']] == '\n':
+            line_segments.pop()
         return line_segments
 
     @classmethod

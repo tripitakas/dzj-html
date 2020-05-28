@@ -194,9 +194,9 @@ class PageHandler(TaskHandler, Page, Box):
         if key == 'cmp_txt':
             return page.get('cmp_txt') or ''
         if key == 'ocr':
-            return page.get('ocr') or cls.get_box_ocr(page.get('chars'))
+            return page.get('ocr') or cls.get_box_ocr(page.get('chars'), 'char')
         if key == 'ocr_col':
-            return page.get('ocr_col') or cls.get_box_ocr(page.get('columns'))
+            return page.get('ocr_col') or cls.get_box_ocr(page.get('columns'), 'column')
 
     @classmethod
     def get_txts(cls, page, fields=None):
@@ -205,18 +205,25 @@ class PageHandler(TaskHandler, Page, Box):
         return [t for t in txts if t[0]]
 
     @classmethod
-    def get_box_ocr(cls, boxes):
+    def get_box_ocr(cls, boxes, box_type='char'):
         """ 获取chars或columns里的ocr文本"""
+
+        def get_txt(box):
+            if box_type == 'char':
+                return box['alternatives'][0] if box.get('alternatives') else '■'
+            else:
+                return box.get('ocr_txt') or ''
+
         if not boxes:
             return ''
         pre = boxes[0]
-        txt = pre.get('ocr_txt', '')
+        txt = get_txt(pre)
         for b in boxes[1:]:
             if pre.get('block_no') and b.get('block_no') and pre['block_no'] != b['block_no']:
                 txt += '||'
             elif pre.get('column_no') and b.get('column_no') and pre['column_no'] != b['column_no']:
                 txt += '|'
-            txt += b.get('ocr_txt', '')
+            txt += get_txt(b)
             pre = b
         return txt.strip('|')
 

@@ -63,6 +63,7 @@
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
         <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板文字"></div>
+        <div id="btn-find-cmp" class="btn-txt icon-cmp-txt{{'' if field == 'cmp_txt' else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="寻找比对文本"></div>
       </div>
       <div class="right">
         <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
@@ -277,6 +278,11 @@
       $('#cmp-html .blocks').html(res['cmp_data']);
       toggleWorkText('html');
     });
+  });
+
+  // 寻找比对文本
+  $('#btn-find-cmp').on('click', function () {
+    location.href = '/page/find_cmp/{{page["name"]}}?from=' + decodeFrom();
   });
 
   $('#check-mis-match').on('click', function () {
