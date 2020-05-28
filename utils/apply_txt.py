@@ -28,6 +28,7 @@ def find_cmp(db):
         for page in pages:
             print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             ocr = Ph.get_txt(page, 'ocr')
+            ocr = re.sub(r'■+', '', ocr)
             cmp_txt = find_one(ocr, only_match=True)[0]
             update = {'cmp_txt': cmp_txt} if cmp_txt else {'cmp_txt': cmp_txt, 'txt_match.cmp_txt': False}
             db.page.update_one({'_id': page['_id']}, {'$set': update})

@@ -156,7 +156,15 @@ def trim_txt_blank(db):
         db.page.update_one({'_id': p['_id']}, {'$set': {'txt': re.sub(r'\s', '', p['txt'])}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='update_task_char_count', **kwargs):
+def update_page_ocr(db):
+    pages = list(db.page.find({}, {'name': 1, 'chars': 1}))
+    for p in pages:
+        print('processing page %s' % p['name'])
+        ocr = Ph.get_box_ocr(p['chars'], 'char')
+        db.page.update_one({'_id': p['_id']}, {'$set': {'ocr': ocr}})
+
+
+def main(db_name='tripitaka', uri='localhost', func='update_page_ocr', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

@@ -115,21 +115,23 @@ class AddPage(object):
             meta['name'] = name
             fields1 = ['width', 'height']
             meta.update({k: int(v) for k, v in info.get('imgsize', info).items() if v and k in fields1})
+            meta['source'] = self.source if self.source else info.get('source')
+            layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
+            meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
             # 将文字审定的text也导入，text_proof_1 用于 fix_txt_back.py
-            fields2 = ['source', 'blocks', 'columns', 'chars', 'create_time']
+            fields2 = ['blocks', 'columns', 'chars', 'txt', 'cmp_txt']
             meta.update({k: v for k, v in info.items() if v and k in fields2})
             fields3 = ['ocr', 'ocr_col']
             meta.update({k: Ph.get_txt(meta, k).replace(' ', '') for k in fields3})
-            meta['source'] = self.source if self.source else meta.get('source')
-            layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
-            meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
             Ph.update_box_cid(meta['chars'])
             Ph.update_box_cid(meta['blocks'])
             Ph.update_box_cid(meta['columns'])
-            if not meta.get('create_time'):
+            if info.get('create_time'):
+                meta['create_time'] = info['create_time']
+                if isinstance(meta.get('create_time'), str):
+                    meta['create_time'] = datetime.strptime(meta['create_time'], '%Y-%m-%d %H:%M:%S')
+            else:
                 meta['create_time'] = datetime.now()
-            elif isinstance(meta.get('create_time'), str):
-                meta['create_time'] = datetime.strptime(meta['create_time'], '%Y-%m-%d %H:%M:%S')
 
             if self.check_id and not self.check_ids(meta):
                 return False
