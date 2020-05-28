@@ -120,25 +120,6 @@ def update_cid(db):
                 db.page.update_one({'_id': page['_id']}, {'$set': update})
 
 
-def migrate_fields_to_char(db, fields=None):
-    """ 将page表的值同步到char表"""
-    fields = fields or ['ocr_col', 'cmp_txt']
-    size = 10
-    page_count = math.ceil(db.page.count_documents({}) / size)
-    for i in range(page_count):
-        project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
-        pages = list(db.page.find({'name': 'GL_127_7_8'}, project).sort('_id', 1).skip(i * size).limit(size))
-        for page in pages:
-            print('processing %s: %s chars' % (page['name'], len(page['chars'])))
-            for c in page['chars']:
-                if not c.get('ocr_txt'):
-                    continue
-                update = {f: c[f] for f in fields if c.get(f)}
-                un_equal = [v for v in update.values() if v != c['ocr_txt']]
-                update['un_equal'] = len(un_equal) > 0
-                db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
-
-
 def update_task_char_count(db):
     """ 更新页任务的char_count"""
     page_tasks = db.task.find({'char_count': None, 'collection': 'page'}, {'doc_id': 1})

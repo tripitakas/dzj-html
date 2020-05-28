@@ -52,6 +52,25 @@ def apply_txt(db, field):
             print('match' if match else 'not match')
 
 
+def migrate_txt_to_char(db, fields=None):
+    """ 将page表的文本同步到char表"""
+    fields = fields or ['ocr_col', 'cmp_txt', 'txt']
+    size = 10
+    page_count = math.ceil(db.page.count_documents({}) / size)
+    for i in range(page_count):
+        project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
+        pages = list(db.page.find({'name': 'GL_127_7_8'}, project).sort('_id', 1).skip(i * size).limit(size))
+        for page in pages:
+            print('processing %s: %s chars' % (page['name'], len(page['chars'])))
+            for c in page['chars']:
+                if not c.get('ocr_txt'):
+                    continue
+                update = {f: c[f] for f in fields if c.get(f)}
+                un_equal = [v for v in update.values() if v != c['ocr_txt']]
+                update['diff'] = len(un_equal) > 0
+                db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
+
+
 def main(db_name='tripitaka', uri='localhost', func='find_cmp', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
