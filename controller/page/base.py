@@ -111,17 +111,23 @@ class PageHandler(TaskHandler, Page, Box):
             return page['txt_match'][field]
         match = True
         diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field))[0]
-        diff_segments = [s for s in diff_segments if s['base']]
         for s in diff_segments:
             if s['is_same'] and s['base'] == '\n':
                 s['cmp1'] = '\n'
-            if not s['is_same'] and not s['cmp1']:
+            if not s.get('cmp1'):
                 s['cmp1'] = '■' * len(s['base'])
+            if not s.get('base'):
+                s['cmp1'] = ''
             if len(s['base']) != len(cls.filter_symbol(s['cmp1'])):
                 match = False
+                _cmp1 = cls.filter_symbol(s['cmp1'])
+                if len(_cmp1) < len(s['base']):
+                    s['cmp1'] += '■' * (len(s['base']) - len(_cmp1))
+                else:
+                    s['cmp1'] += '■' * (len(s['base']) - len(_cmp1))
+
         txt2apply = ''.join([s['cmp1'] for s in diff_segments])
-        if match:
-            cls.write_back_txt(page['chars'], txt2apply, field)
+        cls.write_back_txt(page['chars'], txt2apply, field)
         return match, txt2apply
 
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):

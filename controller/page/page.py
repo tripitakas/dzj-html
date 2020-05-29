@@ -97,10 +97,10 @@ class Page(Model):
             if value:
                 params[field] = value
                 condition.update({'tasks.' + field: None if value == 'un_published' else value})
-        for field in ['cmp_txt', 'ocr_col', 'review_txt']:
+        for field in ['m_cmp_txt', 'm_ocr_col', 'm_txt']:
             value = h.get_url_param(field, request_query)
             t = {'True': True, 'False': False, 'None': None}
             if value:
                 params[field] = value
-                condition.update({'txt_match.' + field.replace('review_', ''): t.get(value)})
+                condition.update({'txt_match.%s.status' % field.replace('m_', ''): t.get(value)})
         return condition, params

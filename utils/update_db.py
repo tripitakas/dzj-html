@@ -42,7 +42,7 @@ def reorder_boxes(db):
         fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
         pages = list(db.page.find({}, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
-            print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), page['name']))
+            print('[%s] processing %s' % (hp.get_date_time(), page['name']))
             Ph.reorder_boxes(page=page)
             db.page.update_one({'_id': page['_id']}, {'$set': {
                 'blocks': page['blocks'], 'columns': page['columns'], 'chars': page['chars']
@@ -57,7 +57,7 @@ def check_box_cover(db):
         fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
         pages = list(db.page.find({}, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
-            print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), page['name']))
+            print('[%s] processing %s' % (hp.get_date_time(), page['name']))
             valid, message, field, invalid_ids = Ph.check_box_cover(page)
             if not valid:
                 print('%s: %s' % (message, invalid_ids))
@@ -82,7 +82,7 @@ def check_chars_col(db):
         fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
         pages = list(db.page.find({}, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
-            print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), page['name']))
+            print('[%s] processing %s' % (hp.get_date_time(), page['name']))
             old_chars_col = Ph.get_chars_col(page['chars'])
             blocks, columns, chars = Ph.reorder_boxes(page=page)
             new_chars_col = Ph.get_chars_col(chars)

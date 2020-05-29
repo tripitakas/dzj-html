@@ -75,11 +75,11 @@ class PageListHandler(PageHandler):
             txt = self.get_txt(doc, field)
             if txt:
                 return '<a title="%s">%s%s</a>' % (
-                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.' + field)) or ''
+                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.%s.status' % field)) or ''
                 )
             elif show_none:
                 return '<a title="%s">%s%s(无)</a>' % (
-                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.' + field)) or '',
+                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.%s.status' % field)) or '',
                 )
             else:
                 return ''

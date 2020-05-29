@@ -70,7 +70,7 @@ def find_one(ocr, num=1, only_match=False):
         diff2 = [d for d in diff1 if not d.get('is_same')][:4]
         for d in diff2:
             if len(d.get('cb', '')) - len(d.get('ocr', '')) > 3:
-                d['cb'] = d['ocr']
+                d['cb'] = '■' * len(d['ocr'])
         txt = ''.join([d['cb'] for d in diff1])
         if end < len(diff) - 1 and not diff[end + 1].get('is_same'):
             last = diff[end + 1]

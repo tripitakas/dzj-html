@@ -168,9 +168,9 @@
             </div>
             <h4 class="col-sm-2 control-label">比对文本</h4>
             <div class="col-sm-10">
-              <select class="form-control cmp_txt">
+              <select class="form-control m_cmp_txt">
                 {% for k,v in match_statuses.items() %}
-                {% if params.get('cmp_txt', '') == k %}
+                {% if params.get('m_cmp_txt', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -180,9 +180,9 @@
             </div>
             <h4 class="col-sm-2 control-label">校对文本</h4>
             <div class="col-sm-10">
-              <select class="form-control review_txt">
+              <select class="form-control m_txt">
                 {% for k,v in match_statuses.items() %}
-                {% if params.get('review_txt', '') == k %}
+                {% if params.get('m_txt', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -192,9 +192,9 @@
             </div>
             <h4 class="col-sm-2 control-label">OCR列文</h4>
             <div class="col-sm-10">
-              <select class="form-control ocr_col">
+              <select class="form-control m_ocr_col">
                 {% for k,v in match_statuses.items() %}
-                {% if params.get('ocr_col', '') == k %}
+                {% if params.get('m_ocr_col', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -406,7 +406,7 @@
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
   var inputFields = ['name', 'source', 'txt', 'remark_box', 'remark_text'];
-  var selectFields = ['cut_proof', 'cut_review', 'ocr_box', 'ocr_txt', 'cmp_txt', 'ocr_col', 'review_txt'];
+  var selectFields = ['cut_proof', 'cut_review', 'ocr_box', 'ocr_txt', 'm_cmp_txt', 'm_ocr_col', 'm_txt'];
   $searchModal.find('.modal-confirm').on('click', function () {
     var search = '';
     inputFields.forEach(function (field) {

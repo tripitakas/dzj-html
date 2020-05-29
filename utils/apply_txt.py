@@ -7,8 +7,6 @@ import sys
 import math
 import pymongo
 from os import path
-from datetime import datetime
-from pymongo.errors import PyMongoError
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -19,14 +17,14 @@ from controller.page.base import PageHandler as Ph
 
 
 def find_cmp(db):
-    """ 寻找比对文本"""
+    """ 根据ocr文本，从cbeta库中寻找比对文本"""
     size = 10
     condition = {'cmp_txt': {'$in': [None, '']}}
     print('%s pages to process' % db.page.count_documents(condition))
     while db.page.count_documents(condition):
         pages = list(db.page.find(condition).sort('_id', 1).limit(size))
         for page in pages:
-            print('processing %s: %s chars' % (page['name'], len(page['chars'])))
+            print('[%s] processing %s' % (hp.get_date_time(), page['name']))
             ocr = Ph.get_txt(page, 'ocr')
             ocr = re.sub(r'■+', '', ocr)
             cmp_txt = find_one(ocr, only_match=True)[0]
@@ -35,7 +33,7 @@ def find_cmp(db):
 
 
 def apply_txt(db, field):
-    """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种情况"""
+    """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种文本"""
     assert field in ['ocr_col', 'cmp_txt', 'txt']
     size = 10
     condition = {'txt_match.' + field: None}
@@ -45,11 +43,10 @@ def apply_txt(db, field):
         for page in pages:
             if not Ph.get_txt(page, field):
                 continue
-            print('processing %s: %s chars' % (page['name'], len(page['chars'])))
             match, txt = Ph.apply_txt(page, field)
-            update = {'chars': page['chars'], 'txt_match.' + field: True} if match else {'txt_match.' + field: False}
+            update = {'chars': page['chars'], 'txt_match.' + field: {'status': match, 'value': txt}}
             db.page.update_one({'_id': page['_id']}, {'$set': update})
-            print('match' if match else 'not match')
+            print('[%s] processing %s: %s' % (hp.get_date_time(), page['name'], 'match' if match else 'not match'))
 
 
 def migrate_txt_to_char(db, fields=None):
@@ -61,7 +58,7 @@ def migrate_txt_to_char(db, fields=None):
         project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
         pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
-            print('processing %s: %s chars' % (page['name'], len(page['chars'])))
+            print('[%s] processing %s' % (hp.get_date_time(), page['name']))
             for c in page['chars']:
                 if not c.get('ocr_txt'):
                     continue
@@ -80,4 +77,3 @@ if __name__ == '__main__':
     import fire
 
     fire.Fire(main)
-    # main(func='apply_txt', field='cmp_txt')
