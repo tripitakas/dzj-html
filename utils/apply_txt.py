@@ -60,11 +60,7 @@ def migrate_txt_to_char(db, fields=None):
         for page in pages:
             print('[%s] processing %s' % (hp.get_date_time(), page['name']))
             for c in page['chars']:
-                if not c.get('ocr_txt'):
-                    continue
                 update = {f: c[f] for f in fields if c.get(f)}
-                un_equal = [v for v in update.values() if v != c['ocr_txt']]
-                update['diff'] = len(un_equal) > 0
                 db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
 
 
