@@ -466,8 +466,7 @@
         self.activateHandle(state.edit, state.editHandle, state.down);
         if (state.editHandle.index >= 0) {
           state.down = getHandle(state.edit, state.editHandle.index);
-        }
-        else if (!self.isInRect(state.down, state.edit, 3) && !state.readonly) {
+        } else if (!self.isInRect(state.down, state.edit, 3) && !state.readonly) {
           // 不能拖动当前字框的控制点，则取消当前字框的高亮显示，准备画出一个新字框
           self.hoverOut(state.edit);
           state.edit = null;
@@ -545,13 +544,13 @@
           .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
-      data.ratioInitial = ($(data.holder).width() - 10) / p.width;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
-      if (h && !p.widthFull) {
-        data.ratioInitial = Math.max(data.ratioInitial, (h - 20) / p.height);
+      data.ratioInitial = (h - 10) / p.height;
+      if (h && p.widthFull) {
+        data.ratioInitial = ($(data.holder).width() - 10) / p.width;
       }
       if (p.minRatio) {
-        data.ratioInitial = Math.max(data.ratioInitial, p.minRatio);
+        data.ratioInitial = p.minRatio;
       }
 
       $(data.holder)
