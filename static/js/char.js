@@ -197,8 +197,8 @@ function updateWorkPanel(ch) {
   $('#currentId').val(ch._id.$oid);
   $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
   // 更新候选文字
-  var options = ch.ocr_col ? `<span class="txt-item ocr-col${ch.ocr_col === ch.txt ? ' active' : ''}">${ch.ocr_col}</span>` : '';
-  options += ch.cmp_txt ? `<span class="txt-item cmp-txt${ch.cmp_txt === ch.txt ? ' active' : ''}">${ch.cmp_txt}</span>` : '';
+  var options = ch.ocr_col && ch.ocr_col !== '■' ? `<span class="txt-item ocr-col${ch.ocr_col === ch.txt ? ' active' : ''}">${ch.ocr_col}</span>` : '';
+  options += ch.cmp_txt && ch.cmp_txt !== '■' ? `<span class="txt-item cmp-txt${ch.cmp_txt === ch.txt ? ' active' : ''}">${ch.cmp_txt}</span>` : '';
   options += (ch.alternatives || '').split('').map(function (c) {
     return `<span class="txt-item${c === ch.txt ? ' active' : ''}">${c}</span>`;
   }).join('');
