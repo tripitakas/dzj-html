@@ -22,8 +22,8 @@ def index_db(db):
     """ 给数据库增加索引"""
     fields2index = {
         'user': ['name', 'email', 'phone'],
-        'char': ['name', 'uid', 'source', 'ocr_txt', 'txt', 'cc', 'sc', 'txt_level', 'has_img'],
-        'page': ['name', 'page_code', 'source', 'level.box', 'level.text'],
+        'page': ['name', 'page_code', 'source'],
+        'char': ['name', 'uid', 'source', 'ocr_txt', 'txt', 'diff', 'cc', 'sc', 'txt_level', 'has_img'],
         'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
     }
     for collection, fields in fields2index.items():
