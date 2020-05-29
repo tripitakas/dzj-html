@@ -64,6 +64,23 @@ def migrate_txt_to_char(db, fields=None):
                 db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
 
 
+def set_diff_symbol(db):
+    """ 设置char表的diff标记"""
+    db.char.update_many({'$and': [
+        {'diff_col': None},
+        {'ocr_txt': {'$ne': None}},
+        {'ocr_col': {'$ne': None}},
+        {'$where': 'function(){return this.ocr_txt != "■" && this.ocr_col != "■" && this.ocr_txt != this.ocr_col;}'},
+    ]}, {'$set': {'diff_col': True}})
+    db.char.update_many({'$and': [
+        {'diff_cmp': None},
+        {'ocr_txt': {'$ne': None}},
+        {'cmp_txt': {'$ne': None}},
+        {'$where': 'function(){return this.ocr_txt != "■" && this.cmp_txt != "■" && this.ocr_txt != this.cmp_txt;}'},
+    ]}, {'$set': {'diff_cmp': True}})
+    db.char.update_many({'$or': [{'diff_col': True}, {'diff_cmp': True}]}, {'$set': {'diff': True}})
+
+
 def main(db_name='tripitaka', uri='localhost', func='find_cmp', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
