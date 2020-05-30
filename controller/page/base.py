@@ -132,22 +132,23 @@ class PageHandler(TaskHandler, Page, Box):
 
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
         """ 合并用户提交和数据库中已有数据，过程中将进行权限检查"""
-        post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
+        c_field = dict(blocks='block_id', columns='column_id', chars='cid')[box_type]
+        post_box_dict = {b[c_field]: b for b in post_boxes if b.get(c_field)}
         # 检查删除
-        post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
-        to_delete = [b for b in page[box_type] if b['cid'] not in post_cids]
-        deleted = [b['cid'] for b in to_delete if self.can_write(b, task_type)]
-        # cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
+        post_cids = [b[c_field] for b in post_boxes if b.get(c_field)]
+        to_delete = [b for b in page[box_type] if b[c_field] not in post_cids]
+        deleted = [b[c_field] for b in to_delete if self.can_write(b, task_type)]
+        # cannot_delete = [b[c_field] for b in to_delete if b[c_field] not in can_delete]
         # 将可删除的字框删除，保留其它字框
-        boxes = [b for b in page[box_type] if b['cid'] not in deleted]
+        boxes = [b for b in page[box_type] if b[c_field] not in deleted]
         # 检查修改
-        change_cids = [b.get('cid') for b in post_boxes if b.get('changed') is True]
-        to_change = [b for b in boxes if b['cid'] in change_cids]
+        change_cids = [b.get(c_field) for b in post_boxes if b.get('changed') is True]
+        to_change = [b for b in boxes if b[c_field] in change_cids]
         can_change = [b for b in to_change if self.can_write(b, task_type)]
-        # cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_change]
+        # cannot_change = [b[c_field] for b in to_change if b[c_field] not in can_change]
         changed = []
         for b in can_change:
-            pb = post_box_dict.get(b['cid'])
+            pb = post_box_dict.get(b[c_field])
             if self.is_box_pos_equal(b, pb):
                 b.pop('changed', 0)
                 continue
@@ -157,7 +158,7 @@ class PageHandler(TaskHandler, Page, Box):
             box_logs.append(my_log)
             update.update({'box_logs': box_logs})
             b.update(update)
-            changed.append({'cid': b['cid'], 'pos': {'x': b['x'], 'y': b['y'], 'w': b['w'], 'h': b['h']}})
+            changed.append({c_field: b[c_field], 'pos': {'x': b['x'], 'y': b['y'], 'w': b['w'], 'h': b['h']}})
         # 检查新增
         to_add = [b for b in post_boxes if b.get('added') is True]
         added = []
@@ -165,7 +166,7 @@ class PageHandler(TaskHandler, Page, Box):
             update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
             my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
             pb.update({'box_logs': [my_log]})
-            added.append({'cid': pb['cid'], 'pos': {'x': pb['x'], 'y': pb['y'], 'w': pb['w'], 'h': pb['h']}})
+            added.append({c_field: pb[c_field], 'pos': {'x': pb['x'], 'y': pb['y'], 'w': pb['w'], 'h': pb['h']}})
         boxes.extend(to_add)
         page[box_type] = boxes
         return dict(deleted=deleted, changed=changed, added=added)

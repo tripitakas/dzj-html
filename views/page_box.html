@@ -146,8 +146,10 @@
   $.cut.switchCurrentBox(null);
 
   // 初始化设置
-  $.cut.data.image.node.style.display = getStorage('toggleImage', '1') === '1' ? '' : 'none';
-  $.cut.data.image.node.style.opacity = getStorage('toggleBlur', '1') === '1' ? 0.2 : null;
+  if ($.cut.data.image) {
+    $.cut.data.image.node.style.display = getStorage('toggleImage', '1') === '1' ? '' : 'none';
+    $.cut.data.image.node.style.opacity = getStorage('toggleBlur', '1') === '1' ? 0.2 : null;
+  }
   $.cut.toggleBox(getStorage('toggleBlock', '-1') === '1', 'block');
   $.cut.toggleBox(getStorage('toggleColumn', '-1') === '1', 'column');
   $.cut.toggleBox(getStorage('toggleChar', '-1') === '1', 'char');
