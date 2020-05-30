@@ -48,6 +48,8 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=False,
     fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
     for i in range(int(math.ceil(total_count / once_size))):
         pages = list(db.page.find(condition, {k: 1 for k in fields1}).skip(i * once_size).limit(once_size))
+        p_names = [p['name'] for p in pages]
+        print('[%s] processing %s' % (hp.get_date_time(), ','.join(p_names)))
         # 查找、分类chars
         chars, char_names, invalid_chars, invalid_pages, valid_pages = [], [], [], [], []
         for p in pages:
@@ -74,23 +76,25 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=False,
                 invalid_pages.append(p['name'])
 
         # 删除多余的chars
-        deleted = list(db.char.find({'page_name': {'$in': page_names}, 'name': {'$nin': char_names}}, {'name': 1}))
-        db.char.delete_many({'_id': {'$in': [d['_id'] for d in deleted]}})
-        print('delete %s records: %s' % (len(deleted), ','.join([c['name'] for c in deleted])))
+        deleted = list(db.char.find({'page_name': {'$in': p_names}, 'name': {'$nin': char_names}}, {'name': 1}))
+        if deleted:
+            db.char.delete_many({'_id': {'$in': [d['_id'] for d in deleted]}})
+            print('delete %s records: %s' % (len(deleted), ','.join([c['name'] for c in deleted])))
         # 更新已存在的chars。检查和更新char_id、uid、pos三个字段
         chars_dict = {c['name']: c for c in chars}
         existed = list(db.char.find({'name': {'$in': [c['name'] for c in chars]}}))
-        print('update existed %s records: %s' % (len(existed), ','.join([c['name'] for c in existed])))
-        for e in existed:
-            c = chars_dict.get(e['name'])
-            if is_changed(e, c):
-                db.char.update_one({'_id': e['_id']}, {'$set': {k: c.get(k) for k in ['char_id', 'uid', 'pos']}})
+        if existed:
+            print('update existed %s records: %s' % (len(existed), ','.join([c['name'] for c in existed])))
+            for e in existed:
+                c = chars_dict.get(e['name'])
+                if is_changed(e, c):
+                    db.char.update_one({'_id': e['_id']}, {'$set': {k: c.get(k) for k in ['char_id', 'uid', 'pos']}})
         # 插入不存在的chars
         existed_id = [c['name'] for c in existed]
         un_existed = [c for c in chars if c['name'] not in existed_id]
         if un_existed:
             db.char.insert_many(un_existed, ordered=False)
-        print('insert new %s records: %s' % (len(un_existed), ','.join([c['name'] for c in un_existed])))
+            print('insert new %s records: %s' % (len(un_existed), ','.join([c['name'] for c in un_existed])))
         log = dict(inserted_char=[c['name'] for c in un_existed], updated_char=[c['name'] for c in existed],
                    deleted_char=[c['name'] for c in deleted], invalid_char=invalid_chars,
                    valid_pages=valid_pages, invalid_pages=invalid_pages,
