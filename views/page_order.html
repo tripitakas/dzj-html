@@ -189,8 +189,10 @@
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
   // 初始化设置
-  $.cut.data.image.node.style.display = getStorage('toggleOrderImage', '1') === '1' ? '' : 'none';
-  $.cut.data.image.node.style.opacity = getStorage('toggleOrderBlur', '1') === '1' ? 0.2 : null;
+  if ($.cut.data.image) {
+    $.cut.data.image.node.style.display = getStorage('toggleOrderImage', '1') === '1' ? '' : 'none';
+    $.cut.data.image.node.style.opacity = getStorage('toggleOrderBlur', '1') === '1' ? 0.2 : null;
+  }
   $.cut.toggleBox(getStorage('toggleOrderBlock', '-1') === '1', 'block');
   $.cut.toggleBox(getStorage('toggleOrderColumn', '-1') === '1', 'column');
   $.cut.toggleBox(getStorage('toggleOrderChar', '-1') === '1', 'char');
