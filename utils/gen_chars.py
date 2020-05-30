@@ -15,7 +15,7 @@ from controller import helper as hp
 from controller.base import BaseHandler as Bh
 
 
-def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
+def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=False,
               condition=None, page_names=None, username=None):
     """ 从页数据中导出字数据"""
 
@@ -60,10 +60,10 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
-                        m['txt'] = c.get('txt') or c.get('ocr_txt')
+                        m['ocr_txt'] = c.get('ocr_col') or c.get('alternatives', '')[:1]
+                        m['txt'] = c.get('txt') or m['ocr_txt']
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
-                        m['un_equal'] = c.get('ocr_col', '1') != c.get('alternatives', ['2'])[0]
                         m['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
                         chars.append(m)
                     except KeyError as e:
@@ -72,7 +72,12 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
                 valid_pages.append(p['name'])
             except KeyError:
                 invalid_pages.append(p['name'])
-        # 更新已存在的chars
+
+        # 删除多余的chars
+        deleted = list(db.char.find({'page_name': {'$in': page_names}, 'name': {'$nin': char_names}}, {'name': 1}))
+        db.char.delete_many({'_id': {'$in': [d['_id'] for d in deleted]}})
+        print('delete %s records: %s' % (len(deleted), ','.join([c['name'] for c in deleted])))
+        # 更新已存在的chars。检查和更新char_id、uid、pos三个字段
         chars_dict = {c['name']: c for c in chars}
         existed = list(db.char.find({'name': {'$in': [c['name'] for c in chars]}}))
         print('update existed %s records: %s' % (len(existed), ','.join([c['name'] for c in existed])))
@@ -86,11 +91,6 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
         if un_existed:
             db.char.insert_many(un_existed, ordered=False)
         print('insert new %s records: %s' % (len(un_existed), ','.join([c['name'] for c in un_existed])))
-        # 删除多余的chars
-        deleted = list(db.char.find({'page_name': {'$in': page_names}, 'name': {'$nin': char_names}}, {'name': 1}))
-        db.char.delete_many({'_id': {'$in': [d['_id'] for d in deleted]}})
-        print('delete %s records: %s' % (len(deleted), ','.join([c['name'] for c in deleted])))
-
         log = dict(inserted_char=[c['name'] for c in un_existed], updated_char=[c['name'] for c in existed],
                    deleted_char=[c['name'] for c in deleted], invalid_char=invalid_chars,
                    valid_pages=valid_pages, invalid_pages=invalid_pages,
