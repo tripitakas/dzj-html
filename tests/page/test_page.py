@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import json
+import time
 from os import path
 import tests.users as u
 from tests.testcase import APITestCase
+from utils.gen_chars import gen_chars
 
 
 class TestCutTask(APITestCase):
@@ -85,3 +87,24 @@ class TestCutTask(APITestCase):
         r = self.fetch('/page/list?_raw=1')
         d = self.parse_response(r)
         print(d)
+
+    def test_gen_chars(self):
+        """ 测试生成字表"""
+        self._app.db.char.delete_many({})
+        # 测试从page生成char数据
+        name = 'YB_22_346'
+        gen_chars(self._app.db, page_names=name)
+        page = self._app.db.page.find_one({'name': name}, {'chars': 1})
+        cnt = self._app.db.char.count_documents({})
+        self.assertEqual(cnt, len(page['chars']))
+        # 测试删除和更新char数据
+        ch = page['chars'][0]
+        ch['w'] += 1
+        del page['chars'][-1]
+        self._app.db.page.update_one({'_id': page['_id']}, {'$set': {'chars': page['chars']}})
+        gen_chars(self._app.db, page_names=name)
+        page = self._app.db.page.find_one({'name': name}, {'chars': 1})
+        cnt = self._app.db.char.count_documents({})
+        self.assertEqual(cnt, len(page['chars']))
+        char = self._app.db.char.find_one({'name': 'YB_22_346_%s' % ch['cid']})
+        self.assertEqual(char['pos']['w'], ch['w'])
