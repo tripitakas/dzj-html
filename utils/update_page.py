@@ -126,6 +126,19 @@ def update_task_char_count(db):
                             {'$set': {'char_count': len(page['chars'])}})
 
 
+def update_ocr_txt(db):
+    """ page表和char表的ocr_txt"""
+    pages = list(db.page.find({}, {'chars': 1, 'name': 1}))
+    print('[%s]%s pages to process' % (hp.get_date_time(), len(pages)))
+    for page in pages:
+        print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+        for ch in page.get('chars', []):
+            if ch.get('alternatives'):
+                ch['ocr_txt'] = ch['alternatives'][0]
+                db.char.update_one({'name': '%s_%s' % (page['name'], ch['cid'])}, {'$set': {'ocr_txt': ch['ocr_txt']}})
+        db.page.update_one({'_id': page['_id']}, {'$set': {'chars': page['chars']}})
+
+
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
