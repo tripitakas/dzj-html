@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# 将page['chars']中的数据同步到char表，包括增删改等
+# 数据同步时，检查字框的char_id字序信息和x/y/w/h等位置信息，如果发生了改变，则进行同步
+# python3 utils/extract_img.py --condition= --user_name=
 
 import sys
 import json

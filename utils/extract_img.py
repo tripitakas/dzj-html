@@ -1,5 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# 从char表提取字图。
+# 提取字图时，原图相关参数在app.yml中的big_img中指定，包括：
+# 1. local_path 本地路径。如果有值，则从本地路径中获取原图
+# 2. my_cloud 云端路径。如果本地路径为空，则从云端路径获取原图
+# 2.1 use_internal 是否使用阿里云的内网模式访问
+# 2.2 key_id 云端访问key_id
+# 2.3 key_secret: 云端访问秘钥
+# 3. with_hash 原图是否带hash后缀
+# 4. salt hash盐值
+# python3 utils/extract_img.py --condition= --user_name=
+
 
 import os
 import re
@@ -264,7 +275,7 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
     once_size = 5000
     total_count = db.char.count_documents(condition)
     log_id = Bh.add_op_log(db, 'extract_img', 'ongoing', [], username)
-    print('[%s]%s chars to generate.' % (total_count, hp.get_date_time()))
+    print('[%s]%s chars to generate.' % (hp.get_date_time(), total_count))
     for i in range(int(math.ceil(total_count / once_size))):
         chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         log = cut.cut_img(chars)
