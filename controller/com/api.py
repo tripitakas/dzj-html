@@ -10,7 +10,7 @@ from controller.page.variant import normalize
 from controller.base import BaseHandler, DbError
 
 try:
-    # import punctuation
+    import punctuation
 
     punc_str = punctuation.punc_str
 except Exception:
