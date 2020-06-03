@@ -6,6 +6,7 @@ import time
 from os import path
 import tests.users as u
 from tests.testcase import APITestCase
+from controller import errors as e
 from utils.gen_chars import gen_chars
 
 
@@ -101,6 +102,49 @@ class TestCutTask(APITestCase):
         self.assert_code(200, r)
         page8 = self._app.db.page.find_one({'name': name})
         self.assertEqual(len(page8['chars']), len(page6['chars']))
+
+    def test_char_box(self):
+        """ 测试修改字框"""
+        name = 'GL_1056_5_6_12'
+        page_name, cid = '_'.join(name.split('_')[:-1]), int(name.split('_')[-1])
+        char = self._app.db.char.find_one({'name': name})
+        page = self._app.db.page.find_one({'name': page_name, 'chars.cid': cid}, {'name': 1, 'chars.$': 1})
+        if not char or not page:
+            return
+        else:
+            self._app.db.page.update_one(
+                {'name': page_name, 'chars.cid': cid},
+                {'$unset': {'chars.$.box_level': '', 'chars.$.box_logs': '', }}
+            )
+
+        # 以审定员身份登录
+        self.login(u.review1[0], u.review1[1])
+        # 测试以任务方式修改数据
+        char['pos']['w'] += 1
+        data = {'pos': char['pos'], 'task_type': 'cut_review'}
+        r = self.fetch('/api/char/box/' + name, body={'data': data})
+        self.assert_code(200, r)
+        char1 = self._app.db.char.find_one({'name': name})
+        self.assertEqual(char1['pos']['w'], char['pos']['w'])
+        page1 = self._app.db.page.find_one({'name': page_name, 'chars.cid': cid}, {'name': 1, 'chars.$': 1})
+        self.assertEqual(page1['chars'][0]['w'], char['pos']['w'])
+        self.assertIsNotNone(page1['chars'][0]['box_logs'])
+        # 测试直接修改——积分不够，无法修改
+        data1 = {'pos': char['pos']}
+        r = self.fetch('/api/char/box/' + name, body={'data': data1})
+        self.assert_code(e.data_point_unqualified, r)
+        # 测试以校对员身份登录，以任务方式修改数据——数据等级不够
+        self.login(u.proof1[0], u.proof1[1])
+        data = {'pos': char['pos'], 'task_type': 'cut_proof'}
+        r = self.fetch('/api/char/box/' + name, body={'data': data})
+        self.assert_code(e.data_level_unqualified, r)
+        # 测试以专家身份登录，可以直接修改数据
+        self.login(u.expert1[0], u.expert1[1])
+        char['pos']['w'] += 2
+        data = {'pos': char['pos']}
+        r = self.fetch('/api/char/box/' + name, body={'data': data})
+        char1 = self._app.db.char.find_one({'name': name})
+        self.assertEqual(char1['pos']['w'], char['pos']['w'])
 
     def test_gen_chars(self):
         """ 测试生成字表"""

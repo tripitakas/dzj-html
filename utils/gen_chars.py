@@ -65,7 +65,7 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=False,
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
-                        m['ocr_txt'] = c.get('ocr_col') or c.get('alternatives', '')[:1]
+                        m['ocr_txt'] = c.get('alternatives', '')[:1] or c.get('ocr_col') or ''
                         m['txt'] = c.get('txt') or m['ocr_txt']
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
