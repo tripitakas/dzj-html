@@ -19,74 +19,88 @@ class TestCutTask(APITestCase):
             '切分专家,文字专家,数据管理员,单元测试用户'
         )
         self.add_users_by_admin(
-            [dict(email=r[0], name=r[2], password=r[1]) for r in [u.user1, u.user2, u.user3]],
-            '普通用户,单元测试用户'
+            [dict(email=r[0], name=r[2], password=r[1]) for r in [u.proof1, u.proof2, u.proof3]],
+            '普通用户,单元测试用户,切分校对员,聚类校对员,生僻校对员'
+        )
+        self.add_users_by_admin(
+            [dict(email=r[0], name=r[2], password=r[1]) for r in [u.review1, u.review2, u.review3]],
+            '普通用户,单元测试用户,切分审定员,聚类审定员,生僻审定员'
         )
         self.reset_tasks_and_data()
 
     def tearDown(self):
         super(TestCutTask, self).tearDown()
 
-    def test_page_upload(self):
-        # 测试上传文件
-        filename = path.join(self._app.BASE_DIR, 'meta', 'meta', 'pages.json')
-        if not path.exists(filename):
-            return
-
-        # 清空上次的数据
-        with open(filename, 'r') as fn:
-            page_names = json.load(fn)
-            self._app.db.page.delete_many({'name': {'$in': page_names}})
-
-        r = self.fetch('/api/data/page/upload', files={'json': filename}, body={'data': {'layout': '上下一栏'}})
-        self.assert_code(200, r)
-
-    def test_page_nav(self):
-        r = self.fetch('/page/browse/JX_165_7_12?to=next&_raw=1')
-        self.assert_code(200, r)
-        r = self.fetch('/page/browse/JX_165_7_12?to=prev&_raw=1')
-        self.assert_code(200, r)
-
-    def test_page_export_char(self):
-        pages = self._app.db.page.find({'name': {'$regex': 'GL'}})
-        page_names = [p['name'] for p in list(pages)]
-        r = self.fetch('/api/data/page/export_char', body={'data': {'page_names': page_names}})
-        self.assert_code(200, r)
+    @staticmethod
+    def get_post_data(page, task_type=None):
+        data = {k: page.get(k) for k in ['chars', 'columns', 'blocks']}
+        if task_type:
+            data['task_type'] = task_type
+        return data
 
     def test_page_box(self):
         """ 测试切分校对"""
-        self.login(u.expert1[0], u.expert1[1])
-        # 测试进入页面
-        name = 'YB_22_346'
-        r = self.fetch('/page/box/edit/%s?_raw=1' % name)
-        d = self.parse_response(r)
-        self.assertFalse(d.get('readonly'))
-        # 测试提交修改
+        name = 'QL_25_416'
+        # 以校对员身份登录
+        # 1. 测试以任务方式增删改
+        self.login(u.proof1[0], u.proof1[1])
+        # 测试修改数据
         page = self._app.db.page.find_one({'name': name})
-        page['chars'].pop(-1)
-        page['chars'].append({'x': 1, 'y': 1, 'w': 10, 'h': 10, 'added': True})
         page['chars'][0].update({'changed': True, 'w': page['chars'][0]['w'] + 1})
         page['blocks'][0].update({'changed': True, 'w': page['blocks'][0]['w'] + 1})
         page['columns'][0].update({'changed': True, 'w': page['columns'][0]['w'] + 1})
-        data = {k: page.get(k) for k in ['chars', 'columns', 'blocks']}
-        r = self.fetch('/api/page/box/' + name, body={'data': data})
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page, 'cut_proof')})
         self.assert_code(200, r)
+        page1 = self._app.db.page.find_one({'name': name})
+        self.assertIsNotNone(page1['chars'][0]['box_logs'])
+        self.assertIsNotNone(page1['chars'][0]['box_level'])
+        self.assertIsNotNone(page1['blocks'][0]['box_logs'])
+        self.assertIsNotNone(page1['blocks'][0]['box_level'])
+        self.assertIsNotNone(page1['columns'][0]['box_logs'])
+        self.assertIsNotNone(page1['columns'][0]['box_level'])
+        self.assertEqual(len(page['chars']), len(page1['chars']))
+        # 测试新增数据
+        page1['chars'].append({'x': 1, 'y': 1, 'w': 10, 'h': 10, 'added': True})
+        page1['chars'].append({'x': 2, 'y': 2, 'w': 20, 'h': 20, 'added': True})
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page1, 'cut_proof')})
+        self.assert_code(200, r)
+        page2 = self._app.db.page.find_one({'name': name})
+        self.assertEqual(len(page1['chars']), len(page2['chars']))
+        # 测试删除数据
+        page2['chars'].pop(-1)
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page2, 'cut_proof')})
+        self.assert_code(200, r)
+        page3 = self._app.db.page.find_one({'name': name})
+        self.assertEqual(len(page2['chars']), len(page3['chars']))
 
-    def test_page_txt(self):
-        """ 测试文字校对"""
-        self.login(u.expert1[0], u.expert1[1])
-        # 测试进入页面
-        name = 'YB_22_346'
-        r = self.fetch('/page/txt/edit/%s?_raw=1' % name)
-        d = self.parse_response(r)
+        # 2. 测试直接增删改
+        # 测试积分不够，无法修改数据
+        page4 = self._app.db.page.find_one({'name': name})
+        page4['chars'][1].update({'changed': True, 'w': page4['chars'][1]['w'] + 1})
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page4)})
+        self.assert_code(200, r)
+        page5 = self._app.db.page.find_one({'name': name})
+        self.assertIsNone(page5['chars'][1].get('box_logs'))
+        # 测试新增数据，不需要积分
+        page5['chars'].append({'x': 1, 'y': 1, 'w': 10, 'h': 10, 'added': True})
+        page5['chars'].append({'x': 2, 'y': 2, 'w': 20, 'h': 20, 'added': True})
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page5)})
+        self.assert_code(200, r)
+        page6 = self._app.db.page.find_one({'name': name})
+        self.assertEqual(len(page6['chars']), len(page5['chars']))
+        # 测试积分不够，无法删除数据
+        page6['chars'].pop(-1)
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page6)})
+        self.assert_code(200, r)
+        page7 = self._app.db.page.find_one({'name': name})
+        self.assertEqual(len(page7['chars']), len(page6['chars']) + 1)
 
-    def test_page_list(self):
-        """ 测试数据管理-页数据"""
+        # 测试专家可以直接删除数据
         self.login(u.expert1[0], u.expert1[1])
-        # 测试进入页面
-        r = self.fetch('/page/list?_raw=1')
-        d = self.parse_response(r)
-        print(d)
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page6)})
+        self.assert_code(200, r)
+        page8 = self._app.db.page.find_one({'name': name})
+        self.assertEqual(len(page8['chars']), len(page6['chars']))
 
     def test_gen_chars(self):
         """ 测试生成字表"""

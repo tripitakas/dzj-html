@@ -118,14 +118,11 @@ class AddPage(object):
             meta['source'] = self.source if self.source else info.get('source')
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
-            # 将文字审定的text也导入，text_proof_1 用于 fix_txt_back.py
             fields2 = ['blocks', 'columns', 'chars', 'txt', 'cmp_txt']
             meta.update({k: v for k, v in info.items() if v and k in fields2})
             fields3 = ['ocr', 'ocr_col']
             meta.update({k: Ph.get_txt(meta, k).replace(' ', '') for k in fields3})
-            Ph.update_box_cid(meta['chars'])
-            Ph.update_box_cid(meta['blocks'])
-            Ph.update_box_cid(meta['columns'])
+            Ph.update_page_cid(meta)
             if info.get('create_time'):
                 meta['create_time'] = datetime.now()
                 # meta['create_time'] = info['create_time']
@@ -181,7 +178,7 @@ class AddPage(object):
         return page_names
 
 
-def main(db=None, db_name='tripitaka', uri='localhost', json_path='/Users/xiandu/Document/03Work/TW/json/1200-0528', img_path='img', txt_path='txt',
+def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
          txt_field='', kind='', source='', check_id=False, reorder=False, reset=True,
          use_local_img=False, update=False, check_only=False):
     """

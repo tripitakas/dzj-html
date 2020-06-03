@@ -85,14 +85,9 @@ def update_cid(db):
         pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
-            update = dict()
-            if Ph.update_box_cid(page['chars']):
-                update['chars'] = page['chars']
-            if Ph.update_box_cid(page['blocks']):
-                update['blocks'] = page['blocks']
-            if Ph.update_box_cid(page['columns']):
-                update['columns'] = page['columns']
-            if update:
+            updated = Ph.update_page_cid(page)
+            if updated:
+                update = {k: page.get(k) for k in ['chars', 'columns', 'blocks']}
                 db.page.update_one({'_id': page['_id']}, {'$set': update})
 
 

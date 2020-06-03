@@ -28,10 +28,10 @@ class PageListHandler(PageHandler):
         {'id': 'op_text', 'name': '文本匹配'},
     ]
     info_fields = [
-        'name', 'source', 'box_ready', 'layout', 'remark_box', 'remark_text'
+        'name', 'source', 'box_ready', 'layout', 'remark_box', 'op_text'
     ]
     hide_fields = [
-        'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready',
+        'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready','box_ready',
     ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/page/delete'},

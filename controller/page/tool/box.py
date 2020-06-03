@@ -161,6 +161,20 @@ class Box(BoxOrder):
         return updated
 
     @staticmethod
+    def update_page_cid(page, box_types=None):
+        updated = False
+        box_types = box_types or ['blocks', 'columns', 'chars']
+        for box_type in box_types:
+            boxes = page.get(box_type)
+            max_cid = max([int(c.get('cid') or 0) for c in boxes])
+            for b in boxes:
+                if not b.get('cid'):
+                    b['cid'] = max_cid + 1
+                    max_cid += 1
+                    updated = True
+        return updated
+
+    @staticmethod
     def is_box_pos_equal(box1, box2):
         for k in ['x', 'y', 'w', 'h']:
             if box1.get(k) != box2.get(k):

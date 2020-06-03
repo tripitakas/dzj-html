@@ -23,7 +23,7 @@ class PageBoxApi(PageHandler):
     URL = ['/api/page/box/@page_name']
 
     def post(self, page_name):
-        """ 提交切分校对。切分数据以page表为准，box_level/box_logs等记录在page表中，坐标信息同步更新char表"""
+        """ 提交切分校对。切分数据以page表为准，box_level/box_logs等记录在page['chars']中，坐标信息同步更新char表"""
         try:
             r = self.save_box(self, page_name)
             self.send_data_response(r)
@@ -38,7 +38,7 @@ class PageBoxApi(PageHandler):
             self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
-        page_updated, char_updated = self.get_box_update(self.data, page)
+        page_updated, char_updated = self.get_box_update(self.data, page, self.data.get('task_type'))
         self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})  # 更新page表
         gen_chars(db=self.db, page_names=page_name, username=self.username)  # 更新char表
         valid, message, box_type, out_boxes = self.check_box_cover(page)

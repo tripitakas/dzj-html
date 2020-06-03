@@ -222,7 +222,7 @@ class APITestCase(AsyncHTTPTestCase):
         self._app.db.task.delete_many({})
         self._app.db.char.update_many({}, {'$set': {'txt_level': None, 'txt_logs': None}})
         cond = {'$or': [{'chars.box_level': {'$exists': True}}, {'chars.box_logs': {'$exists': True}}]}
-        self._app.db.page.update_many(cond, {'$set': {'chars.$.box_level': None, 'chars.$.box_logs': None}})
+        self._app.db.page.update_many(cond, {'$unset': {'chars.box_level': None, 'chars.box_logs': None}})
 
     def get_one_task(self, task_type, doc_id):
         return self._app.db.task.find_one({'task_type': task_type, 'doc_id': doc_id})
