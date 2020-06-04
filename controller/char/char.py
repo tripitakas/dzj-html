@@ -47,6 +47,10 @@ class Char(Model):
     search_fields = ['name', 'source', 'txt', 'ocr_txt', 'nor_txt']
 
     @classmethod
+    def get_type_names(cls, txt_type):
+        return cls.prop(cls.txt_types, txt_type) or txt_type
+
+    @classmethod
     def get_char_search_condition(cls, request_query):
         def c2int(c):
             return int(float(c) * 1000)

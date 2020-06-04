@@ -5,17 +5,13 @@
   <title>{{char['name']}}</title>
   {% include _base_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
-  <link href="{{static_url('css/txt.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/char.css')}}" rel="stylesheet">
+  <link href="{{static_url('css/char-edit.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    .btn.disabled {
-      color: #aaa;
-    }
-
     #right-region {
       width: 420px;
       max-width: 420px;
@@ -65,107 +61,16 @@
         <button class="btn btn-primary{{'' if box_auth else ' disabled'}}" id="submit-box">确认</button>
       </div>
       <div id="right-region" class="right bd work-panel">
-        <input type="hidden" id="currentId" value="{{char['_id']}}">
-        <input type="hidden" id="currentName" value="{{char['name']}}">
-        <div class="items txt-list">
-          <div class="item cur-meta">
-            <label class="head">基本信息</label>
-            <div class="body">
-              <div class="log">
-                <div class="log-meta">
-                  {% for f in base_fields %}
-                  {% if f in char %}
-                  <label>{{Char.get_field_name(f)}}</label>
-                  <span>{{handler.format_value(char[f], f, char)}}</span><br/>
-                  {% end %}
-                  {% end %}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="item ocr-alternatives">
-            <label class="head">候选文字
-              <span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="红色下划线来自于OCR列引擎，绿色下划线来自于比对文本，其余来自于OCR字引擎"></span>
-            </label>
-            <div class="body">
-              {% if char.get('ocr_col') %}<span class="txt-item ocr-col">{{char['ocr_col']}}</span>{% end %}
-              {% if char.get('cmp_txt') %}<span class="txt-item cmp-txt">{{char['cmp_txt']}}</span>{% end %}
-              {% for t in char.get('alternatives', '')%}<span class="txt-item">{{t}}</span>{% end %}
-            </div>
-          </div>
-          {% if char.get('txt_logs')%}
-          <div class="item logs">
-            <label class="head">文字校对历史</label>
-            <div class="body">
-              {% for log in char.get('txt_logs', '')%}
-              <div class="log current">
-                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('nor_txt')}}</span></div>
-                <div class="log-meta">
-                  {% for f in ['txt', 'nor_txt', 'txt_type', 'remark'] %}
-                  {% if log.get(f) %}<label>{{Char.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>{% end %}
-                  {% end %}
-                  {% if log.get('username') %}<label>校对人</label><span>{{log['username']}}</span><br/>{% end %}
-                  {% if log.get('create_time') %}<label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>{% end %}
-                  {% if log.get('updated_time') %}<label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>{% end %}
-                </div>
-              </div>
-              {% end %}
-            </div>
-          </div>
-          {% end %}
-          {% if char.get('box_logs')%}
-          <div class="item logs">
-            <label class="head">切分校对历史</label>
-            <div class="body">
-              {% for log in char.get('box_logs', '')%}
-              <div class="log">
-                <div class="log-meta">
-                  {% if log.get('pos') %}<label>坐标</label><span>{{', '.join(['%s:%s'%(k,v) for k,v in log['pos'].items()])}}</span><br/>{% end %}
-                  {% if log.get('username') %}<label>校对人</label><span>{{log['username']}}</span><br/>{% end %}
-                  {% if log.get('create_time') %}<label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>{% end %}
-                  {% if log.get('updated_time') %}<label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>{% end %}
-                </div>
-              </div>
-              {% end %}
-            </div>
-          </div>
-          {% end %}
-        </div>
-        <div class="items user-work">
-          <div class="item proof">
-            <label class="head">
-              请您校对
-              <span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="如果您输入的文字和图片用字不是同一个字，即有多笔少划或者字形结构上的不同，但是属于同一个正字，则二者构成异体字。"></span>
-            </label>
-            <div class="body">
-              <input class="form-control txt" placeholder="请录入原字"/>
-              <div class="txt-types">
-                {% for k, v in Char.txt_types.items() %}
-                <label class="radio-item radio-inline">
-                  <input type="radio" name="txt-type" value="{{k}}">{{v}}
-                </label>
-                {% end %}
-              </div>
-              <input class="form-control nor-txt" placeholder="请录入正字"/>
-              <input class="form-control remark" placeholder="备注，如果有的话"/>
-            </div>
-            <div class="tail submit" style="margin-top: 5px">
-              <span id="m-alert" class="alert hide">
-                <a class="close">×</a><strong class="title"></strong><span class="text"></span>
-              </span>
-              <button class="btn btn-primary fr{{'' if box_auth else ' disabled'}}" id="submit-txt">确认</button>
-            </div>
-          </div>
-        </div>
+        {% module CharEdit(char, show_base=True) %}
       </div>
-    </div>
-    <div class="m-footer">
+      <div class="m-footer">
       <span class="fl">
         字框权限：<span class="box-auth">{{'读写' if box_auth else '只读'}}</span>
       </span>
-      <span class="fr">
+        <span class="fr">
         文字权限：<span class="txt-auth">{{'读写' if txt_auth else '只读'}}</span>
       </span>
+      </div>
     </div>
   </div>
 </div>
@@ -213,13 +118,13 @@
 {% include _base_js.html %}
 {% include _base_cut.html %}
 <script src="{{static_url('js/page-btn.js')}}"></script>
-<script src="{{static_url('js/char.js')}}"></script>
+<script src="{{static_url('js/char-edit.js')}}"></script>
 <script>
   // 公共参数
   var taskType = '';
+  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
 
   $.cut.create({
-    readonly: true,
     holder: 'holder',
     image: '{{img_url}}',
     name: '{{page["name"]}}',

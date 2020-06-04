@@ -136,16 +136,17 @@ $(document).on('click', '#enlarge-font', function () {
 $(document).on('click', '.m-footer .page-name', function () {
   if ($(this).hasClass('disabled'))
     return;
-  var from = decodeFrom();
-  var pageName = $(this).text();
-  location.href = '/page/' + pageName + (from ? '?from=' + from : '');
+  var url = '/page/' + $(this).text() + '?txt=off';
+  var charName = $('.m-footer .char-name').text();
+  if (typeof charName !== 'undefined' && charName !== '未选中') {
+    var cid = charName.val().split('_').pop();
+    url += '&cid=' + cid;
+  }
+  window.open(url, '_blank');
 });
 
 // 查看char页面
 $(document).on('click', '.m-footer .char-name', function () {
-  var from = decodeFrom();
-  var cid = $(this).text().split('#')[1];
-  var charName = $('.m-footer .page-name').text() + '_' + cid;
-  window.open('/char/' + charName + (from ? '?from=' + from : ''), '_blank');
+  window.open('/char/' + $(this).text(), '_blank');
 });
 

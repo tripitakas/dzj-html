@@ -179,7 +179,7 @@ class AddPage(object):
 
 
 def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='', kind='', source='', check_id=False, reorder=False, reset=True,
+         txt_field='', kind='', source='', check_id=False, reorder=False, reset=False,
          use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数

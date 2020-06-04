@@ -66,6 +66,8 @@ class CharHandler(TaskHandler, Char):
             else:
                 return e.data_level_unqualified[0], msg
         if int(user_level) == int(required_level) and not task_type:
+            if char.get('txt_logs') and char['txt_logs'][-1].get('user_id') == self.user_id:
+                return True
             required_type, required_point = cls.get_required_type_and_point(char)
             user_point = cls.get_user_point(self, required_type)
             if int(user_point) < int(required_point):

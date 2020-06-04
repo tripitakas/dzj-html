@@ -1,0 +1,149 @@
+.work-panel {
+  flex: 1;
+  width: 420px;
+  max-width: 420px;
+
+}
+
+.char-edit {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #ccc;
+  background: var(--Grey_Content);
+  justify-content: space-between;
+}
+
+.char-edit .char-info {
+  flex-grow: 1;
+  overflow: auto;
+  padding: 0 15px;
+  border-bottom: 1px solid #ccc;
+}
+
+.char-edit .user-work {
+  flex-grow: 0;
+  flex-shrink: 0;
+  padding: 0 15px;
+  margin-bottom: 10px;
+  overflow: auto;
+}
+
+.char-edit .head {
+  clear: both;
+  margin: 5px 0;
+  font-size: 1.2em;
+  font-weight: 500;
+  user-select: none;
+  color: var(--Color_333);
+  border-bottom: 1px solid #ccc;
+}
+
+.txt-list .item {
+  margin-bottom: 20px;
+}
+
+.txt-item {
+  width: 45px;
+  height: 55px;
+  font-size: 36px;
+  display: inline-block;
+  cursor: pointer;
+  text-align: center;
+  margin: 0 15px 5px 0;
+  border: 1px solid #ccc;
+}
+
+.txt-item.active {
+  /*border: 1px solid red;*/
+  background-color: rgba(0, 0, 0, .1);
+}
+
+.txt-item:hover {
+  background-color: rgba(0, 0, 0, .1);
+  border: 1px solid rgba(0, 0, 255, .4);
+}
+
+.ocr-col {
+  border-bottom: 2px solid rgba(255, 0, 0, .4);
+}
+
+.cmp-txt {
+  border-bottom: 2px solid rgba(0, 255, 0, .4);
+}
+
+.txt-alternatives .body {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.log {
+  display: flex;
+  margin-bottom: 10px;
+  border-bottom: 1px dotted #ccc;
+}
+
+.log:last-child {
+  border-bottom: none;
+}
+
+.log .log-head {
+  flex: 1;
+  text-align: left;
+  max-width: 45px;
+  font-size: 36px;
+  margin-right: 5px;
+  border-right: 1px solid #ccc;
+}
+
+.log .log-meta {
+  flex: 1;
+}
+
+.log-meta label {
+  font-weight: 400;
+  margin-right: 5px;
+  width: 75px;
+  color: #6a6a77;
+}
+
+.txt-types {
+  margin: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.proof-help {
+  font-size: 14px;
+  margin: 0 6px 0 4px;
+}
+
+.radio-item {
+  cursor: pointer;
+  display: inline-block;
+  margin-left: 0 !important;
+}
+
+.radio-item.long {
+  width: 40%;
+}
+
+.radio-item input[type=radio] {
+  margin-right: 2px;
+}
+
+.proof .form-control {
+  margin-top: 5px;
+}
+
+#s-alert {
+  margin-bottom: 0;
+  padding: 7px 5px;
+  display: inline-block;
+  width: calc(100% - 80px);
+}
+
+#s-alert .close {
+  line-height: 16px;
+}

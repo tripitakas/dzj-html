@@ -10,6 +10,7 @@ import math
 from bson.json_util import dumps
 from tornado.web import UIModule
 from controller import helper as h
+from controller.char.char import Char
 
 
 class ComLeft(UIModule):
@@ -131,6 +132,43 @@ class Pager(UIModule):
         return self.render_string('_pager.html', get_page_uri=self.get_page_uri, **pager)
 
 
+class TxtDiff(UIModule):
+    def render(self, cmp_data):
+        """ 文字校对的文字区"""
+        return self.render_string(
+            '_txt_diff.html', blocks=cmp_data,
+            sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0])
+        )
+
+
+class CharEdit(UIModule):
+    @staticmethod
+    def format_value(value, key=None, doc=None):
+        """ 格式化task表的字段输出"""
+        if key in ['cc', 'sc'] and value:
+            return value / 1000
+        if key in ['pos', 'column'] and value:
+            value.pop('hash', 0)
+            return ', '.join(['%s:%s' % (k, v) for k, v in value.items()])
+        if key == 'txt_type':
+            return Char.txt_types.get(value) or value or ''
+        if key == 'nor_txt':
+            return value or ''
+        return h.format_value(value, key, doc)
+
+    def render(self, char, show_base=False, txt_fields=None, readonly=None):
+        """ 单字校对区域"""
+
+        txt_fields = txt_fields or ['txt', 'nor_txt']
+        base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt',
+                       'nor_txt', 'txt_type', 'txt_level', 'box_level', 'remark']
+        return self.render_string(
+            '_char_edit.html', char=char, txt_fields=txt_fields, show_base=show_base,
+            base_fields=base_fields, readonly=readonly, Char=Char, format_value=self.format_value,
+            to_date_str=lambda t, fmt='%Y-%m-%d %H:%M': h.get_date_time(fmt=fmt, date_time=t) if t else ''
+        )
+
+
 class ComTable(UIModule):
 
     def render(self, docs, table_fields, actions, info_fields=None, hide_fields=None, order='',
@@ -202,12 +240,3 @@ class TaskConfigModal(UIModule):
         fields = [{'id': 'auto-pick', 'name': '提交后自动领新任务', 'input_type': 'radio', 'options': ['是', '否']}]
         return self.render_string('_config.html', modal_fields=config_fields or fields, id='taskConfigModal',
                                   title=title, buttons=buttons)
-
-
-class TxtDiff(UIModule):
-    def render(self, cmp_data):
-        """ 文字校对的文字区"""
-        return self.render_string(
-            '_txt_diff.html', blocks=cmp_data,
-            sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0])
-        )
