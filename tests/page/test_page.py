@@ -112,10 +112,8 @@ class TestPage(APITestCase):
         if not char or not page:
             return
         else:
-            self._app.db.page.update_one(
-                {'name': page_name, 'chars.cid': cid},
-                {'$unset': {'chars.$.box_level': '', 'chars.$.box_logs': ''}}
-            )
+            cond = {'name': page_name, 'chars.cid': cid}
+            self._app.db.page.update_one(cond, {'$unset': {'chars.$.box_level': '', 'chars.$.box_logs': ''}})
 
         # 以审定员身份登录
         self.login(u.review1[0], u.review1[1])

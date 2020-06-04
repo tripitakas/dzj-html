@@ -73,12 +73,10 @@ class TestChar(APITestCase):
     def test_chars_txt(self):
         """ 测试批量修改"""
         chars = list(self._app.db.char.find({}).limit(2))
-        self._app.db.char.update_many(
-            {'_id': {'$in': [c['_id'] for c in chars]}},
-            {'$unset': {'txt_level': '', 'txt_logs': ''}}
-        )
+        cond = {'_id': {'$in': [c['_id'] for c in chars]}}
+        self._app.db.char.update_many(cond, {'$unset': {'txt_level': '', 'txt_logs': ''}})
 
-        # 测试校对员一的身份，以任务的方式批量修改
+        # 测试以任务的方式批量修改
         self.login(u.proof1[0], u.proof1[1])
         names = [c['name'] for c in chars]
         txts = [t for t in '测试数据等级' if t not in [c['txt'] for c in chars]]
