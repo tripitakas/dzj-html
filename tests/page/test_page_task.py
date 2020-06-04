@@ -25,6 +25,7 @@ class TestPageTask(APITestCase):
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.user1, u.user2, u.user3]],
             '普通用户,单元测试用户'
         )
+        self.reset_tasks_and_data()
 
     def tearDown(self):
         super(TestPageTask, self).tearDown()

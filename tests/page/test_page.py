@@ -10,10 +10,10 @@ from controller import errors as e
 from utils.gen_chars import gen_chars
 
 
-class TestCutTask(APITestCase):
+class TestPage(APITestCase):
 
     def setUp(self):
-        super(TestCutTask, self).setUp()
+        super(TestPage, self).setUp()
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]],
@@ -30,7 +30,7 @@ class TestCutTask(APITestCase):
         self.reset_tasks_and_data()
 
     def tearDown(self):
-        super(TestCutTask, self).tearDown()
+        super(TestPage, self).tearDown()
 
     @staticmethod
     def get_post_data(page, task_type=None):
@@ -43,8 +43,8 @@ class TestCutTask(APITestCase):
         """ 测试切分校对"""
         name = 'QL_25_416'
         # 以校对员身份登录
-        # 1. 测试以任务方式增删改
         self.login(u.proof1[0], u.proof1[1])
+        # 1. 测试以任务方式增删改
         # 测试修改数据
         page = self._app.db.page.find_one({'name': name})
         page['chars'][0].update({'changed': True, 'w': page['chars'][0]['w'] + 1})
@@ -114,7 +114,7 @@ class TestCutTask(APITestCase):
         else:
             self._app.db.page.update_one(
                 {'name': page_name, 'chars.cid': cid},
-                {'$unset': {'chars.$.box_level': '', 'chars.$.box_logs': '', }}
+                {'$unset': {'chars.$.box_level': '', 'chars.$.box_logs': ''}}
             )
 
         # 以审定员身份登录

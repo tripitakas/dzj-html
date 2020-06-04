@@ -21,18 +21,19 @@ class TestCharTask(APITestCase):
         super(TestCharTask, self).tearDown()
 
     def test_publish_char_task(self):
-        # 测试发布聚类校对任务
-        self._app.db.char.update_many({}, {'$set': {'source': '测试'}})
-        data = {'batch': '22TestPages', 'task_type': 'cluster_proof', 'source': '测试', 'num': 1}
-        r = self.fetch('/api/char/publish_task', body={'data': data})
+        """ 测试发布聚类校对任务"""
+        # 设置分类
+        self._app.db.char.update_many({}, {'$set': {'source': '测试数据'}})
+        data = {'source': '测试数据', 'batch': '测试任务', 'task_type': 'cluster_proof', 'num': 1}
+        r = self.fetch('/api/char/task/publish', body={'data': data})
         self.assert_code(200, r)
 
         # 测试不能重复发布同一校次的任务
-        data = {'batch': '22TestPages', 'task_type': 'cluster_proof', 'source': '测试', 'num': 1}
-        d = self.parse_response(self.fetch('/api/char/publish_task', body={'data': data}))
+        data = {'source': '测试数据', 'batch': '测试任务', 'task_type': 'cluster_proof', 'num': 1}
+        d = self.parse_response(self.fetch('/api/char/task/publish', body={'data': data}))
         self.assertNotEqual(d.get('published'), [])
 
         # 测试可以发布不同校次的任务
-        data = {'batch': '22TestPages', 'task_type': 'cluster_proof', 'source': '测试', 'num': 2}
-        d = self.parse_response(self.fetch('/api/char/publish_task', body={'data': data}))
+        data = {'source': '测试数据', 'batch': '测试任务', 'task_type': 'cluster_proof', 'num': 2}
+        d = self.parse_response(self.fetch('/api/char/task/publish', body={'data': data}))
         self.assertEqual(d.get('published'), [])

@@ -3,15 +3,15 @@
 from tests.testcase import APITestCase
 
 
-class TestApi(APITestCase):
+class TestOcr(APITestCase):
 
     def setUp(self):
-        super(TestApi, self).setUp()
+        super(TestOcr, self).setUp()
         self.add_first_user_as_admin_then_login()
         self.reset_tasks_and_data()
 
     def tearDown(self):
-        super(TestApi, self).tearDown()
+        super(TestOcr, self).tearDown()
 
     def test_ocr_task(self):
         """ 测试小欧的数据处理任务"""
