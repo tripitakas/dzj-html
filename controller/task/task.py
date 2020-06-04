@@ -57,6 +57,10 @@ class Task(Model):
             'steps': [['box', '字框'], ['order', '字序']],
             'pre_tasks': ['cut_proof'], 'publishable': True,
         },
+        'upload_cloud': {
+            'name': '上传云端', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': True,
+        },
         'ocr_box': {
             'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
             'publishable': True,

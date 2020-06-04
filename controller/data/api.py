@@ -64,7 +64,7 @@ class DataUploadApi(BaseHandler):
                 if r.get('errors'):
                     r['url'] = self.save_error(collection, r.get('errors'))
                 self.send_data_response(r)
-                self.add_log('upload_' + collection, target_id=r.get('target_ids'), content=r.get('message'))
+                self.add_log('upload_' + collection, target_name=r.get('target_names'), content=r.get('message'))
             else:
                 self.send_error_response((r.get('code'), r.get('message')))
 
