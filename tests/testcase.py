@@ -6,7 +6,10 @@
 import re
 import uuid
 import mimetypes
+from datetime import datetime
+from tests.users import admin
 from bson import json_util
+from bson.objectid import ObjectId
 from tornado.util import PY3
 from functools import partial
 from tornado.options import options
@@ -16,11 +19,9 @@ from tornado.testing import AsyncHTTPTestCase
 from tornado.escape import to_basestring, native_str
 import controller as c
 from controller import auth
-from controller.app import Application
-from controller.page.base import PageHandler
-from controller.char.base import CharHandler
-from tests.users import admin
 from controller import helper as h
+from controller.app import Application
+from controller.page.base import PageHandler as Ph
 
 if PY3:
     import http.cookies as Cookie
@@ -197,32 +198,33 @@ class APITestCase(AsyncHTTPTestCase):
 
     @staticmethod
     def get_chars_col(page, submit=True):
-        return {'chars_col': PageHandler.get_chars_col(page['chars']), 'step': 'order', 'submit': submit}
+        return {'chars_col': Ph.get_chars_col(page['chars']), 'step': 'order', 'submit': submit}
 
     @staticmethod
-    def init_data(data):
+    def set_pub_data(data):
         assert data.get('task_type')
         task_type = data['task_type']
-        task_types = {**PageHandler.task_types, **CharHandler.task_types}
-        steps = h.prop(task_types, task_type + '.steps')
+        steps = h.prop(Ph.task_types, task_type + '.steps')
+        pre_tasks = h.prop(Ph.task_types, task_type + '.pre_tasks')
+        data['num'] = data.get('num', 1)
         data['force'] = data.get('force', '0')
         data['priority'] = data.get('priority', 2)
         data['batch'] = data.get('batch', '测试批次号')
         data['steps'] = data.get('steps') or (steps and [s[0] for s in steps])
-        data['pre_tasks'] = data.get('pre_tasks') or h.prop(task_types, task_type + '.pre_tasks')
+        data['pre_tasks'] = data.get('pre_tasks') if 'pre_tasks' in data else pre_tasks
         return data
 
     def publish_page_tasks(self, data):
-        """ 发布页面任务"""
-        assert 'task_type' in data and ('doc_ids' in data or 'prefix' in data)
-        return self.fetch('/api/page/publish_task', body={'data': self.init_data(data)})
+        return self.fetch('/api/page/task/publish', body={'data': self.set_pub_data(data)})
+
+    def finish_task(self, task_id):
+        return self.fetch('/api/task/finish/' + str(task_id), body={'data': {}})
 
     def reset_tasks_and_data(self):
         """ 重置任务以及数据 """
         self._app.db.task.delete_many({})
-        self._app.db.char.update_many({}, {'$set': {'txt_level': None, 'txt_logs': None}})
-        cond = {'$or': [{'chars.box_level': {'$exists': True}}, {'chars.box_logs': {'$exists': True}}]}
-        self._app.db.page.update_many(cond, {'$unset': {'chars.box_level': None, 'chars.box_logs': None}})
-
-    def get_one_task(self, task_type, doc_id):
-        return self._app.db.task.find_one({'task_type': task_type, 'doc_id': doc_id})
+        self._app.db.char.update_many({}, {'$unset': {'txt_level': '', 'txt_logs': ''}})
+        self._app.db.page.update_many(
+            {'$or': [{'chars.box_level': {'$exists': True}}, {'chars.box_logs': {'$exists': True}}]},
+            {'$unset': {'chars.box_level': '', 'chars.box_logs': ''}}
+        )

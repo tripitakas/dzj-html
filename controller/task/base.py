@@ -235,3 +235,19 @@ class TaskHandler(BaseHandler, Task):
                 self.db.page.update_one({'name': task['doc_id']}, {'$set': {'tasks.' + task_type: status}})
             else:
                 self.db.page.update_one({'name': task['doc_id']}, {'$unset': {'tasks.' + task_type: ''}})
+
+    def update_post_tasks(self, task):
+        """ 更新后置任务。针对当前任务的后置任务，如果它们的状态为「已悬挂」，则检查它们的所有前置任务，如果都已完成，则修改其状态为「已发布」"""
+        cond = {'collection': task['collection'], 'id_name': task['id_name'], 'doc_id': task['doc_id']}
+        tasks = list(self.db.task.find(cond, {'task_type': 1, 'pre_tasks': 1, 'status': 1}))
+        to_publish = []
+        for tsk in tasks:
+            pre_task_types = tsk.get('pre_tasks') or {}
+            if not pre_task_types or tsk['status'] != self.STATUS_PENDING or task['task_type'] not in pre_task_types:
+                continue
+            pre_tasks = [t for t in tasks if t['task_type'] in pre_task_types]
+            unfinished = [p for p in pre_tasks if p['status'] != self.STATUS_FINISHED]
+            if pre_tasks and not unfinished:
+                to_publish.append(tsk['_id'])
+        if to_publish:
+            self.db.task.update_one({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})

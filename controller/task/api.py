@@ -141,7 +141,7 @@ class DeleteTasksApi(TaskHandler):
             status = [self.STATUS_PUBLISHED, self.STATUS_PENDING, self.STATUS_RETURNED]
             tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(t) for t in _ids]}, 'status': {'$in': status}}))
             r = self.db.task.delete_many({'_id': {'$in': [t['_id'] for t in tasks]}})
-            self.add_log('delete_task', target_id=self.data['_id'] or self.data['_ids'])
+            self.add_log('delete_task', target_id=_ids)
 
             for task in tasks:
                 self.update_page_status(None, task)
@@ -207,6 +207,22 @@ class AssignTasksApi(TaskHandler):
             self.send_data_response({k: i for k, i in log.items() if i})
             self.add_log('assign_task', target_ids, None,
                          dict(task_type=task_type, username=username, doc_id=[t.get('doc_id') for t in to_assign]))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class FinishTaskApi(TaskHandler):
+    URL = '/api/task/finish/@oid'
+
+    def post(self, task_id):
+        """ 完成任务，供测试用例使用"""
+        try:
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
+                'status': self.STATUS_FINISHED, 'finished_time': self.now()
+            }})
+            self.update_post_tasks(self.task)
+            self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)

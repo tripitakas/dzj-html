@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import tests.users as u
-from tests.task.conf import ready_ids
+from tests.task.config import page_names
 from tests.testcase import APITestCase
 from datetime import datetime, timedelta
 from periodic.statistic import statistic_tasks
@@ -28,14 +28,14 @@ class TestPeriodicTask(APITestCase):
     def test_republish_timeout_task(self):
         self.reset_tasks_and_data()
         # 发布任务，前置任务为空
-        r = self.publish_page_tasks(dict(task_type='cut_proof', doc_ids=ready_ids, pre_tasks=[]))
+        r = self.publish_page_tasks(dict(task_type='cut_proof', doc_ids=page_names, pre_tasks=[]))
         self.assert_code(200, r)
 
         # 领取任务
         self.login(u.expert1[0], u.expert1[1])
-        task = self._app.db.task.find_one({'task_type': 'cut_proof', 'doc_id': ready_ids[0]})
+        task = self._app.db.task.find_one({'task_type': 'cut_proof', 'doc_id': page_names[0]})
         r = self.fetch('/api/task/pick/cut_proof', body={'data': {'task_id': task['_id']}})
-        self.assertEqual(ready_ids[0], self.parse_response(r).get('doc_id'))
+        self.assertEqual(page_names[0], self.parse_response(r).get('doc_id'))
         task = self._app.db.task.find_one({'_id': task['_id']})
         self.assertEqual(task['picked_by'], u.expert1[2])
 
@@ -51,12 +51,12 @@ class TestPeriodicTask(APITestCase):
     def test_release_timeout_lock(self):
         # 设置数据锁时间
         update = {'lock.box': {'is_temp': True, 'locked_time': datetime.now() - timedelta(hours=6)}}
-        self._app.db.page.update_one({'name': ready_ids[0]}, {'$set': update})
+        self._app.db.page.update_one({'name': page_names[0]}, {'$set': update})
 
         # 测试自动释放数据锁
         release_timeout_lock(self._app.db, timeout_hours=2, once_break=True)
 
-        page = self._app.db.page.find_one({'name': ready_ids[0]})
+        page = self._app.db.page.find_one({'name': page_names[0]})
         self.assertIsNone(prop(page, 'lock.box.locked_time'))
 
     def test_statistic_task(self):
@@ -65,14 +65,14 @@ class TestPeriodicTask(APITestCase):
         user = self._app.db.user.find_one({'email': u.expert1[0]})
 
         # 发布任务，前置任务为空
-        r = self.publish_page_tasks(dict(task_type='cut_proof', doc_ids=ready_ids, pre_tasks=[]))
+        r = self.publish_page_tasks(dict(task_type='cut_proof', doc_ids=page_names, pre_tasks=[]))
         self.assert_code(200, r)
 
         # 领取任务
         self.login(u.expert1[0], u.expert1[1])
-        task1 = self._app.db.task.find_one({'task_type': 'cut_proof', 'doc_id': ready_ids[0]})
+        task1 = self._app.db.task.find_one({'task_type': 'cut_proof', 'doc_id': page_names[0]})
         r = self.fetch('/api/task/pick/cut_proof', body={'data': {'task_id': task1['_id']}})
-        self.assertEqual(ready_ids[0], self.parse_response(r).get('doc_id'))
+        self.assertEqual(page_names[0], self.parse_response(r).get('doc_id'))
 
         # 完成任务
         update = {'status': 'finished', 'finished_time': datetime.now() - timedelta(days=3)}
@@ -80,9 +80,9 @@ class TestPeriodicTask(APITestCase):
 
         # 领取任务
         self.login(u.expert1[0], u.expert1[1])
-        task2 = self._app.db.task.find_one({'task_type': 'cut_proof', 'doc_id': ready_ids[1]})
+        task2 = self._app.db.task.find_one({'task_type': 'cut_proof', 'doc_id': page_names[1]})
         r = self.fetch('/api/task/pick/cut_proof', body={'data': {'task_id': task2['_id']}})
-        self.assertEqual(ready_ids[1], self.parse_response(r).get('doc_id'))
+        self.assertEqual(page_names[1], self.parse_response(r).get('doc_id'))
 
         # 完成任务
         update = {'status': 'finished', 'finished_time': datetime.now() - timedelta(days=3)}

@@ -142,6 +142,7 @@ class PageTaskCutApi(PageHandler):
                     submitted.append('order')
                     update = {'status': self.STATUS_FINISHED, 'steps.submitted': submitted}
                     self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
+                    self.update_post_tasks(self.task)
                     self.update_page_status(self.STATUS_FINISHED, self.task)
                 PageOrderApi.save_order(self, self.task['doc_id'])
                 self.send_data_response()
@@ -192,6 +193,7 @@ class PageTaskTxtMatchApi(PageHandler):
             self.send_data_response(r)
             if r['status']:
                 self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'status': self.STATUS_FINISHED}})
+                self.update_post_tasks(self.task)
                 self.update_page_status(self.STATUS_FINISHED, self.task)
 
         except self.DbError as error:
@@ -422,7 +424,7 @@ class PageTaskPublishApi(PageHandler):
             log = self.check_and_publish(log)
             log_id = self.add_op_log(self.db, 'publish_task', None, log, self.username)
             message = '，'.join(['%s：%s条' % (self.field_names.get(k) or k, len(names)) for k, names in log.items()])
-            return self.send_data_response(dict(message=message, id=str(log_id)))
+            return self.send_data_response(dict(message=message, id=str(log_id), **log))
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -433,7 +435,9 @@ class PageTaskPublishApi(PageHandler):
         if page_names:
             if isinstance(page_names, str):
                 self.data['page_names'] = page_names.split(',')
-            pages = list(self.db.page.find({'name': {'$in': page_names}}, {'name': 1, }))
+            pages = list(self.db.page.find({'name': {'$in': page_names}}, {'name': 1}))
+            log['un_existed'] = set(page_names) - set([page['name'] for page in pages])
+            page_names = [page['name'] for page in pages]
         names_file = self.request.files.get('names_file')
         if names_file:
             names_str = str(names_file[0]['body'], encoding='utf-8').strip('\n')
@@ -461,7 +465,7 @@ class PageTaskPublishApi(PageHandler):
     def check_and_publish(self, log):
         """ 检查页码并发布任务"""
         # 去掉已发布和进行中的页码
-        page_names, task_type, num = self.data['page_names'], self.data['task_type'], self.data.get('num')
+        page_names, task_type, num = self.data['page_names'], self.data['task_type'], self.data.get('num') or 1
         if page_names:
             status = [self.STATUS_PUBLISHED, self.STATUS_PENDING, self.STATUS_PICKED]
             cond = dict(task_type=task_type, num=num, status={'$in': status}, doc_id={'$in': list(page_names)})
@@ -508,9 +512,11 @@ class PageTaskPublishApi(PageHandler):
                         create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                         publish_user_id=self.user_id, publish_by=self.username)
 
+        if not page_names:
+            return
         task_type = self.data['task_type']
-        if page_names:
-            pages = list(self.db.page.find({'name': {'$in': list(page_names)}}))
+        pages = list(self.db.page.find({'name': {'$in': list(page_names)}}))
+        if pages:
             if task_type == 'txt_match':
                 tasks, fields = [], self.data['fields']
                 for page in pages:

@@ -39,6 +39,7 @@ role_route_maps = {
         'is_assignable': False,
         'routes': {
             '/api/user/list': ['POST'],
+            '/api/task/finish/@oid': ['POST'],
         }
     },
     '访客': {
@@ -73,6 +74,7 @@ role_route_maps = {
         'remark': '工作人员公共链接',
         'roles': ['普通用户'],
         'routes': {
+            '/api/task/finish/@oid': ['POST'],
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],
@@ -198,7 +200,6 @@ role_route_maps = {
             '/api/task/ready/@task_type': ['POST'],
             '/api/(page|char)/task/publish': ['POST'],
             '/api/task/publish/import': ['POST'],
-            '/api/task/publish/(box|text)': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
             '/api/task/(assign|delete|batch|remark)': ['POST'],
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
