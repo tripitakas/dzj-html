@@ -24,7 +24,7 @@ url_placeholder = {
     'ocr_task': r'ocr_box|ocr_txt',
     'page_task': r'cut_proof|cut_review|txt_proof|txt_review',
     'cluster_task': r'cluster_proof|cluster_review|rare_proof|rare_review',
-    'task_type': r'ocr_\w+|cut_\w+|txt_\w+|cluster_\w+|rare_\w+',
+    'task_type': r'ocr_\w+|cut_\w+|txt_\w+|cluster_\w+|rare_\w+|txt_match|find_cmp',
 }
 
 """ 
@@ -39,6 +39,7 @@ role_route_maps = {
         'is_assignable': False,
         'routes': {
             '/api/user/list': ['POST'],
+            '/api/task/init': ['POST'],
             '/api/task/finish/@oid': ['POST'],
         }
     },
@@ -74,7 +75,6 @@ role_route_maps = {
         'remark': '工作人员公共链接',
         'roles': ['普通用户'],
         'routes': {
-            '/api/task/finish/@oid': ['POST'],
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],

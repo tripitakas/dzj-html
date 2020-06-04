@@ -24,9 +24,9 @@ class Worker(object):
     def __init__(self, db=None):
         self.db = db or connect_db(load_config()['database'])
 
-    def add_log(self, op_type, target_id='', context=''):
-        logging.info('%s,context=%s' % (op_type, context))
-        self.db.log.insert_one(dict(type=op_type, target_id=target_id, context=context, create_time=datetime.now()))
+    def add_log(self, op_type, target_id='', content=''):
+        logging.info('%s,content=%s' % (op_type, content))
+        self.db.log.insert_one(dict(type=op_type, target_id=target_id, content=content, create_time=datetime.now()))
 
     def work(self, **kwargs):
         pass
@@ -37,7 +37,7 @@ class Worker(object):
         watch_file = not kwargs.get('no_log') and path.join(log_path, filename)
         if watch_file and not path.exists(watch_file):
             open(watch_file, 'w').close()
-            self.add_log('worker_started', context=filename)
+            self.add_log('worker_started', content=filename)
 
         ret = None
         try:
@@ -47,7 +47,7 @@ class Worker(object):
                 except Exception as e:
                     traceback.print_exc()
                     msg = str(e) + ('' if 'Traceback' in str(e) else traceback.format_exc())
-                    self.add_log('worker_exception', context='[%s] %s' % (e.__class__.__name__, msg))
+                    self.add_log('worker_exception', content='[%s] %s' % (e.__class__.__name__, msg))
 
                 if kwargs.get('once_break'):
                     self.add_log('worker_break')

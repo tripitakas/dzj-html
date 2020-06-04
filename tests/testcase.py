@@ -191,14 +191,11 @@ class APITestCase(AsyncHTTPTestCase):
         self.assert_code(200, r)
         return r
 
-    @staticmethod
-    def get_boxes(page, submit=True):
-        return {'blocks': json_encode(page['blocks']), 'columns': json_encode(page['columns']),
-                'chars': json_encode(page['chars']), 'step': 'box', 'submit': submit}
-
-    @staticmethod
-    def get_chars_col(page, submit=True):
-        return {'chars_col': Ph.get_chars_col(page['chars']), 'step': 'order', 'submit': submit}
+    def assert_status(self, pages, response, task2status, msg=None):
+        for task_type, status in task2status.items():
+            data = response.get('data', {})
+            _pages = data.get(status, []) or data.get(task_type, {}).get(status, [])
+            self.assertEqual(set(pages), set(_pages), msg=msg)
 
     @staticmethod
     def set_pub_data(data):

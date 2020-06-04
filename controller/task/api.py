@@ -226,3 +226,39 @@ class FinishTaskApi(TaskHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
+
+
+class InitTestTasksApi(TaskHandler):
+    URL = '/api/task/init'
+
+    def post(self):
+        """ 初始化数据处理任务，以便OP平台进行测试。注意：该API仅仅是配合OP平台测试使用"""
+        rules = [(v.not_empty, 'page_names', 'import_dirs', 'layout')]
+        self.validate(self.data, rules)
+
+        try:
+            tasks, task_types = [], ['import_image', 'ocr_box', 'ocr_text', 'upload_cloud']
+            # 清空数据处理任务
+            self.db.task.delete_many({'task_type': {'$in': task_types}})
+            # 创建导入图片任务
+            for import_dir in self.data['import_dirs']:
+                task = self.get_publish_meta('import_image')
+                params = dict(import_dir=import_dir, redo=True, layout=self.data['layout'], batch='测试批次')
+                task.update(dict(task_type='import_image', status='published', input=params))
+                tasks.append(task)
+            # 创建其它类型的任务
+            for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
+                for page_name in self.data['page_names']:
+                    task = self.get_publish_meta(task_type)
+                    task.update(dict(task_type=task_type, status='published', collection='page', doc_id=page_name))
+                    if task_type == 'ocr_text':
+                        page = self.db.page.find_one({'name': page_name})
+                        if page:
+                            task['input'] = {k: page[k] for k in ['blocks', 'columns', 'chars']}
+                    tasks.append(task)
+            r = self.db.task.insert_many(tasks)
+            if r.inserted_ids:
+                self.send_data_response(dict(ids=r.inserted_ids))
+
+        except self.DbError as error:
+            return self.send_db_error(error)

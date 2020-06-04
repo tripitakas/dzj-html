@@ -518,7 +518,7 @@ class PageTaskPublishApi(PageHandler):
         pages = list(self.db.page.find({'name': {'$in': list(page_names)}}))
         if pages:
             if task_type == 'txt_match':
-                tasks, fields = [], self.data['fields']
+                tasks, fields = [], self.data.get('fields') or ['ocr_col']
                 for page in pages:
                     for field in fields:
                         # field对应的文本存在且不匹配时才发布任务

@@ -23,8 +23,7 @@ class RepublishTimeoutTasks(Worker):
         if not timeout_days:
             timeout_days = prop(load_config(), 'task.task_timeout_days', 1)
         from_time = datetime.now() - timedelta(days=int(timeout_days))
-        condition = {'status': Th.STATUS_PICKED, 'picked_time': {'$lt': from_time}}
-        tasks = list(self.db.task.find(condition))
+        tasks = list(self.db.task.find({'status': Th.STATUS_PICKED, 'picked_time': {'$lt': from_time}}))
         for task in tasks:
             # 重新发布任务
             pre_tasks = {p: '' for p in prop(task, 'pre_tasks', {})}
@@ -32,19 +31,12 @@ class RepublishTimeoutTasks(Worker):
                 'status': Th.STATUS_PUBLISHED, 'steps.submitted': [], 'pre_tasks': pre_tasks,
                 'picked_user_id': None, 'picked_by': None, 'picked_time': None, 'result': {}
             }})
-            self.add_log('republish', target_id=task['_id'], context=task['task_type'])
-
-            # 释放数据锁
-            shared_field = Th.get_shared_field(task['task_type'])
-            if shared_field:
-                update = {'lock.%s' % shared_field: dict()}
-                id_name = prop(Th.data_auth_maps, shared_field + '.id')
-                collection = prop(Th.data_auth_maps, shared_field + '.collection')
-                self.db[collection].update_many({id_name: task['doc_id']}, {'$set': update})
+            self.add_log('republish_task', task['_id'],
+                         dict(task_type=task['task_type'], doc_id=task.get('doc_id') or ''))
 
 
 def republish_timeout_tasks(db=None, uri='localhost', db_name='tripitaka', timeout_days=None,
-                            once_break=False, interval=3600*12):
+                            once_break=False, interval=3600 * 12):
     """
     重新发布超时任务
     :param db: 数据库连接对象，为空则根据 uri 和 db_name 自动连接

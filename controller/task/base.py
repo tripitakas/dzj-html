@@ -225,6 +225,18 @@ class TaskHandler(BaseHandler, Task):
             steps['next'] = None
         return steps
 
+    def get_publish_meta(self, task_type):
+        now = self.now()
+        id_name = self.prop(self.task_types, '%s.data.id' % task_type)
+        collection = self.prop(self.task_types, '%s.data.collection' % task_type)
+        return dict(
+            task_type=task_type, batch='', collection=collection, num=1, id_name=id_name, doc_id='',
+            status='', priority='', steps={}, pre_tasks=[], input=None, result={},
+            create_time=now, updated_time=now, publish_time=now,
+            publish_user_id=self.user_id,
+            publish_by=self.username
+        )
+
     def update_page_status(self, status, task=None):
         """ 更新任务相关的页面数据"""
         task = task or self.task or {}
