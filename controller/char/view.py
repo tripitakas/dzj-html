@@ -150,8 +150,9 @@ class CharViewHandler(CharHandler, Char):
             img_url = self.get_web_img(page['name'], 'page')
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, None, False) is True
+            chars = {str(char['_id']): char}
             self.render('char_view.html', char=char, page=page, base_fields=base_fields, img_url=img_url,
-                        txt_auth=txt_auth, box_auth=box_auth, Char=Char)
+                        txt_auth=txt_auth, box_auth=box_auth, chars=chars, Char=Char)
 
         except Exception as error:
             return self.send_db_error(error)

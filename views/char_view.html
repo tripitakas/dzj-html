@@ -63,14 +63,18 @@
       <div id="right-region" class="right bd work-panel">
         {% module CharEdit(char, show_base=True) %}
       </div>
-      <div class="m-footer">
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
       <span class="fl">
         字框权限：<span class="box-auth">{{'读写' if box_auth else '只读'}}</span>
       </span>
-        <span class="fr">
+      <span class="fr">
         文字权限：<span class="txt-auth">{{'读写' if txt_auth else '只读'}}</span>
       </span>
-      </div>
     </div>
   </div>
 </div>
@@ -122,6 +126,7 @@
 <script>
   // 公共参数
   var taskType = '';
+  var chars = decodeJSON('{{dumps(chars)}}');
   var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
 
   $.cut.create({
@@ -134,6 +139,16 @@
     scrollContainer: '#left-region',
   });
   $.cut.bindKeys();
+
+  // 提交字框修改
+  $('#submit-box').on('click', function () {
+    var box = $.cut.exportBoxes()[0];
+    var data = {pos: {x: box.x, y: box.y, w: box.w, h: box.h}};
+    postApi('/char/box/{{char["name"]}}', {data: data}, function (res) {
+      bsShow('成功！', '已保存成功', 'success', 1000);
+      updateBoxLogs(res.box_logs);
+    });
+  });
 
 </script>
 
