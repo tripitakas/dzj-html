@@ -524,7 +524,8 @@ class PageTaskPublishApi(PageHandler):
                         # field对应的文本存在且不匹配时才发布任务
                         if self.prop(page, 'txt_match.' + field) is not True and self.get_txt(page, field):
                             tasks.append(get_task(page['name'], len(page['chars']), dict(field=field)))
-                self.db.task.insert_many(tasks, ordered=False)
+                if tasks:
+                    self.db.task.insert_many(tasks, ordered=False)
                 update = {'tasks.%s#%s' % (task_type, f): self.STATUS_PUBLISHED for f in fields}
                 self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
             else:
