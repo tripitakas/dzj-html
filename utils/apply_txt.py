@@ -70,19 +70,17 @@ def migrate_txt_to_char(db, fields=None):
 
 def set_diff_symbol(db):
     """ 设置char表的diff标记"""
-    db.char.update_many({'$and': [
-        {'diff_col': None},
-        {'ocr_txt': {'$ne': None}},
-        {'ocr_col': {'$ne': None}},
-        {'$where': 'function(){return this.ocr_txt != "■" && this.ocr_col != "■" && this.ocr_txt != this.ocr_col;}'},
-    ]}, {'$set': {'diff_col': True}})
-    db.char.update_many({'$and': [
-        {'diff_cmp': None},
-        {'ocr_txt': {'$ne': None}},
-        {'cmp_txt': {'$ne': None}},
-        {'$where': 'function(){return this.ocr_txt != "■" && this.cmp_txt != "■" && this.ocr_txt != this.cmp_txt;}'},
-    ]}, {'$set': {'diff_cmp': True}})
-    db.char.update_many({'$or': [{'diff_col': True}, {'diff_cmp': True}]}, {'$set': {'diff': True}})
+    size = 1000
+    page_count = math.ceil(db.char.count_documents({}) / size)
+    for i in range(page_count):
+        print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
+        projection = {k: 1 for k in ['ocr_txt', 'ocr_col', 'cmp_txt', 'name']}
+        chars = list(db.char.find({}, projection).sort('_id', 1).skip(i * size).limit(size))
+        for c in chars:
+            diff = False
+            if len(set(c[k] for k in ['ocr_txt', 'ocr_col', 'cmp_txt'] if c.get(k) and c[k] != '■')) > 1:
+                diff = True
+            db.char.update_one({'_id': c['_id']}, {'$set': {'diff': diff}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
