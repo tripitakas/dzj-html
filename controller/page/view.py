@@ -324,7 +324,7 @@ class PageTxtMatchHandler(PageHandler):
             img_url = self.get_web_img(page['name'], 'page')
             txt_match = self.prop(page, 'txt_match.' + field)
             self.render(
-                'page_txt_match.html', page=page, img_url=img_url, char_txt=char_txt, cmp_data=cmp_data,
+                'page_match.html', page=page, img_url=img_url, char_txt=char_txt, cmp_data=cmp_data,
                 field=field, field_name=field_name, txt_match=txt_match, txts=txts,
                 txt_fields=txt_fields, txt_dict=txt_dict, active='work-html',
             )

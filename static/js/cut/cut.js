@@ -545,9 +545,9 @@
 
       state.readonly = p.readonly;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
-      data.ratioInitial = (h - 10) / p.height;
+      data.ratioInitial = (h - 20) / p.height;
       if (h && p.widthFull) {
-        data.ratioInitial = ($(data.holder).width() - 10) / p.width;
+        data.ratioInitial = ($(data.holder).width() - 20) / p.width;
       }
       if (p.minRatio) {
         data.ratioInitial = p.minRatio;
