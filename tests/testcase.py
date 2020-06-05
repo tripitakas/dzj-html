@@ -221,7 +221,7 @@ class APITestCase(AsyncHTTPTestCase):
         """ 重置任务以及数据 """
         self._app.db.task.delete_many({})
         self._app.db.char.update_many({}, {'$unset': {'txt_level': '', 'txt_logs': ''}})
-        self._app.db.page.update_many(
-            {'$or': [{'chars.box_level': {'$exists': True}}, {'chars.box_logs': {'$exists': True}}]},
-            {'$unset': {'chars.box_level': '', 'chars.box_logs': ''}}
-        )
+        for k in ['blocks', 'columns', 'chars']:
+            self._app.db.page.update_many({k + '.box_level': {'$in': [1, 10, 100]}}, {'$unset': {
+                k + '.$.box_level': '', k + '.$.box_logs': ''
+            }})

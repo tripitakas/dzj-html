@@ -166,7 +166,6 @@ class PageBrowseHandler(PageHandler):
                 'page_browse.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
                 active=active, txt_fields=txt_fields, chars_col=chars_col, info=info,
                 btn_config=btn_config, edit_fields=edit_fields,
-
             )
 
         except Exception as error:
@@ -240,8 +239,8 @@ class PageBoxHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            self.pack_boxes(page)
             self.set_box_access(page)
+            self.pack_boxes(page)
             img_url = self.get_web_img(page['name'], 'page')
             self.render('page_box.html', page=page, img_url=img_url, readonly=False)
 

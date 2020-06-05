@@ -131,7 +131,6 @@
 <script>
   // 页面图
   $.cut.create({
-    // widthFull: true,
     holder: 'holder',
     image: "{{img_url}}",
     width: '{{page["width"]}}',
@@ -230,12 +229,6 @@
   // 切换切分框状态
   $('.hl-box > button').on('click', function () {
     $.cut.switchHighlightBoxes(this.getAttribute('id').replace(/^.*-/, ''));
-  });
-
-  // 跳转字序
-  $('#btn-order').on('click', function () {
-    var from = decodeFrom() ? '?from=' + decodeFrom() : '';
-    location.href = '/page/order{{"" if readonly else "/edit"}}/{{page["name"]}}' + from;
   });
 
   // 获取提交数据

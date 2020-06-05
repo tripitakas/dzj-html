@@ -6,6 +6,7 @@ import random
 import tests.users as u
 from tests.testcase import APITestCase
 from controller import errors as e
+from controller import helper as hp
 from utils.gen_chars import gen_chars
 
 
@@ -38,7 +39,7 @@ class TestPage(APITestCase):
             data['task_type'] = task_type
         return data
 
-    def test_page_box(self):
+    def test_page_box_api(self):
         """ 测试切分校对"""
         name = 'QL_25_416'
         # 以校对员身份登录
@@ -97,13 +98,47 @@ class TestPage(APITestCase):
         page7 = self._app.db.page.find_one({'name': name})
         self.assertEqual(len(page7['chars']), len(page6['chars']))
 
-        # 测试专家可以直接删除数据
-        page7['chars'].pop(-1)
+        # 3. 测试专家直接修改
         self.login(u.expert1[0], u.expert1[1])
+
+        # 测试专家可以删除数据
+        page7['chars'].pop(-1)
         r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page7)})
         self.assert_code(200, r)
         page8 = self._app.db.page.find_one({'name': name})
         self.assertEqual(len(page8['chars']), len(page7['chars']))
+
+        # 测试专家可以修改数据
+        page8['chars'][2].update({'changed': True, 'w': page8['chars'][2]['w'] + 1})
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page8)})
+        self.assert_code(200, r)
+        page9 = self._app.db.page.find_one({'name': name})
+        self.assertIsNotNone(page9['chars'][2]['box_logs'])
+        self.assertIsNotNone(page9['chars'][2]['box_level'])
+
+    def test_page_box_view(self):
+        name = 'QL_25_733'
+        self.login(u.expert1[0], u.expert1[1])
+
+        # 专家修改数据
+        page = self._app.db.page.find_one({'name': name})
+        page['chars'][0].update({'changed': True, 'w': page['chars'][0]['w'] + 1})
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page)})
+        self.assert_code(200, r)
+        page1 = self._app.db.page.find_one({'name': name})
+        self.assertIsNotNone(page1['chars'][0].get('box_logs'))
+        self.assertIsNotNone(page1['chars'][0].get('box_level'))
+
+        # 测试专家进入页面，检查第一个char的权限为读写
+        d = self.parse_response(self.fetch('/page/box/' + name + '?_raw=1'))
+        char = hp.prop(d, 'page.chars')[0]
+        self.assertFalse(char.get('readonly'))
+
+        # 测试校对员进入页面，检查第一个char的权限为只读
+        self.login(u.proof1[0], u.proof1[1])
+        d1 = self.parse_response(self.fetch('/page/box/' + name + '?_raw=1'))
+        char1 = hp.prop(d1, 'page.chars')[0]
+        self.assertTrue(char1.get('readonly'))
 
     def test_char_box(self):
         """ 测试修改字框"""
