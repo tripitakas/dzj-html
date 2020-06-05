@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-import time
-from os import path
+import random
 import tests.users as u
 from tests.testcase import APITestCase
 from controller import errors as e
@@ -164,3 +163,9 @@ class TestPage(APITestCase):
         self.assertEqual(cnt, len(page['chars']))
         char = self._app.db.char.find_one({'name': 'YB_22_346_%s' % ch['cid']})
         self.assertEqual(char['pos']['w'], ch['w'])
+
+    def test_page_update(self):
+        page = self._app.db.page.find_one()
+        data = {'_id': str(page['_id']), 'name': page['name'], "remark_box": "不合要求%s" % random.randint(0, 9)}
+        r = self.fetch('/api/page', body={'data': data})
+        self.assert_code(200, r)

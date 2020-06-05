@@ -11,6 +11,7 @@ from bson.json_util import dumps
 from tornado.web import UIModule
 from controller import helper as h
 from controller.char.char import Char
+from controller.page.base import PageHandler as Ph
 
 
 class ComLeft(UIModule):
@@ -141,7 +142,7 @@ class TxtDiff(UIModule):
         )
 
 
-class CharEdit(UIModule):
+class CharTxt(UIModule):
     @staticmethod
     def format_value(value, key=None, doc=None):
         """ 格式化task表的字段输出"""
@@ -163,10 +164,23 @@ class CharEdit(UIModule):
         base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt',
                        'nor_txt', 'txt_type', 'txt_level', 'box_level', 'remark']
         return self.render_string(
-            '_char_edit.html', char=char, txt_fields=txt_fields, show_base=show_base,
+            '_char_txt.html', char=char, txt_fields=txt_fields, show_base=show_base,
             base_fields=base_fields, readonly=readonly, Char=Char, format_value=self.format_value,
             to_date_str=lambda t, fmt='%Y-%m-%d %H:%M': h.get_date_time(fmt=fmt, date_time=t) if t else ''
         )
+
+
+class PageTxt(UIModule):
+
+    def render(self, txts, active=None, cmp_data=None):
+        """ 页文本显示
+        :param txts, 格式为[(txt, field, label), (txt, field, label)...]
+        :param active, txts文本中，当前显示哪个文本
+        :param cmp_data, 比对文本。如果比对文本不为空，则优先显示比对文本
+        """
+        active = None if cmp_data else active if active else txts[0][1]
+        return self.render_string('_page_txt.html', txts=txts, cmp_data=cmp_data, active=active,
+                                  txt2html=Ph.txt2html)
 
 
 class ComTable(UIModule):

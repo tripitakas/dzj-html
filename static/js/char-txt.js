@@ -1,3 +1,7 @@
+/**
+ * 单字校对js，用于CharTxt UIModule
+ * 本js依赖于chars、txtTypes、taskType等公共变量
+ */
 // 更新文字校对历史
 function updateTxtLogs(logs) {
   var html3 = (logs || []).map(function (log) {
@@ -42,7 +46,7 @@ function updateBaseInfo(ch) {
 }
 
 // 更新字符编辑面板
-function updateCharEditPanel(ch) {
+function updateCharTxtPanel(ch) {
   // 更新候选字列表
   var html1 = ch.ocr_col && ch.ocr_col !== '■' ? `<span class="txt-item ocr-col${ch.ocr_col === ch.txt ? ' active' : ''}">${ch.ocr_col}</span>` : '';
   html1 += ch.cmp_txt && ch.cmp_txt !== '■' ? `<span class="txt-item cmp-txt${ch.cmp_txt === ch.txt ? ' active' : ''}">${ch.cmp_txt}</span>` : '';

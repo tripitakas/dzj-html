@@ -96,7 +96,7 @@ class Model(object):
 
     @classmethod
     def pack_doc(cls, doc, self=None):
-        d = {f['id']: doc.get(f['id']) for f in cls.fields if doc.get(f['id'])}
+        d = {f['id']: doc.get(f['id']) for f in cls.fields if cls.prop(doc, f['id'])}
         if doc.get('_id'):
             d['_id'] = ObjectId(str(doc['_id']))
         return d

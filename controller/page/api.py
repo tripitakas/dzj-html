@@ -368,7 +368,7 @@ class PageUpsertApi(PageHandler):
     def post(self):
         """ 新增或修改 """
         try:
-            r = Page.save_one(self.db, Page, self.data)
+            r = Page.save_one(self.db, 'page', self.data)
             if r.get('status') == 'success':
                 self.add_log('%s_page' % ('update' if r.get('update') else 'add'), content=r.get('message'))
                 self.send_data_response(r)

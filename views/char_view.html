@@ -6,7 +6,7 @@
   {% include _base_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/char.css')}}" rel="stylesheet">
-  <link href="{{static_url('css/char-edit.css')}}" rel="stylesheet">
+  <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -61,7 +61,7 @@
         <button class="btn btn-primary{{'' if box_auth else ' disabled'}}" id="submit-box">确认</button>
       </div>
       <div id="right-region" class="right bd work-panel">
-        {% module CharEdit(char, show_base=True) %}
+        {% module CharTxt(char, show_base=True) %}
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -122,7 +122,7 @@
 {% include _base_js.html %}
 {% include _base_cut.html %}
 <script src="{{static_url('js/page-btn.js')}}"></script>
-<script src="{{static_url('js/char-edit.js')}}"></script>
+<script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   // 公共参数
   var taskType = '';

@@ -31,7 +31,7 @@ class PageListHandler(PageHandler):
         'name', 'source', 'box_ready', 'layout', 'remark_box', 'op_text'
     ]
     hide_fields = [
-        'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready','box_ready',
+        'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'box_ready',
     ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/page/delete'},
@@ -50,6 +50,7 @@ class PageListHandler(PageHandler):
         {'action': 'btn-order', 'label': '字序'},
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-my-view', 'label': '查看'},
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除', 'url': '/api/page/delete'},
     ]
@@ -154,12 +155,19 @@ class PageBrowseHandler(PageHandler):
                 return self.send_error_response(e.no_object, message=message)
 
             txts = self.get_txts(page)
+            txt_fields = [t[1] for t in txts]
+            txt_dict = {t[1]: t for t in txts}
             img_url = self.get_web_img(page['name'])
             chars_col = self.get_chars_col(page['chars'])
             info = {f['id']: self.prop(page, f['id'], '') for f in edit_fields}
-            btn_config = json_util.loads(self.get_secure_cookie('page_browse_button') or '{}')
-            self.render('page_browse.html', page=page, img_url=img_url, chars_col=chars_col, txts=txts,
-                        info=info, btn_config=btn_config, edit_fields=edit_fields)
+            btn_config = json_util.loads(self.get_secure_cookie('page_browse_btn') or '{}')
+            active = btn_config.get('sutra-txt')
+            self.render(
+                'page_browse.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
+                active=active, txt_fields=txt_fields, chars_col=chars_col, info=info,
+                btn_config=btn_config, edit_fields=edit_fields,
+
+            )
 
         except Exception as error:
             return self.send_db_error(error)
@@ -174,16 +182,18 @@ class PageViewHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-
             self.pack_boxes(page)
             txts = self.get_txts(page)
+            txt_fields = [t[1] for t in txts]
+            txt_dict = {t[1]: t for t in txts}
             cid = self.get_query_argument('cid', '')
             img_url = self.get_web_img(page['name'])
             chars_col = self.get_chars_col(page['chars'])
             txt_off = self.get_query_argument('txt', None) == 'off'
-            txt_dict = {t[1]: t for t in txts}
-            self.render('page_view.html', page=page, img_url=img_url, chars_col=chars_col, txts=txts,
-                        txt_off=txt_off, txt_dict=txt_dict, cur_cid=cid)
+            self.render(
+                'page_view.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
+                txt_fields=txt_fields, txt_off=txt_off, chars_col=chars_col, cur_cid=cid,
+            )
 
         except Exception as error:
             return self.send_db_error(error)
@@ -191,6 +201,12 @@ class PageViewHandler(PageHandler):
 
 class PageInfoHandler(PageHandler):
     URL = '/page/info/@page_name'
+
+    def format_value(self, value, key=None, doc=None):
+        """ 格式化task表的字段输出"""
+        if key in ['blocks', 'columns', 'chars'] and value:
+            return '<div>%s</div>' % '</div><div>'.join([str(v) for v in value])
+        return h.format_value(value, key, doc)
 
     def get(self, page_name):
         """ 页面详情"""
@@ -200,15 +216,15 @@ class PageInfoHandler(PageHandler):
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
 
             page_tasks = self.prop(page, 'tasks') or []
-            fields1 = ['txt', 'ocr', 'ocr_col', 'cmp']
+            fields1 = ['txt', 'ocr', 'ocr_col', 'cmp_txt']
             page_txts = {k: self.get_txt(page, k) for k in fields1 if self.get_txt(page, k)}
             fields2 = ['blocks', 'columns', 'chars', 'chars_col']
             page_boxes = {k: self.prop(page, k) for k in fields2 if self.prop(page, k)}
-            fields3 = list(set(page.keys()) - set(fields1 + fields2) - {'tasks'})
+            fields3 = list(set(page.keys()) - set(fields1 + fields2) - {'tasks', 'txt_match'})
             metadata = {k: self.prop(page, k) for k in fields3 if self.prop(page, k)}
 
             self.render('page_info.html', page=page, metadata=metadata, page_txts=page_txts, page_boxes=page_boxes,
-                        page_tasks=page_tasks, Page=Page, Task=Task)
+                        page_tasks=page_tasks, Page=Page, Task=Task, format_value=self.format_value)
 
         except Exception as error:
             return self.send_db_error(error)

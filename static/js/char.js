@@ -89,7 +89,7 @@ $('.char-panel .char-img').on('click', function () {
   var id = $(this).parent().attr('data-id');
   var ch = chars[id] || {};
   updateColumnImg(ch);
-  updateCharEditPanel(ch);
+  updateCharTxtPanel(ch);
 });
 
 $('.char-panel .char-info, .char-panel .char-check').on('click', function () {

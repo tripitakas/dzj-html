@@ -174,14 +174,6 @@
   height: calc(100% - 40px);
 }
 
-.m-footer .page-name {
-  cursor: pointer;
-}
-
-.m-footer .char-name {
-  cursor: pointer;
-}
-
 .modal-body .form-group h4 {
   clear: both;
 }
