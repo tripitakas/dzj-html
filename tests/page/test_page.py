@@ -81,26 +81,29 @@ class TestPage(APITestCase):
         self.assert_code(200, r)
         page5 = self._app.db.page.find_one({'name': name})
         self.assertIsNone(page5['chars'][1].get('box_logs'))
-        # 测试新增数据，不需要积分
-        page5['chars'].append({'x': 1, 'y': 1, 'w': 10, 'h': 10, 'added': True})
-        page5['chars'].append({'x': 2, 'y': 2, 'w': 20, 'h': 20, 'added': True})
+
+        # 测试积分不够，无法删除数据
+        page5['chars'].pop(-1)
         r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page5)})
         self.assert_code(200, r)
         page6 = self._app.db.page.find_one({'name': name})
-        self.assertEqual(len(page6['chars']), len(page5['chars']))
-        # 测试积分不够，无法删除数据
-        page6['chars'].pop(-1)
+        self.assertEqual(len(page6['chars']), len(page5['chars']) + 1)
+
+        # 测试新增数据，不需要积分
+        page6['chars'].append({'x': 1, 'y': 1, 'w': 10, 'h': 10, 'added': True})
+        page6['chars'].append({'x': 2, 'y': 2, 'w': 20, 'h': 20, 'added': True})
         r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page6)})
         self.assert_code(200, r)
         page7 = self._app.db.page.find_one({'name': name})
-        self.assertEqual(len(page7['chars']), len(page6['chars']) + 1)
+        self.assertEqual(len(page7['chars']), len(page6['chars']))
 
         # 测试专家可以直接删除数据
+        page7['chars'].pop(-1)
         self.login(u.expert1[0], u.expert1[1])
-        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page6)})
+        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page7)})
         self.assert_code(200, r)
         page8 = self._app.db.page.find_one({'name': name})
-        self.assertEqual(len(page8['chars']), len(page6['chars']))
+        self.assertEqual(len(page8['chars']), len(page7['chars']))
 
     def test_char_box(self):
         """ 测试修改字框"""

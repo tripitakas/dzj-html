@@ -52,7 +52,7 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=False,
     for i in range(int(math.ceil(total_count / once_size))):
         pages = list(db.page.find(condition, {k: 1 for k in fields1}).skip(i * once_size).limit(once_size))
         p_names = [p['name'] for p in pages]
-        print('[%s] processing %s' % (hp.get_date_time(), ','.join(p_names)))
+        print('[%s]processing %s' % (hp.get_date_time(), ','.join(p_names)))
         # 查找、分类chars
         chars, char_names, invalid_chars, invalid_pages, valid_pages = [], [], [], [], []
         for p in pages:
