@@ -57,6 +57,10 @@ class PageHandler(TaskHandler, Page, Box):
     @classmethod
     def check_box_level_and_point(cls, self, char, task_type=None, send_error_response=True):
         """ 检查数据等级和积分"""
+        roles = auth.get_all_roles(self.current_user['roles'])
+        if '切分专家' in roles:
+            return True
+
         required_level = cls.get_required_box_level(char)
         user_level = cls.get_user_box_level(self, task_type)
         if int(user_level) < int(required_level):
