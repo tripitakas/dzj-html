@@ -34,7 +34,9 @@ class CharListHandler(CharHandler):
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
-        {'id': 'txt_logs', 'name': '校对记录'},
+        {'id': 'diff', 'name': '是否匹配'},
+        {'id': 'txt_level', 'name': '文本等级'},
+        {'id': 'txt_logs', 'name': '文本校对记录'},
         {'id': 'tasks', 'name': '校对任务'},
         {'id': 'remark', 'name': '备注'},
     ]
@@ -92,6 +94,9 @@ class CharListHandler(CharHandler):
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'txt_type' and value:
             return self.txt_types.get(value, value)
+        if key == 'diff':
+            trans = {True: '否', False: '是', None: '', }
+            return trans.get(value)
         if key in ['cc', 'sc'] and value:
             return value / 1000
         if key == 'txt_logs' and value:
