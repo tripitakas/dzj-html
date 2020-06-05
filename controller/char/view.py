@@ -34,7 +34,7 @@ class CharListHandler(CharHandler):
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
-        {'id': 'diff', 'name': '是否匹配'},
+        {'id': 'diff', 'name': '是否不匹配'},
         {'id': 'txt_level', 'name': '文本等级'},
         {'id': 'txt_logs', 'name': '文本校对记录'},
         {'id': 'tasks', 'name': '校对任务'},
@@ -72,6 +72,8 @@ class CharListHandler(CharHandler):
         {'id': 'remark', 'name': '备注'},
     ]
 
+    yes_no = {True: '是', False: '否'}
+
     def get_duplicate_condition(self):
         chars = list(self.db.char.aggregate([
             {'$group': {'_id': '$name', 'count': {'$sum': 1}}},
@@ -89,14 +91,12 @@ class CharListHandler(CharHandler):
             if log.get('updated_time'):
                 val = val + '|' + h.get_date_time('%Y-%m-%d %H:%M', log.get('updated_time'))
             return val
-
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'txt_type' and value:
             return self.txt_types.get(value, value)
         if key == 'diff':
-            trans = {True: '否', False: '是', None: '', }
-            return trans.get(value)
+            return self.yes_no.get(value) or ''
         if key in ['cc', 'sc'] and value:
             return value / 1000
         if key == 'txt_logs' and value:
@@ -118,7 +118,7 @@ class CharListHandler(CharHandler):
                 condition, params = Char.get_char_search_condition(self.request.query)
             docs, pager, q, order = Char.find_by_page(self, condition)
             self.render('char_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        txt_types=self.txt_types, format_value=self.format_value,
+                        txt_types=self.txt_types, yes_no=self.yes_no, format_value=self.format_value,
                         **kwargs)
 
         except Exception as error:

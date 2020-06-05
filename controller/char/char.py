@@ -59,9 +59,11 @@ class Char(Model):
         if 'txt_type' in request_query and not h.get_url_param('txt_type', request_query):
             params['txt_type'] = ''
             condition.update({'txt_type': None})
-        for field in ['txt', 'ocr_txt', 'txt_type']:
+        for field in ['txt', 'ocr_txt', 'txt_type', 'diff']:
             value = h.get_url_param(field, request_query)
             if value:
+                trans = {'True': True, 'False': False, 'None': None}
+                value = trans.get(value) if value in trans else value
                 params[field] = value
                 condition.update({field: value})
         for field in ['name', 'source', 'remark']:

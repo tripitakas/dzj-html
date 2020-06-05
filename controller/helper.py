@@ -120,9 +120,11 @@ def cmp_page_code(a, b):
 
 
 def get_url_param(key, url_query):
+
     regex = r'(^|\?|&)%s=(.*?)($|&)' % key
     r = re.search(regex, url_query, re.I)
-    return unquote(r.group(2)) if r else ''
+    return  unquote(r.group(2)) if r else ''
+    return trans.get(r) if r in trans else r
 
 
 def get_date_time(fmt=None, date_time=None, diff_seconds=None):
