@@ -162,3 +162,30 @@ $('#submit-box').on('click', function () {
     updateBoxLogs(res.box_logs);
   });
 });
+
+
+// 查看page页面
+$('.m-footer .page-name').on('click', function () {
+  if ($(this).hasClass('disabled'))
+    return;
+  var url = '/page/' + $(this).text() + '?txt=off';
+  var charName = $('.m-footer .char-name').text();
+  if (typeof charName !== 'undefined' && charName !== '未选中') {
+    var cid = charName.val().split('_').pop();
+    url += '&cid=' + cid;
+  }
+  window.open(url, '_blank');
+});
+
+// 查看char页面
+$('.m-footer .char-name').on('click', function () {
+  var charName = $(this).text();
+  if ($(this).hasClass('disabled') || charName === '未选中')
+    return;
+  if (charName.indexOf('#') > -1) {
+    var cid = charName.split('#').pop();
+    var pageName = $('.m-footer .page-name').text();
+    charName = pageName + '_' + cid;
+  }
+  window.open('/char/' + charName, '_blank');
+});
