@@ -6,7 +6,7 @@
   {% include _base_css.html %}
   {% include _font_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
-  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/page-txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -108,84 +108,11 @@
       </div><!--right-->
     </div>
     <div class="m-body flex">
-      <div id="left-region" class="m-left">
-        <div id="holder-container" class="bd">
-          <div id="holder"></div>
-        </div>
+      <div id="left-region" class="m-left bd">
+        <div id="holder"></div>
       </div>
-      <div id="right-region" class="m-right wide-txt">
-        <div id="work-panel" class="sutra-text bd">
-          <div id="cmp-html" class="html-text">
-            <div class="blocks">
-              {% if isinstance(cmp_data, str) %}
-              {% raw cmp_data %}
-              {% else %}
-              {% module TxtDiff(cmp_data=cmp_data) %}
-              {% end %}
-            </div>
-          </div>
-          <!--/.cmp-html-->
-          {% if doubts %}
-          <div class="char-list doubt-list">
-            <div class="char-list-tab">
-              {% for i, doubt in enumerate(doubts) %}
-              <div class="char-list-tab-item toggle-tab {{'' if i else 'active'}}">{{doubt[i]}}</div>
-              {% end %}
-              <div class="char-list-tab-arrow" id="toggle-arrow"><i class="icon-up"></i></div>
-            </div>
-            {% for i, doubt in enumerate(doubts) %}
-            <table class="char-list-table {{'' if i else 'editable active'}}">
-              <thead>
-              <tr>
-                <td>行号</td>
-                <td>字序号</td>
-                <td>存疑文本</td>
-                <td>存疑理由</td>
-                <td class="del-doubt">操作</td>
-              </tr>
-              </thead>
-              <tbody>
-              {% raw doubt[0] %}
-              </tbody>
-            </table>
-            {% end %}
-          </div>
-          {% end %}
-          <!--/.doubt-list-->
-          <div id="pfread-dialog" class="pfread-dialog">
-            <div class="dialog-common dialog-abs">
-              <div class="dlg-before"></div>
-              <div id="dlg-items" class="items">
-                {% for i, (txt, field, label) in enumerate(txts) %}
-                <dl class="item">
-                  <dt>{{label}}</dt>
-                  <dd class="text option" id="dlg-{{'cmp%s' % i if i else 'base'}}"></dd>
-                </dl>
-                {% end %}
-              </div>
-              <dl class="item res">
-                <dt>选择结果</dt>
-                <dd class="text">
-                  <span id="dlg-select" contenteditable="true"></span>
-                </dd>
-              </dl>
-              <div class="dlg-after"></div>
-            </div>
-          </div>
-          <!--/.pfread-dialog-->
-        </div>
-        <div id="text-work" class="sutra-text hide">
-          <textarea class="text-editable"></textarea>
-        </div>
-        {% for i, (txt, field, label) in enumerate(txts) %}
-        <div id="text-{{field}}" class="sutra-text hide">
-          <div class="blocks">{% raw handler.txt2html(txt) %}</div>
-        </div>
-        {% end %}
-      </div>
-      <div class="right-toolbar">
-        <i id="btn-work-text" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本模式"></i>
-        <i id="btn-work-html" class="icon-file-text hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
+      <div id="right-region" class="m-right bd wide-txt">
+        {% module PageTxt(txts, cmp_data=cmp_data) %}
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -195,9 +122,11 @@
     <div class="m-footer">
       <span class="fl">
         页编码：<span class="page-name">{{page['name']}}</span>
+        当前字框：<span class="char-name">未选中</span><span class="char-info"></span>
+      </span>
+      <span class="fr">
         权限：<span class="page-info">{{'只读' if readonly else '读写'}}</span>
       </span>
-      <span class="fr"></span>
     </div>
   </div>
 </div>
@@ -290,7 +219,7 @@
 {% include _base_cut.html %}
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
-<script src="{{static_url('js/txt-proof.js')}}"></script>
+<script src="{{static_url('js/page-txt.js')}}"></script>
 <script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
   // 公共参数
@@ -306,7 +235,7 @@
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     name: '{{page["name"]}}_txt',
-    scrollContainer: '#holder-container',
+    scrollContainer: '#left-region',
   });
 
   // 初始化设置

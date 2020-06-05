@@ -232,7 +232,8 @@
     localStorage.setItem('pageRemark', remark);
     localStorage.setItem('pageRemarkField', field);
     var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}'};
-    data[field === '切分' ? 'remark.box' : 'remark.text'] = remark;
+    data[field === '切分' ? 'remark_box' : 'remark_txt'] = remark;
+    console.log(data);
     postApi('/page', {data: data}, function () {
       showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
       go(getQueryString('to') || 'next');

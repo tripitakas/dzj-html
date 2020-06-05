@@ -8,7 +8,11 @@
     <div id="work-html">
       <div id="cmp-html" class="html-text">
         <div class="blocks">
-          {% raw cmp_data or '' %}
+          {% if isinstance(cmp_data, dict) %}
+          {% module TxtDiff(cmp_data=cmp_data) %}
+          {% else %}
+          {% raw cmp_data %}
+          {% end %}
         </div>
       </div>
       <div id="pfread-dialog" class="pfread-dialog">

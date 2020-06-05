@@ -6,19 +6,14 @@
   {% include _base_css.html %}
   {% include _font_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
-  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/page-txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    .right-toolbar .tooltip-inner {
-      word-break: keep-all;
-    }
-
-    .dropdown-menu.cmp-menu {
-      padding: 10px 15px;
-      min-width: 310px !important;
+    .btn-group.cmp-txt {
+      display: none;
     }
 
     @media screen and (max-width: 1100px) {
@@ -66,6 +61,7 @@
         <div id="btn-find-cmp" class="btn-txt icon-search{{'' if field == 'cmp_txt' else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="寻找比对文本"></div>
       </div>
       <div class="right">
+        {% include _page_txt_btns.html %}
         <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
         <div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
         <div id="check-mis-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="查看不匹配的行"></div>
@@ -74,50 +70,11 @@
       </div><!--right-->
     </div>
     <div class="m-body flex">
-      <div id="left-region" class="m-left">
-        <div id="holder-container" class="bd">
-          <div id="holder"></div>
-        </div>
+      <div id="left-region" class="m-left bd">
+        <div id="holder"></div>
       </div>
-      <div id="right-region" class="m-right wide-txt">
-        <div id="work-panel" class="sutra-text bd">
-          <div id="cmp-html" class="html-text">
-            <div class="blocks">
-              {% module TxtDiff(cmp_data=cmp_data) %}
-            </div>
-          </div>
-          <!--/.cmp-html-->
-          <div id="pfread-dialog" class="pfread-dialog">
-            <div class="dialog-common dialog-abs">
-              <div class="dlg-before"></div>
-              <div id="dlg-items" class="items">
-                <dl class="item">
-                  <dt>字框OCR</dt>
-                  <dd class="text option" id="dlg-cmp1"></dd>
-                </dl>
-                <dl class="item">
-                  <dt>{{field_name}}</dt>
-                  <dd class="text option" id="dlg-base"></dd>
-                </dl>
-              </div>
-              <dl class="item res">
-                <dt>选择结果</dt>
-                <dd class="text">
-                  <span id="dlg-select" contenteditable="true"></span>
-                </dd>
-              </dl>
-              <div class="dlg-after"></div>
-            </div>
-          </div>
-          <!--/.pfread-dialog-->
-        </div>
-        <div id="text-work" class="sutra-text hide">
-          <textarea class="text-editable"></textarea>
-        </div>
-      </div>
-      <div class="right-toolbar">
-        <i id="btn-work-text" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本模式"></i>
-        <i id="btn-work-html" class="icon-file-text diff hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
+      <div id="right-region" class="m-right bd wide-txt">
+        {% module PageTxt(txts, cmp_data=cmp_data) %}
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -129,12 +86,12 @@
         页编码：<span class="page-name">{{page['name']}}</span>
       </span>
       <span class="fr">
-        状态：<span class="status">{{'图文匹配' if txt_match else '图文不匹配'}}</span>
+        状态：<span class="status" style="margin-right: 10px">{{'图文匹配' if txt_match else '图文不匹配'}}</span>
+        当前文本：<span class="txt-info">比对结果</span>
       </span>
     </div>
   </div>
 </div>
-
 <div class="panel-body" style="padding: 0">
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
@@ -246,9 +203,13 @@
 {% if hasattr(handler, 'task_type') %} {% include _base_task.html %} {% end %}
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
-<script src="{{static_url('js/txt-proof.js')}}"></script>
+<script src="{{static_url('js/page-txt.js')}}"></script>
 <script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
+  // 公共参数
+  var txtFields = decodeJSON('{{txt_fields}}');
+  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+
   // 页面图和切分框
   $.cut.create({
     readonly: true,
@@ -258,7 +219,7 @@
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     name: '{{page["name"]}}_txt',
-    scrollContainer: '#holder-container',
+    scrollContainer: '#left-region',
   });
 
   // 初始化设置
@@ -266,19 +227,8 @@
   $.cut.bindMatchingKeys();
   $.cut.toggleBox(false);
   $.cut.switchCurrentBox(null);
-  $('#holder-container').focus();
   showText = getStorage('togglePanelTxt') === '1';
   $('#toggle-panel-txt').toggleClass('active', showText);
-
-  // 回到工作面板
-  $('#btn-work-html').on('click', function (e) {
-    e.stopPropagation();
-    var texts = ['{{char_txt}}', $('#text-work textarea').val()];
-    postApi('/page/txt_match/diff', {data: {texts: texts}}, function (res) {
-      $('#cmp-html .blocks').html(res['cmp_data']);
-      toggleWorkText('html');
-    });
-  });
 
   // 寻找比对文本
   $('#btn-find-cmp').on('click', function () {
@@ -348,3 +298,5 @@
   }
 
 </script>
+</body>
+</html>

@@ -87,7 +87,7 @@ class Page(Model):
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:
             condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
-        for field in ['name', 'source', 'txt', 'remark_box', 'remark_text']:
+        for field in ['name', 'source', 'txt', 'remark_box', 'remark_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

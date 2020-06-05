@@ -56,7 +56,7 @@
       <div class="char-panel">
         <div class="char-items">
           {% for d in docs %}
-          <div class="char-item proof{{len(d.get('txt_logs') or [])}}" id="{{d['name']}}" data-id="{{d['_id']}}">
+          <div class="char-item proof{{len(d.get('txt_logs') or [])}}" id="{{d['name']}}" data-id="{{d['name']}}">
             <div class="char-img">
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>

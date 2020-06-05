@@ -9,9 +9,8 @@ from controller import validate as v
 from tornado.escape import native_str, url_escape
 
 
-class PageTxtHandler(PageHandler):
-    URL = ['/page/txt/@page_name',
-           '/page/txt/edit/@page_name']
+class PageTxtProofHandler(PageHandler):
+    URL = '/page/txt_proof/@page_name'
 
     def get(self, page_name):
         """ 单字修改页面"""
@@ -27,15 +26,15 @@ class PageTxtHandler(PageHandler):
             img_url = self.get_web_img(page['name'])
             readonly = '/edit' not in self.request.path
             txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
-            self.render('page_txt.html', page=page, chars=chars, chars_col=chars_col, char_dict=char_dict,
+            self.render('page_txt_proof.html', page=page, chars=chars, chars_col=chars_col, char_dict=char_dict,
                         txt_types=txt_types, img_url=img_url, readonly=readonly)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class PageTextHandler(PageHandler):
-    URL = '/page/text/@page_name'
+class PageTextProofHandler(PageHandler):
+    URL = '/page/text_proof/@page_name'
 
     def get(self, page_name):
         """ 文字校对页面"""
@@ -43,44 +42,20 @@ class PageTextHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            txts = [(self.get_txt(page, f), f, Page.get_field_name(f)) for f in ['txt', 'ocr', 'ocr_col', 'cmp']]
-            txts = [t for t in txts if t[0]]
+            txts = self.get_txts(page)
             txt_dict = {t[1]: t for t in txts}
-            cmp_data = self.prop(page, 'txt_html')
-            txt_fields = self.prop(page, 'txt_fields')
             doubts = [(self.prop(page, 'txt_doubt', ''), '校对存疑')]
-            if not cmp_data:
-                txt_fields = [t[1] for t in txts]
-                cmp_data = self.diff(*[t[0] for t in txts])
+            txt_fields = self.prop(page, 'txt_fields') or [t[1] for t in txts]
+            cmp_data = self.prop(page, 'txt_html') or self.diff(*[t[0] for t in txts])
             img_url = self.get_web_img(page['name'], 'page')
-            return self.render('page_text.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
-                               txt_fields=txt_fields, cmp_data=cmp_data,
-                               doubts=doubts, readonly=True)
+            return self.render(
+                'page_text_proof.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
+                txt_fields=txt_fields, cmp_data=cmp_data, doubts=doubts,
+                active=None, readonly=True
+            )
 
         except Exception as error:
             return self.send_db_error(error)
-
-
-class PageTaskTxtHandler(PageHandler):
-    URL = ['/task/(txt_proof|txt_review)/@task_id',
-           '/task/do/(txt_proof|txt_review)/@task_id',
-           '/task/browse/(txt_proof|txt_review)/@task_id',
-           '/task/update/(txt_proof|txt_review)/@task_id']
-
-    def get(self, task_type, task_id):
-        """ 文字校对、审定页面"""
-        page = self.db.page.find_one({'name': self.task['doc_id']})
-        if not page:
-            self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
-
-        self.pack_boxes(page)
-        chars = page['chars']
-        chars_col = self.get_chars_col(chars)
-        char_dict = {c['cid']: c for c in chars}
-        img_url = self.get_web_img(page['name'])
-        txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
-        self.render('page_txt.html', page=page, chars=chars, chars_col=chars_col, char_dict=char_dict,
-                    txt_types=txt_types, img_url=img_url, readonly=self.readonly)
 
 
 class PageDetectCharsApi(PageHandler):

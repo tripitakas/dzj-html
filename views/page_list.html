@@ -112,11 +112,11 @@
             </div>
             <h4 class="col-sm-2 control-label">切分备注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark-box" value="{{params.get('remark-box') or ''}}" placeholder="请输入切分备注">
+              <input type="text" class="form-control remark_box" value="{{params.get('remark_box') or ''}}" placeholder="请输入切分备注">
             </div>
             <h4 class="col-sm-2 control-label">文字备注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark-text" value="{{params.get('remark-text') or ''}}" placeholder="请输入文字备注">
+              <input type="text" class="form-control remark_txt" value="{{params.get('remark_txt') or ''}}" placeholder="请输入文字备注">
             </div>
             <h4 class="col-sm-2 control-label">切分校对</h4>
             <div class="col-sm-10">
@@ -411,7 +411,7 @@
 <script>
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
-  var inputFields = ['name', 'source', 'txt', 'remark_box', 'remark_text'];
+  var inputFields = ['name', 'source', 'txt', 'remark_box', 'remark_txt'];
   var selectFields = ['cut_proof', 'cut_review', 'ocr_box', 'ocr_txt', 'm_cmp_txt', 'm_ocr_col', 'm_txt'];
   $searchModal.find('.modal-confirm').on('click', function () {
     var search = '';

@@ -1,8 +1,8 @@
 <div class="btn-group view-txt" title="查看文本">
   <span class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></span>
   <ul class="dropdown-menu dropdown-menu-right" data-stopPropagation="true">
-    {% for i, (txt, field, label) in enumerate(txts) %}
-    <li data-id="text-{{field}}" class="btn-show-txt{{' active' if active == field else ''}}">
+    {% for i, (txt, key, label) in enumerate(txts) %}
+    <li data-id="text-{{key}}" class="btn-show-txt{{' active' if active == key else ''}}">
       <a href="#">{{label}}</a>
     </li>
     {% end %}
@@ -20,14 +20,14 @@
     <li class="divider"></li>
     <label class="control-label">选择底本</label>
     <div class="form-group base-txt">
-      {% for i, (txt, field, label) in enumerate(txts) %}
-      <label class="radio-inline"><input type="radio" name="base-txt" value="{{field}}">{{label}}</label>
+      {% for i, (txt, key, label) in enumerate(txts) %}
+      <label class="radio-inline"><input type="radio" name="base-txt" value="{{key}}">{{label}}</label>
       {% end %}
     </div>
     <label class="control-label">选择校本</label>
     <div class="form-group cmp-txt">
-      {% for i, (txt, field, label) in enumerate(txts) %}
-      <label class="checkbox-inline"><input type="checkbox" value="{{field}}" checked>{{label}}</label>
+      {% for i, (txt, key, label) in enumerate(txts) %}
+      <label class="checkbox-inline"><input type="checkbox" value="{{key}}" checked>{{label}}</label>
       {% end %}
     </div>
     <div class="btn-group fr">

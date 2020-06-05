@@ -24,7 +24,7 @@ class PageListHandler(PageHandler):
         {'id': 'tasks', 'name': '任务'},
         {'id': 'box_ready', 'name': '切分就绪'},
         {'id': 'remark_box', 'name': '切分备注'},
-        {'id': 'remark_text', 'name': '文本备注'},
+        {'id': 'remark_txt', 'name': '文本备注'},
         {'id': 'op_text', 'name': '文本匹配'},
     ]
     info_fields = [
@@ -60,7 +60,7 @@ class PageListHandler(PageHandler):
         {'id': 'box_ready', 'name': '切分就绪', 'input_type': 'radio', 'options': ['是', '否']},
         {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': PageHandler.layouts},
         {'id': 'remark_box', 'name': '切分备注'},
-        {'id': 'remark_text', 'name': '文本备注'},
+        {'id': 'remark_txt', 'name': '文本备注'},
     ]
     task_statuses = {
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
@@ -192,7 +192,8 @@ class PageViewHandler(PageHandler):
             txt_off = self.get_query_argument('txt', None) == 'off'
             self.render(
                 'page_view.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
-                txt_fields=txt_fields, txt_off=txt_off, chars_col=chars_col, cur_cid=cid,
+                active=None, txt_fields=txt_fields, txt_off=txt_off, chars_col=chars_col,
+                cur_cid=cid,
             )
 
         except Exception as error:
@@ -315,12 +316,18 @@ class PageTxtMatchHandler(PageHandler):
                     self.send_error_response(e.no_object, message='页面没有%s' % field_name)
 
             self.pack_boxes(page)
-            char_txt = self.get_txt(page, 'ocr')
+            txts = self.get_txts(page, ['ocr', field])
+            txt_fields = [t[1] for t in txts]
+            txt_dict = {t[1]: t for t in txts}
+            char_txt = txts[0][0]
             cmp_data = self.match_diff(char_txt, cmp_txt)
             img_url = self.get_web_img(page['name'], 'page')
             txt_match = self.prop(page, 'txt_match.' + field)
-            self.render('page_txt_match.html', page=page, img_url=img_url, char_txt=char_txt, cmp_data=cmp_data,
-                        field=field, field_name=field_name, txt_match=txt_match)
+            self.render(
+                'page_txt_match.html', page=page, img_url=img_url, char_txt=char_txt, cmp_data=cmp_data,
+                field=field, field_name=field_name, txt_match=txt_match, txts=txts,
+                txt_fields=txt_fields, txt_dict=txt_dict, active='work-html',
+            )
 
         except Exception as error:
             return self.send_db_error(error)

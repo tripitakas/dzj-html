@@ -150,7 +150,7 @@ class CharViewHandler(CharHandler, Char):
             img_url = self.get_web_img(page['name'], 'page')
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, None, False) is True
-            chars = {str(char['_id']): char}
+            chars = {char['name']: char}
             self.render('char_view.html', char=char, page=page, base_fields=base_fields, img_url=img_url,
                         txt_auth=txt_auth, box_auth=box_auth, chars=chars, Char=Char)
 
@@ -287,7 +287,7 @@ class CharBrowseHandler(CharHandler):
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
             docs, pager, q, order = Char.find_by_page(self, condition)
-            chars = {str(d['_id']): d for d in docs}
+            chars = {str(d['name']): d for d in docs}
             column_url = ''
             for d in docs:
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
@@ -360,7 +360,7 @@ class CharTaskClusterHandler(CharHandler):
             # 2.查找单字数据
             self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
-            chars = {str(d['_id']): d for d in docs}
+            chars = {d['name']: d for d in docs}
             # 设置列图hash值
             column_url = ''
             for d in docs:

@@ -1,7 +1,6 @@
 <!--本UIModule依赖于char-txt.css和char-txt.js-->
 <div class="char-edit">
-  <input type="hidden" class="current-id" value="{{char['_id']}}">
-  <input type="hidden" class="current-name" value="{{char['name']}}">
+  <input type="hidden" class="current-name" value="{{char.get('name') or ''}}">
   <div class="items char-info">
     {% if show_base %}
     <div class="item base-info">
@@ -12,7 +11,7 @@
             {% for f in base_fields %}
             {% if char.get(f) is not None or 'txt' in f %}
             <label>{{Char.get_field_name(f)}}</label>
-            <span class="{{f}}">{{format_value(char.get(f), f, char)}}</span><br/>
+            <span class="{{f}}">{{format_value(char.get(f), f, char) or ''}}</span><br/>
             {% end %}
             {% end %}
           </div>

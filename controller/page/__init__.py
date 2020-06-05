@@ -4,8 +4,8 @@ views = [
     view.PageListHandler, view.PageBrowseHandler, view.PageViewHandler, view.PageInfoHandler,
     view.PageBoxHandler, view.PageOrderHandler, view.PageTaskCutHandler,
     view.PageTxtMatchHandler, view.PageTaskTxtMatchHandler, view.PageFindCmpHandler,
+    ext.PageTxtProofHandler, ext.PageTextProofHandler,
     view.PageTaskListHandler, view.PageTaskStatHandler, view.PageTaskResumeHandler,
-    ext.PageTaskTxtHandler, ext.PageTxtHandler, ext.PageTextHandler,
 ]
 
 handlers = [

@@ -67,7 +67,6 @@ function updateCharTxtPanel(ch) {
 
   // 更新当前参数
   $('#search-variant').val(ch.ocr_txt || ch.txt);
-  $('.char-edit .current-id').val(ch._id.$oid);
   $('.char-edit .current-name').val(ch.name || ch.page_name + '_' + ch.cid);
   $('.m-footer .char-name').text(ch.name);
   $('.m-footer .page-name').text(ch.page_name);
@@ -90,7 +89,6 @@ $(document).on('click', '.txt-item', function () {
 
 // 提交文字修改
 $('#submit-txt').on('click', function () {
-  var id = $('.char-edit .current-id').val();
   var name = $('.char-edit .current-name').val();
   var data = {
     task_type: taskType || '',
@@ -105,7 +103,7 @@ $('#submit-txt').on('click', function () {
     // 更新chars数据
     if (typeof chars !== 'undefined') {
       data.txt_logs = res.txt_logs;
-      chars[id] = $.extend(chars[id], data);
+      chars[name] = $.extend(chars[name], data);
     }
     updateTxtLogs(res.txt_logs);
     updateBaseInfo(chars[id]);
