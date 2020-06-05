@@ -16,13 +16,14 @@ from controller.base import BaseHandler as Bh
 from controller.page.base import PageHandler as Ph
 
 
-def check_match(db=None, db_name='tripitaka', uri='localhost', condition=None, page_names=None,
+def check_match(db=None, db_name='tripitaka', uri=None, condition=None, page_names=None,
                 fields=None, publish_task=True, username=None):
     """ 检查图文是否匹配
     :param fields 检查哪个字段，包括cmp_txt/ocr_col/txt
     :param publish_task，如果图文不匹配，是否发布相关任务
     """
-    db = db or pymongo.MongoClient(uri)[db_name]
+    cfg = hp.load_config()
+    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'])[0]
     if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
         condition = {'name': {'$in': page_names}}

@@ -18,7 +18,7 @@ from controller import helper as hp
 from controller.base import BaseHandler as Bh
 
 
-def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=False,
+def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
               condition=None, page_names=None, username=None):
     """ 从页数据中导出字数据"""
 
@@ -32,7 +32,8 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=False,
                 return True
         return False
 
-    db = db or pymongo.MongoClient(uri)[db_name]
+    cfg = hp.load_config()
+    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'])[0]
     if reset:
         db.char.delete_many({})
 
