@@ -23,7 +23,7 @@ import pymongo
 from os import path
 from PIL import Image
 
-BASE_DIR = path.dirname(path.dirname(path.dirname(__file__)))
+BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp

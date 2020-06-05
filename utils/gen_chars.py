@@ -11,7 +11,7 @@ import pymongo
 from os import path
 from datetime import datetime
 
-BASE_DIR = path.dirname(path.dirname(path.dirname(__file__)))
+BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
