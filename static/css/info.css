@@ -51,6 +51,6 @@
 .info .value {
   overflow: auto;
   margin-right: 5px;
-  display: inline-block;
+  display: block;
   word-break: break-all;
 }

@@ -9,6 +9,23 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    .columns .value, .chars .value {
+      width: 100%;
+      overflow: auto;
+      max-height: 400px;
+      word-break: keep-all;
+    }
+
+    .long .value div{
+      white-space:nowrap;
+    }
+
+    .info.long {
+      display: block !important;
+    }
+
+  </style>
 </head>
 
 <body>
@@ -24,7 +41,7 @@
             {% for k, v in metadata.items() %}
             <div class="info">
               <label class="label">{{Page.get_field_name(k)}}</label>
-              <span class="value">{% raw handler.format_value(v, k) %}</span>
+              <div class="value">{% raw format_value(v, k) %}</div>
             </div>
             {% end %}
           </div>
@@ -33,7 +50,7 @@
             {% for t in page_tasks %}
             <div class="info">
               <label class="label">{{Task.get_task_name(t['task_type'])}}</label>
-              <span class="value">{{t}}</span>
+              <div class="value">{{t}}</div>
             </div>
             {% end %}
           </div>
@@ -42,16 +59,25 @@
             {% for k, v in page_txts.items() %}
             <div class="info long">
               <label class="label">{{Page.get_field_name(k)}}</label>
-              <span class="value">{% raw handler.format_value(v, k) %}</span>
+              <div class="value">{% raw format_value(v, k) %}</div>
+            </div>
+            {% end %}
+          </div>
+          <div class="block">
+            <div class="block-head">文本匹配</div>
+            {% for k, v in page.get('txt_match').items() %}
+            <div class="info long">
+              <label class="label">{{Page.get_field_name(k)}}</label>
+              <div class="value">{% raw format_value(v, k) %}</div>
             </div>
             {% end %}
           </div>
           <div class="block">
             <div class="block-head">切分信息</div>
             {% for k, v in page_boxes.items() %}
-            <div class="info long">
+            <div class="info long {{k}}">
               <label class="label">{{Page.get_field_name(k)}}</label>
-              <span class="value">{% raw handler.format_value(v, k) %}</span>
+              <div class="value">{% raw format_value(v, k) %}</div>
             </div>
             {% end %}
           </div>

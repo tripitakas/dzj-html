@@ -721,33 +721,6 @@ body.widescreen {
   margin-right: 6px;
 }
 
-.right-toolbar {
-  top: 50px;
-  right: 20px;
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-}
-
-.right-toolbar > .btn-group {
-  margin-bottom: 4px;
-}
-
-.right-toolbar i {
-  flex: 1;
-  opacity: 0.5;
-  color: #333;
-  cursor: pointer;
-  font-size: 18px;
-  font-weight: 400;
-  transition: all 0.2s;
-}
-
-.right-toolbar i:hover {
-  opacity: 1;
-  transform: scale(1.2);
-}
-
 /* bootstrap */
 
 .alert {
@@ -786,7 +759,7 @@ body.widescreen {
 
 .dropdown-menu > .active > a {
   color: #333;
-  background-color: var(--Grey_Line);
+  background-color: var(--Grey_Line) !important;
 }
 
 .dropdown-menu > .active > a:hover {
@@ -978,4 +951,20 @@ body.widescreen {
 
 #remarkModal .modal-content {
   width: 720px;
+}
+
+.m-footer .page-name {
+  cursor: pointer;
+}
+
+.m-footer .char-name {
+  cursor: pointer;
+}
+
+.page-name {
+  margin-right: 10px;
+}
+
+.char-info {
+  margin-left: 10px;
 }

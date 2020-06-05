@@ -395,6 +395,12 @@
     location.href = url + '?from=' + encodeFrom();
   });
 
+  // 查看
+  $('.action .btn-my-view').on('click', function () {
+    location.href = '/page/' + $(this).parent().siblings('.name').text();
+  });
+
+
   // 详情
   $('.action .btn-detail').on('click', function () {
     location.href = '/page/info/' + $(this).parent().siblings('.name').text();

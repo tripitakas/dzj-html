@@ -1,7 +1,7 @@
 .wrapper {
   margin: 0;
-  padding-bottom: 0;
   height: 100%;
+  padding-bottom: 0;
 }
 
 .bd-container {
@@ -16,11 +16,13 @@
   font-size: 75%;
 }
 
-.page-name, .char-name {
-  cursor: pointer;
-  margin-right: 8px;
+#holder {
+  text-align: center;
 }
 
+#holder svg {
+  margin: auto;
+}
 
 rect.highlight {
   fill: red;
@@ -28,8 +30,15 @@ rect.highlight {
   stroke-width: 2;
 }
 
+rect.flash {
+  animation: fade 600ms infinite;
+  -webkit-animation: fade 600ms infinite;
+}
+
 text tspan {
   fill: red;
+  color: #333333;
+  font-weight: 200;
 }
 
 @keyframes fade {
@@ -54,17 +63,4 @@ text tspan {
   to {
     opacity: 1.0;
   }
-}
-
-rect.flash {
-  animation: fade 600ms infinite;
-  -webkit-animation: fade 600ms infinite;
-}
-
-#holder {
-  text-align: center;
-}
-
-#holder svg {
-  margin: auto;
 }

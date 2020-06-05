@@ -81,19 +81,6 @@
               {% end %}
             </div>
           </div>
-          <div class="item cur-meta hide">
-            <label class="head">当前信息</label>
-            <div class="body">
-              <div class="log">
-                <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('nor_txt')}}</span></div>
-                <div class="log-meta">
-                  {% for f in [i for i in ['name', 'page_name', 'txt', 'nor_txt', 'txt_type'] if c.get(i)]%}
-                  <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
-                  {% end %}
-                </div>
-              </div>
-            </div>
-          </div>
           <div class="item logs">
             <label class="head">校对记录</label>
             <div class="body">

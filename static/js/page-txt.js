@@ -1,17 +1,52 @@
 /**
- * proofread.js
- * Date: 2018-9-19
+ * 文字校对js，用于PageTxt UIModule
+ * 本js依赖于txtFields、txtDict等公共变量
  */
 
-/** 切分字框相关代码 */
 
+/** 1. 根据字框，高亮切分框、浮动面板，设置文本当前行*/
 var showText = false;                     // 是否显示字框对应文字
 var showOrder = false;                    // 是否显示字框对应序号
 var showBlockBox = false;                 // 是否显示栏框切分坐标
 var showColumnBox = false;                // 是否显示列框切分坐标
-var offsetInSpan = null;                  // 当前选中范围开始位置
-var currentSpan = [null];                 // $(当前span)，是否第一个
+$.cut.onBoxChanged(function (char, box, reason) {
+  if (reason === 'navigate' && char.column_no) {
+    // 按字序号浮动亮显当前行的字框
+    var $line = getLine(char.block_no, char.column_no);
+    var text = getLineText($line);
+    var all = $.cut.findCharsByLine(char.block_no, char.column_no);
+    // 如果字框对应的文本行不是当前行，则更新相关设置
+    var currentLineNo = getLineNo($('.current-span').parent());
+    if (currentLineNo !== char.column_no) {
+      var $firstSpan = $line.find('span:first-child');
+      currentSpan = [$firstSpan, true];
+    }
+    $.cut.removeBandNumber(0, true);
+    // 显示浮动面板
+    $.cut.showFloatingPanel(
+        (showOrder || showText) ? all : [],
+        function (char, index) {
+          var no = showOrder ? char.char_no : '';
+          var txt = !text[index] ? '？' : showText ? text[index] : '';
+          // var cc = char.cc || 1;
+          // var same = !char.ocr_txt || text[index] === char.ocr_txt || cc < 0.35;
+          // return no + txt + (showText ? (same && (cc > 0.5 || cc < 0.35) ? '' : same ? '？' : char.ocr_txt) : '');
+          return no + txt;
+        },
+        highlightBox
+    );
+    // 显示当前栏框
+    if (showBlockBox) {
+      $.cut.showBox('blockBox', window.blocks, all.length && all[0].char_id.split('c')[0]);
+    }
+    // 显示当前列框
+    if (showColumnBox) {
+      $.cut.showBox('columnBox', window.columns, all.length && all[0].char_id.split('c').slice(0, 2).join('c'));
+    }
+  }
+});
 
+/** 2. 根据文本，高亮切分框*/
 function getBlock(blockNo) {
   return $('.sutra-text:not(.hide) .block').eq(blockNo - 1);
 }
@@ -80,23 +115,22 @@ function getCursorPosition(element) {
     sel = win.getSelection();
     if (sel.rangeCount > 0) {                       // 选中的区域
       range = sel.getRangeAt(0);
-      caretOffset = range.startOffset;               // 获取选定区的开始点
-      // preCaretRange = range.cloneRange();         // 克隆一个选中区域
-      // preCaretRange.selectNodeContents(element);  // 设置选中区域的节点内容为当前节点
-      // preCaretRange.setEnd(range.endContainer, range.endOffset);  // 重置选中区域的结束位置
-      // caretOffset = preCaretRange.toString().length;
+      caretOffset = range.startOffset;              // 获取选定区的开始点
     }
   } else if ((sel = doc.selection) && sel.type !== 'Control') {    // IE
     range = sel.createRange();                          // 创建选定区域
     preCaretRange = doc.body.createTextRange();
     preCaretRange.moveToElementText(element);
     preCaretRange.setEndPoint('EndToEnd', range);
-    caretOffset = preCaretRange.text.length;
+    caretOffset = preCaretRange.text.replace(/[YMN]/g, '').length;
   }
-  return caretOffset;
+  var txt = $('.current-span').text().substr(0, caretOffset);
+  return txt.replace(/[YMN]/g, '').length;
 }
 
 // 点击文字区域时，高亮与文字对应的字框
+var offsetInSpan = null;                  // 当前选中范围开始位置
+var currentSpan = [null];                 // [当前span, 是否第一个]
 function highlightBox($span, first, keyCode) {
   $span = $span || currentSpan[0];
   first = first || currentSpan[1];
@@ -116,7 +150,7 @@ function highlightBox($span, first, keyCode) {
   var cmp1Cursor = ($span.attr('cmp1') || '')[offsetInSpan];
   var text = $span.text().replace(/\s/g, '');
 
-  var i, chTmp, all, cmp_ch;
+  var i, chTmp, cmp_ch;
 
   // 根据文字序号寻找序号对应的字框
   var boxes = $.cut.findCharsByOffset(block_no, line_no, offsetInLine);
@@ -161,42 +195,6 @@ function highlightBox($span, first, keyCode) {
   $.cut.switchCurrentBox((boxes[0] || {}).shape);
 }
 
-// 点击切分框
-$.cut.onBoxChanged(function (char, box, reason) {
-  if (reason === 'navigate' && char.column_no) {
-    // 按字序号浮动亮显当前行的字框
-    var $line = getLine(char.block_no, char.column_no);
-    var text = getLineText($line);
-    var all = $.cut.findCharsByLine(char.block_no, char.column_no);
-    // 如果字框对应的文本行不是当前行，则更新相关设置
-    var currentLineNo = getLineNo($('.current-span').parent());
-    if (currentLineNo !== char.column_no) {
-      var $firstSpan = $line.find('span:first-child');
-      currentSpan = [$firstSpan, true];
-    }
-    $.cut.removeBandNumber(0, true);
-    $.cut.showFloatingPanel(
-        (showOrder || showText) ? all : [],
-        function (char, index) {
-          var no = showOrder ? char.char_no : '';
-          var txt = !text[index] ? '？' : showText ? text[index] : '';
-          // var cc = char.cc || 1;
-          // var same = !char.ocr_txt || text[index] === char.ocr_txt || cc < 0.35;
-          // return no + txt + (showText ? (same && (cc > 0.5 || cc < 0.35) ? '' : same ? '？' : char.ocr_txt) : '');
-          return no + txt;
-        },
-        highlightBox
-    );
-    // 显示当前栏框
-    if (showBlockBox) {
-      $.cut.showBox('blockBox', window.blocks, all.length && all[0].char_id.split('c')[0]);
-    }
-    // 显示当前列框
-    if (showColumnBox) {
-      $.cut.showBox('columnBox', window.columns, all.length && all[0].char_id.split('c').slice(0, 2).join('c'));
-    }
-  }
-});
 
 // 记下当前span
 $(document).on('mousedown', '.line > span', function () {
@@ -206,7 +204,6 @@ $(document).on('mousedown', '.line > span', function () {
 // 记下选中位置
 $(document).on('mouseup', '.line > span', function () {
   offsetInSpan = getCursorPosition(this);
-  console.log(offsetInSpan);
 });
 
 $(document).on('keydown', '.line > span', function (e) {
@@ -215,7 +212,13 @@ $(document).on('keydown', '.line > span', function (e) {
 });
 
 
-/** 对话框相关代码 */
+/** 3.文本比对弹框相关代码*/
+function setDialogLabel(labels) {
+  $('#dlg-items').html(labels.map(function (label, i) {
+    var key = i ? 'cmp' + i : 'base';
+    return `<dl class="item"><dt>${label}</dt><dd class="text option" id="dlg-${key}"></dd></dl>`;
+  }).join(''));
+}
 
 function resetDialogClass() {
   var base = $("#dlg-base").text(), cmp1 = $("#dlg-cmp1").text();
@@ -240,25 +243,24 @@ $(document).on('click', '.diff, .same', function () {
   highlightBox($(this));
 });
 
-// 双击异文
-var $dlg = $("#pfread-dialog");
+// 双击同文、异文
+var $dlg = $('#pfread-dialog');
 $(document).on('dblclick', '.diff, .same', function (e) {
   e.stopPropagation();
-  setCurrent($(this));
-  // 设置当前异文
+  // 1.设置当前异文
   if ($(this).hasClass('diff')) {
     $('.current-diff').removeClass('current-diff');
     $(this).addClass('current-diff');
   }
-  // 设置弹框文本
+  // 2.设置弹框文本
   $("#dlg-base").text($(this).attr("base"));
   $("#dlg-cmp1").text($(this).attr("cmp1"));
   $("#dlg-cmp2").text($(this).attr("cmp2"));
   $("#dlg-select").text($(this).text());
   resetDialogClass();
-  // 设置弹框位置
+  // 3.设置弹框位置
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
-  // 当弹框超出文字框时，向上弹出
+  // - 当弹框超出文字框时，向上弹出
   var o_t = $dlg.offset().top;
   var r_h = $("#cmp-html").height();
   var d_h = $('.dialog-abs').height();
@@ -267,7 +269,7 @@ $(document).on('dblclick', '.diff, .same', function (e) {
     $dlg.offset({top: $(this).offset().top - 5 - $dlg.height()});
     $('.dialog-abs').removeClass('dialog-common').addClass('dialog-common-t');
   }
-  // 当弹框右边出界时，向左移动
+  // - 当弹框右边出界时，向左移动
   var offset = 0;
   var o_l = $dlg.offset().left;
   var d_r = $dlg[0].getBoundingClientRect().right;
@@ -276,16 +278,10 @@ $(document).on('dblclick', '.diff, .same', function (e) {
     offset = r_w - d_r - 20;
     $dlg.offset({left: o_l + offset});
   }
-  // 设置弹框小箭头
-  if (o_t + d_h > r_h) {
-    var $mark = $dlg.find('.dlg-after');
-    var ml = $mark.attr('last-left') || $mark.css('marginLeft');
-    $mark.attr('last-left', ml).css('marginLeft', parseInt(ml) - offset);
-  } else {
-    var $mark = $dlg.find('.dlg-before');
-    var ml = $mark.attr('last-left') || $mark.css('marginLeft');
-    $mark.attr('last-left', ml).css('marginLeft', parseInt(ml) - offset);
-  }
+  // - 设置弹框小箭头
+  var $mark = o_t + d_h > r_h ? $dlg.find('.dlg-after') : $dlg.find('.dlg-before');
+  var ml = $mark.attr('last-left') || $mark.css('marginLeft');
+  $mark.attr('last-left', ml).css('marginLeft', parseInt(ml) - offset);
 });
 
 // 单击文本区的空白区域
@@ -302,19 +298,21 @@ $('#cmp-html').on('scroll', function () {
 
 // 点击异文选择框的各个选项
 $(document).on('click', '#pfread-dialog .option', function () {
-  $('#dlg-select').text($(this).text());
-  resetDialogClass();
+  if ($('.current-span').hasClass('diff')) {
+    $('#dlg-select').text($(this).text());
+    resetDialogClass();
+  }
 });
 
 // 对话框选择文本input发生修改
 $(document).on('DOMSubtreeModified', '#dlg-select', function () {
-  $('.current-diff').text($(this).text()).addClass('selected');
-  $('.current-diff').toggleClass('empty-place', $(this).text() === '');
+  if ($('.current-span').hasClass('diff')) {
+    $('.current-diff').text($(this).text()).addClass('selected');
+    $('.current-diff').toggleClass('empty-place', $(this).text() === '');
+  }
 });
 
-
-/** 文本比对相关代码 */
-
+/** 4.文本比对相关代码 */
 function getText(txtId) {
   return $.map($(txtId + ' .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
@@ -328,19 +326,58 @@ function getText(txtId) {
 function showTxt(txtId) {
   $('.sutra-text').addClass('hide');
   $('#' + txtId).removeClass('hide');
+  if (txtId === 'work-html') {
+    $('#work-panel').removeClass('hide');
+    $('#work-text').addClass('hide');
+    $('#work-html').removeClass('hide');
+    $('#btn-work-text').removeClass('hide');
+    $('#btn-work-html').addClass('hide');
+  }
+  if (txtId === 'work-text') {
+    $('#work-text textarea').val(getText('#work-html'));
+    $('#work-panel').removeClass('hide');
+    $('#work-text').removeClass('hide');
+    $('#work-html').addClass('hide');
+    $('#btn-work-text').addClass('hide');
+    $('#btn-work-html').removeClass('hide');
+    resetHeight($('#work-text textarea'));
+  }
 }
 
-function setDialogLabel(labels) {
-  $('#dlg-items').html(labels.map(function (label, i) {
-    var key = i ? 'cmp' + i : 'base';
-    return `<dl class="item"><dt>${label}</dt><dd class="text option" id="dlg-${key}"></dd></dl>`;
-  }).join(''));
-}
+$('textarea.editable').on('input', function () {
+  resetHeight($(this));
+});
+
+$(document).on('click', '#btn-work-text', function () {
+  showTxt('work-text');
+});
+
+$(document).on('click', '#btn-work-html', function () {
+  var $workText = $('#work-text textarea');
+  if ($workText.text().trim() === $workText.val().trim()) {
+    showTxt('work-html');
+    return;
+  }
+
+  // 用工作文本替代底本与比对文本比对
+  var texts = txtFields.map((txt) => getText('#text-' + txt));
+  texts[0] = $workText.val();
+  var hints = $.map($('#work-html .selected'), function (i) {
+    var lineNo = getLineNo($(i).parent());
+    var blockNo = getBlockNo($(i).parent().parent());
+    return {line_no: lineNo, block_no: blockNo, base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')}
+  });
+  postApi('/page/txt/diff', {data: {texts: texts, hints: hints}}, function (res) {
+    $('#work-html .blocks').html(res['cmp_data']);
+    showTxt('work-html');
+  });
+});
 
 // 查看文本
 $('.btn-show-txt').on('click', function () {
   $('.btn-show-txt').removeClass('active');
   $(this).addClass('active');
+  $('.m-footer .txt-info').text($(this).text());
   showTxt($(this).attr('data-id'));
 });
 
@@ -355,57 +392,19 @@ $('#btn-cmp-txt').on('click', function () {
   });
   if (!cmps.length)
     return showTips('提示', '请选择校本');
-  var texts = [base].concat(cmps).map((field) => getText('#text_' + field));
+  var texts = [base].concat(cmps).map((field) => getText('#text-' + field));
   postApi('/page/txt/diff', {data: {texts: texts}}, function (res) {
-    $('#cmp-html .blocks').html(res['cmp_data']);
-    showTxt('text_cmp_html');
+    $('.cmp-txt .dropdown-menu').hide();
+    $('#work-html .blocks').html(res['cmp_data']);
+    showTxt('work-html');
     setDialogLabel([base].concat(cmps).map((field) => txtDict[field][2]));
     if (typeof txtFields !== 'undefined')
       txtFields = [base].concat(cmps).map((field) => txtDict[field][1]);
   });
 });
 
-function toggleWorkText(mode) {
-  if (mode === 'raw') {
-    showTxt('text-work');
-    $('#btn-raw-txt').addClass('hide');
-    $('#btn-html-txt').removeClass('hide');
-  }
-  if (mode === 'html') {
-    showTxt('text_cmp_html');
-    $('#btn-raw-txt').removeClass('hide');
-    $('#btn-html-txt').addClass('hide');
-  }
-}
-
-// 进入工作文本
-$('#btn-raw-txt').on('click', function () {
-  toggleWorkText('raw');
-});
-
-// 回到工作面板
-$('#btn-html-txt:not(.diff)').on('click', function () {
-  // 用工作文本替代底本与比对文本比对
-  var texts = txtFields.map((txt) => getText('#text_' + txt));
-  texts[0] = $('#text-work textarea').val();
-  var hints = $.map($('#cmp-html .selected'), function (i) {
-    var lineNo = getLineNo($(i).parent());
-    var blockNo = getBlockNo($(i).parent().parent());
-    return {line_no: lineNo, block_no: blockNo, base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')}
-  });
-  postApi('/page/txt/diff', {data: {texts: texts, hints: hints}}, function (res) {
-    $('#cmp-html .blocks').html(res['cmp_data']);
-    toggleWorkText('html');
-  });
-});
-
-$('.m-right textarea').on('input', function () {
-  resetHeight($(this));
-});
-
 
 /** 存疑相关代码 */
-
 // 点击存疑，弹出对话框
 $('#save-doubt').on('click', function () {
   var txt = window.getSelection ? window.getSelection().toString() : '';
@@ -494,7 +493,6 @@ $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
 
 
 /** 图文匹配相关代码 */
-
 // 检查图文匹配
 function checkMismatch(report, fromApi) {
   var mismatch = [];
@@ -590,36 +588,15 @@ function updateWideChars(lineNos, ended) {
   }, ended);
 }
 
-$(document).ready(function () {
-  checkMismatch(false);
-});
-
 $('#check-match').on('click', function () {
   checkMismatch(true);
 });
 
 
-/** 其它代码 */
-
+/** 5.其它代码 */
 // 粘贴时去掉格式
 $(document).on('paste', 'span', function (e) {
   e.preventDefault();
   var text = e.originalEvent.clipboardData.getData('text/plain');
   document.execCommand('insertHTML', false, text);
 });
-
-// 自动保存修改
-$('#cmp-html').on('DOMSubtreeModified', markChanged);
-
-function markChanged() {
-}
-
-function autoSave(ended) {
-  if (workChanged) {
-    saveTask(false, null, function () {
-      ended && ended();
-    });
-  } else {
-    ended();
-  }
-}

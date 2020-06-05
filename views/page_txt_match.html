@@ -116,8 +116,8 @@
         </div>
       </div>
       <div class="right-toolbar">
-        <i id="btn-raw-txt" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本模式"></i>
-        <i id="btn-html-txt" class="icon-file-text diff hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
+        <i id="btn-work-text" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本模式"></i>
+        <i id="btn-work-html" class="icon-file-text diff hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -271,7 +271,7 @@
   $('#toggle-panel-txt').toggleClass('active', showText);
 
   // 回到工作面板
-  $('#btn-html-txt').on('click', function (e) {
+  $('#btn-work-html').on('click', function (e) {
     e.stopPropagation();
     var texts = ['{{char_txt}}', $('#text-work textarea').val()];
     postApi('/page/txt_match/diff', {data: {texts: texts}}, function (res) {
