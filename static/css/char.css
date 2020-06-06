@@ -187,3 +187,7 @@
 #resultModal .control-label {
   padding-top: 0 !important;
 }
+
+.input-lg {
+  font-size: 1.7em;
+}

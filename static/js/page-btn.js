@@ -139,7 +139,7 @@ $(document).on('click', '.m-footer .page-name', function () {
   var url = '/page/' + $(this).text() + '?txt=off';
   var charName = $('.m-footer .char-name').text();
   if (typeof charName !== 'undefined' && charName !== '未选中') {
-    var cid = charName.val().split('_').pop();
+    var cid = charName.split('_').pop();
     url += '&cid=' + cid;
   }
   window.open(url, '_blank');
