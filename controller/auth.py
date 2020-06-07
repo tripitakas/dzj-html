@@ -84,7 +84,6 @@ role_route_maps = {
             '/api/page/txt_match/diff': ['POST'],
             '/api/page/find_cmp/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
-            '/api/data/variant': ['POST'],
             '/char/@char_name': ['GET'],
             '/api/chars/(txt|txt_type|box)': ['POST'],
             '/api/char/(txt|box)/@char_name': ['POST'],
@@ -133,6 +132,7 @@ role_route_maps = {
             '/api/task/pick/cluster_proof': ['POST'],
             '/task/(do|update)/cluster_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cluster_proof/@task_id': ['POST'],
+            '/api/data/variant': ['POST'],
         }
     },
     '聚类审定员': {
@@ -143,6 +143,7 @@ role_route_maps = {
             '/api/task/pick/cluster_review': ['POST'],
             '/task/(do|update)/cluster_review/@task_id': ['GET'],
             '/api/task/(do|update)/cluster_review/@task_id': ['POST'],
+            '/api/data/variant': ['POST'],
         }
     },
     '生僻校对员': {
@@ -153,6 +154,7 @@ role_route_maps = {
             '/api/task/pick/rare_proof': ['POST'],
             '/task/(do|update)/rare_proof/@task_id': ['GET'],
             '/api/task/(do|update)/rare_proof/@task_id': ['POST'],
+            '/api/data/variant': ['POST'],
         }
     },
     '生僻审定员': {
@@ -163,6 +165,7 @@ role_route_maps = {
             '/api/task/pick/rare_review': ['POST'],
             '/task/(do|update)/rare_review/@task_id': ['GET'],
             '/api/task/(do|update)/rare_review/@task_id': ['POST'],
+            '/api/data/variant': ['POST'],
         }
     },
     '文字专家': {
