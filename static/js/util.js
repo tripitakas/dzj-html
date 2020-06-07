@@ -11,7 +11,7 @@ function showError(title, text, timer) {
   // 在页面提示
   if ($('.ajax-error').length) {
     $('.ajax-error').text(text.replace(/[。！]$/, '')).show(200);
-    return setTimeout(() => $('.ajax-error').hide(), timer);
+    return setTimeout(() => $('.ajax-error').hide(), timer || 2000);
   }
   // sweet alert
   var type = /失败|错误/.test(title) && !/没有发生改变/.test(text) ? 'error' : 'warning';
