@@ -85,3 +85,4 @@ upload_fail = 5100, '上传失败'
 
 invalid_txt = 6001, '文字格式有误'
 invalid_txt_type = 6002, '文字类型有误'
+variant_exist = 6003, '异体字已存在'

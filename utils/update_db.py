@@ -22,6 +22,7 @@ def index_db(db):
         'page': ['name', 'page_code', 'source'],
         'char': ['name', 'uid', 'source', 'ocr_txt', 'txt', 'diff', 'cc', 'sc', 'txt_level', 'has_img'],
         'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
+        'variant': ['txt', 'normal_txt'],
     }
     for collection, fields in fields2index.items():
         for field in fields:

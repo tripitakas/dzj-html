@@ -262,8 +262,9 @@
 
   // 新增异体字
   $('#add-variant').on('click', function () {
-    $('#variantModal .normal-txt').val($('.txt-kind.current').attr('data-value'));
-    $('#variantModal .txt').val($('#currentName').val());
+    var normalTxt = $('.txt-kind.current').attr('data-value'), currentName = $('.char-name').text();
+    $('#variantModal .normal-txt').val(normalTxt);
+    $('#variantModal .txt').val(currentName);
     $('#variantModal').modal();
   });
   $('#variantModal .modal-confirm').on('click', function () {

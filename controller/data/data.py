@@ -7,6 +7,7 @@ from functools import cmp_to_key
 from controller.model import Model
 from controller import helper as h
 from controller import validate as v
+from controller import errors
 
 
 class Tripitaka(Model):
@@ -174,6 +175,9 @@ class Variant(Model):
         if doc.get('_id'):  # 更新
             doc['updated_time'] = datetime.now()
         else:  # 新增
+            r = self.db.variant.find_one({'$or': [{'txt': doc['txt']}, {'img_name': doc['txt']}]})
+            if r:
+                return self.send_error_response(errors.variant_exist)
             doc['create_time'] = datetime.now()
             doc['create_by'] = self.username
             doc['create_user_id'] = self.user_id
