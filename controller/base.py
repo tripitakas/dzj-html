@@ -253,7 +253,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             logging.error(error.args[1])
         if 'InvalidId' == error.__class__.__name__:
             code, reason = 1, e.no_object[1]
-        if code not in [2003, 1]:
+        if code not in [2003]:
             traceback.print_exc()
 
         default_error = e.mongo_error if isinstance(error, self.MongoError) else e.db_error
