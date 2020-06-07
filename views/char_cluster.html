@@ -347,10 +347,10 @@
   // 提交当前页
   $('#page-submit').on("click", function () {
     $('#progress').removeClass('hide');
-    var charIds = $.map($('.char-item'), function (item) {
+    var charNames = $.map($('.char-item'), function (item) {
       return $(item).attr('data-id');
     });
-    postApi(location.pathname, {data: {char_ids: charIds}}, function () {
+    postApi(location.pathname, {data: {char_names: charNames}}, function () {
       $('#progress').addClass('hide');
       $('.char-item .submitted').removeClass('hide');
       showSuccess('成功', '页面已提交。');

@@ -267,9 +267,9 @@ class CharTaskClusterApi(CharHandler):
         try:
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'tasks.' + task_type: {'$ne': self.task['_id']}, 'txt_level': {'$lte': user_level}}
-            char_ids = self.data.get('char_ids')
-            if char_ids:  # 提交当前页
-                cond.update({'_id': {'$in': [ObjectId(_id) for _id in char_ids]}})
+            char_names = self.data.get('char_names')
+            if char_names:  # 提交当前页
+                cond.update({'name': {'$in': char_names}})
                 self.db.char.update_many(cond, {'$addToSet': {'tasks.' + task_type: self.task['_id']}})
                 return self.send_data_response()
             # 提交任务
