@@ -84,10 +84,13 @@ class CharBoxApi(PageHandler):
             r2 = self.db.char.update_one({'name': char_name}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
 
             self.add_log('update_box', None, char_name, update)
+            ret = dict(box_logs=logs)
             if r1.modified_count and r2.modified_count:  # 立即生成字图
-                extract_img(db=self.db, username=self.username, regen=True,
-                            chars=list(self.db.char.find({'name': char_name})))
-            self.send_data_response(dict(box_logs=logs))
+                t = extract_img(db=self.db, username=self.username, regen=True,
+                                chars=list(self.db.char.find({'name': char_name})))
+                if t:
+                    ret['img_time'] = t
+            self.send_data_response(ret)
 
         except self.DbError as error:
             return self.send_db_error(error)
