@@ -333,7 +333,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if my_cloud:
             # ver = img_type == 'char' and self.db.char.find_one({'name': img_name})
             # ver = ver and ver.get('img_time') and '?v=' + ver.get('img_time') or ''
-            ver = img_type == 'char' and get_date_time('?v=%m%d%H%M%S')
+            ver = img_type == 'char' and get_date_time('?v=%m%d%H%M%S') or ''
 
             auth = oss2.Auth(self.get_config('web_img.key_id'), self.get_config('web_img.key_secret'))
             bucket_name = re.sub(r'http[s]?://', '', my_cloud).split('.')[0]
