@@ -121,9 +121,9 @@ def update_task_char_count(db):
                             {'$set': {'char_count': len(page['chars'])}})
 
 
-def update_char_column_cid(db):
+def update_char_column_cid(db, name=None):
     """ 更新char表的column字段"""
-    cond = {}
+    cond = {'name': {'$regex': name}} if name else {}
     pages = list(db.page.find(cond, {'name': 1, 'chars': 1, 'columns': 1}))
     print('[%s]%s pages to process' % (hp.get_date_time(), len(pages)))
     for page in pages:
