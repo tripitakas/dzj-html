@@ -835,7 +835,6 @@
           if (ret.char_id.indexOf('new') === -1)
             delete ret.char_id;
           delete ret.char_no;
-          delete ret.cid;
         }
         if (c.class === 'block') {
           delete ret.column_no;

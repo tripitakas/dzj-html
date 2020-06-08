@@ -179,7 +179,10 @@ class PageHandler(TaskHandler, Page, Box):
 
     def get_box_update(self, post_data, page, task_type=None):
         """ 获取切分校对的提交"""
-        # 更新cid
+        # 预处理
+        self.pop_fields(page['chars'], 'readonly')
+        self.pop_fields(page['blocks'], 'readonly')
+        self.pop_fields(page['columns'], 'readonly')
         self.update_page_cid(post_data)
         # 合并用户提交和已有数据
         self.merge_post_boxes(post_data['blocks'], 'blocks', page, task_type)
