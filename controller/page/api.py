@@ -16,6 +16,7 @@ from controller import helper as h
 from controller import validate as v
 from controller.base import BaseHandler
 from utils.gen_chars import gen_chars
+from utils.extract_img import extract_img
 
 
 class PageBoxApi(PageHandler):
@@ -83,29 +84,10 @@ class CharBoxApi(PageHandler):
             r2 = self.db.char.update_one({'name': char_name}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
 
             self.add_log('update_box', None, char_name, update)
-            if r1.modified_count and r2.modified_count and self.prop(self.application.config, 'ocr.url'):
-                def handle_response(res):
-                    c = None
-                    if isinstance(res, dict) and 'char' in res:  # TODO: 怎么结果变为“如是网盘”页面了？
-                        c = res['char']
-                        self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
-                            'chars.$.alternatives': c['alternatives'],
-                            'chars.$.ocr_txt': c['ocr_txt'],
-                            'chars.$.cc': c['cc']
-                        }})
-                    self.send_data_response(dict(box_logs=logs, char=c))
-
-                def handle_error(err):
-                    print(err)
-                    self.send_data_response(dict(box_logs=logs, error=err))
-
-                data = {'page_name': page_name, 'cid': cid, 'box': self.data['pos'],
-                        'work_dir': self.prop(self.application.config, 'ocr.work_dir')}
-                self.call_back_api(self.prop(self.application.config, 'ocr.url') + '/api/ocr/char',
-                                   body=json.dumps({'data': data}), method='POST',
-                                   handle_response=handle_response, handle_error=handle_error)
-            else:
-                self.send_data_response(dict(box_logs=logs))
+            if r1.modified_count and r2.modified_count:  # 立即生成字图
+                extract_img(db=self.db, username=self.username, regen=True,
+                            chars=list(self.db.char.find({'name': char_name})))
+            self.send_data_response(dict(box_logs=logs))
 
         except self.DbError as error:
             return self.send_db_error(error)
