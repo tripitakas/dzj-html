@@ -385,10 +385,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             if not re.match(r'http(s)?://', url):
                 url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
-                yield client.fetch(url, headers=self.request.headers,
-                                   callback=callback, validate_cert=False, **kwargs)
-            else:
-                yield client.fetch(url, callback=callback, validate_cert=False, **kwargs)
+            yield client.fetch(url, headers=self.request.headers,
+                               callback=callback, validate_cert=False, **kwargs)
         except (OSError, HTTPError) as err_con:
             if handle_error:
                 handle_error('服务无响应: ' + str(err_con))
