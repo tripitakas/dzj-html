@@ -261,11 +261,12 @@ def extract_img(db=None, db_name='tripitaka', uri=None, condition=None, chars=No
     if chars:
         print('[%s]%s chars to generate.' % (hp.get_date_time(), len(chars)))
         log = cut.cut_img(chars)
+        update = None
         if log.get('cut_char_success'):
-            update = {'has_img': True, 'img_need_updated': False}
+            update = {'has_img': True, 'img_need_updated': False, 'img_time': hp.get_date_time('%m%d%H%M%S')}
             db.char.update_many({'name': {'$in': log['cut_char_success']}}, {'$set': update})
         Bh.add_op_log(db, 'extract_img', 'finished', log, username)
-        return
+        return update and update['img_time']
 
     if not condition:
         condition = {'img_need_updated': True}
@@ -280,7 +281,7 @@ def extract_img(db=None, db_name='tripitaka', uri=None, condition=None, chars=No
         chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         log = cut.cut_img(chars)
         if log.get('cut_char_success'):
-            update = {'has_img': True, 'img_need_updated': False}
+            update = {'has_img': True, 'img_need_updated': False, 'img_time': hp.get_date_time('%m%d%H%M%S')}
             db.char.update_many({'name': {'$in': log['cut_char_success']}}, {'$set': update})
         db.oplog.update_one({'_id': log_id}, {'$addToSet': {'content': log}})
     db.oplog.update_one({'_id': log_id}, {'$set': {'status': 'finished'}})
