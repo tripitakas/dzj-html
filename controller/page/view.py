@@ -215,7 +215,7 @@ class PageInfoHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
 
-            page_tasks = self.prop(page, 'tasks') or []
+            page_tasks = self.prop(page, 'tasks') or {}
             fields1 = ['txt', 'ocr', 'ocr_col', 'cmp_txt']
             page_txts = {k: self.get_txt(page, k) for k in fields1 if self.get_txt(page, k)}
             fields2 = ['blocks', 'columns', 'chars', 'chars_col']

@@ -172,6 +172,7 @@
 <script>
   // 页面图
   $.cut.create({
+    readonly: true,
     orderMode: true,
     holder: 'holder',
     image: "{{img_url}}",
@@ -240,6 +241,7 @@
     if (r.error) {
       bsShow('失败！', r.error, 'warning');
     }
+    r.step = 'order';
     return r;
   }
 
@@ -248,8 +250,9 @@
     var data = getPostData();
     if (data && !data.error) {
       bsLoading('保存中‧‧‧');
-      postApi('/page/order/{{page["name"]}}', {data: data}, function () {
+      postApi(location.pathname, {data: data}, function () {
         bsShow('成功!', '已保存。');
+        location.reload();
       });
     }
   });

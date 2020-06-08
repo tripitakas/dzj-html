@@ -239,16 +239,17 @@
   function getPostData() {
     return {
       blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
-      chars: $.cut.exportBoxes('char'), auto_adjust: true
+      chars: $.cut.exportBoxes('char'), auto_adjust: true, step: 'box',
     };
   }
 
   // 保存数据
   $('#save').on('click', function () {
     bsLoading('保存中‧‧‧');
-    postApi('/page/box/{{page["name"]}}', {data: getPostData()}, function (res) {
+    postApi(location.pathname, {data: getPostData()}, function (res) {
       if (res.valid) {
         bsShow('成功!', '已保存。');
+        location.reload();
       } else {
         // 高亮未被覆盖的框
         $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);

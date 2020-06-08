@@ -47,10 +47,10 @@
           </div>
           <div class="block">
             <div class="block-head">相关任务</div>
-            {% for t in page_tasks %}
+            {% for t, status in page_tasks.items() %}
             <div class="info">
-              <label class="label">{{Task.get_task_name(t['task_type'])}}</label>
-              <div class="value">{{t}}</div>
+              <label class="label">{{Task.get_task_name(t)}}</label>
+              <div class="value">{{Task.get_status_name(status)}}</div>
             </div>
             {% end %}
           </div>

@@ -47,6 +47,10 @@ class Model(object):
         {'action': 'btn-remove', 'label': '删除'},
     ]
     update_fields = [dict(id='', name='', input_type='', options=[])]  # update模态框包含哪些字段
+    com_fields = [
+        {'id': 'create_time', 'name': '创建时间'},
+        {'id': 'updated_time', 'name': '修改时间'},
+    ]
 
     @staticmethod
     def prop(obj, key, default=None):
@@ -68,6 +72,9 @@ class Model(object):
     @classmethod
     def get_field_name(cls, field):
         for f in cls.fields:
+            if f['id'] == field:
+                return f['name']
+        for f in cls.com_fields:
             if f['id'] == field:
                 return f['name']
         return field

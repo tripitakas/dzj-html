@@ -32,13 +32,13 @@ class PageBoxApi(PageHandler):
             return self.send_db_error(error)
 
     @staticmethod
-    def save_box(self, page_name):
+    def save_box(self, page_name, task_type=None):
         page = self.db.page.find_one({'name': page_name})
         if not page:
             self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
-        page_updated, char_updated = self.get_box_update(self.data, page, self.data.get('task_type'))
+        page_updated, char_updated = self.get_box_update(self.data, page, task_type)
         self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})  # 更新page表
         gen_chars(db=self.db, page_names=page_name, username=self.username)  # 更新char表
         valid, message, box_type, out_boxes = self.check_box_cover(page)
@@ -135,7 +135,7 @@ class PageTaskCutApi(PageHandler):
                 if self.data.get('submit') and 'box' not in submitted:
                     submitted.append('box')
                     self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'steps.submitted': submitted}})
-                r = PageBoxApi.save_box(self, self.task['doc_id'])
+                r = PageBoxApi.save_box(self, self.task['doc_id'], task_type)
                 self.send_data_response(r)
             elif self.data['step'] == 'order':
                 if self.data.get('submit') and 'order' not in submitted:
@@ -534,5 +534,5 @@ class PageTaskPublishApi(PageHandler):
                     tasks.append(get_task(page['name'], len(page['chars'])))
                 self.db.task.insert_many(tasks, ordered=False)
                 num = '#' + str(self.data['num']) if self.data.get('num') else ''
-                update = {'tasks.%s#%s' % (task_type, num): self.STATUS_PUBLISHED}
+                update = {'tasks.%s%s' % (task_type, num): self.STATUS_PUBLISHED}
                 self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
