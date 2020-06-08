@@ -38,6 +38,11 @@ task:
   task_timeout_days: 7
   temp_lock_timeout_hours: 1
 
+# OCR加工服务
+ocr:
+  url:
+  work_dir:
+
 # web img
 web_img:
   with_hash: true

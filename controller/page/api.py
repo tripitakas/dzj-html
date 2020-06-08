@@ -4,7 +4,6 @@
 import re
 import os
 import json
-from os import path
 from bson.objectid import ObjectId
 from tornado.escape import native_str
 from elasticsearch.exceptions import ConnectionTimeout
@@ -77,15 +76,32 @@ class CharBoxApi(PageHandler):
 
             box_level = self.get_user_box_level(self, self.data.get('task_type'))
             update = {**self.data['pos'], 'box_logs': logs, 'box_level': box_level}
-            self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
+            r1 = self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
                 'chars.$.x': update['x'], 'chars.$.y': update['y'], 'chars.$.w': update['w'], 'chars.$.h': update['h'],
                 'chars.$.box_level': update['box_level'], 'chars.$.box_logs': update['box_logs']
             }})
             self.db.char.update_one({'name': char_name}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
-            self.send_data_response(dict(box_logs=logs))
-            self.add_log('update_box', None, char_name, update)
 
-            self.send_data_response()
+            self.add_log('update_box', None, char_name, update)
+            if r1.modified_count and self.prop(self.application.config, 'ocr.url'):
+                def handle_response(res):
+                    self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
+                        'chars.$.alternatives': res['char']['alternatives'],
+                        'chars.$.ocr_txt': res['char']['ocr_txt'],
+                        'chars.$.cc': res['char']['cc']
+                    }})
+                    self.send_data_response(dict(box_logs=logs, char=res['char']))
+
+                def handle_error(err):
+                    print(err)
+                    self.send_data_response(dict(box_logs=logs, error=err))
+
+                data = {'page_name': page_name, 'cid': cid, 'box': self.data['pos'],
+                        'work_dir': self.prop(self.application.config, 'ocr.work_dir')}
+                self.call_back_api(self.prop(self.application.config, 'ocr.url') + '/api/ocr/char',
+                                   body=json.dumps({'data': data}), method='POST',
+                                   handle_response=handle_response, handle_error=handle_error)
+            self.send_data_response(dict(box_logs=logs))
 
         except self.DbError as error:
             return self.send_db_error(error)
