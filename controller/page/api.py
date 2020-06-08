@@ -103,7 +103,6 @@ class CharBoxApi(PageHandler):
                 self.call_back_api(self.prop(self.application.config, 'ocr.url') + '/api/ocr/char',
                                    body=json.dumps({'data': data}), method='POST',
                                    handle_response=handle_response, handle_error=handle_error)
-            self.send_data_response(dict(box_logs=logs))
 
         except self.DbError as error:
             return self.send_db_error(error)
