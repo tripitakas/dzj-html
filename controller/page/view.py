@@ -155,6 +155,7 @@ class PageBrowseHandler(PageHandler):
                 message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')
                 return self.send_error_response(e.no_object, message=message)
 
+            self.pack_boxes(page)
             txts = self.get_txts(page)
             txt_fields = [t[1] for t in txts]
             txt_dict = {t[1]: t for t in txts}
