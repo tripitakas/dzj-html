@@ -241,12 +241,11 @@ class TaskHandler(BaseHandler, Task):
         """ 更新任务相关的页面数据"""
         task = task or self.task or {}
         if task.get('collection') == 'page' and task.get('doc_id'):
-            num = '_' + str(task['num']) if task.get('num') else ''
-            task_type = task['task_type'] + num
+            field = 'tasks.%s.%s' % (task['task_type'], task['num'])
             if status:
-                self.db.page.update_one({'name': task['doc_id']}, {'$set': {'tasks.' + task_type: status}})
+                self.db.page.update_one({'name': task['doc_id']}, {'$set': {field: status}})
             else:
-                self.db.page.update_one({'name': task['doc_id']}, {'$unset': {'tasks.' + task_type: ''}})
+                self.db.page.update_one({'name': task['doc_id']}, {'$unset': {field: ''}})
 
     def update_post_tasks(self, task):
         """ 更新后置任务。针对当前任务的后置任务，如果它们的状态为「已悬挂」，则检查它们的所有前置任务，如果都已完成，则修改其状态为「已发布」"""

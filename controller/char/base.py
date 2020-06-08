@@ -39,13 +39,13 @@ class CharHandler(TaskHandler, Char):
 
     @staticmethod
     def get_required_type_and_point(char):
-        """ 获取修改char的txt所需的积分"""
-        ratio = {'cluster_proof': 1000, 'cluster_review': 500, 'rare_proof': 1000, 'rare_review': 500}
+        """ 计算修改char的txt所需的积分"""
+        ratio = {'cluster_proof': 2000, 'cluster_review': 1000, 'rare_proof': 2000, 'rare_review': 1000}
         for task_type in ['rare_review', 'rare_proof', 'cluster_review', 'cluster_proof']:
             tasks = hp.prop(char, 'tasks.' + task_type, [])
             if tasks:
                 return task_type, len(tasks) * ratio.get(task_type)
-        return 'cluster_proof', 1000
+        return 'cluster_proof', 2000
 
     @staticmethod
     def get_user_point(self, task_type):

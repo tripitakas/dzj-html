@@ -37,15 +37,16 @@ class PageHandler(TaskHandler, Page, Box):
             roles = auth.get_all_roles(user['roles'])
             return max([hp.prop(cls.box_level, 'role.' + role, 0) for role in roles])
 
-    @staticmethod
-    def get_required_type_and_point(char):
+    @classmethod
+    def get_required_type_and_point(cls, char):
         """ 获取修改char的box所需的积分"""
-        ratio = {'cut_proof': 1000, 'cut_review': 500}
+        ratio = {'cut_proof': 5000, 'cut_review': 2000}
         for task_type in ['cut_review', 'cut_proof']:
-            tasks = hp.prop(char, 'tasks.' + task_type, [])
+            tasks = hp.prop(char, 'tasks.' + task_type, {})
+            tasks = [t for t, status in tasks.items() if status == cls.STATUS_FINISHED]
             if tasks:
                 return task_type, len(tasks) * ratio.get(task_type)
-        return 'cut_proof', 1000
+        return 'cut_proof', 5000
 
     @staticmethod
     def get_user_point(self, task_type):

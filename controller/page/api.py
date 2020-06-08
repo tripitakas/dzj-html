@@ -526,13 +526,10 @@ class PageTaskPublishApi(PageHandler):
                             tasks.append(get_task(page['name'], len(page['chars']), dict(field=field)))
                 if tasks:
                     self.db.task.insert_many(tasks, ordered=False)
-                update = {'tasks.%s#%s' % (task_type, f): self.STATUS_PUBLISHED for f in fields}
+                update = {'tasks.%s.%s' % (task_type, f): self.STATUS_PUBLISHED for f in fields}
                 self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
             else:
-                tasks = []
-                for page in pages:
-                    tasks.append(get_task(page['name'], len(page['chars'])))
+                tasks = [get_task(page['name'], len(page['chars'])) for page in pages]
                 self.db.task.insert_many(tasks, ordered=False)
-                num = '#' + str(self.data['num']) if self.data.get('num') else ''
-                update = {'tasks.%s%s' % (task_type, num): self.STATUS_PUBLISHED}
+                update = {'tasks.%s.%s' % (task_type, self.data.get('num') or 1): self.STATUS_PUBLISHED}
                 self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
