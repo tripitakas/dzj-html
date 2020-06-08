@@ -468,7 +468,7 @@ class PageTaskPublishApi(PageHandler):
         page_names, task_type, num = self.data['page_names'], self.data['task_type'], self.data.get('num') or 1
         if page_names:
             status = [self.STATUS_PUBLISHED, self.STATUS_PENDING, self.STATUS_PICKED]
-            cond = dict(task_type=task_type, num=num, status={'$in': status}, doc_id={'$in': list(page_names)})
+            cond = dict(task_type=task_type, num=int(num), status={'$in': status}, doc_id={'$in': list(page_names)})
             log['published_before'] = set(t['doc_id'] for t in self.db.task.find(cond, {'doc_id': 1}))
             page_names = set(page_names) - log['published_before']
 

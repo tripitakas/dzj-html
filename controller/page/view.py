@@ -86,10 +86,11 @@ class PageListHandler(PageHandler):
                 return ''
 
         if key == 'tasks' and value:
-            return '<br/>'.join([
-                '%s/%s' % (self.get_task_name(t), self.get_status_name(status))
-                for t, status in value.items()
-            ])
+            ret = ''
+            for tsk_type, tasks in value.items():
+                for num, status in tasks.items():
+                    ret += '%s#%s/%s<br/>' % (self.get_task_name(tsk_type), num, self.get_status_name(status))
+            return ret.rstrip('<br/>')
         if key == 'op_text':
             t = {True: '√', False: '×'}
             return '<br/>'.join([format_txt(k, k != 'txt') for k in ['ocr_col', 'cmp_txt', 'txt']])
