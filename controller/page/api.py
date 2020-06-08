@@ -85,14 +85,15 @@ class CharBoxApi(PageHandler):
             self.add_log('update_box', None, char_name, update)
             if r1.modified_count and self.prop(self.application.config, 'ocr.url'):
                 def handle_response(res):
-                    if not isinstance(res, dict) or 'char' not in res:
-                        return handle_error(res)
-                    self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
-                        'chars.$.alternatives': res['char']['alternatives'],
-                        'chars.$.ocr_txt': res['char']['ocr_txt'],
-                        'chars.$.cc': res['char']['cc']
-                    }})
-                    self.send_data_response(dict(box_logs=logs, char=res['char']))
+                    c = None
+                    if isinstance(res, dict) and 'char' in res:  # TODO: 怎么结果变为“如是网盘”页面了？
+                        c = res['char']
+                        self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
+                            'chars.$.alternatives': c['alternatives'],
+                            'chars.$.ocr_txt': c['ocr_txt'],
+                            'chars.$.cc': c['cc']
+                        }})
+                    self.send_data_response(dict(box_logs=logs, char=c))
 
                 def handle_error(err):
                     print(err)
