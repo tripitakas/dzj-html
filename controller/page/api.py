@@ -80,10 +80,10 @@ class CharBoxApi(PageHandler):
                 'chars.$.x': update['x'], 'chars.$.y': update['y'], 'chars.$.w': update['w'], 'chars.$.h': update['h'],
                 'chars.$.box_level': update['box_level'], 'chars.$.box_logs': update['box_logs']
             }})
-            self.db.char.update_one({'name': char_name}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
+            r2 = self.db.char.update_one({'name': char_name}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
 
             self.add_log('update_box', None, char_name, update)
-            if r1.modified_count and self.prop(self.application.config, 'ocr.url'):
+            if r1.modified_count and r2.modified_count and self.prop(self.application.config, 'ocr.url'):
                 def handle_response(res):
                     c = None
                     if isinstance(res, dict) and 'char' in res:  # TODO: 怎么结果变为“如是网盘”页面了？
@@ -104,6 +104,8 @@ class CharBoxApi(PageHandler):
                 self.call_back_api(self.prop(self.application.config, 'ocr.url') + '/api/ocr/char',
                                    body=json.dumps({'data': data}), method='POST',
                                    handle_response=handle_response, handle_error=handle_error)
+            else:
+                self.send_data_response(dict(box_logs=logs))
 
         except self.DbError as error:
             return self.send_db_error(error)
