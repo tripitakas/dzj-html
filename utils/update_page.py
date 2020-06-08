@@ -16,20 +16,20 @@ from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
-def reorder_boxes(db):
+def reorder_boxes(db, name=None, only_sub_columns=False):
     """ 切分框(包括栏框、列框、字框)重新排序"""
     size = 10
-    page_count = math.ceil(db.page.count_documents({}) / size)
+    cond = {'name': {'$regex': name}} if name else {}
+    page_count = math.ceil(db.page.count_documents(cond) / size)
     print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
     for i in range(page_count):
         fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
-        pages = list(db.page.find({}, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             Ph.reorder_boxes(page=page)
-            db.page.update_one({'_id': page['_id']}, {'$set': {
-                'blocks': page['blocks'], 'columns': page['columns'], 'chars': page['chars']
-            }})
+            fields = ['columns'] if only_sub_columns else ['blocks', 'columns', 'chars']
+            db.page.update_one({'_id': page['_id']}, {'$set': {k: page.get(k) for k in fields}})
 
 
 def check_box_cover(db):
@@ -162,7 +162,7 @@ def update_char_ocr_txt(db):
                 db.char.update_one({'_id': ch['_id']}, {'$set': {'ocr_txt': ch['alternatives'][0]}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='update_char_column_cid', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='reorder_boxes', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

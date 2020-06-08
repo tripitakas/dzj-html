@@ -387,6 +387,35 @@ class BoxOrder(object):
                         column_chars[small_start: i + 1] = ordered
                         small_start = None
 
+        def set_sub_columns():
+            sub_columns, sub_col, sub_no, new_sub = [], [], 1, False
+            for i, c in enumerate(column_chars):
+                if not sub_col:
+                    sub_col.append(c)
+                    continue
+                lst = sub_col[-1]
+                if c.get('is_small'):
+                    if lst.get('is_small'):
+                        if c['y'] < lst['y'] + lst['h'] / 2:
+                            new_sub = True
+                    else:
+                        new_sub = True
+                else:
+                    if lst.get('is_small'):
+                        new_sub = True
+
+                if new_sub:
+                    pos = cls.get_outer_range(sub_col)
+                    sub_columns.append({**pos, 'sub_no': sub_no, 'column_id': '%s#%s' % (column_id, sub_no)})
+                    sub_col, sub_no, new_sub = [c], sub_no + 1, False
+                else:
+                    sub_col.append(c)
+            if sub_col:
+                pos = cls.get_outer_range(sub_col)
+                sub_columns.append({**pos, 'sub_no': sub_no, 'column_id': '%s#%s' % (column_id, sub_no)})
+            if sub_columns and column_id != 'b0c0':
+                column_dict[column_id]['sub_columns'] = sub_columns
+
         assert chars
         assert small_direction in [None, '', 'down', 'left']
         small_direction = 'down' if not small_direction else small_direction
@@ -400,6 +429,7 @@ class BoxOrder(object):
             column_chars.sort(key=cmp_to_key(cls.cmp_up2down))
             if small_direction == 'down':
                 scan_and_order()
+                set_sub_columns()
             for i, c in enumerate(column_chars):
                 c['char_no'] = i + 1
                 c['block_no'] = int(column_id[1])
