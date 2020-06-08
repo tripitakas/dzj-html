@@ -85,6 +85,8 @@ class CharBoxApi(PageHandler):
             self.add_log('update_box', None, char_name, update)
             if r1.modified_count and self.prop(self.application.config, 'ocr.url'):
                 def handle_response(res):
+                    if not isinstance(res, dict) or 'char' not in res:
+                        return handle_error(res)
                     self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
                         'chars.$.alternatives': res['char']['alternatives'],
                         'chars.$.ocr_txt': res['char']['ocr_txt'],
