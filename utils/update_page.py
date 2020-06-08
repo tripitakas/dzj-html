@@ -121,6 +121,21 @@ def update_task_char_count(db):
                             {'$set': {'char_count': len(page['chars'])}})
 
 
+def update_char_column_cid(db):
+    """ 更新char表的column字段"""
+    cond = {}
+    pages = list(db.page.find(cond, {'name': 1, 'chars': 1, 'columns': 1}))
+    print('[%s]%s pages to process' % (hp.get_date_time(), len(pages)))
+    for page in pages:
+        print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+        for co in page['columns']:
+            chars = [c for c in page['chars'] if c['block_no'] == co['block_no'] and c['column_no'] == co['column_no']]
+            char_names = ['%s_%s' % (page['name'], c['cid']) for c in chars]
+            db.char.update_many({'name': {'$in': char_names}}, {'$set': {
+                'column': {k: co[k] for k in ['cid', 'x', 'y', 'w', 'h']}
+            }})
+
+
 def update_page_ocr_txt(db):
     """ page表的ocr_txt"""
     pages = list(db.page.find({}, {'chars': 1, 'name': 1}))
@@ -147,7 +162,7 @@ def update_char_ocr_txt(db):
                 db.char.update_one({'_id': ch['_id']}, {'$set': {'ocr_txt': ch['alternatives'][0]}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='update_char_ocr_txt', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='update_char_column_cid', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
