@@ -38,11 +38,13 @@ class PageHandler(TaskHandler, Page, Box):
             return max([hp.prop(cls.box_level, 'role.' + role, 0) for role in roles])
 
     @classmethod
-    def get_required_type_and_point(cls, char):
-        """ 获取修改char的box所需的积分"""
+    def get_required_type_and_point(cls, page):
+        """ 获取修改char的box所需的积分。
+            积分的计算是根据任务而来的，而切分任务记录在page上而不是char上
+        """
         ratio = {'cut_proof': 5000, 'cut_review': 2000}
         for task_type in ['cut_review', 'cut_proof']:
-            tasks = hp.prop(char, 'tasks.' + task_type, {})
+            tasks = hp.prop(page, 'tasks.' + task_type, {})
             tasks = [t for t, status in tasks.items() if status == cls.STATUS_FINISHED]
             if tasks:
                 return task_type, len(tasks) * ratio.get(task_type)
@@ -56,7 +58,7 @@ class PageHandler(TaskHandler, Page, Box):
         return sum([t['char_count'] for t in tasks])
 
     @classmethod
-    def check_box_level_and_point(cls, self, char, task_type=None, send_error_response=True):
+    def check_box_level_and_point(cls, self, char, page, task_type=None, send_error_response=True):
         """ 检查数据等级和积分"""
         roles = auth.get_all_roles(self.current_user['roles'])
         if '切分专家' in roles:
@@ -73,7 +75,7 @@ class PageHandler(TaskHandler, Page, Box):
         if int(user_level) == int(required_level) and not task_type:
             if char.get('box_logs') and char['box_logs'][-1].get('user_id') == self.user_id:
                 return True
-            required_type, required_point = cls.get_required_type_and_point(char)
+            required_type, required_point = cls.get_required_type_and_point(page)
             user_point = cls.get_user_point(self, required_type)
             if int(user_point) < int(required_point):
                 msg = '该字符需要%s的%s积分，您的积分%s不够' % (self.get_task_name(required_type), required_point, user_point)
@@ -83,17 +85,17 @@ class PageHandler(TaskHandler, Page, Box):
                     return e.data_point_unqualified[0], msg
         return True
 
-    def can_write(self, box, task_type=None):
-        return self.check_box_level_and_point(self, box, task_type, False) is True
+    def can_write(self, box, page, task_type=None):
+        return self.check_box_level_and_point(self, box, page, task_type, False) is True
 
     def set_box_access(self, page, task_type=None):
         """ 设置切分框的读写权限"""
         for b in page['chars']:
-            b['readonly'] = not self.can_write(b, task_type)
+            b['readonly'] = not self.can_write(b, page, task_type)
         for b in page['columns']:
-            b['readonly'] = not self.can_write(b, task_type)
+            b['readonly'] = not self.can_write(b, page, task_type)
         for b in page['blocks']:
-            b['readonly'] = not self.can_write(b, task_type)
+            b['readonly'] = not self.can_write(b, page, task_type)
 
     def pack_boxes(self, page, extract_sub_columns=None):
         self.pop_fields(page['chars'], 'box_logs')

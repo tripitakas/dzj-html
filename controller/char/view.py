@@ -91,6 +91,7 @@ class CharListHandler(CharHandler):
             if log.get('updated_time'):
                 val = val + '|' + h.get_date_time('%Y-%m-%d %H:%M', log.get('updated_time'))
             return val
+
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'txt_type' and value:
@@ -144,7 +145,7 @@ class CharViewHandler(CharHandler, Char):
             char = self.db.char.find_one({'name': char_name})
             if not char:
                 return self.send_error_response(e.no_object, message='没有找到数据%s' % char_name)
-            projection = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1}
+            projection = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
             page = self.db.page.find_one({'name': char['page_name'], 'chars.cid': char['cid']}, projection)
             if page and page['chars'][0].get('box_logs'):
                 char['box_logs'] = page['chars'][0]['box_logs']
@@ -154,7 +155,7 @@ class CharViewHandler(CharHandler, Char):
                            'txt', 'nor_txt', 'txt_type', 'txt_level', 'box_level', 'remark']
             img_url = self.get_web_img(page['name'], 'page')
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
-            box_auth = PageHandler.check_box_level_and_point(self, char, None, False) is True
+            box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
             chars = {char['name']: char}
             self.render('char_view.html', char=char, page=page, base_fields=base_fields, img_url=img_url,
                         txt_auth=txt_auth, box_auth=box_auth, chars=chars, Char=Char)

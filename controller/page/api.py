@@ -56,19 +56,19 @@ class CharBoxApi(PageHandler):
             rules = [(v.not_empty, 'pos')]
             self.validate(self.data, rules)
             page_name, cid = '_'.join(char_name.split('_')[:-1]), int(char_name.split('_')[-1])
-            page = self.db.page.find_one({'name': page_name, 'chars.cid': cid}, {'name': 1, 'chars.$': 1})
+            page = self.db.page.find_one({'name': page_name, 'chars.cid': cid}, {'name': 1, 'tasks': 1, 'chars.$': 1})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             # 检查数据等级和积分
             char = page['chars'][0]
-            self.check_box_level_and_point(self, char, self.data.get('task_type'))
+            self.check_box_level_and_point(self, char, page, self.data.get('task_type'))
             if h.cmp_obj(char, self.data, ['pos']):
                 return self.send_error_response(e.not_changed)
 
             my_log = {'pos': self.data['pos'], 'updated_time': self.now()}
             new_log, logs = True, page['chars'][0].get('box_logs') or []
             for i, log in enumerate(logs):
-                if log['user_id'] == self.user_id:
+                if log.get('user_id') == self.user_id:
                     logs[i].update(my_log)
                     new_log = False
             if new_log:
@@ -81,7 +81,8 @@ class CharBoxApi(PageHandler):
                 'chars.$.x': update['x'], 'chars.$.y': update['y'], 'chars.$.w': update['w'], 'chars.$.h': update['h'],
                 'chars.$.box_level': update['box_level'], 'chars.$.box_logs': update['box_logs']
             }})
-            r2 = self.db.char.update_one({'name': char_name}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
+            r2 = self.db.char.update_one({'name': char_name},
+                                         {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
 
             self.add_log('update_box', None, char_name, update)
             ret = dict(box_logs=logs)

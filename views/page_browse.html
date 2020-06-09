@@ -170,8 +170,10 @@
     var config = {};
     var buttons = ['image', 'right', 'blur', 'block', 'column', 'char', 'order'];
     buttons.forEach((b) => config['toggle-' + b] = $('.m-header #toggle-' + b).hasClass('active') ? 1 : -1);
-    config['sutra-txt'] = $('.btn-show-txt.active').attr('data-id').replace('text-', '');
     config['fields'] = $('#remarkModal :radio[name="fields"]:checked').val() || '';
+    if ($('.btn-show-txt.active').length){
+      config['sutra-txt'] = $('.btn-show-txt.active').attr('data-id').replace('text-', '');
+    }
     return config;
   }
 

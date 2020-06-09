@@ -17,16 +17,10 @@
       max-width: 420px;
     }
 
-    #center-region {
-      border: none;
-      max-width: 60px;
-      position: relative;
-      background: transparent;
-    }
-
     #submit-box {
-      bottom: 10px;
-      margin: auto 3px;
+      right: 435px;
+      bottom: 42px;
+      z-index: auto;
       position: absolute;
     }
   </style>
@@ -56,8 +50,6 @@
     <div class="m-body flex pfread">
       <div id="left-region" class="left bd">
         <div id="holder"></div>
-      </div>
-      <div id="center-region" class="right bd">
         <button class="btn btn-primary{{'' if box_auth else ' disabled'}}" id="submit-box">确认</button>
       </div>
       <div id="right-region" class="right bd work-panel">
