@@ -94,7 +94,7 @@
           </span>
           {% else %}
           <span class="variant variant-img txt-item" data-value="{{'Y%s' % v.get('uid')}}">
-            <img src="{{handler.get_web_img(v['img_name'], 'char')}}"/>
+            <img src="{{get_char_img(v)}}"/>
           </span>
           {% end %}
           {% end %}
@@ -103,7 +103,7 @@
           {% for d in docs %}
           <div class="char-item proof{{len(d.get('txt_logs') or [])}}" id="{{d['name']}}" data-id="{{d['name']}}">
             <div class="char-img">
-              <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
+              <img src="{{get_char_img(d)}}"/>
             </div>
             <div class="char-info{{' hide' if show_char_info == '否' else ''}}">
               <span class="txt">{{d.get('txt', '')}}</span>

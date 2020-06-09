@@ -58,7 +58,7 @@
           {% for d in docs %}
           <div class="char-item proof{{len(d.get('txt_logs') or [])}}" id="{{d['name']}}" data-id="{{d['name']}}">
             <div class="char-img">
-              <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
+              <img src="{{get_char_img(d)}}"/>
             </div>
             <div class="char-info">
               <span class="txt">{{d.get('txt', '')}}</span><span class="cc">{{d.get('cc', 0)/1000}}</span>

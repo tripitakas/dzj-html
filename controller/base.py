@@ -135,19 +135,11 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
-            if self.more.get('char_versions') is True:
-                super(BaseHandler, self).render(template_name, **kwargs)
         except Exception as error:
             traceback.print_exc()
             message = '网页生成出错(%s): %s' % (template_name, str(error) or error.__class__.__name__)
             kwargs.update(dict(code=500, message=message))
             super(BaseHandler, self).render('_error.html', **kwargs)
-
-    def finish(self, chunk=None):
-        if self.more.get('char_names_pending') and self.more.get('char_versions') is None:
-            self.more['char_versions'] = True
-        else:
-            super(BaseHandler, self).finish(chunk)
 
     def get_request_data(self):
         """
@@ -339,19 +331,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 从云盘获取图片
         my_cloud = self.get_config('web_img.my_cloud')
         if my_cloud:
-            ver = ''
-            if img_type == 'char':
-                if self.more.get('char_versions') is True:
-                    char_versions = self.db.char.find({'name': {'$in': self.more['char_names_pending']}},
-                                                      {'name': 1, 'img_time': 1})
-                    self.more['char_versions'] = {c['name']: c.get('img_time') for c in char_versions}
-                if isinstance(self.more.get('char_versions'), dict):
-                    ver = self.more['char_versions'].get(img_name_old)
-                    ver = '?v=' + ver if ver else ''
-                else:
-                    self.more['char_names_pending'] = self.more.get('char_names_pending', [])
-                    self.more['char_names_pending'].append(img_name_old)
-
             auth = oss2.Auth(self.get_config('web_img.key_id'), self.get_config('web_img.key_secret'))
             bucket_name = re.sub(r'http[s]?://', '', my_cloud).split('.')[0]
             cloud_host = my_cloud.replace(bucket_name + '.', '')
@@ -359,14 +338,14 @@ class BaseHandler(CorsMixin, RequestHandler):
             img_url = path.join(my_cloud.replace('-internal', ''), relative_url)
             try:
                 if img_bucket.object_exists(relative_url):
-                    return img_url + ver
+                    return img_url
                 elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
-                    return path.join(shared_cloud, relative_url) + ver
+                    return path.join(shared_cloud, relative_url)
                 else:
-                    return img_url + '?err=1' + ('&' + ver[1:] if ver else '')
+                    return img_url + '?err=1'
             except OssError as err:
                 logging.error(err)
-                return img_url + '?err=1' + ('&' + ver[1:] if ver else '')
+                return img_url + '?err=1'
 
     @gen.coroutine
     def call_back_api(self, url, handle_response=None, handle_error=None, **kwargs):
