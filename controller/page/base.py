@@ -72,7 +72,8 @@ class PageHandler(TaskHandler, Page, Box):
                 return self.send_error_response(e.data_level_unqualified, message=msg)
             else:
                 return e.data_level_unqualified[0], msg
-        if int(user_level) == int(required_level) and not task_type:
+        task_types = list(cls.box_level['task'].keys())
+        if int(user_level) == int(required_level) and (not task_type or task_type not in task_types):
             if char.get('box_logs') and char['box_logs'][-1].get('user_id') == self.user_id:
                 return True
             required_type, required_point = cls.get_required_type_and_point(page)
