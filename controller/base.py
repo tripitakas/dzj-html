@@ -12,7 +12,6 @@ from oss2.exceptions import OssError
 from os import path
 from bson import json_util
 from bson.errors import BSONError
-from bson.objectid import ObjectId
 from datetime import datetime
 from pymongo.errors import PyMongoError
 from tornado import gen
@@ -136,11 +135,19 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
+            if self.more.get('char_versions') is True:
+                super(BaseHandler, self).render(template_name, **kwargs)
         except Exception as error:
             traceback.print_exc()
             message = '网页生成出错(%s): %s' % (template_name, str(error) or error.__class__.__name__)
             kwargs.update(dict(code=500, message=message))
             super(BaseHandler, self).render('_error.html', **kwargs)
+
+    def finish(self, chunk=None):
+        if self.more.get('char_names_pending') and self.more.get('char_versions') is None:
+            self.more['char_versions'] = True
+        else:
+            super(BaseHandler, self).finish(chunk)
 
     def get_request_data(self):
         """
@@ -163,13 +170,13 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         def remove_func(obj):
             if isinstance(obj, dict):
-                for k, v in list(obj.items()):
-                    if callable(v):
+                for k, vo in list(obj.items()):
+                    if callable(vo):
                         obj.pop(k)
-                    remove_func(v)
+                    remove_func(vo)
             elif isinstance(obj, list):
-                for v in obj:
-                    remove_func(v)
+                for vo in obj:
+                    remove_func(vo)
 
         assert data is None or isinstance(data, (list, dict))
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
@@ -313,6 +320,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def get_web_img(self, img_name, img_type='page'):
         inner_path = '/'.join(img_name.split('_')[:-1])
+        img_name_old = img_name
         if self.get_config('web_img.with_hash'):
             img_name += '_' + md5_encode(img_name, self.get_config('web_img.salt'))
         shared_cloud = self.get_config('web_img.shared_cloud')
@@ -331,9 +339,18 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 从云盘获取图片
         my_cloud = self.get_config('web_img.my_cloud')
         if my_cloud:
-            # ver = img_type == 'char' and self.db.char.find_one({'name': img_name})
-            # ver = ver and ver.get('img_time') and '?v=' + ver.get('img_time') or ''
-            ver = img_type == 'char' and get_date_time('?v=%m%d%H%M%S') or ''
+            ver = ''
+            if img_type == 'char':
+                if self.more.get('char_versions') is True:
+                    char_versions = self.db.char.find({'name': {'$in': self.more['char_names_pending']}},
+                                                      {'name': 1, 'img_time': 1})
+                    self.more['char_versions'] = {c['name']: c.get('img_time') for c in char_versions}
+                if isinstance(self.more.get('char_versions'), dict):
+                    ver = self.more['char_versions'].get(img_name_old)
+                    ver = '?v=' + ver if ver else ''
+                else:
+                    self.more['char_names_pending'] = self.more.get('char_names_pending', [])
+                    self.more['char_names_pending'].append(img_name_old)
 
             auth = oss2.Auth(self.get_config('web_img.key_id'), self.get_config('web_img.key_secret'))
             bucket_name = re.sub(r'http[s]?://', '', my_cloud).split('.')[0]
@@ -346,10 +363,10 @@ class BaseHandler(CorsMixin, RequestHandler):
                 elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
                     return path.join(shared_cloud, relative_url) + ver
                 else:
-                    return img_url + '?err=1'
+                    return img_url + '?err=1' + ('&' + ver[1:] if ver else '')
             except OssError as err:
                 logging.error(err)
-                return img_url + '?err=1'
+                return img_url + '?err=1' + ('&' + ver[1:] if ver else '')
 
     @gen.coroutine
     def call_back_api(self, url, handle_response=None, handle_error=None, **kwargs):
