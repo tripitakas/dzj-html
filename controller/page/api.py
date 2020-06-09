@@ -64,7 +64,7 @@ class CharBoxApi(PageHandler):
             self.check_box_level_and_point(self, char, page, self.data.get('task_type'))
             if h.cmp_obj(char, self.data, ['pos']):
                 return self.send_error_response(e.not_changed)
-
+            # 检查、设置box_logs
             my_log = {'pos': self.data['pos'], 'updated_time': self.now()}
             new_log, logs = True, page['chars'][0].get('box_logs') or []
             for i, log in enumerate(logs):
@@ -74,21 +74,21 @@ class CharBoxApi(PageHandler):
             if new_log:
                 my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
                 logs.append(my_log)
-
+            # 更新page表和char表
             box_level = self.get_user_box_level(self, self.data.get('task_type'))
             update = {**self.data['pos'], 'box_logs': logs, 'box_level': box_level}
             r1 = self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
-                'chars.$.x': update['x'], 'chars.$.y': update['y'], 'chars.$.w': update['w'], 'chars.$.h': update['h'],
-                'chars.$.box_level': update['box_level'], 'chars.$.box_logs': update['box_logs']
+                'chars.$.' + k: update[k] for k in ['x', 'y', 'w', 'h', 'box_level', 'box_logs']
             }})
-            r2 = self.db.char.update_one({'name': char_name},
-                                         {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
+            r2 = self.db.char.update_one({'name': char_name}, {'$set': {
+                'pos': self.data['pos'], 'img_need_updated': True
+            }})
 
             self.add_log('update_box', None, char_name, update)
             ret = dict(box_logs=logs)
             if r1.modified_count and r2.modified_count:  # 立即生成字图
-                t = extract_img(db=self.db, username=self.username, regen=True,
-                                chars=list(self.db.char.find({'name': char_name})))
+                chars = list(self.db.char.find({'name': char_name}))
+                t = extract_img(db=self.db, username=self.username, regen=True, chars=chars)
                 if t:
                     ret['img_time'] = t
             self.send_data_response(ret)

@@ -120,10 +120,10 @@ def cmp_page_code(a, b):
 
 
 def get_url_param(key, url_query):
-
+    trans = {'True': True, 'False': False, 'None': None}
     regex = r'(^|\?|&)%s=(.*?)($|&)' % key
     r = re.search(regex, url_query, re.I)
-    return  unquote(r.group(2)) if r else ''
+    r = unquote(r.group(2)) if r else ''
     return trans.get(r) if r in trans else r
 
 

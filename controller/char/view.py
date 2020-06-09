@@ -300,11 +300,12 @@ class CharBrowseHandler(CharHandler):
                 d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
                 if not column_url:
                     column_url = self.get_web_img(column_name, 'column')
-            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order,
-                        column_url=column_url, chars=chars,
-                        get_char_img=lambda c: re.sub(r'\.jpg.*$',
-                                                      '.jpg' + ('?v=%s' % c['img_time'] if c.get('img_time') else ''),
-                                                      self.get_web_img(c['name'], 'char')))
+            self.render(
+                'char_browse.html', docs=docs, pager=pager, q=q, order=order, column_url=column_url, chars=chars,
+                get_char_img=lambda c: re.sub(
+                    r'\.jpg.*$', '.jpg' + ('?v=%s' % c['img_time'] if c.get('img_time') else ''),
+                    self.get_web_img(c['name'], 'char')
+                ))
 
         except Exception as error:
             return self.send_db_error(error)
@@ -380,14 +381,13 @@ class CharTaskClusterHandler(CharHandler):
             char_count = self.task.get('char_count')
             show_char_info = json_util.loads(self.get_secure_cookie('cluster_char_info') or '0') or '是'
             self.render(
-                'char_cluster.html', docs=docs, pager=pager, q=q, order=order, chars=chars, txts=txts,
-                ocr_txts=ocr_txts, v_txts=v_txts, cur_txt=cur_txt, variants=variants,
-                char_count=char_count, column_url=column_url,
-                show_char_info=show_char_info, Char=Char,
-                get_char_img=lambda c: re.sub(r'\.jpg.*$',
-                                              '.jpg' + ('?v=%s' % c['img_time'] if c.get('img_time') else ''),
-                                              self.get_web_img(c['name'], 'char'))
-            )
+                'char_cluster.html', docs=docs, pager=pager, q=q, order=order, chars=chars, ocr_txts=ocr_txts,
+                txts=txts, v_txts=v_txts, cur_txt=cur_txt, variants=variants, char_count=char_count,
+                column_url=column_url, show_char_info=show_char_info, Char=Char,
+                get_char_img=lambda c: re.sub(
+                    r'\.jpg.*$', '.jpg' + ('?v=%s' % c['img_time'] if c.get('img_time') else ''),
+                    self.get_web_img(c['name'], 'char')
+                ))
 
         except Exception as error:
             return self.send_db_error(error)
