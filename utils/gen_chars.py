@@ -24,11 +24,13 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
 
     def is_changed(a, b):
         """ 检查坐标和字序是否发生变化"""
-        for k in ['char_id']:
-            if a[k] != b[k]:
-                return True
+        if a['char_id'] != b['char_id']:
+            return True
         for k in ['x', 'y', 'w', 'h']:
             if a['pos'][k] != b['pos'][k]:
+                return True
+        for k in ['x', 'y', 'w', 'h', 'cid']:
+            if a['column'][k] != b['column'][k]:
                 return True
         return False
 
