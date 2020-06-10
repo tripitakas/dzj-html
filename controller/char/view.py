@@ -304,7 +304,7 @@ class CharBrowseHandler(CharHandler):
                 'char_browse.html', docs=docs, pager=pager, q=q, order=order, column_url=column_url, chars=chars,
                 get_char_img=lambda c: re.sub(
                     r'\.jpg.*$', '.jpg' + ('?v=%s' % c['img_time'] if c.get('img_time') else ''),
-                    self.get_web_img(c['name'], 'char')
+                    self.get_web_img(c.get('img_name') or c['name'], 'char')
                 ))
 
         except Exception as error:
@@ -386,7 +386,7 @@ class CharTaskClusterHandler(CharHandler):
                 column_url=column_url, show_char_info=show_char_info, Char=Char,
                 get_char_img=lambda c: re.sub(
                     r'\.jpg.*$', '.jpg' + ('?v=%s' % c['img_time'] if c.get('img_time') else ''),
-                    self.get_web_img(c['name'], 'char')
+                    self.get_web_img(c.get('img_name') or c['name'], 'char')
                 ))
 
         except Exception as error:
