@@ -300,12 +300,8 @@ class CharBrowseHandler(CharHandler):
                 d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
                 if not column_url:
                     column_url = self.get_web_img(column_name, 'column')
-            self.render(
-                'char_browse.html', docs=docs, pager=pager, q=q, order=order, column_url=column_url, chars=chars,
-                get_char_img=lambda c: re.sub(
-                    r'\.jpg.*$', '.jpg' + ('?v=%s' % c['img_time'] if c.get('img_time') else ''),
-                    self.get_web_img(c.get('img_name') or c['name'], 'char')
-                ))
+            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order, column_url=column_url,
+                        chars=chars)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -383,11 +379,8 @@ class CharTaskClusterHandler(CharHandler):
             self.render(
                 'char_cluster.html', docs=docs, pager=pager, q=q, order=order, chars=chars, ocr_txts=ocr_txts,
                 txts=txts, v_txts=v_txts, cur_txt=cur_txt, variants=variants, char_count=char_count,
-                column_url=column_url, show_char_info=show_char_info, Char=Char,
-                get_char_img=lambda c: re.sub(
-                    r'\.jpg.*$', '.jpg' + ('?v=%s' % c['img_time'] if c.get('img_time') else ''),
-                    self.get_web_img(c.get('img_name') or c['name'], 'char')
-                ))
+                column_url=column_url, show_char_info=show_char_info, Char=Char
+            )
 
         except Exception as error:
             return self.send_db_error(error)

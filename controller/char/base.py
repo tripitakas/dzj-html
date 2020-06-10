@@ -82,3 +82,9 @@ class CharHandler(TaskHandler, Char):
                 else:
                     return e.data_point_unqualified[0], msg
         return True
+
+    def get_char_img(self, char):
+        url = self.get_web_img(char.get('img_name') or char['name'], 'char')
+        if char.get('img_time'):
+            url += '?v=%s' % char['img_time']
+        return url
