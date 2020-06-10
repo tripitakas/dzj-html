@@ -90,11 +90,15 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
         chars_dict = {c['name']: c for c in chars}
         existed = list(db.char.find({'name': {'$in': [c['name'] for c in chars]}}))
         if existed:
-            print('update existed %s records: %s' % (len(existed), ','.join([c['name'] for c in existed])))
+            changed = []
             for e in existed:
                 c = chars_dict.get(e['name'])
                 if is_changed(e, c):
-                    db.char.update_one({'_id': e['_id']}, {'$set': {k: c.get(k) for k in ['char_id', 'uid', 'pos']}})
+                    changed.append(c['name'])
+                    db.char.update_one({'_id': e['_id']}, {'$set': {k: c.get(k) for k in [
+                        'char_id', 'uid', 'pos', 'column']}})
+            if changed:
+                print('update changed %s records: %s' % (len(changed), ','.join([c for c in changed])))
         # 插入不存在的chars
         existed_id = [c['name'] for c in existed]
         un_existed = [c for c in chars if c['name'] not in existed_id]
