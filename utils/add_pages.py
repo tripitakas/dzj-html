@@ -13,6 +13,7 @@ from glob2 import glob
 from tornado.util import PY3
 from datetime import datetime
 from os import path, makedirs, walk
+from pymongo.errors import PyMongoError
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -137,8 +138,9 @@ class AddPage(object):
             if self.check_only:
                 return meta
 
-            print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
-                name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])
+            print('%s:\t%d x %d blocks=%d columns=%d chars=%d sub_columns=%d' % (
+                name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']),
+                len(meta['chars']), len([c for c in meta['columns'] if c.get('sub_columns')])
             ))
 
             if self.reorder:
@@ -173,8 +175,11 @@ class AddPage(object):
             if not info['chars']:
                 sys.stderr.write('%s no chars\n' % name)
                 continue
-            if self.add_page_box(name, info):
-                page_names.add(name)
+            try:
+                if self.add_page_box(name, info):
+                    page_names.add(name)
+            except PyMongoError as e:
+                print('%s: %s' % (name, str(e)))
         return page_names
 
 
