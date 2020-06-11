@@ -60,18 +60,17 @@ class PageHandler(TaskHandler, Page, Box):
     @classmethod
     def check_box_level_and_point(cls, self, char, page, task_type=None, send_error_response=True):
         """ 检查数据等级和积分"""
-        roles = auth.get_all_roles(self.current_user['roles'])
-        if '切分专家' in roles:
-            return True
-
         required_level = cls.get_required_box_level(char)
         user_level = cls.get_user_box_level(self, task_type)
         if int(user_level) < int(required_level):
-            msg = '该字符的切分数据等级为%s，您的切分数据等级(%s)不够' % (required_level, user_level)
+            msg = '该字符的切分数据等级为%s，您的切分数据等级%s不够' % (required_level, user_level)
             if send_error_response:
                 return self.send_error_response(e.data_level_unqualified, message=msg)
             else:
                 return e.data_level_unqualified[0], msg
+        roles = auth.get_all_roles(self.current_user['roles'])
+        if '切分专家' in roles:
+            return True
         task_types = list(cls.box_level['task'].keys())
         if int(user_level) == int(required_level) and (not task_type or task_type not in task_types):
             if char.get('box_logs') and char['box_logs'][-1].get('user_id') == self.user_id:
@@ -151,13 +150,13 @@ class PageHandler(TaskHandler, Page, Box):
         # 检查删除
         post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
         to_delete = [b for b in page[box_type] if b['cid'] not in post_cids]
-        deleted = [b['cid'] for b in to_delete if self.can_write(b, task_type)]
+        deleted = [b['cid'] for b in to_delete if self.can_write(b, page, task_type)]
         # cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
         boxes = [b for b in page[box_type] if b['cid'] not in deleted]  # 删除可删除的字框，保留其它字框
         # 检查修改
         change_cids = [b.get('cid') for b in post_boxes if b.get('changed') is True]
         to_change = [b for b in boxes if b['cid'] in change_cids]
-        can_change = [b for b in to_change if self.can_write(b, task_type)]
+        can_change = [b for b in to_change if self.can_write(b, page, task_type)]
         # cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_change]
         changed = []
         for b in can_change:

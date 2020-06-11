@@ -57,10 +57,6 @@ class CharHandler(TaskHandler, Char):
     @classmethod
     def check_txt_level_and_point(cls, self, char, task_type=None, send_error_response=True):
         """ 检查数据等级和积分"""
-        roles = auth.get_all_roles(self.current_user['roles'])
-        if '文字专家' in roles:
-            return True
-
         required_level = cls.get_required_txt_level(char)
         user_level = cls.get_user_txt_level(self, task_type)
         if int(user_level) < int(required_level):
@@ -69,6 +65,9 @@ class CharHandler(TaskHandler, Char):
                 return self.send_error_response(e.data_level_unqualified, message=msg)
             else:
                 return e.data_level_unqualified[0], msg
+        roles = auth.get_all_roles(self.current_user['roles'])
+        if '文字专家' in roles:
+            return True
         task_types = list(cls.txt_level['task'].keys())
         if int(user_level) == int(required_level) and (not task_type or task_type not in task_types):
             if char.get('txt_logs') and char['txt_logs'][-1].get('user_id') == self.user_id:
