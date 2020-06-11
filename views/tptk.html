@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{'%s-%s' % (tripitaka['name'], page_name)}}</title>
+  {% include _base_css.html %}
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/page-txt.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .page-img {
+      width: 100%;
+      height: auto;
+      overflow: auto;
+      text-align: center;
+    }
+
+  </style>
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group title" style="user-select: text">
+          <a href="#">{{tripitaka['name']}}</a>
+        </div>
+      </div>
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="toggle-right" class="btn-txt icon-txt {{'active' if page else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+        <div id="toggle-block" class="btn-txt icon-blocks{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+        <div id="toggle-column" class="btn-txt icon-columns{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+        <div id="toggle-char" class="btn-txt icon-chars{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-order" class="btn-txt icon-char-order{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+        <div class="btn-group m-pager" style="margin: -4px 0 0 8px">
+          <div class="btn-page first{{'' if nav.get('first') else ' hide'}}">首页</div>
+          <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}"><</div>
+          <div class="btn-page to">
+            <input type="text" data-value="{{nav.get('cur')}}" value="{{nav.get('cur')}}"/>
+            <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last', '')}}</span>
+          </div>
+          <div class="btn-page next{{'' if nav.get('next') else ' hide'}}">></div>
+          <div class="btn-page last{{'' if nav.get('last') else ' hide'}}">末页</div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="btn-nav sutra-menu">经目</div>
+        <div class="btn-nav reel-menu">卷目</div>
+        <div class="btn-nav volume-menu">册目</div>
+      </div>
+    </div>
+    <div class="m-body flex pfread">
+      <div id="left-region" class="m-left bd">
+        {% if page %}
+        <div id="holder"></div>
+        {% else %}
+        <div class="page-img"><img src="{{img_url}}" alt="图片不存在"/></div>
+        {% end %}
+      </div>
+      <div id="right-region" class="m-right bd wide-txt {{'hide' if not page else ''}}">
+        {% if txts %}{% module PageTxt(txts) %}{% end %}
+      </div>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        页编码：<span class="page-name disabled">{{page_name}}</span>
+      </span>
+      <span class="fr">
+        字编码：<span class="char-name">未选中</span><span class="char-info"></span>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档</h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、简介</div>
+          <div class="intro">
+            页面浏览可以针对一个页面集合逐条浏览，页面集合有检索参数决定。 浏览时可以看到页面的切分信息、文本信息、任务信息等。其中，
+            栏框、列框、字框等切分信息以及审定文本可以通过更多按钮进行修改，字框OCR和列框OCR可以直接在本页面修改保存。<br/>
+            另外，本页面还可以发布任务。<br/>
+            <b>注：</b>点击上一页或下一页时，系统将记住文本区域的显示或隐藏状态，从而可以选择仅仅浏览切分信息，或者同时浏览文本信息。
+          </div>
+          <div class="title">二、操作</div>
+          <table class="table">
+            <tr>
+              <td><img src="{{static_url('imgs/icon_back.png')}}"/></td>
+              <td>返回</td>
+            </tr>
+            <tr>
+              <td><i class="icon-image"></i></td>
+              <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
+            </tr>
+            <tr>
+              <td><i class="icon-txt"></i></td>
+              <td>打开或关闭右侧文本。关闭文本可以更好的查看切分信息</td>
+            </tr>
+            <tr>
+              <td><i class="icon-blur"></i></td>
+              <td>图片虚化处理。虚化后可以更好的看清字框、字序等信息</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+{% include _base_cut.html %}
+<script src="{{static_url('js/cut/char_order.js')}}"></script>
+<script src="{{static_url('js/cut/proof_keys.js')}}"></script>
+<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/page-txt.js')}}"></script>
+{% if page %}
+<script>
+  // 公共参数
+  $.cut.create({
+    readonly: true,
+    holder: 'holder',
+    image: '{{img_url}}',
+    name: '{{page["name"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    chars: '{{page["chars"]}}',
+    blocks: '{{page["blocks"]}}',
+    columns: '{{page["columns"]}}',
+    scrollContainer: '#left-region',
+  });
+  $.cut.bindKeys();
+  $.cut.bindCharOrderKeys();
+  $.cut.switchCurrentBox(null);
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+
+  // 初始化设置
+  $.cut.setLink(false);
+  $.cut.toggleBox(false);
+
+  $.cut.state.canHitBox = function (el) {
+    if ($('#toggle-char').hasClass('active') && el.data('class') === 'char')
+      return true;
+    if ($('#toggle-column').hasClass('active') && el.data('class') === 'column')
+      return true;
+    if ($('#toggle-block').hasClass('active') && el.data('class') === 'block')
+      return true;
+  };
+
+  $.cut.onBoxChanged(function (info, box, reason) {
+    if (reason === 'navigate') {
+      var curId = $.cut.getCurrentCharID(true);
+      if (curId) {
+        $('.m-footer .char-name').text(curId);
+        $('.m-footer .char-info').text((info.txt || '') + (info['is_small'] ? '（小字）' : ''));
+      } else {
+        $('.m-footer .char-name').text('未选中');
+        $('.m-footer .char-info').text('');
+      }
+    }
+  }, true);
+
+</script>
+{% end %}
+</body>
+</html>

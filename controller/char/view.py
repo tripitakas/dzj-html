@@ -103,7 +103,7 @@ class CharListHandler(CharHandler):
         if key == 'txt_logs' and value:
             return '<br/>'.join([log2str(log) for log in value])
         if key == 'has_img' and value not in [None, False]:
-            return r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['name'], 'char')
+            return r'<img class="char-img" src="%s"/>' % self.get_char_img(doc)
         return h.format_value(value, key, doc)
 
     def get(self):

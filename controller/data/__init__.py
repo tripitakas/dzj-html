@@ -1,7 +1,7 @@
 from . import view, api, tripitaka
 
 views = [
-    tripitaka.TripitakaListHandler, tripitaka.TripitakaViewHandler,
+    tripitaka.TripitakaListHandler, tripitaka.TripitakaViewHandler, tripitaka.TptkViewHandler,
     view.DataListHandler, view.VariantListHandler,
 ]
 

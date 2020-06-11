@@ -23,8 +23,8 @@ class TaskLobbyHandler(TaskHandler):
             q = self.get_query_argument('q', '')
             tasks, total_count = self.find_lobby(task_type, q=q)
             collection = self.prop(self.task_types, task_type + '.data.collection')
-            fields = [('doc_id', '页编码'), ('priority', '优先级')] if collection == 'page' else [
-                ('txt_kind', '字种'), ('char_count', '单字数量')]
+            fields = [('txt_kind', '字种'), ('char_count', '单字数量')] if collection == 'char' else [
+                ('doc_id', '页编码'), ('char_count', '单字数量')]
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
                         fields=fields, format_value=self.format_value)
         except Exception as error:
@@ -34,8 +34,6 @@ class TaskLobbyHandler(TaskHandler):
 class TaskMyHandler(TaskHandler):
     URL = '/task/my/@task_type'
 
-    search_tips = '请搜索页编码'
-    search_fields = ['doc_id']
     operations = []
     img_operations = []
     actions = [
@@ -43,20 +41,39 @@ class TaskMyHandler(TaskHandler):
         {'action': 'my-task-do', 'label': '继续', 'disabled': lambda d: d['status'] == 'finished'},
         {'action': 'my-task-update', 'label': '更新', 'disabled': lambda d: d['status'] == 'picked'},
     ]
-    table_fields = [
-        {'id': 'doc_id', 'name': '页编码'},
-        {'id': 'task_type', 'name': '类型'},
-        {'id': 'status', 'name': '状态'},
-        {'id': 'picked_time', 'name': '领取时间'},
-        {'id': 'finished_time', 'name': '完成时间'},
-    ]
     hide_fields = ['task_type']
     info_fields = ['doc_id', 'task_type', 'status', 'picked_time', 'finished_time']
     update_fields = []
 
+    @classmethod
+    def set_kwargs(cls, collection):
+        if collection == 'page':
+            cls.search_tips = '请搜索页编码'
+            cls.search_fields = ['doc_id']
+            cls.table_fields = [{'id': 'doc_id', 'name': '页编码'}]
+        else:
+            cls.search_tips = '请搜索字种'
+            cls.search_fields = ['txt_kind']
+            cls.table_fields = [{'id': 'txt_kind', 'name': '字种'}]
+        cls.table_fields.extend([
+            {'id': 'char_count', 'name': '单字数量'},
+            {'id': 'task_type', 'name': '类型'},
+            {'id': 'status', 'name': '状态'},
+            {'id': 'picked_time', 'name': '领取时间'},
+            {'id': 'finished_time', 'name': '完成时间'},
+        ])
+
+    def format_value(self, value, key=None, doc=None):
+        """ 格式化task表的字段输出"""
+        if key == 'txt_kind' and len(value) > 5:
+            value = value[:5] + '...'
+        return super().format_value(value, key, doc)
+
     def get(self, task_type):
         """ 我的任务"""
         try:
+            collection = self.prop(self.task_types, task_type + '.data.collection')
+            self.set_kwargs(collection)
             kwargs = self.get_template_kwargs()
             status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
             condition = {'task_type': task_type, 'status': status, 'picked_user_id': self.user_id}

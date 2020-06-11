@@ -17,22 +17,32 @@ $(document).on('click', '#toggle-right', function () {
 // 显隐图片
 $(document).on('click', '#toggle-image', function () {
   $(this).toggleClass('active');
-  $.cut.data.image.node.style.display = $(this).hasClass('active') ? '' : 'none';
-  var key = $(this).parent().hasClass('order') ? 'toggleOrderImage' : 'toggleImage';
-  setStorage(key, $(this).hasClass('active') ? '1' : '-1');
+  if ($.cut.data.image) {
+    $.cut.data.image.node.style.display = $(this).hasClass('active') ? '' : 'none';
+    var key = $(this).parent().hasClass('order') ? 'toggleOrderImage' : 'toggleImage';
+    setStorage(key, $(this).hasClass('active') ? '1' : '-1');
+  } else {
+    $('.page-img img').toggleClass('hide', !$(this).hasClass('active'));
+  }
 });
 
 // 模糊图片
 $(document).on('click', '#toggle-blur', function () {
   $(this).toggleClass('active');
-  $.cut.data.image.node.style.opacity = $(this).hasClass('active') ? 0.2 : 1;
-  var key = $(this).parent().hasClass('order') ? 'toggleOrderBlur' : 'toggleBlur';
-  setStorage(key, $(this).hasClass('active') ? '1' : '-1');
+  if ($.cut.data.image) {
+    $.cut.data.image.node.style.opacity = $(this).hasClass('active') ? 0.2 : 1;
+    var key = $(this).parent().hasClass('order') ? 'toggleOrderBlur' : 'toggleBlur';
+    setStorage(key, $(this).hasClass('active') ? '1' : '-1');
+  } else {
+    var opacity = $('.page-img img').css('opacity') == '0.2' ? 1 : 0.2;
+    $('.page-img img').css('opacity', opacity);
+  }
+
 });
 
 // 缩小图片
 $(document).on('click', '#zoom-out', function () {
-  var pageImg = $('#page-picture img');
+  var pageImg = $('.page-img img');
   if (pageImg.length) {
     pageImg.width(pageImg.width() * 0.9);
   } else {
@@ -42,7 +52,7 @@ $(document).on('click', '#zoom-out', function () {
 
 // 放大图片
 $(document).on('click', '#zoom-in', function () {
-  var pageImg = $('#page-picture img');
+  var pageImg = $('.page-img img');
   if (pageImg.length) {
     pageImg.width(pageImg.width() * 1.5);
   } else {
@@ -52,9 +62,9 @@ $(document).on('click', '#zoom-in', function () {
 
 // 原始大小
 $(document).on('click', '#zoom-reset', function () {
-  var pageImg = $('#page-picture img');
+  var pageImg = $('.page-img img');
   if (pageImg.length) {
-    pageImg.width('100%');
+    pageImg.height('100%');
   } else {
     $.cut.setRatio(1);
   }

@@ -353,10 +353,10 @@ $(document).on('click', '#btn-work-text', function () {
 });
 
 $(document).on('click', '#btn-work-html', function () {
+  if (typeof txtFields === 'undefined') return;
   var $workText = $('#work-text textarea');
   if ($workText.text().trim() === $workText.val().trim()) {
-    showTxt('work-html');
-    return;
+    return showTxt('work-html');
   }
 
   // 用工作文本替代底本与比对文本比对
