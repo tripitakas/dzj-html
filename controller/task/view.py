@@ -78,7 +78,12 @@ class TaskMyHandler(TaskHandler):
             status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
             condition = {'task_type': task_type, 'status': status, 'picked_user_id': self.user_id}
             docs, pager, q, order = self.find_by_page(self, condition, default_order='-picked_time')
-            self.render('task_my.html', docs=docs, pager=pager, q=q, order=order,
+            condition['status'] = self.STATUS_FINISHED
+            counts = list(self.db.task.aggregate([
+                {'$match': condition}, {'$group': {'_id': None, 'count': {'$sum': '$char_count'}}},
+            ]))
+            point = counts and counts[0]['count']
+            self.render('task_my.html', docs=docs, pager=pager, q=q, order=order, point=point,
                         format_value=self.format_value, **kwargs)
 
         except Exception as error:
