@@ -165,7 +165,7 @@ def update_page_sub_columns_txt(db, json_path=''):
                     for col in info.get('columns', []):
                         if col.get('sub_columns') and len(col['sub_columns']) > 1:
                             page_column = [c for c in columns if c['cid'] == col['cid']][0]
-                            assert page_column['sub_columns'][0]['x'] == col['sub_columns'][0]['x']
+                            assert len(page_column['sub_columns']) == len(col['sub_columns'])
                             page_column['sub_columns'] = col['sub_columns']
                 db.page.update_one({'_id': page['_id']}, {'$set': {'columns': columns}})
 
