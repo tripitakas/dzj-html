@@ -49,6 +49,25 @@
       border: 0;
     }
 
+    .pic-nav {
+      position: absolute;
+      width: 36px;
+      height: 60px;
+      background: #333;
+      opacity: 0.2;
+      z-index: 100;
+      cursor: pointer;
+      top: 45%;
+      border-radius: 2px;
+    }
+
+    .pic-nav:hover {
+      opacity: 0.5;
+    }
+
+    #pic-right {
+      right: 0;
+    }
   </style>
 </head>
 
@@ -92,6 +111,8 @@
     </div>
     <div class="m-body flex pfread">
       <div id="left-region" class="m-left bd">
+        <img class="pic-nav" id="pic-left" src="{{static_url('imgs/icon_left.png')}}"/>
+        <img class="pic-nav" id="pic-right" src="{{static_url('imgs/icon_right.png')}}"/>
         {% if page %}
         <div id="holder"></div>
         {% else %}
@@ -210,7 +231,6 @@
 
 <script>
   var volumeCode = '{{volume_code}}';
-
   $('.m-pager .btn-page:not(.to)').click(function () {
     window.location = '/tptk/' + volumeCode + '_' + $(this).attr('data-value');
   });
@@ -222,6 +242,15 @@
       window.location = '/tptk/' + volumeCode + '_' + pageNo;
     }
   });
+
+  $('#pic-left').click(function () {
+    $('.btn-page.prev').click();
+  });
+
+  $('#pic-right').click(function () {
+    $('.btn-page.next').click();
+  });
+
 </script>
 </body>
 </html>
