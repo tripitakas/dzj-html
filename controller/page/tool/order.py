@@ -412,8 +412,9 @@ class BoxOrder(object):
                     sub_col.append(c)
             if sub_col:
                 pos = cls.get_outer_range(sub_col)
-                sub_columns.append({**pos, 'sub_no': sub_no, 'column_id': '%s#%s' % (column_id, sub_no)})
-            if sub_columns and column_id != 'b0c0':
+                sub_columns.append({**pos, 'sub_no': sub_no, 'column_id': '%s#%s' % (column_id, sub_no),
+                                    'chars': [c.get('cid') for c in sub_col]})
+            if sub_columns and column_id != 'b0c0' and len(sub_columns) > 1:
                 column_dict[column_id]['sub_columns'] = sub_columns
 
         assert chars
