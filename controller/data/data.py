@@ -58,8 +58,8 @@ class Sutra(Model):
     primary = 'sutra_code'
 
     page_title = '经数据管理'
-    search_tips = '请搜索统一经编码、经编码、经名'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
+    search_tips = '请搜索统一经编码、经编码、经名、起始册'
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name','start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
@@ -88,8 +88,8 @@ class Reel(Model):
     primary = 'reel_code'
 
     page_title = '卷数据管理'
-    search_tips = '请搜索统一经编码、经编码、经名和卷编码'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
+    search_tips = '请搜索统一经编码、经编码、经名、卷编码和起始册'
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name','start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]

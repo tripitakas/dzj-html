@@ -14,8 +14,39 @@
     .page-img {
       width: 100%;
       height: auto;
-      overflow: auto;
       text-align: center;
+    }
+
+    .m-pager .btn-page {
+      float: left;
+      margin: 0 3px;
+      font-size: 16px;
+      cursor: pointer;
+      text-align: center;
+      color: var(--Brown_Darker);
+      /*border-right: 1px dotted var(--Grey_Middle);*/
+    }
+
+    .m-pager .btn-page.to {
+      cursor: default;
+    }
+
+    .m-pager .btn-page.to input {
+      width: 55px;
+      height: 20px;
+      background: var(--Grey_Line);
+      border: 0;
+      text-align: center;
+      margin: 0 2px;
+      border-radius: 10px;
+    }
+
+    .m-pager .btn-page.to input:hover {
+      background: var(--White);
+    }
+
+    .m-pager .btn-page.last {
+      border: 0;
     }
 
   </style>
@@ -42,21 +73,21 @@
         <div id="toggle-column" class="btn-txt icon-columns{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
         <div id="toggle-char" class="btn-txt icon-chars{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-order" class="btn-txt icon-char-order{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
-        <div class="btn-group m-pager" style="margin: -4px 0 0 8px">
-          <div class="btn-page first{{'' if nav.get('first') else ' hide'}}">首页</div>
-          <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}"><</div>
+        <div class="btn-group m-pager">
+          <div class="btn-page first{{'' if nav.get('first') else ' hide'}}" data-value="{{nav.get('first')}}">首页</div>
+          <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" data-value="{{nav.get('prev')}}"><</div>
           <div class="btn-page to">
-            <input type="text" data-value="{{nav.get('cur')}}" value="{{nav.get('cur')}}"/>
+            <input type="text" value="{{nav.get('cur')}}"/>
             <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last', '')}}</span>
           </div>
-          <div class="btn-page next{{'' if nav.get('next') else ' hide'}}">></div>
-          <div class="btn-page last{{'' if nav.get('last') else ' hide'}}">末页</div>
+          <div class="btn-page next{{'' if nav.get('next') else ' hide'}}" data-value="{{nav.get('next')}}">></div>
+          <div class="btn-page last{{'' if nav.get('last') else ' hide'}}" data-value="{{nav.get('last')}}">末页</div>
         </div>
       </div>
       <div class="right">
-        <div class="btn-nav sutra-menu">经目</div>
-        <div class="btn-nav reel-menu">卷目</div>
-        <div class="btn-nav volume-menu">册目</div>
+        <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?q={{volume_code}}">经目</a>
+        <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}?q={{volume_code}}">卷目</a>
+        <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}?q={{volume_code}}">册目</a>
       </div>
     </div>
     <div class="m-body flex pfread">
@@ -176,5 +207,21 @@
 
 </script>
 {% end %}
+
+<script>
+  var volumeCode = '{{volume_code}}';
+
+  $('.m-pager .btn-page:not(.to)').click(function () {
+    window.location = '/tptk/' + volumeCode + '_' + $(this).attr('data-value');
+  });
+
+  $('.m-pager .btn-page.to').on('keydown', function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode === 13) {
+      var pageNo = $('.m-pager .btn-page.to input').val();
+      window.location = '/tptk/' + volumeCode + '_' + pageNo;
+    }
+  });
+</script>
 </body>
 </html>

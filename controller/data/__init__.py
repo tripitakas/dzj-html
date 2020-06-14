@@ -2,7 +2,7 @@ from . import view, api, tripitaka
 
 views = [
     tripitaka.TripitakaListHandler, tripitaka.TripitakaViewHandler, tripitaka.TptkViewHandler,
-    view.DataListHandler, view.VariantListHandler,
+    view.DataListHandler, view.VariantListHandler, tripitaka.TptkMetaHandler,
 ]
 
 handlers = [

@@ -98,7 +98,7 @@ a {
   text-decoration: none;
 }
 
-a:hover, a:visited, a:focus {
+a:hover, a:focus {
   color: var(--Color_333);
 }
 

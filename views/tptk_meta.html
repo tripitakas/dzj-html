@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  {% include _base_css.html %}
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <![endif]-->
+  <style>
+    .m-body {
+      width: 1200px;
+      padding-bottom: 0;
+      margin: 20px auto 0;
+    }
+
+    .sty-list .search input {
+      width: 360px;
+    }
+
+    td.start_volume, td.start_page, td.end_volume, td.end_page, td.volume_code {
+      cursor: pointer;
+      color: var(--Brown_Darker) !important;
+    }
+
+    td.start_volume:hover, td.start_page:hover, td.end_volume:hover, td.end_page:hover, td.volume_code:hover {
+      text-decoration: underline;
+    }
+
+  </style>
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group title" style="user-select: text">
+          <a href="#">{{tripitaka['name']}}</a>
+        </div>
+      </div>
+      <div class="center">
+      </div>
+      <div class="right">
+        <a class="btn-nav sutra-menu{{' active' if collection=='sutra' else ''}}" href="/sutra/{{tripitaka_code}}">经目</a>
+        <a class="btn-nav reel-menu{{' active' if collection=='reel' else ''}}" href="/reel/{{tripitaka_code}}">卷目</a>
+        <a class="btn-nav volume-menu{{' active' if collection=='volume' else ''}}" href="/volume/{{tripitaka_code}}">册目</a>
+      </div>
+    </div>
+    <div class="m-body">
+      <div class="wrapper">
+        <div class="sty-list">
+          <div class="search fr">
+            <input id="search-input" type="text" placeholder="{{search_tips}}" value="{{q}}"/>
+            <i class="icon-search"></i>
+          </div>
+
+          {% set format_func = format_value if 'format_value' in globals() else None %}
+          {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order,format_value=format_func) %}
+
+          {% module Pager(pager) %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+<script src="{{static_url('js/com-table.js')}}"></script>
+<script>
+
+  $('td.start_volume,  td.end_volume,  td.volume_code').on('click', function () {
+    location.href = '/tptk/' + $(this).text().trim();
+  });
+
+  $('td.start_page').on('click', function () {
+    var volumeCode = $(this).parent().find('.start_volume').text();
+    location.href = '/tptk/' + volumeCode + '_' + $(this).text().trim();
+  });
+
+  $('td.end_page').on('click', function () {
+    var volumeCode = $(this).parent().find('.end_volume').text();
+    location.href = '/tptk/' + volumeCode + '_' + $(this).text().trim();
+  });
+</script>
+
+</body>
+</html>
