@@ -137,9 +137,11 @@ class PageHandler(TaskHandler, Page, Box):
                 if len(_cmp1) < len(s['base']):
                     s['cmp1'] += '■' * (len(s['base']) - len(_cmp1))
                 else:
-                    s['cmp1'] += '■' * (len(s['base']) - len(_cmp1))
+                    s['cmp1'] = '■' * (len(s['base']))
 
+        ocr_txt = ''.join([s['base'] for s in diff_segments])
         txt2apply = ''.join([s['cmp1'] for s in diff_segments])
+        assert len(ocr_txt) == len(txt2apply)
         cls.write_back_txt(page['chars'], txt2apply, field)
         return match, txt2apply
 
@@ -232,11 +234,9 @@ class PageHandler(TaskHandler, Page, Box):
         def get_txt(box):
             if box_type == 'char':
                 return box['alternatives'][0] if box.get('alternatives') else '■'
-            else:
-                if box.get('sub_columns') and len(box['sub_columns']) > 1:
-                    return ''.join([c['ocr_txt'] for c in box['sub_columns']])
-                else:
-                    return box.get('ocr_txt') or ''
+            elif box.get('sub_columns') and len(box['sub_columns']) > 1 and box['sub_columns'][1].get('ocr_txt'):
+                return ''.join([c.get('ocr_txt') or '' for c in box['sub_columns']])
+            return box.get('ocr_txt') or ''
 
         if not boxes:
             return ''

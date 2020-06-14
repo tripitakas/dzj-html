@@ -17,10 +17,9 @@ from controller.page.base import PageHandler as Ph
 
 
 def check_match(db=None, db_name='tripitaka', uri=None, condition=None, page_names=None,
-                fields=None, publish_task=True, username=None):
+                fields=None, username=None):
     """ 检查图文是否匹配
     :param fields 检查哪个字段，包括cmp_txt/ocr_col/txt
-    :param publish_task，如果图文不匹配，是否发布相关任务
     """
     cfg = hp.load_config()
     db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'])[0]
@@ -45,18 +44,19 @@ def check_match(db=None, db_name='tripitaka', uri=None, condition=None, page_nam
             for field in fields:
                 if not Ph.get_txt(page, field):
                     continue
-                if hp.prop(page, 'txt_match.' + field) is True:
+                if hp.prop(page, 'txt_match.' + field + '.status') is True:
                     match.append([page['name'], field])
                     continue
-                r = Ph.check_match(page['chars'], Ph.get_txt(page, field))
+                txt2match = Ph.get_txt(page, field)
+                r = Ph.check_match(page['chars'], txt2match)
                 if r['status'] is True:
                     changed = True
                     match.append([page['name'], field])
-                    Ph.write_back_txt(chars, Ph.get_txt(page, field), field)
-                    update.update({'txt_match.' + field: True})
+                    Ph.write_back_txt(chars, txt2match, field)
+                    update.update({'txt_match.' + field: dict(status=True, value=txt2match)})
                 else:
                     mis_match.append([page['name'], field])
-                    update.update({'txt_match.' + field: False})
+                    update.update({'txt_match.' + field: dict(status=False, value=txt2match)})
             if changed:
                 update.update({'chars': chars})
             db.page.update_one({'_id': page['_id']}, {'$set': update})

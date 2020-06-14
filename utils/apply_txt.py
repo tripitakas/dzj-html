@@ -62,15 +62,17 @@ def migrate_txt_to_char(db, fields=None):
     if isinstance(fields, str):
         fields = fields.split(',')
     size = 10
-    page_count = math.ceil(db.page.count_documents({}) / size)
+    cond = {}
+    page_count = math.ceil(db.page.count_documents(cond) / size)
     for i in range(page_count):
         project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
-        pages = list(db.page.find({}, project).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             for c in page['chars']:
                 update = {f: c[f] for f in fields if c.get(f)}
-                db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
+                if update:
+                    db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
 
 
 def set_diff_symbol(db):
@@ -88,7 +90,7 @@ def set_diff_symbol(db):
             db.char.update_one({'_id': c['_id']}, {'$set': {'diff': diff}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='apply_txt', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
     print('finished.')
