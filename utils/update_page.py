@@ -6,8 +6,9 @@
 import re
 import sys
 import math
+import json
 import pymongo
-from os import path
+from os import path, walk
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -148,6 +149,27 @@ def update_page_ocr_txt(db):
         db.page.update_one({'_id': page['_id']}, {'$set': {'chars': page['chars']}})
 
 
+def update_page_sub_columns_txt(db, json_path=''):
+    """ 更新page表sub_columns的ocr_txt"""
+    for root, dirs, files in walk(json_path):
+        for fn in files:
+            if fn.endswith('.json'):
+                print('[%s]processing %s' % (hp.get_date_time(), fn))
+                page = db.page.find_one({'name': fn.split('.')[0]})
+                if not page:
+                    print('no page in db')
+                    continue
+                columns = page['columns']
+                with open(path.join(root, fn), encoding='UTF-8') as f:
+                    info = json.load(f)
+                    for col in info.get('columns', []):
+                        if col.get('sub_columns') and len(col['sub_columns']) > 1:
+                            page_column = [c for c in columns if c['cid'] == col['cid']][0]
+                            assert page_column['sub_columns'][0]['x'] == col['sub_columns'][0]['x']
+                            page_column['sub_columns'] = col['sub_columns']
+                db.page.update_one({'_id': page['_id']}, {'$set': {'columns': columns}})
+
+
 def update_char_ocr_txt(db):
     """ char表的ocr_txt"""
     size = 1000
@@ -162,7 +184,7 @@ def update_char_ocr_txt(db):
                 db.char.update_one({'_id': ch['_id']}, {'$set': {'ocr_txt': ch['alternatives'][0]}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='reorder_boxes', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
