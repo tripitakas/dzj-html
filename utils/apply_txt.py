@@ -57,7 +57,10 @@ def apply_txt(db, field, regen=None):
 
 def migrate_txt_to_char(db, fields=None):
     """ 将page表的文本同步到char表"""
-    fields = fields or ['ocr_col', 'cmp_txt', 'txt']
+    if not fields:
+        fields = ['ocr_col', 'cmp_txt', 'txt']
+    if isinstance(fields, str):
+        fields = fields.split(',')
     size = 10
     page_count = math.ceil(db.page.count_documents({}) / size)
     for i in range(page_count):
