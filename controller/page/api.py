@@ -411,8 +411,8 @@ class PageTaskPublishApi(PageHandler):
     URL = r'/api/page/task/publish'
 
     field_names = {
-        'published': '任务已发布', 'pending': '任务被悬挂', 'finished_before': '任务已完成',
-        'un_existed': '页面不存在', 'published_before': '任务曾经发布',
+        'published': '任务已发布', 'pending': '任务已悬挂', 'finished_before': '任务已完成',
+        'un_existed': '页面不存在', 'published_before': '任务曾被发布',
     }
 
     def post(self):
@@ -470,19 +470,12 @@ class PageTaskPublishApi(PageHandler):
 
     def check_and_publish(self, log):
         """ 检查页码并发布任务"""
-        # 去掉已发布和进行中的页码
+        # 去掉已发布的页码
         page_names, task_type, num = self.data['page_names'], self.data['task_type'], self.data.get('num') or 1
         if page_names:
-            status = [self.STATUS_PUBLISHED, self.STATUS_PENDING, self.STATUS_PICKED]
-            cond = dict(task_type=task_type, num=int(num), status={'$in': status}, doc_id={'$in': list(page_names)})
+            cond = dict(task_type=task_type, num=int(num), doc_id={'$in': list(page_names)})
             log['published_before'] = set(t['doc_id'] for t in self.db.task.find(cond, {'doc_id': 1}))
             page_names = set(page_names) - log['published_before']
-
-        # 去掉已完成的页码（如果不重新发布）
-        if not int(self.data['force']) and page_names:
-            cond = dict(task_type=task_type, num=num, status=self.STATUS_FINISHED, doc_id={'$in': list(page_names)})
-            log['finished_before'] = set(t['doc_id'] for t in self.db.task.find(cond, {'doc_id': 1}))
-            page_names = set(page_names) - log['finished_before']
 
         # 剩下的页码，发布新任务
         if page_names:

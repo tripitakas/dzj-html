@@ -50,12 +50,12 @@ class Task(Model):
         'cut_proof': {
             'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
             'steps': [['box', '字框'], ['order', '字序']],
-            'num': [1, 2, 3], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True,
         },
         'cut_review': {
             'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
             'steps': [['box', '字框'], ['order', '字序']],
-            'pre_tasks': ['cut_proof'], 'publishable': True,
+            'num': [1, 2, 3], 'pre_tasks': ['cut_proof'], 'publishable': True,
         },
         'upload_cloud': {
             'name': '上传云端', 'data': {'collection': 'page', 'id': 'name'},
@@ -71,27 +71,27 @@ class Task(Model):
         },
         'txt_match': {
             'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': True, 'remark': '不要设置校次，以免影响field字段',
+            'publishable': False, 'remark': '不要设置校次，以免影响field字段',
         },
         'find_cmp': {
             'name': '比对文本', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': True,
+            'publishable': False,
         },
         'cluster_proof': {
             'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True,
         },
         'cluster_review': {
             'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
-            'pre_tasks': ['cluster_proof'], 'publishable': True,
+            'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': True,
         },
         'rare_proof': {
             'name': '生僻校对', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3], 'publishable': False,
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': False,
         },
         'rare_review': {
             'name': '生僻审定', 'data': {'collection': 'char', 'id': 'name'},
-            'pre_tasks': ['cluster_proof'], 'publishable': False,
+            'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': False,
         },
     }
 

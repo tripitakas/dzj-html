@@ -194,8 +194,7 @@ class AssignTasksApi(TaskHandler):
             log['picked_before'] = [t['doc_id'] for t in tasks] if tasks else []
             # 指派已发布的任务
             to_assign = [t for t in published if t['doc_id'] not in log['picked_before']]
-            target_ids = [t['_id'] for t in to_assign]
-            self.db.task.update_many({'_id': [t['_id'] for t in to_assign]}, {'$set': {
+            self.db.task.update_many({'_id': {'$in': [t['_id'] for t in to_assign]}}, {'$set': {
                 'status': self.STATUS_PICKED, 'picked_user_id': user_id, 'picked_by': username,
                 'picked_time': now, 'updated_time': now,
             }})
@@ -205,7 +204,7 @@ class AssignTasksApi(TaskHandler):
                 for t in to_assign:
                     self.update_page_status(self.STATUS_PICKED, t)
             self.send_data_response({k: i for k, i in log.items() if i})
-            self.add_log('assign_task', target_ids, None,
+            self.add_log('assign_task', [t['_id'] for t in to_assign], None,
                          dict(task_type=task_type, username=username, doc_id=[t.get('doc_id') for t in to_assign]))
 
         except self.DbError as error:
