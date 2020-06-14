@@ -19,13 +19,13 @@ class PageTxtProofHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
 
-            self.pack_boxes(page)
             chars = page['chars']
             chars_col = self.get_chars_col(chars)
             char_dict = {c['cid']: c for c in chars}
             img_url = self.get_web_img(page['name'])
             readonly = '/edit' not in self.request.path
             txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+            self.pack_boxes(page)
             self.render('page_txt_proof.html', page=page, chars=chars, chars_col=chars_col, char_dict=char_dict,
                         txt_types=txt_types, img_url=img_url, readonly=readonly)
 

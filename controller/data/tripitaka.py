@@ -50,9 +50,9 @@ class TptkViewHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name}) or {}
             chars_col, txts = [], []
             if page:
-                self.pack_boxes(page)
                 chars_col = self.get_chars_col(page['chars'])
                 txts = [(self.prop(page, 'txt'), 'txt', '审定文本')]
+                self.pack_boxes(page)
 
             # 获取当前册信息
             volume_code = '_'.join(name_slice[:-1])

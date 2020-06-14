@@ -40,7 +40,9 @@ def find_cmp(db):
 def apply_txt(db, field, regen=None):
     """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种文本"""
     size = 10
-    condition = {'txt_match.' + field: None} if not regen else {}
+    if regen:
+        db.page.update_many({}, {'$unset': {'txt_match.' + field: ''}})
+    condition = {'txt_match.' + field: None}
     print('[%s]%s pages to process' % (hp.get_date_time(), db.page.count_documents(condition)))
     while db.page.count_documents(condition):
         pages = list(db.page.find(condition).sort('_id', 1).limit(size))

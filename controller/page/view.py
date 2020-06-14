@@ -155,7 +155,6 @@ class PageBrowseHandler(PageHandler):
                 message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')
                 return self.send_error_response(e.no_object, message=message)
 
-            self.pack_boxes(page)
             txts = self.get_txts(page)
             txt_fields = [t[1] for t in txts]
             txt_dict = {t[1]: t for t in txts}
@@ -164,6 +163,7 @@ class PageBrowseHandler(PageHandler):
             info = {f['id']: self.prop(page, f['id'], '') for f in edit_fields}
             btn_config = json_util.loads(self.get_secure_cookie('page_browse_btn') or '{}')
             active = btn_config.get('sutra-txt')
+            self.pack_boxes(page)
             self.render(
                 'page_browse.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
                 active=active, txt_fields=txt_fields, chars_col=chars_col, info=info,
@@ -183,7 +183,6 @@ class PageViewHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            self.pack_boxes(page)
             txts = self.get_txts(page)
             txt_fields = [t[1] for t in txts]
             txt_dict = {t[1]: t for t in txts}
@@ -191,6 +190,7 @@ class PageViewHandler(PageHandler):
             img_url = self.get_web_img(page['name'])
             chars_col = self.get_chars_col(page['chars'])
             txt_off = self.get_query_argument('txt', None) == 'off'
+            self.pack_boxes(page)
             self.render(
                 'page_view.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
                 active=None, txt_fields=txt_fields, txt_off=txt_off, chars_col=chars_col,
@@ -260,12 +260,12 @@ class PageOrderHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            self.pack_boxes(page)
             img_url = self.get_web_img(page['name'], 'page')
             reorder = self.get_query_argument('reorder', '')
             if reorder:
                 page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
             chars_col = self.get_chars_col(page['chars'])
+            self.pack_boxes(page)
             self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=False)
 
         except Exception as error:
@@ -317,14 +317,14 @@ class PageTxtMatchHandler(PageHandler):
                 else:
                     self.send_error_response(e.no_object, message='页面没有%s' % field_name)
 
-            self.pack_boxes(page)
-            txts = self.get_txts(page, ['ocr', field])
+            txts = self.get_txts(page, [field, 'ocr'])
             txt_fields = [t[1] for t in txts]
             txt_dict = {t[1]: t for t in txts}
-            char_txt = txts[0][0]
+            char_txt = txts[1][0]
             cmp_data = self.match_diff(char_txt, cmp_txt)
             img_url = self.get_web_img(page['name'], 'page')
             txt_match = self.prop(page, 'txt_match.' + field)
+            self.pack_boxes(page)
             self.render(
                 'page_match.html', page=page, img_url=img_url, char_txt=char_txt, cmp_data=cmp_data,
                 field=field, field_name=field_name, txt_match=txt_match, txts=txts,
