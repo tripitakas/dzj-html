@@ -40,7 +40,7 @@ $('.sty-table .action .btn-detail').click(function () {
 // 任务历程
 $('.sty-table .action .btn-history').click(function () {
   var node = $(this).parent().parent();
-  location.href = '/task/resume/page/' + node.find('.doc_id').text();
+  location.href = '/page/task/resume/' + node.find('.doc_id').text();
 });
 // 重新发布任务
 $('.sty-table .action .btn-republish').click(function () {

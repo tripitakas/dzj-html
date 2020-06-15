@@ -194,7 +194,7 @@ role_route_maps = {
             '/api/user/list': ['POST'],
             '/task/(page|char)/statistic': ['GET'],
             '/task/info/@task_id': ['GET'],
-            '/task/resume/page/@page_name': ['GET'],
+            '/page/task/resume/@page_name': ['GET'],
             '/task/browse/@task_type/@task_id': ['GET'],
         }
     },
