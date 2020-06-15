@@ -129,16 +129,6 @@ class CharListHandler(CharHandler):
 class CharViewHandler(CharHandler, Char):
     URL = '/char/@char_name'
 
-    def format_value(self, value, key=None, doc=None):
-        """ 格式化task表的字段输出"""
-        if key in ['cc', 'sc'] and value:
-            return value / 1000
-        if key in ['pos', 'column'] and value:
-            return ', '.join(['%s:%s' % (k, v) for k, v in value.items()])
-        if key == 'txt_type':
-            return Char.txt_types.get(value) or value
-        return h.format_value(value, key, doc)
-
     def get(self, char_name):
         """ 查看Char页面"""
         try:

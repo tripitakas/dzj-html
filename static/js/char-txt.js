@@ -5,8 +5,6 @@
 // 更新文字校对历史
 function updateTxtLogs(logs) {
   var html3 = (logs || []).map(function (log) {
-    var txt = log.txt || log.nor_txt || '';
-    var head = `<span class="log-txt txt-item">${/[0-9]/.test(txt) ? '' : txt}</span>`;
     var meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
     meta += log.nor_txt ? `<label>正字</label><span>${log.nor_txt}</span><br/>` : '';
     meta += log.txt_type ? `<label>类型</label><span>${txtTypes[log.txt_type] || ''}</span><br/>` : '';
@@ -14,7 +12,7 @@ function updateTxtLogs(logs) {
     meta += log.username ? `<label>校对人</label><span>${log.username}</span><br/>` : '';
     meta += log.create_time ? `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>` : '';
     meta += log.updated_time ? `<label>更新时间</label><span>${toLocalTime(log.updated_time)}</span><br/>` : '';
-    return `<div class="log"><div class="log-head">${head}</div><div class="log-meta">${meta}</div></div>`;
+    return `<div class="log"><div class="log-meta">${meta}</div></div>`;
   }).join('');
   $('.txt-logs .body').html(html3);
   $('.txt-logs').toggleClass('hide', !html3.length);
@@ -106,8 +104,8 @@ $('#submit-txt').on('click', function () {
       chars[name] = $.extend(chars[name], data);
     }
     updateTxtLogs(res.txt_logs);
-    updateBaseInfo(chars[id]);
-    // 更新字图列表的样式
+    updateBaseInfo(chars[name]);
+    // 更新字图列表
     var $curItem = $('#' + name);
     if ($curItem.length) {
       $curItem.find('.txt').text(data.txt);

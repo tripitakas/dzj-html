@@ -34,9 +34,6 @@
       <div class="body">
         {% for log in char.get('txt_logs', [])%}
         <div class="log">
-          <div class="log-head">
-            <span class="log-txt txt-item">{{log.get('txt') or log.get('nor_txt')}}</span>
-          </div>
           <div class="log-meta">
             {% for f in ['txt', 'nor_txt', 'txt_type', 'remark'] %}
             {% if log.get(f) %}<label>{{Char.get_field_name(f) or f}}</label><span>{{Char.get_type_names(log[f]) if f == 'txt_type' else log[f]}}</span><br/>{% end %}
