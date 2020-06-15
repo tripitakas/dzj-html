@@ -43,6 +43,10 @@ class PageBoxApi(PageHandler):
         gen_chars(db=self.db, page_names=page_name, username=self.username)  # 更新char表
         valid, message, box_type, out_boxes = self.check_box_cover(page)
         self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
+        # 更新字图
+        script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
+        script = script % (h.BASE_DIR, self.username, 1)
+        os.system(script)
         return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
 
 

@@ -66,7 +66,7 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                 for c in p['chars']:
                     try:
                         char_names.append('%s_%s' % (p['name'], c['cid']))
-                        m = dict(page_name=p['name'], txt_level=0)
+                        m = dict(page_name=p['name'], txt_level=0, img_need_updated=True)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
@@ -97,8 +97,8 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                 c = chars_dict.get(e['name'])
                 if is_changed(e, c):
                     changed.append(c['name'])
-                    db.char.update_one({'_id': e['_id']}, {'$set': {k: c.get(k) for k in [
-                        'char_id', 'uid', 'pos', 'column']}})
+                    update = {k: c[k] for k in ['char_id', 'uid', 'pos', 'column'] if c.get(k)}
+                    db.char.update_one({'_id': e['_id']}, {'$set': {**update, 'img_need_updated': True}})
             if changed:
                 print('update changed %s records: %s' % (len(changed), ','.join([c for c in changed])))
         # 插入不存在的chars
