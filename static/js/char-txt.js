@@ -87,6 +87,7 @@ $(document).on('click', '.txt-item', function () {
 
 // 提交文字修改
 $('#submit-txt').on('click', function () {
+  if ($(this).hasClass('disabled')) return;
   var name = $('.char-edit .current-name').val();
   var data = {
     task_type: taskType || '',
@@ -96,6 +97,9 @@ $('#submit-txt').on('click', function () {
     remark: $('.proof .remark').val() || '',
   };
   postApi('/char/txt/' + name, {data: data}, function (res) {
+    if (/char\/[A-Z0-9_]+/.test(location.pathname)) {
+      return location.reload();
+    }
     location.href = setAnchor(name);
     bsShow('成功！', '已保存成功', 'success', 1000, '#s-alert');
     // 更新chars数据

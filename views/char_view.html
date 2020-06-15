@@ -134,11 +134,11 @@
 
   // 提交字框修改
   $('#submit-box').on('click', function () {
+    if ($(this).hasClass('disabled')) return;
     var box = $.cut.exportBoxes()[0];
     var data = {pos: {x: box.x, y: box.y, w: box.w, h: box.h}};
     postApi('/char/box/{{char["name"]}}', {data: data}, function (res) {
-      bsShow('成功！', '已保存成功', 'success', 1000);
-      updateBoxLogs(res.box_logs);
+      location.reload();
     });
   });
 
