@@ -172,7 +172,7 @@ $("#updateModal .modal-confirm").click(function () {
   var data = getModal($modal, fields);
   postApi($modal.find('.update-url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已提交。');
-    refresh(1500);
+    refresh(2000);
   }, function (error) {
     showError('提交失败', error.message);
   });
@@ -188,7 +188,7 @@ $('.btn-remove').click(function () {
     postApi(url, {data: {_id: data._id}}, function (res) {
       if (res.count) {
         showSuccess('成功', '数据' + name + '已删除');
-        refresh(1000);
+        refresh(2000);
       } else {
         showWarning('未删除', '数据未删除');
       }
@@ -210,7 +210,7 @@ $('.operation .bat-remove').click(function () {
     postApi(url, {data: {_ids: ids}}, function (res) {
       if (res.count) {
         showSuccess('成功', '选中' + ids.length + '条记录，已删除' + res.count + '条记录。');
-        refresh(1000);
+        refresh(2000);
       } else {
         showWarning('未删除', '删除0条数据');
       }
