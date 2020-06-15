@@ -141,14 +141,14 @@ class CharViewHandler(CharHandler, Char):
                 char['box_logs'] = page['chars'][0]['box_logs']
             if page and page['chars'][0].get('box_level'):
                 char['box_level'] = page['chars'][0]['box_level']
-            base_fields = ['name', 'page_name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column',
-                           'txt', 'nor_txt', 'txt_type', 'txt_level', 'box_level', 'remark']
+            char['box_point'] = self.get_required_type_and_point(char)
+            char['txt_point'] = PageHandler.get_required_type_and_point(page)
             img_url = self.get_web_img(page['name'], 'page')
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
             chars = {char['name']: char}
-            self.render('char_view.html', char=char, page=page, base_fields=base_fields, img_url=img_url,
-                        txt_auth=txt_auth, box_auth=box_auth, chars=chars, Char=Char)
+            self.render('char_view.html', char=char, page=page, img_url=img_url, chars=chars,
+                        txt_auth=txt_auth, box_auth=box_auth, Char=Char)
 
         except Exception as error:
             return self.send_db_error(error)

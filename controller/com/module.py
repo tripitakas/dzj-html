@@ -11,6 +11,7 @@ from bson.json_util import dumps
 from tornado.web import UIModule
 from controller import helper as h
 from controller.char.char import Char
+from controller.task.task import Task
 from controller.page.base import PageHandler as Ph
 
 
@@ -155,14 +156,16 @@ class CharTxt(UIModule):
             return Char.txt_types.get(value) or value or ''
         if key == 'nor_txt':
             return value or ''
+        if key in ['box_point', 'txt_point'] and value:
+            return '%s/%s' % (Task.get_task_name(value[0]), value[1])
         return h.format_value(value, key, doc)
 
     def render(self, char, show_base=False, txt_fields=None, readonly=None):
         """ 单字校对区域"""
 
         txt_fields = txt_fields or ['txt', 'nor_txt']
-        base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt',
-                       'nor_txt', 'txt_type', 'txt_level', 'box_level', 'remark']
+        base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt', 'nor_txt',
+                       'txt_type', 'box_level', 'box_point', 'txt_level', 'txt_point', 'remark']
         return self.render_string(
             '_char_txt.html', char=char, txt_fields=txt_fields, show_base=show_base,
             base_fields=base_fields, readonly=readonly, Char=Char, format_value=self.format_value,

@@ -69,27 +69,19 @@ class CharBoxApi(PageHandler):
             if h.cmp_obj(char, self.data, ['pos']):
                 return self.send_error_response(e.not_changed)
             # 检查、设置box_logs
-            my_log = {'pos': self.data['pos'], 'updated_time': self.now()}
-            new_log, logs = True, page['chars'][0].get('box_logs') or []
-            for i, log in enumerate(logs):
-                if log.get('user_id') == self.user_id:
-                    logs[i].update(my_log)
-                    new_log = False
-            if new_log:
-                my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
-                logs.append(my_log)
+            old_logs = char.get('box_logs') or [{k: char.get(k) for k in ['x', 'y', 'w', 'h']}]
+            box_logs = self.merge_box_logs({'pos': self.data['pos']}, old_logs)
             # 更新page表和char表
             box_level = self.get_user_box_level(self, self.data.get('task_type'))
-            update = {**self.data['pos'], 'box_logs': logs, 'box_level': box_level}
+            update = {**self.data['pos'], 'box_logs': box_logs, 'box_level': box_level}
             r1 = self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {
                 'chars.$.' + k: update[k] for k in ['x', 'y', 'w', 'h', 'box_level', 'box_logs']
             }})
             r2 = self.db.char.update_one({'name': char_name}, {'$set': {
                 'pos': self.data['pos'], 'img_need_updated': True
             }})
-
             self.add_log('update_box', None, char_name, update)
-            ret = dict(box_logs=logs)
+            ret = dict(box_logs=box_logs)
             if r1.modified_count and r2.modified_count:  # 立即生成字图
                 chars = list(self.db.char.find({'name': char_name}))
                 t = extract_img(db=self.db, username=self.username, regen=True, chars=chars)

@@ -146,6 +146,20 @@ class PageHandler(TaskHandler, Page, Box):
         cls.write_back_txt(page['chars'], txt2apply, field)
         return match, txt2apply
 
+    def merge_box_logs(self, user_log, box_logs):
+        """ 合并log至box_logs中。如果用户已在box_logs中，则更新用户已有的log；否则，新增一条log"""
+        assert 'pos' in user_log
+        is_new = True
+        user_log['updated_time'] = self.now()
+        for i, log in enumerate(box_logs):
+            if log.get('user_id') == self.user_id:
+                log.update(user_log)
+                is_new = False
+        if is_new:
+            user_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
+            box_logs.append(user_log)
+        return box_logs
+
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
         """ 合并用户提交和数据库中已有数据，过程中将进行权限检查"""
         user_level = self.get_user_box_level(self, task_type)
@@ -167,12 +181,10 @@ class PageHandler(TaskHandler, Page, Box):
             if self.is_box_pos_equal(b, pb):
                 b.pop('changed', 0)
                 continue
-            update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
-            my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
-            box_logs = b.get('box_logs') or [{k: b.get(k) for k in ['x', 'y', 'w', 'h']}]
-            box_logs.append(my_log)
-            update.update({'box_level': user_level, 'box_logs': box_logs})
-            b.update(update)
+            pos = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
+            old_logs = b.get('box_logs') or [{k: b.get(k) for k in ['x', 'y', 'w', 'h']}]
+            box_logs = self.merge_box_logs({'pos': pos}, old_logs)
+            b.update({**pos, 'box_level': user_level, 'box_logs': box_logs})
             changed.append({'cid': b['cid'], 'pos': {'x': b['x'], 'y': b['y'], 'w': b['w'], 'h': b['h']}})
         # 检查新增
         to_add = [b for b in post_boxes if b.get('added') is True]
