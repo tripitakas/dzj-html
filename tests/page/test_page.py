@@ -216,6 +216,6 @@ class TestPage(APITestCase):
 
     def test_page_update(self):
         page = self._app.db.page.find_one()
-        data = {'_id': str(page['_id']), 'name': page['name'], "remark_box": "不合要求%s" % random.randint(0, 9)}
+        data = {'_id': str(page['_id']), 'name': page['name'], "remark_box": "不合要求%s" % random.randint(0, 9999)}
         r = self.fetch('/api/page', body={'data': data})
         self.assert_code(200, r)
