@@ -62,19 +62,19 @@ class TestPageTask(APITestCase):
             r = self.parse_response(self.publish_page_tasks(dict(task_type=task_type, page_names=docs_pub_before)))
             self.assert_status(docs_pub_before, r, {task_type: 'published_before'})
 
-            # 测试已退回的任务，可以重新发布
+            # 测试已退回的任务，不能重新发布
             docs_returned = list(docs_pub_before)
             self._app.db.task.update_many({'doc_id': {'$in': docs_returned}}, {'$set': {'status': 'returned'}})
             condition = dict(task_type=task_type, page_names=docs_returned)
             r = self.parse_response(self.publish_page_tasks(condition))
-            self.assert_status(docs_returned, r, {task_type: status}, msg=task_type)
+            self.assert_status(docs_returned, r, {task_type: 'published_before'}, msg=task_type)
 
-            # 测试已完成的任务，可以强制重新发布
+            # 测试已完成的任务，不能重新发布
             docs_finished = list(docs_pub_before)
             self._app.db.task.update_many({'doc_id': {'$in': docs_finished}}, {'$set': {'status': 'finished'}})
             condition = dict(task_type=task_type, force='1', page_names=docs_finished)
             r = self.parse_response(self.publish_page_tasks(condition))
-            self.assert_status(docs_returned, r, {task_type: status}, msg=task_type)
+            self.assert_status(docs_returned, r, {task_type: 'published_before'}, msg=task_type)
 
             # 清空任务，以不影响后续任务
             self._app.db.task.delete_many({'doc_id': {'$in': docs_finished}})

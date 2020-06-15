@@ -214,6 +214,11 @@ class APITestCase(AsyncHTTPTestCase):
     def publish_page_tasks(self, data):
         return self.fetch('/api/page/task/publish', body={'data': self.set_pub_data(data)})
 
+    def publish_char_tasks(self, task_type):
+        self._app.db.char.update_many({}, {'$set': {'source': '测试数据'}})
+        data = dict(batch='测试任务', source='测试数据', task_type=task_type)
+        return self.fetch('/api/char/task/publish', body={'data': data})
+
     def finish_task(self, task_id):
         return self.fetch('/api/task/finish/' + str(task_id), body={'data': {}})
 
@@ -221,6 +226,7 @@ class APITestCase(AsyncHTTPTestCase):
         """ 重置任务以及数据 """
         self._app.db.task.delete_many({})
         self._app.db.char.update_many({}, {'$unset': {'txt_level': '', 'txt_logs': ''}})
+        self._app.db.page.update_many({}, {'$unset': {'tasks': ''}})
         for k in ['blocks', 'columns', 'chars']:
             self._app.db.page.update_many({k + '.box_level': {'$in': [1, 10, 100]}}, {'$unset': {
                 k + '.$.box_level': '', k + '.$.box_logs': ''

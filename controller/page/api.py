@@ -440,7 +440,7 @@ class PageTaskPublishApi(PageHandler):
         page_names = self.data.get('page_names')
         if page_names:
             if isinstance(page_names, str):
-                self.data['page_names'] = page_names.split(',')
+                page_names = page_names.split(',')
             pages = list(self.db.page.find({'name': {'$in': page_names}}, {'name': 1}))
             log['un_existed'] = set(page_names) - set([page['name'] for page in pages])
             page_names = [page['name'] for page in pages]

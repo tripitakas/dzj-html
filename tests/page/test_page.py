@@ -33,24 +33,36 @@ class TestPage(APITestCase):
         super(TestPage, self).tearDown()
 
     @staticmethod
-    def get_post_data(page, task_type=None):
+    def get_post_data(page, task_type=None, step=None):
         data = {k: page.get(k) for k in ['chars', 'columns', 'blocks']}
         if task_type:
             data['task_type'] = task_type
+        if step:
+            data['step'] = step
         return data
 
     def test_page_box_api(self):
         """ 测试切分校对"""
         name = 'QL_25_416'
-        # 以校对员身份登录
+        task_type = 'cut_proof'
+        # 发布任务
+        r = self.publish_page_tasks(dict(page_names=name, task_type=task_type, pre_tasks=[]))
+        self.assert_code(200, r)
+        task = self._app.db.task.find_one({'task_type': task_type, 'doc_id': name})
+
+        # 以校对员身份登录并领取任务
         self.login(u.proof1[0], u.proof1[1])
+        r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task['_id']}})
+        self.assert_code(200, r)
+
         # 1. 测试以任务方式增删改
         # 测试修改数据
         page = self._app.db.page.find_one({'name': name})
         page['chars'][0].update({'changed': True, 'w': page['chars'][0]['w'] + 1})
         page['blocks'][0].update({'changed': True, 'w': page['blocks'][0]['w'] + 1})
         page['columns'][0].update({'changed': True, 'w': page['columns'][0]['w'] + 1})
-        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page, 'cut_proof')})
+        url = '/api/task/do/%s/%s' % (task_type, task['_id'])
+        r = self.fetch(url, body={'data': self.get_post_data(page, 'cut_proof', 'box')})
         self.assert_code(200, r)
         page1 = self._app.db.page.find_one({'name': name})
         self.assertIsNotNone(page1['chars'][0]['box_logs'])
@@ -63,13 +75,13 @@ class TestPage(APITestCase):
         # 测试新增数据
         page1['chars'].append({'x': 1, 'y': 1, 'w': 10, 'h': 10, 'added': True})
         page1['chars'].append({'x': 2, 'y': 2, 'w': 20, 'h': 20, 'added': True})
-        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page1, 'cut_proof')})
+        r = self.fetch(url, body={'data': self.get_post_data(page1, 'cut_proof', 'box')})
         self.assert_code(200, r)
         page2 = self._app.db.page.find_one({'name': name})
         self.assertEqual(len(page1['chars']), len(page2['chars']))
         # 测试删除数据
         page2['chars'].pop(-1)
-        r = self.fetch('/api/page/box/' + name, body={'data': self.get_post_data(page2, 'cut_proof')})
+        r = self.fetch(url, body={'data': self.get_post_data(page2, 'cut_proof', 'box')})
         self.assert_code(200, r)
         page3 = self._app.db.page.find_one({'name': name})
         self.assertEqual(len(page2['chars']), len(page3['chars']))

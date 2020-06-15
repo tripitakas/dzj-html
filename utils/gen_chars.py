@@ -30,6 +30,8 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
             if a['pos'][k] != b['pos'][k]:
                 return True
         for k in ['x', 'y', 'w', 'h', 'cid']:
+            if not a.get('column') or not b.get('column'):
+                return True
             if a['column'][k] != b['column'][k]:
                 return True
         return False
