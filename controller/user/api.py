@@ -30,12 +30,12 @@ class LoginApi(BaseHandler):
     def post(self):
         """ 登录 """
         try:
-            rules = [(v.not_empty, 'phone_or_email', 'password')]
+            rules = [(v.not_empty, 'login_id', 'password')]
             self.validate(self.data, rules)
 
             # 检查是否多次登录失败
             gap = self.now() + timedelta(seconds=-1800)
-            login_fail = {'type': 'login-fail', 'create_time': {'$gt': gap}, 'context': self.data.get('phone_or_email')}
+            login_fail = {'type': 'login-fail', 'create_time': {'$gt': gap}, 'context': self.data.get('login_id')}
             times = self.db.log.count_documents(login_fail)
             if times >= 20:
                 return self.send_error_response(e.unauthorized, message='登录失败，请半小时后重试，或者申请重置密码')
@@ -47,7 +47,7 @@ class LoginApi(BaseHandler):
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
             next_url = self.get_query_argument('next', '')
-            self.login(self, self.data.get('phone_or_email'), self.data.get('password'),
+            self.login(self, self.data.get('login_id'), self.data.get('password'),
                        send_response='info=1' not in next_url)
             if 'info=1' in next_url:
                 LoginApi.send_user_info(self)
@@ -56,28 +56,37 @@ class LoginApi(BaseHandler):
             return self.send_db_error(error)
 
     @staticmethod
-    def login(self, phone_or_email, password, report_error=True, send_response=True):
-        user = self.db.user.find_one({'$or': [{'email': phone_or_email}, {'phone': phone_or_email}]})
+    def login(self, login_id, password, report_error=True, send_response=True):
+        user = self.db.user.find_one({'$or': [{'email': login_id}, {'phone': login_id}]})
         if not user:
-            if report_error:
-                logging.info('login_no_user, ' + phone_or_email)
-                return send_response and self.send_error_response(e.no_user)
-            return
+            users = list(self.db.user.find({'name': login_id}))
+            if not users:
+                logging.info('login_no_user, ' + login_id)
+                if report_error and send_response:
+                    return self.send_error_response(e.no_user)
+                return
+            elif len(users) > 1:
+                logging.info('login_username_duplicated, ' + login_id)
+                if report_error and send_response:
+                    return self.send_error_response(e.username_duplicated, message='用户名重复，请用手机或邮箱登录')
+                return
+            else:
+                user = users[0]
         if user['password'] != helper.gen_id(password):
-            if report_error:
-                logging.info('login_failed, ' + phone_or_email)
-                return send_response and self.send_error_response(e.incorrect_password)
+            logging.info('login_failed, ' + login_id)
+            if report_error and send_response:
+                return self.send_error_response(e.incorrect_password)
             return
 
         # 清除登录失败记录
-        ResetUserPasswordApi.remove_login_fails(self, phone_or_email)
+        ResetUserPasswordApi.remove_login_fails(self, login_id)
 
         user['roles'] = user.get('roles', '')
         user['login_md5'] = helper.gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
 
-        content = '%s,%s,%s' % (user['name'], phone_or_email, user['roles'])
+        content = '%s,%s,%s' % (user['name'], login_id, user['roles'])
         self.add_log('login_ok', target_id=user['_id'], content=content)
 
         if send_response:
@@ -161,7 +170,7 @@ class ForgetPasswordApi(BaseHandler):
         """将密码发送到注册时的邮箱或手机上"""
 
         rules = [
-            (v.not_empty, 'name', 'phone_or_email'),
+            (v.not_empty, 'phone_or_email', 'name'),
             (v.is_phone_or_email, 'phone_or_email'),
         ]
         self.validate(self.data, rules)
@@ -171,7 +180,7 @@ class ForgetPasswordApi(BaseHandler):
         if not user:
             return self.send_error_response(e.no_user)
         if user['name'] != self.data['name']:
-            return self.send_error_response(e.no_user, message='姓名不匹配')
+            return self.send_error_response(e.no_user, message='用户名不匹配')
 
         pwd = ResetUserPasswordApi.reset_pwd(self, user)
         if '@' in phone_or_email:

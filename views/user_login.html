@@ -16,13 +16,13 @@
           <h3 class="logo"></h3>
           <div class="log">
             <div class="item">
-              <input type="text" placeholder='请输入手机号或邮箱账号' id="phone_or_email">
+              <input type="text" placeholder='请输入用户名、手机号或邮箱账号' id="login_id">
               <i class="icon-user"></i>
             </div>
             <div class="item">
               <input type="password" placeholder='请输入密码' id="password">
               <i class="icon-lock"></i>
-              <span class="forget hidden" data-toggle="modal" data-target="#forgetModal">忘记密码？</span>
+              <span class="forget" data-toggle="modal" data-target="#forgetModal">忘记密码？</span>
             </div>
             <div class="other clearfix">
               <div class="select fl">
@@ -47,7 +47,7 @@
 </div>
 
 <!--忘记密码-->
-<div class="panel-body hidden">
+<div class="panel-body">
   <div id="forgetModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -56,13 +56,20 @@
           <h4 class="modal-title">找回密码</h4>
         </div>
         <div class="modal-body">
-          <h4 class="control-label">姓名</h4>
-          <input type="text" class="form-control" id="name" placeholder="输入注册时填写的姓名"/>
-          <h4 class="control-label">账号</h4>
-          <input type="text" class="form-control" id="account" readonly/>
+          <form class="form-horizontal">
+            <div class="form-group">
+              <h4 class="col-sm-2 control-label">用户名</h4>
+              <div class="col-sm-9">
+                <input type="text" class="col-sm-10 form-control" id="name" placeholder="输入注册时填写的用户名"/>
+              </div>
+              <h4 class="col-sm-2 control-label" style="margin-top: 8px">手机或邮箱</h4>
+              <div class="col-sm-9" style="margin-top: 8px">
+                <input type="text" class="col-sm-10 form-control" id="account" readonly/>
+              </div>
+            </div>
+          </form>
         </div>
         <div class="modal-footer">
-          <span class="ajax-error" style="display: none; float: left"></span>
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
           <button type="button" class="btn btn-primary waves-effect waves-light">找回密码</button>
         </div>
@@ -77,7 +84,7 @@
     $modal.parent().removeClass('hidden');
     postApi('/user/login?next={{next}}', {
       data: {
-        phone_or_email: $('#phone_or_email').val(),
+        login_id: $('#login_id').val(),
         password: $('#password').val()
       }
     }, function (data) {
@@ -100,18 +107,20 @@
   var $modal = $('#forgetModal');
 
   $modal.on('shown.bs.modal', function () {
-    $modal.find('#account').val($('#phone_or_email').val());
+    $modal.find('#account').val($('#login_id').val());
   });
 
   $modal.find('.btn-primary').click(function () {
     postApi('/user/forget_pwd', {
       data: {
         name: $modal.find('#name').val(),
-        phone_or_email: $('#phone_or_email').val()
+        phone_or_email: $('#login_id').val()
       }
     }, function () {
       showSuccess('新的密码已经发送，请查收。');
       $modal.find('#name').val('新的密码已经发送，请查收。');
+    }, function (err) {
+      showWarning('提示', err.message, 2000);
     });
   });
 </script>

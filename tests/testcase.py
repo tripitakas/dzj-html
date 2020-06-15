@@ -151,14 +151,14 @@ class APITestCase(AsyncHTTPTestCase):
         return response
 
     def login(self, email, password):
-        return self.fetch('/api/user/login', body={'data': dict(phone_or_email=email, password=password)})
+        return self.fetch('/api/user/login', body={'data': dict(login_id=email, password=password)})
 
     def login_as_admin(self):
         return self.login(admin[0], admin[1])
 
     def register_and_login(self, info):
         """ 先用info信息登录，如果成功则返回，如果失败则用info注册。用户注册后，系统会按注册信息自动登录。 """
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
+        r = self.fetch('/api/user/login', body={'data': dict(login_id=info['email'], password=info['password'])})
         return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})
 
     def add_users_by_admin(self, users, roles=None):

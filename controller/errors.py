@@ -46,6 +46,7 @@ cannot_delete_self = 2008, '不能删除自己'
 url_not_config = 2009, 'Auth中没有配置路径'
 verify_failed = 2010, '验证服务失败'
 email_send_failed = 2011, '邮件发送失败'
+username_duplicated = 2012, '用户名重复'
 
 task_not_existed = 3000, '任务不存在'
 task_unauthorized = 3001, '没有任务相应的权限'

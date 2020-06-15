@@ -19,18 +19,18 @@ class TestUserCommonApi(APITestCase):
         self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
 
         # 密码有误
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.user1[0], password='!@#$%^%$1234')})
+        r = self.fetch('/api/user/login', body={'data': dict(login_id=u.user1[0], password='!@#$%^%$1234')})
         self.assert_code(e.incorrect_password, r)
 
         # 正常登陆
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.user1[0], password=u.user1[1])})
+        r = self.fetch('/api/user/login', body={'data': dict(login_id=u.user1[0], password=u.user1[1])})
         self.assert_code(200, r)
 
     def test_user_logout(self):
         """ 登出api """
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.user1[0], password=u.user1[1])})
+        r = self.fetch('/api/user/login', body={'data': dict(login_id=u.user1[0], password=u.user1[1])})
         self.assert_code(200, r)
 
         r = self.fetch('/api/user/logout', body={'data': {}})
