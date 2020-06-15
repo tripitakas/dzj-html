@@ -36,18 +36,17 @@
         <div id="toggle-column" class="btn-txt icon-columns{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
         <div id="toggle-char" class="btn-txt icon-chars active{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
-        <div class="btn-group hl-box more-group hide" id="more-group">
+        <div class="btn-group hl-box more-group" id="more-group">
           <button id="toggle-all" class="btn btn-default btn-sm" type="button" title="显隐所有字框">所有<sup class="s-count"></sup></button>
           <button id="toggle-overlap" class="btn btn-default btn-sm" type="button" title="显隐重叠字框">重叠<sup class="s-count"></sup></button>
           <button id="toggle-narrow" class="btn btn-default btn-sm" type="button" title="显隐窄字框">窄框<sup class="s-count"></sup></button>
           <button id="toggle-flat" class="btn btn-default btn-sm" type="button" title="显隐扁字框">扁框<sup class="s-count"></sup></button>
           <button id="toggle-large" class="btn btn-default btn-sm" type="button" title="显隐大字框">大框<sup class="s-count"></sup></button>
           <button id="toggle-small" class="btn btn-default btn-sm" type="button" title="显隐小字框">小框<sup class="s-count"></sup></button>
-          <span id="btn-order" class="btn btn-default btn-sm" type="button" title="跳转字序">{{'查看' if readonly else '修改'}}字序</span>
         </div>
       </div>
       <div class="right">
-        <div id="save" class="btn-txt icon-save {{'hide' if readonly or steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
+        <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
         {% include _task_btns.html %}
         {% include _step_btns.html %}
       </div><!--right-->
@@ -249,6 +248,7 @@
     return {
       blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
       chars: $.cut.exportBoxes('char'), auto_adjust: true, step: 'box',
+      steps_finished: stepsFinished,
     };
   }
 
@@ -270,6 +270,7 @@
   });
 
   // 切换步骤
+  var stepsFinished = null;
   var clickedSteps = ['char'];
   $('.task-step').on('click', function () {
     var boxType = $(this).attr('data-value');
@@ -290,6 +291,7 @@
     if (clickedSteps.indexOf('block') === -1) {
       return bsShow('提示', '您尚未进行栏框校对，不能提交。')
     }
+    stepsFinished = true;
     $('#save').click();
   });
 
