@@ -11,24 +11,24 @@ function showError(title, text, timer) {
   // 在页面提示
   if ($('.ajax-error').length) {
     $('.ajax-error').text(text.replace(/[。！]$/, '')).show(200);
-    return setTimeout(() => $('.ajax-error').hide(), timer || 2000);
+    return setTimeout(() => $('.ajax-error').hide(), timer || 5000);
   }
   // sweet alert
   var type = /失败|错误/.test(title) && !/没有发生改变/.test(text) ? 'error' : 'warning';
-  Swal0.fire({title: title, html: text, type: type, timer: timer || 2000});
+  Swal0.fire({title: title, html: text, type: type, timer: timer || 5000});
 }
 
 function showWarning(title, text, timer) {
-  Swal0.fire({title: title, html: text, type: 'warning', timer: timer || 2000});
+  Swal0.fire({title: title, html: text, type: 'warning', timer: timer || 5000});
 }
 
 function showSuccess(title, text, timer) {
-  Swal0.fire({title: title, html: text, type: 'success', timer: timer || 2000});
+  Swal0.fire({title: title, html: text, type: 'success', timer: timer || 5000});
 }
 
 function showTips(title, text, timer, reload) {
   Swal0.fire({title: title, html: text, type: 'warning', timer: timer});
-  reload && setTimeout(() => location.reload(), 2000);
+  reload && setTimeout(() => location.reload(), 5000);
 }
 
 function showConfirm(title, text, func) {

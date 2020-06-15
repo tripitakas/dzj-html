@@ -48,7 +48,7 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
     elif not condition:
         condition = {}
 
-    once_size = 50
+    once_size = 300
     total_count = db.page.count_documents(condition)
     log_id = Bh.add_op_log(db, 'gen_chars', 'ongoing', [], username)
     fields1 = ['name', 'source', 'columns', 'chars']

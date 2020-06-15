@@ -728,8 +728,8 @@
           }
         }
       }
-      dst.data('char_id', info.char_id).data('char', dst.txt);
-      dst.data('class', info.class).data('cid', dst.cid);
+      dst.data('char_id', info.char_id).data('char', info.txt);
+      dst.data('class', info.class).data('cid', info.cid);
 
       info.shape = dst;
       if (added) {
