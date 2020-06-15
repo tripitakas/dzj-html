@@ -23,7 +23,7 @@ class Diff(object):
     @classmethod
     def pre_base(cls, base, keep_line=True):
         """ base预处理"""
-        # 平台中用|表示换行，先恢复换行
+        # 平台中用|表示换行，因此先恢复换行
         base = base.replace('|', '\n').rstrip('\n')
         # 根据参数决定是否保留换行
         base = base.replace('\n', '') if not keep_line else base
@@ -92,9 +92,9 @@ class Diff(object):
             lbl.update(label)
 
         # 和v1不同，v2在比较时，先去掉换行符，以免对diff算法干扰
-        base = cls.pre_base(base)
+        base = base.replace('|', '\n').rstrip('\n')
         base_lines = base.split('\n')
-        base = base.replace('\n', '')
+        base = cls.pre_base(base, False)
         cmp = cls.pre_cmp(cmp)
         segments = []
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
