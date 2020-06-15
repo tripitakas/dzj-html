@@ -322,11 +322,24 @@ class CharTaskClusterHandler(CharHandler):
     def get(self, task_type, task_id):
         """ 聚类校对页面"""
 
+        def c2int(c):
+            return int(float(c) * 1000)
+
         def get_user_filter():
             # 异文
             un_equal = self.get_query_argument('diff', 0)
             if un_equal == 'true':
                 cond['diff'] = True
+            # 按置信度过滤
+            cc = self.get_query_argument('cc', 0)
+            if cc:
+                m1 = re.search(r'^([><]=?)(0|1|[01]\.\d+)$', cc)
+                m2 = re.search(r'^(0|1|[01]\.\d+),(0|1|[01]\.\d+)$', cc)
+                if m1:
+                    op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m1.group(1))
+                    cond.update({'cc': {op: c2int(m1.group(2))} if op else cc})
+                elif m2:
+                    cond.update({'cc': {'$gte': c2int(m2.group(1)), '$lte': c2int(m2.group(2))}})
             # 按修改过滤
             update = self.get_query_argument('update', 0)
             if update == 'my':
