@@ -199,7 +199,7 @@ class CharTaskListHandler(CharHandler):
         {'id': 'remark', 'name': '备注'},
     ]
     operations = [
-        {'operation': 'bat-remove', 'label': '批量删除', 'title': '/task/delete'},
+        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
         {'operation': 'bat-batch', 'label': '更新批次'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
