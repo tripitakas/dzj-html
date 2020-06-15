@@ -1,21 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+import re
 import os
 import csv
 from os import path
-from datetime import datetime
 from bson.objectid import ObjectId
-from tornado.escape import to_basestring
 from utils.build_js import build_js
+from tornado.escape import to_basestring
 from controller import errors as e
 from controller import validate as v
-from controller.base import BaseHandler, DbError
-from controller.data.data import Tripitaka, Reel, Sutra, Volume, Page
+from controller.base import BaseHandler
+from controller.helper import align_code
+from controller.data.data import Tripitaka, Reel, Sutra, Volume, Variant
 
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
+
+
+class DataUpsertApi(BaseHandler):
+    URL = '/api/data/@metadata'
+
+    def post(self, metadata):
+        """ 新增或修改 """
+        try:
+            model = eval(metadata.capitalize())
+            r = model.save_one(self.db, metadata, self.data, self=self)
+            if r.get('status') == 'success':
+                self.send_data_response(r)
+                self.add_log(('update_' if r.get('update') else 'add_') + metadata, target_id=r.get('id'))
+            else:
+                self.send_error_response(r.get('errors'))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
 
 
 class DataUploadApi(BaseHandler):
@@ -38,39 +58,15 @@ class DataUploadApi(BaseHandler):
         upload_file = self.request.files.get('csv') or self.request.files.get('json')
         content = to_basestring(upload_file[0]['body'])
         with StringIO(content) as fn:
-            if collection == 'page':
-                assert self.data.get('layout'), 'need layout'
-                r = Page.insert_many(self.db, file_stream=fn, layout=self.data['layout'],
-                                     source=self.data.get('source'))
-            else:
-                update = False if collection == 'tripitaka' else True
-                r = model.save_many(self.db, collection, file_stream=fn, update=update)
-
+            update = False if collection == 'tripitaka' else True
+            r = model.save_many(self.db, collection, file_stream=fn, update=update)
             if r.get('status') == 'success':
                 if r.get('errors'):
                     r['url'] = self.save_error(collection, r.get('errors'))
                 self.send_data_response(r)
-                self.add_op_log('upload_' + collection, context=r.get('message'))
+                self.add_log('upload_' + collection, target_name=r.get('target_names'), content=r.get('message'))
             else:
                 self.send_error_response((r.get('code'), r.get('message')))
-
-
-class DataAddOrUpdateApi(BaseHandler):
-    URL = '/api/data/@metadata'
-
-    def post(self, metadata):
-        """ 新增或修改 """
-        try:
-            model = eval(metadata.capitalize())
-            r = model.save_one(self.db, metadata, self.data)
-            if r.get('status') == 'success':
-                self.add_op_log(('update_' if r.get('update') else 'add_') + metadata, context=r.get('message'))
-                self.send_data_response(r)
-            else:
-                self.send_error_response(r.get('errors'))
-
-        except DbError as error:
-            return self.send_db_error(error)
 
 
 class DataDeleteApi(BaseHandler):
@@ -78,41 +74,61 @@ class DataDeleteApi(BaseHandler):
 
     def post(self, collection):
         """ 批量删除 """
+
+        def pre_variant():
+            if self.data.get('_id'):
+                vt = self.db.variant.find_one({'_id': ObjectId(self.data['_id'])})
+                if self.db.char.find_one({'txt': 'Y%s' % vt['uid'] if vt.get('uid') else vt['txt']}):
+                    return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
+            else:
+                can_delete = []
+                vts = list(self.db.variant.find({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}))
+                for vt in vts:
+                    if not self.db.char.find_one({'txt': 'Y%s' % vt['uid'] if vt.get('uid') else vt['txt']}):
+                        can_delete.append(str(vt['_id']))
+                if can_delete:
+                    self.data['_ids'] = can_delete
+                else:
+                    return self.send_error_response(e.unauthorized, message='所有异体字均被使用中，不能删除')
+
         try:
             rules = [(v.not_both_empty, '_id', '_ids')]
             self.validate(self.data, rules)
 
+            if collection == 'variant':
+                pre_variant()
+
             if self.data.get('_id'):
                 r = self.db[collection].delete_one({'_id': ObjectId(self.data['_id'])})
-                self.add_op_log('delete_' + collection, target_id=self.data['_id'])
+                self.add_log('delete_' + collection, target_id=self.data['_id'])
             else:
                 r = self.db[collection].delete_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}})
-                self.add_op_log('delete_' + collection, target_id=self.data['_ids'])
+                self.add_log('delete_' + collection, target_id=self.data['_ids'])
             self.send_data_response(dict(count=r.deleted_count))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
-class DataPageUpdateSourceApi(BaseHandler):
-    URL = '/api/data/page/source'
+class VariantDeleteApi(BaseHandler):
+    URL = '/api/variant/delete'
 
     def post(self):
-        """ 批量更新分类 """
+        """ 删除图片异体字"""
         try:
-            rules = [(v.not_empty, 'source'), (v.not_both_empty, '_id', '_ids')]
+            rules = [(v.not_empty, 'uid'), (v.is_char_uid, 'uid')]
             self.validate(self.data, rules)
+            uid = self.data['uid']
+            if self.db.char.find_one({'txt': uid}):
+                return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
+            vt = self.db.variant.find_one({'uid': int(uid.strip('Y'))})
+            if not vt:
+                return self.send_error_response(e.no_object, message='没有找到%s相关的异体字' % uid)
+            self.db.variant.delete_one({'_id': vt['_id']})
+            self.send_data_response()
+            self.add_log('delete_variant', target_id=vt['_id'])
 
-            update = {'$set': {'source': self.data['source']}}
-            if self.data.get('_id'):
-                r = self.db.page.update_one({'_id': ObjectId(self.data['_id'])}, update)
-                self.add_op_log('update_page', target_id=self.data['_id'])
-            else:
-                r = self.db.page.update_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}, update)
-                self.add_op_log('update_page', target_id=self.data['_ids'])
-            self.send_data_response(dict(matched_count=r.matched_count))
-
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -137,5 +153,5 @@ class DataGenJsApi(BaseHandler):
 
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)

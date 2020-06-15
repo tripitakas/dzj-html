@@ -4,10 +4,11 @@
 @desc: Handler基类
 @time: 2018/6/23
 """
-
 import re
+import oss2
 import logging
 import traceback
+from oss2.exceptions import OssError
 from os import path
 from bson import json_util
 from bson.errors import BSONError
@@ -24,31 +25,31 @@ from tornado.httpclient import AsyncHTTPClient
 from controller import errors as e
 from controller import validate as v
 from controller.auth import get_route_roles, can_access
-from controller.helper import get_date_time, prop, md5_encode
-
-MongoError = (PyMongoError, BSONError)
-DbError = MongoError
-hook = {}
+from controller.helper import get_date_time, prop, md5_encode, BASE_DIR
 
 
 class BaseHandler(CorsMixin, RequestHandler):
-    """ 后端API响应类的基类 """
-    CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,X-Real-Ip,User-Agent,Cache-Control,Cookies,Set-Cookie'
+    """ 后端API响应类的基类"""
+    CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
+
+    MongoError = (PyMongoError, BSONError)
+    DbError = MongoError
 
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.db = self.application.db_test if self.get_query_argument('_test', 0) == '1' else self.application.db
-        self.error = self.is_api = self.user = self.user_id = self.username = None
+        self.data = self.error = self.is_api = None
+        self.user = self.user_id = self.username = None
         self.config = self.application.config
-        self.more = self.data = {}  # 给子类使用
+        self.more = {}  # 给子类使用
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
-        self.set_header('Cache-Control', 'no-cache')
         self.set_header('Access-Control-Allow-Headers', self.CORS_HEADERS)
         self.set_header('Access-Control-Allow-Methods', self._get_methods())
         self.set_header('Access-Control-Allow-Credentials', 'true')
+        self.set_header('Cache-Control', 'no-cache')
 
     def prepare(self):
         """ 调用 get/post 前的准备"""
@@ -71,12 +72,10 @@ class BaseHandler(CorsMixin, RequestHandler):
             user_in_db = self.db.user.find_one({'$or': cond} if cond else dict(_id=self.current_user.get('_id')))
             if not user_in_db:
                 return self.send_error_response(e.no_user) if self.is_api else self.redirect(login_url)
-        except MongoError as error:
+        except self.MongoError as error:
             return self.send_db_error(error)
         # 设置参数
         self.user_id, self.username = self.current_user.get('_id'), self.current_user.get('name')
-        if self.is_api:
-            self.update_user_time()
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -120,7 +119,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['dumps'] = json_util.dumps
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t) if t else ''
         kwargs['file_exists'] = lambda fn: path.exists(path.join(self.application.BASE_DIR, fn))
-        if self._finished:  # check_auth 等处报错返回后就不再渲染
+        # check_auth 等处报错返回后就不再渲染
+        if self._finished:
             return
 
         # 单元测试时，获取传递给页面的数据
@@ -159,15 +159,16 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param kwargs: 更多上下文参数
         :return: None
         """
+
         def remove_func(obj):
             if isinstance(obj, dict):
-                for k, v in list(obj.items()):
-                    if callable(v):
+                for k, vo in list(obj.items()):
+                    if callable(vo):
                         obj.pop(k)
-                    remove_func(v)
+                    remove_func(vo)
             elif isinstance(obj, list):
-                for v in obj:
-                    remove_func(v)
+                for vo in obj:
+                    remove_func(vo)
 
         assert data is None or isinstance(data, (list, dict))
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
@@ -238,8 +239,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
         if not isinstance(code, int):
             code = 0
-        reason = re.sub(r'[<{;:].+$', '', error.args[1]) if code else re.sub(r'\(0.+$', '', str(error))
-        if not code and '[Errno' in reason and isinstance(error, MongoError):
+        reason = re.sub(r'[<{;:].+$', '', str(error.args[1])) if code else re.sub(r'\(0.+$', '', str(error))
+        if not code and '[Errno' in reason and isinstance(error, self.MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
             reason = '无法访问文档库' if code in [61] or 'Timeout' in error.__class__.__name__ else '%s(%s)%s' % (
@@ -251,76 +252,100 @@ class BaseHandler(CorsMixin, RequestHandler):
             logging.error(error.args[1])
         if 'InvalidId' == error.__class__.__name__:
             code, reason = 1, e.no_object[1]
-        if code not in [2003, 1]:
+        if code not in [2003]:
             traceback.print_exc()
 
-        default_error = e.mongo_error if isinstance(error, MongoError) else e.db_error
+        default_error = e.mongo_error if isinstance(error, self.MongoError) else e.db_error
         reason = '无法连接数据库' if code in [2003] else '%s(%s)%s' % (
             default_error[1], error.__class__.__name__, ': ' + (reason or '')
         )
 
         return self.send_error_response((default_error[0] + code, reason))
 
-    def get_ip(self):
-        ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
-        ip = ip.split(',')[-1].strip()
-        ip = self.request.headers.get('X-Real-Ip') or ip
-        return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
-
-    def add_op_log(self, op_type, target_id=None, context=None, username=None):
-        target_id = target_id and str(target_id) or None
-        user_id = self.current_user and self.current_user.get('_id')
-        username = username or self.current_user and self.current_user.get('name')
-        logging.info('%s,username=%s,target_id=%s,context=%s' % (op_type, username, target_id, context))
-        try:
-            self.db.log.insert_one(dict(
-                op_type=op_type, username=username, user_id=user_id, target_id=target_id,
-                context=str(context), ip=self.get_ip(), create_time=self.now(),
-            ))
-        except MongoError:
-            pass
-
-    def get_img(self, page, resize=False, force_local=False):
-        if page.get('img_cloud_path'):
-            url = page['img_cloud_path']
-            return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
-
-        page_name = page['name']
-        host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
-        if not host or salt in [None, '', '待配置'] or force_local:
-            fn = self.static_url('img/{0}/{1}.jpg'.format(page_name[:2], page_name))
-            if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
-                fn += '?err=1'  # cut.js 据此不显示图
-            return fn
-
-        hash_value = md5_encode(page_name, salt)
-        inner_path = '/'.join(page_name.split('_')[:-1])
-        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
-        return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
-
-    def validate(self, data, rules):
-        errs = v.validate(data, rules)
-        if errs:
-            self.send_error_response(errs)
-
-    def is_mod_enabled(self, mod):
-        disabled_mods = self.prop(self.config, 'module.disabled')
-        return not disabled_mods or mod not in disabled_mods
-
-    def update_user_time(self):
-        info = {'updated_time': self.now(), 'ip': self.get_ip()}
-        agent = self.request.headers.get('user-agent')
-        if agent:
-            info['agent'] = agent
-        self.db.user.update_one(dict(_id=self.user_id), {'$set': info})
-
     @staticmethod
     def now():
         return datetime.now()
 
-    @classmethod
-    def prop(cls, obj, key, default=None):
+    @staticmethod
+    def prop(obj, key, default=None):
         return prop(obj, key, default=default)
+
+    def get_ip(self):
+        ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
+        return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
+
+    def get_config(self, key):
+        return self.prop(self.config, key)
+
+    def add_log(self, op_type, target_id=None, target_name=None, content=None, remark=None):
+        logging.info('%s,username=%s,id=%s,context=%s' % (op_type, self.username, target_id, content))
+        try:
+            self.db.log.insert_one(dict(
+                op_type=op_type, target_id=target_id, target_name=target_name, content=content,
+                remark=remark, username=self.username, user_id=self.user_id,
+                ip=self.get_ip(), create_time=self.now(),
+            ))
+        except self.MongoError:
+            pass
+
+    @classmethod
+    def add_op_log(cls, db, op_type, status, content, username):
+        """ 新增运维日志。运维日志指的是管理员的各种操作的日志记录"""
+        assert status in ['ongoing', 'finished', '', None]
+        try:
+            r = db.oplog.insert_one(dict(
+                op_type=op_type, status=status or None, content=content or [], create_by=username,
+                create_time=cls.now(), updated_time=cls.now(),
+            ))
+            return r.inserted_id
+        except cls.MongoError as error:
+            print('错误(%s): %s' % (error.__class__.__name__, str(error)))
+            pass
+
+    def validate(self, data, rules):
+        errs = v.validate(data, rules)
+        errs and self.send_error_response(errs)
+
+    def is_mod_enabled(self, mod):
+        disabled_mods = self.prop(self.config, 'modules.disabled_mods')
+        return not disabled_mods or mod not in disabled_mods
+
+    def get_web_img(self, img_name, img_type='page'):
+        inner_path = '/'.join(img_name.split('_')[:-1])
+        img_name_old = img_name
+        if self.get_config('web_img.with_hash'):
+            img_name += '_' + md5_encode(img_name, self.get_config('web_img.salt'))
+        shared_cloud = self.get_config('web_img.shared_cloud')
+        relative_url = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name)
+
+        # 从本地获取图片
+        local_path = self.get_config('web_img.local_path')
+        if local_path:
+            img_url = '/{0}/{1}'.format(local_path.strip('/'), relative_url)
+            if path.exists(path.join(BASE_DIR, img_url[1:])):
+                return img_url
+            elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
+                return path.join(shared_cloud, relative_url)
+            else:
+                return img_url + '?err=1'  # cut.js 据此不显示图
+        # 从云盘获取图片
+        my_cloud = self.get_config('web_img.my_cloud')
+        if my_cloud:
+            auth = oss2.Auth(self.get_config('web_img.key_id'), self.get_config('web_img.key_secret'))
+            bucket_name = re.sub(r'http[s]?://', '', my_cloud).split('.')[0]
+            cloud_host = my_cloud.replace(bucket_name + '.', '')
+            img_bucket = oss2.Bucket(auth, cloud_host, bucket_name)
+            img_url = path.join(my_cloud.replace('-internal', ''), relative_url)
+            try:
+                if img_bucket.object_exists(relative_url):
+                    return img_url
+                elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
+                    return path.join(shared_cloud, relative_url)
+                else:
+                    return img_url + '?err=1'
+            except OssError as err:
+                logging.error(err)
+                return img_url + '?err=1'
 
     @gen.coroutine
     def call_back_api(self, url, handle_response=None, handle_error=None, **kwargs):
@@ -361,10 +386,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             if not re.match(r'http(s)?://', url):
                 url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
-                yield client.fetch(url, headers=self.request.headers,
-                                   callback=callback, validate_cert=False, **kwargs)
-            else:
-                yield client.fetch(url, callback=callback, validate_cert=False, **kwargs)
+            yield client.fetch(url, headers=self.request.headers,
+                               callback=callback, validate_cert=False, **kwargs)
         except (OSError, HTTPError) as err_con:
             if handle_error:
                 handle_error('服务无响应: ' + str(err_con))

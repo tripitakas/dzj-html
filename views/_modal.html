@@ -20,7 +20,8 @@
             <div class="{{'col-md-10' if name else 'col-md-12'}}">
               {% if input_type == 'radio' %}
               <div class="modal-radio {{fid}}">
-                {% for o in f.get('options') %}
+                {% set options = [[k, v] for k,v in f['options'].items()] if isinstance(f.get('options'), dict) else f['options'] %}
+                {% for o in options %}
                 {% set o = [o, o] if isinstance(o, str) else o %}
                 <input type="radio" name="{{fid}}" value="{{o[0]}}">{{o[1]}}
                 {% end %}

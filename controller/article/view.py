@@ -10,7 +10,7 @@ from controller.article.article import Article
 
 
 class ArticleAdminHandler(BaseHandler):
-    URL = '/article'
+    URL = '/article/admin'
 
     def get(self):
         """ 文章管理"""
@@ -24,7 +24,7 @@ class ArticleAdminHandler(BaseHandler):
             return self.send_db_error(error)
 
 
-class ArticleAddOrUpdateHandler(BaseHandler):
+class ArticleUpsertHandler(BaseHandler):
     URL = ['/article/add', '/article/update/@article_id']
 
     def get(self, article_id=None):
@@ -71,6 +71,7 @@ class ArticleListHandler(BaseHandler):
             kwargs = model.get_template_kwargs()
             kwargs['search_tips'] = ''
             kwargs['operations'] = []
+            kwargs['img_operations'] = []
             kwargs['page_title'] = '帮助中心' if category == 'help' else '通知中心'
             condition = {'category': '帮助' if category == 'help' else '通知', 'active': '是'}
             docs, pager, q, order = model.find_by_page(self, condition, default_order='-create_time')

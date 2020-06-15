@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2020-04-27
+ * Date: 2020-06-05
  */
 (function () {
   'use strict';
@@ -143,6 +143,7 @@
     handleFill: '#ffffff',                    // 字框控制点的填充色
     activeHandleColor: '#72141d',             // 活动控制点的线色
     activeHandleFill: '#434188',              // 活动控制点的填充色
+    readonlyColor: '#777',                    // 只读字框的线色
     handleSize: 2.2,                          // 字框控制点的半宽
     boxLineWidth: 2,                          // 框线宽
     boxFill: 'rgba(0, 0, 0, .01)',            // 默认的字框填充色，不能全透明
@@ -254,7 +255,7 @@
       }
       handle.handles.length = 0;
 
-      if (el && !state.readonly && !el.data('readonly')) {
+      if (el && !state.readonly && !el.data('readonly') && !el.data('_readonly')) {
         for (i = 0; i < 8; i++) {
           pt = getHandle(el, i);
           r = data.paper.rect(pt.x - size, pt.y - size, size * 2, size * 2)
@@ -403,8 +404,9 @@
         state.editHandle.fillOpacity = el.attr('fill-opacity');
         state.editHandle.hidden = el.node && el.node.style.display === 'none';
         // 当前框高亮显示
+        var readonly = el.data('readonly') || el.data('_readonly');
         el.attr({
-          stroke: data.changedColor,
+          stroke: readonly ? data.readonlyColor : data.changedColor,
           fill: data.hoverFill,
           'stroke-opacity': data.boxOpacity,
           'fill-opacity': data.activeFillOpacity
@@ -468,7 +470,8 @@
         if (state.editHandle.index >= 0) {
           state.down = getHandle(state.edit, state.editHandle.index);
         }
-        else if (!self.isInRect(state.down, state.edit, 3) && !state.readonly) {
+        else if (!self.isInRect(state.down, state.edit, 3) && !state.readonly &&
+            !(state.edit && (state.edit.data('readonly') || state.edit.data('_readonly')))) {
           // 不能拖动当前字框的控制点，则取消当前字框的高亮显示，准备画出一个新字框
           self.hoverOut(state.edit);
           state.edit = null;
@@ -486,11 +489,12 @@
 
       var mouseDrag = function (e) {
         var pt = getPoint(e);
+        var boxR = state.originBox || state.edit;
 
         e.preventDefault();
         state.mouseDrag(pt, e);
         if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3
-            || state.originBox && state.originBox.data('readonly')) {
+            || boxR && (boxR.data('readonly') || boxR.data('_readonly'))) {
           return;
         }
 
@@ -546,13 +550,13 @@
           .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
-      data.ratioInitial = $(data.holder).width() / p.width;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
-      if (h && !p.widthFull) {
-        data.ratioInitial = Math.max(data.ratioInitial, (h - 10) / p.height);
+      data.ratioInitial = (h - 20) / p.height;
+      if (h && p.widthFull) {
+        data.ratioInitial = ($(data.holder).width() - 20) / p.width;
       }
       if (p.minRatio) {
-        data.ratioInitial = Math.max(data.ratioInitial, p.minRatio);
+        data.ratioInitial = p.minRatio;
       }
 
       $(data.holder)
@@ -676,7 +680,7 @@
         }
         c.shape = data.paper.rect(b.x * s, b.y * s, b.w * s, b.h * s).initZoom()
             .setAttr({
-              stroke: (b.column_no || 0) % 2 ? data.normalColor2 : data.normalColor,
+              stroke: b.readonly ? data.readonlyColor : ((b.column_no || 0) % 2 ? data.normalColor2 : data.normalColor),
               'stroke-opacity': data.boxOpacity,
               'stroke-width': data.boxLineWidth / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来正常
               , 'fill-opacity': 0.1
@@ -701,6 +705,10 @@
     _changeBox: function (src, dst) {
       var box = dst && dst.getBBox();
       if (!box) {
+        return;
+      }
+      if (src && (src.data('readonly') || src.data('_readonly'))) {
+        dst.remove();
         return;
       }
 
@@ -827,7 +835,6 @@
           if (ret.char_id.indexOf('new') === -1)
             delete ret.char_id;
           delete ret.char_no;
-          delete ret.cid;
         }
         if (c.class === 'block') {
           delete ret.column_no;
@@ -900,8 +907,8 @@
         return;
       }
       this.cancelDrag();
-      if (state.edit && !state.readonly && !state.edit.data('readonly')) {
-        var el = state.edit;
+      var el = state.edit;
+      if (el && !state.readonly && !el.data('readonly') && !el.data('readonly')) {
         var info = this.findCharById(el.data('char_id'));
         var hi = /small|narrow|flat/.test(data.hlType) && this.switchNextHighlightBox;
         var next = hi ? this.switchNextHighlightBox(1) : this.navigate('down');
@@ -1045,13 +1052,14 @@
     toggleBox: function (visible, cls, boxIds, readonly) {
       data.chars.forEach(function (box) {
         if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
+          var readonly2 = readonly || box.readonly;
           if (!$(box.shape.node).hasClass('flash')) {
             $(box.shape.node).toggle(visible || !!readonly);
             box.shape.data('_readonly', readonly);
             box.shape.attr({
-              opacity: readonly ? 0.3 : 1,
+              opacity: readonly2 ? 0.3 : 1,
               stroke: (box.column_no || 0) % 2 ?
-                  (readonly ? '#977' : data.normalColor2) : (readonly ? '#779' : data.normalColor)
+                  (readonly2 ? '#977' : data.normalColor2) : (readonly2 ? '#779' : data.normalColor)
               });
           }
         }

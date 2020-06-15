@@ -4,16 +4,14 @@
   <meta charset="UTF-8">
   <title>{{page_title}}</title>
   {% include _base_css.html %}
-  <link href="{{static_url('assets/datatables/jquery.dataTables.min.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <![endif]-->
-  {% block custom-css %}
-  {% end %}
+  {% block custom-css %}{% end %}
 </head>
 
-<body>
+<body class="widescreen">
 <div class="app-main">
   <div class="main">
     {% module ComLeft() %}
@@ -44,38 +42,34 @@
                 <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#{{o['data-target']}}">
                   {{o.get('label')}}
                 </button>
-                {% elif 'url' in o %}
+                {% elif 'href' in o %}
                 <button type="button" class="btn btn-default waves-effect">
-                  <a href="{{o['url']}}">{{o.get('label')}}</a>
+                  <a href="{{o['href']}}">{{o.get('label')}}</a>
                 </button>
                 {% else %}
-                <button type="button" class="btn btn-default waves-effect {{o.get('operation') or ''}}" title="{{o.get('title') or ''}}">
+                <button type="button" class="btn btn-default waves-effect {{o.get('operation') or ''}}" url="{{o.get('url') or ''}}">
                   {{o.get('label')}}
                 </button>
                 {% end %}
                 {% end %}
               </div>
-              <div style="margin: 5px; display: inline-block; cursor: pointer">
-                <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img btn-config {{'' if 'config' in img_operations else 'hide'}}" data-toggle="modal" data-target="#configModal"
-                     title="配置"/>
-                <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img btn-help {{'' if 'help' in img_operations else 'hide'}}" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+              <div class="btn-group">
+                <i class="icon-config btn-txt btn-config {{'' if 'config' in img_operations else 'hide'}}" data-toggle="modal" data-target="#configModal" title="配置"></i>
+                <i class="icon-help btn-txt btn-help {{'' if 'help' in img_operations else 'hide'}}" data-toggle="modal" data-target="#helpModal" title="帮助"></i>
               </div>
             </div>
             {% end %}
 
             {% block search %}
             <div class="search fr{{'' if search_tips else ' hide'}}">
-              <input id="search-input" type="text" placeholder="{{search_tips}}" value="{{q}}">
-              <i class="ser-btn"></i>
+              <input id="search-input" type="text" placeholder="{{search_tips}}" value="{{q}}"/>
+              <i class="icon-search"></i>
             </div>
             {% end %}
 
             {% block table %}
-            {% try %}
-            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order,format_value=handler.format_value) %}
-            {% except %}
-            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order) %}
-            {% end %}
+            {% set format_func = format_value if 'format_value' in globals() else None %}
+            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order,format_value=format_func) %}
             {% end %}
 
             {% module Pager(pager) %}
@@ -118,8 +112,7 @@
 
 {% include _base_js.html %}
 <script src="{{static_url('js/com-table.js')}}"></script>
-{% block custom-js %}
-{% end %}
+{% block custom-js %} {% end %}
 
 </body>
 </html>

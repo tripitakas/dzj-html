@@ -45,10 +45,8 @@
             <div class="panel-body" style="padding: 10px">
               <div class="tips">{{message.rstrip('。')}}。</div>
               <div class="links">
-                {% if 'links' in globals() %}
-                {% for text, url in links %}
-                <a href="{{url}}">{{text}}</a>
-                {% end %}
+                {% if 'links' in globals() and links %}
+                {% for text, url in links %}<a href="{{url}}">{{text}}</a>{% end %}
                 {% end %}
               </div>
               <div class="actions">

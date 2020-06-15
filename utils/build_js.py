@@ -5,8 +5,8 @@ import json
 import pymongo
 from os import path
 from datetime import datetime
-from functools import cmp_to_key
 from operator import itemgetter
+from functools import cmp_to_key
 
 
 def build_js(db, collection, tripitaka=None):
@@ -92,7 +92,7 @@ def build_sutra_js(db, tripitaka=None):
             fp.write(";")
 
 
-def main(db_name='tripitaka', uri='localhost', which='sutra, volume'):
+def main(db_name='tripitaka', uri='localhost', which='sutra,volume'):
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     if 'volume' in which:

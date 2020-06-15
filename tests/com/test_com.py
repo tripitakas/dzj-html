@@ -25,10 +25,6 @@ class TestCom(APITestCase):
         self.assertFalse(auth.can_access('', '/api/task/pick/cut_proof', 'POST'))
         self.assertTrue(auth.can_access('切分专家', '/api/task/pick/cut_proof', 'POST'))
         self.assertEqual(auth.get_route_roles('/api/task/pick/cut_proof', 'POST'), ['切分校对员', '切分专家'])
-        # 测试get_all_roles
-        roles = auth.get_all_roles('切分专家,文字专家')
-        should = {'普通用户', '切分专家', '文字专家', '切分审定员', '切分校对员', 'OCR校对员', 'OCR审定员', '文字校对员', '文字审定员'}
-        self.assertEqual(set(roles), should)
 
     def test_validate(self):
         """ 测试validate模块"""

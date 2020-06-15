@@ -4,10 +4,10 @@
 @time: 2019/6/23
 """
 import re
-from .esearch import find
 from bson import json_util
-from controller.page.variant import normalize
-from controller.base import BaseHandler, DbError
+from controller.base import BaseHandler
+from controller.page.tool.esearch import find
+from controller.page.tool.variant import normalize
 
 try:
     import punctuation
@@ -21,13 +21,13 @@ class PunctuationApi(BaseHandler):
     URL = '/api/com/punctuate'
 
     def post(self):
-        """ 自动标点 """
+        """ 自动标点"""
         try:
             q = self.data.get('q', '').strip()
             res = punc_str(q) if q else ''
             self.send_data_response(dict(res=res))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -35,7 +35,7 @@ class CbetaSearchApi(BaseHandler):
     URL = '/api/com/search'
 
     def post(self):
-        """ CBETA检索 """
+        """ CBETA检索"""
 
         def merge_kw(txt):
             # 将<kw>一</kw>，<kw>二</kw>格式替换为<kw>一，二</kw>
@@ -74,5 +74,5 @@ class SessionConfigApi(BaseHandler):
                 self.set_secure_cookie(k, json_util.dumps(v))
             return self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)

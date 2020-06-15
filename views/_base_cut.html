@@ -1,5 +1,6 @@
 {% if not debug and 0 %}
-<script src="{{static_url('built/base_cut-d4f8279b.js')}}"></script>
+<script src="{{static_url('built/cut_assets.js')}}"></script>
+<script src="{{static_url('built/cut_local.js')}}"></script>
 {% else %}
 <script src="{{static_url('js/cut/raphael.js')}}"></script>
 <script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
@@ -11,19 +12,18 @@
 
 <script>
   function updateUndo() {
-    var root = '/static/imgs';
-    $('#undo').attr('src', root + ($.cut.canUndo() ? '/icon_lr.png' : '/icon_lr_not.png'));
-    $('#redo').attr('src', root + ($.cut.canRedo() ? '/icon_rr.png' : '/icon_rr_not.png'));
+    $('#undo').toggleClass('disabled', !$.cut.canUndo());
+    $('#redo').toggleClass('disabled', $.cut.canUndo());
   }
 
   updateUndo();
 
-  $('#undo').click(function () {
+  $('#undo').on('click', function () {
     $.cut.undo();
     updateUndo();
   });
 
-  $('#redo').click(function () {
+  $('#redo').on('click', function () {
     $.cut.redo();
     updateUndo();
   });

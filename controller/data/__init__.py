@@ -1,12 +1,11 @@
-from . import view, api
+from . import view, api, tripitaka
 
 views = [
-    view.TripitakaListHandler, view.TripitakaHandler, view.DataListHandler,
-    view.DataPageInfoHandler, view.DataPageListHandler,
-    view.DataPageViewHandler,
+    tripitaka.TripitakaListHandler, tripitaka.TripitakaViewHandler, tripitaka.TptkViewHandler,
+    view.DataListHandler, view.VariantListHandler, tripitaka.TptkMetaHandler,
 ]
 
 handlers = [
-    api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi, api.DataGenJsApi,
-    api.DataPageUpdateSourceApi,
+    api.DataUpsertApi, api.DataUploadApi, api.DataDeleteApi, api.VariantDeleteApi,
+    api.DataGenJsApi,
 ]

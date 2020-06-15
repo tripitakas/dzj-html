@@ -111,7 +111,7 @@
     // 得到左边的入点和右边的出点坐标
     getLets: function () {
       var box = this.getBox(), y = (box.y + box.y2) / 2;
-      return [{x: box.x + box.width * 0.3, y: y}, {x: box.x + box.width * 0.7, y: y}];
+      return [{x: box.x + box.width * 0.4, y: y}, {x: box.x + box.width * 0.6, y: y}];
     },
 
     // 创建亮显矩形
@@ -454,7 +454,7 @@
     },
 
     _updateCharInfo: function (link) {
-      $('#cut-info > .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
+      $('.m-footer .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
           (this.state.inletHit ? '，可改终点' : (this.state.outletHit ? this.hover.line ? '，可改起点' : '，起点' : '')));
     },
 

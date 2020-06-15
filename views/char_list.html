@@ -1,0 +1,393 @@
+{% extends "_list.html" %}
+
+{% block custom-css %}
+<link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
+<style>
+  .char-img {
+    width: 60px;
+  }
+
+  .swal2-footer a {
+    color: var(--Brown_Darker);
+    text-decoration: underline;
+  }
+
+</style>
+{% include _font_css.html %}
+{% end %}
+
+{% block custom-modal %}
+<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">帮助文档</h4>
+      </div>
+      <div class="modal-body">
+        <div class="title">一、简介</div>
+        <div class="intro">
+          页数据管理模块提供各种的页面的管理操作，包括批量删除、查找重复、更新分类、综合检索、发布任务等，
+          还可以针对具体的页面进行浏览、查看详情、更新基础数据、删除等操作。<br/>
+          注：浏览指的是针对检索结果的浏览，浏览时可以对页面进行具体的操作。
+        </div>
+        <div class="title">二、操作</div>
+        <table class="table">
+          <tr>
+            <td>批量删除</td>
+            <td>批量删除选中的页面</td>
+          </tr>
+          <tr>
+            <td>查找重复</td>
+            <td>查找页编码重复的页面</td>
+          </tr>
+          <tr>
+            <td>更新分类</td>
+            <td>批量更新选中页面的分类。对页面分类后，以便进行管理</td>
+          </tr>
+          <tr>
+            <td>综合检索</td>
+            <td>
+              可以对页面的各个字段进行检索。尤其值得注意的是，综合检索设置了“切分任务”、“文字任务”两种字段，包括“全未发布”、
+              “已发布”、“全部完成”。比如要检索所有未发布切分任务的页面，就可以通过这个字段进行。
+            </td>
+          </tr>
+          <tr>
+            <td>发布任务</td>
+            <td>
+              如果任务没有前置任务，则系统直接发布为「已发布」。如果有前置任务，则根据前置任务情况：如果都已完成，则发布为「已发布」；
+              如果有一个前置任务未完成，则发布为「等待前置任务」。<br/>
+              该任务的前置任务在完成时，系统会进行检查，如果所有前置任务都已完成，则系统将自动设置为「已发布」。<br/>
+              如果任务数据未就绪或已经发布，则发布失败。已退回的任务可以重新发布。
+            </td>
+          </tr>
+          <tr>
+            <td>浏览</td>
+            <td>逐条浏览检索结果，在浏览页面时可以对页面进行各种操作</td>
+          </tr>
+          <tr>
+            <td>详情</td>
+            <td>查看页面详情</td>
+          </tr>
+          <tr>
+            <td>更新</td>
+            <td>更新页面基础信息</td>
+          </tr>
+          <tr>
+            <td>删除</td>
+            <td>删除页面</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h4 class="modal-title">综合检索</h4></div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">字编码</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="请输入字编码，可部分输入">
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">分　类</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">OCR文字</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control ocr_txt" value="{{params.get('ocr_txt') or ''}}" placeholder="请输入OCR文字，一个汉字">
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">校对文字</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入校对文字，一个汉字">
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">文字类型</h4>
+            <div class="col-sm-10">
+              <select class="form-control txt_type">
+                <option value=""></option>
+                {% for k,v in txt_types.items() %}
+                {% if params.get('txt_type', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">是否不匹配</h4>
+            <div class="col-sm-10">
+              <select class="form-control diff">
+                <option value=""></option>
+                {% for k,v in yes_no.items() %}
+                {% if params.get('diff', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">置信度</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control cc" value="{{params.get('cc') or ''}}" placeholder="请输入置信度，支持范围如>0.5、>=0.5、<0.9、<=0.9等，默认为等于">
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">备　注</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect reset">重置</button>
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="sourceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="sourceModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h4 class="modal-title">更新分类</h4>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+            <h4 class="item-title">选择范围</h4>
+            <div class="range">
+              <label class="radio-inline"><input type="radio" name="range" value="selected" checked>选中记录(<span class="selected-count">0</span>条)</label>
+              <label class="radio-inline"><input type="radio" name="range" value="searched">检索结果({{pager['doc_count']}}条)</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="item-title">输入分类</h4>
+            <input type="text" class="form-control source" placeholder="请输入分类">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="extractModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="extractModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h4 class="modal-title">生成字图</h4>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+            <h4 class="item-title">针对哪些数据？</h4>
+            <div class="range">
+              <label class="radio-inline"><input type="radio" name="range" value="selected" checked>选中记录(<span class="selected-count">0</span>条)</label>
+              <label class="radio-inline"><input type="radio" name="range" value="searched">检索结果({{pager['doc_count']}}条)</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="item-title">已有字图时是否重新生成？</h4>
+            <div class="regen">
+              <label class="radio-inline"><input type="radio" name="regen" value="否" checked>否</label>
+              <label class="radio-inline"><input type="radio" name="regen" value="是">是</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <input class="task-type" type="hidden" value="">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">发布任务/<span class="task-name"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group batch">
+            <h4 class="item-title">任务批次</h4>
+            <input type="text" class="form-control value" placeholder="请输入批次"/>
+          </div>
+          <div class="form-group pre_tasks">
+            <h4 class="control-label">选择前置任务</h4>
+            <div class="value">
+              {% for k, name in handler.task_names('char', True).items() %}
+              {% if handler.is_mod_enabled(name) %}
+              <label class="checkbox-inline">
+                <input type="checkbox" class="{{k}}" title="{{k}}">{{name}}
+              </label>
+              {% end %}
+              {% end %}
+            </div>
+          </div>
+          <div class="form-group num">
+            <h4 class="control-label">选择校次</h4>
+            <div class="value"></div>
+          </div>
+          <div class="form-group source">
+            <h4 class="control-label">选择数据分类</h4>
+            <input type="text" class="form-control value" placeholder="请输入分类"/>
+            <div class="tips">注：请先设置分类，然后根据分类发布任务。</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
+
+{% block custom-js %}
+<script>
+  // 统计结果
+  $('.operation .btn-statistic a').on('click', function () {
+    location.href = '/char/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
+  });
+
+  // 更新分类
+  $('.operation .bat-source').on('click', function () {
+    $('#sourceModal .selected-count').text($('table tbody :checked').length);
+    $('#sourceModal').modal();
+  });
+  $('#sourceModal .modal-confirm').on('click', function () {
+    var source = $('#sourceModal .source').val();
+    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+    var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
+    postApi('/char/source', {data: data}, () => location.reload());
+  });
+
+  // 生成字图
+  $('.operation .bat-gen-img').on('click', function () {
+    $('#extractModal .selected-count').text($('table tbody :checked').length);
+    $('#extractModal').modal();
+  });
+  $('#extractModal .modal-confirm').on('click', function () {
+    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+    var data = {_ids: ids, type: $('#extractModal .range :checked').val(), regen: $('.regen :checked').val(), search: location.search};
+    postApi('/char/extract_img', {data: data}, (res) => {
+      Swal0.fire({
+        type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
+        footer: `详情可查看<a href="/sys/oplog/latest/extract_img">日志</a>`
+      });
+      $('#extractModal').modal('hide');
+    });
+  });
+
+  // 查找重复
+  $('.operation .btn-duplicate').on('click', function () {
+    location.href = location.pathname + '?duplicate=true';
+  });
+
+  // 浏览结果
+  $('.operation .btn-browse').on('click', function () {
+    location.href = '/char/browse' + setQueryString('from', location.pathname, true);
+  });
+
+  // 查看
+  $('.btn-detail').on('click', function () {
+    location.href = '/char/' + $(this).parent().parent().find('.name').text();
+  });
+
+</script>
+<script>
+  /*---综合检索---*/
+  var $searchModal = $("#searchModal");
+  var inputFields = ['name', 'source', 'ocr_txt', 'txt', 'remark', 'cc'];
+  var selectFields = ['txt_type', 'diff'];
+  $searchModal.find('.modal-confirm').on('click', function () {
+    var search = '';
+    inputFields.forEach(function (field) {
+      var value = $searchModal.find('.' + field).val();
+      if (value)
+        search += '&' + field + '=' + value;
+    });
+    selectFields.forEach(function (field) {
+      var $select = $searchModal.find('.' + field + ' :selected');
+      if ($select.text())
+        search += '&' + field + '=' + $select.val();
+    });
+    if (!search.length)
+      return showWarning('请输入查询条件');
+    location.href = location.pathname + '?' + search.substr(1);
+  });
+
+  // 重置检索条件
+  $searchModal.find('.reset').on('click', function () {
+    inputFields.forEach(function (field) {
+      $searchModal.find('.' + field).val('');
+    });
+  });
+
+</script>
+<script>
+  /*---发布任务---*/
+  var taskType = '';
+  var $publishModal = $('#publishModal');
+  var taskTypes = decodeJSON('{{handler.task_types}}');
+  $('.btn-publish a').on('click', function () {
+    $publishModal.modal();
+    taskType = $(this).attr('title');
+    $publishModal.find('.task-name').text($(this).text());
+    // 前置任务
+    $('.pre_tasks :checkbox').removeAttr('checked');
+    var preTasks = taskTypes[taskType].pre_tasks || [];
+    preTasks.forEach(function (item) {
+      $('.pre_tasks .' + item).prop('checked', true);
+    });
+    // 校次
+    var num = taskTypes[taskType].num || [];
+    $publishModal.find('.num').toggleClass('hide', !num.length);
+    $publishModal.find('.num .value').html($.map(num, function (item) {
+      return `<label class="radio-inline"><input type="radio" name="num" value="${item}" ${item === 1 ? "checked" : ""}>${item}</label>`;
+    }).join(''));
+  });
+
+  $('#publishModal .modal-confirm').on('click', function () {
+    var num = $('#publishModal .num :checked').val();
+    var batch = $('#publishModal .batch .value').val();
+    var source = $('#publishModal .source .value').val();
+    var preTasks = $.map($('.pre_tasks :checked'), function (item) {
+      return $(item).attr('title');
+    });
+    var data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, source: source};
+    postApi('/char/task/publish', {data: data}, (res) => {
+      var tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;
+      Swal0.fire({title: '成功', html: tips, type: 'success', footer: '详情可以查看<a href="/sys/oplog/latest">日志</a>'});
+    });
+  });
+</script>
+{% end %}
+

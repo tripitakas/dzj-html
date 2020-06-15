@@ -44,7 +44,7 @@ if (localStorage.getItem('toggleText') === 'hide') {
 
 // 跳转某一页
 $('.m-pager .btn-page:not(.to)').click(function () {
-  window.location = '/page/' + $(this).attr("title");
+  window.location = '/tripitaka/' + $(this).attr("title");
 });
 
 // 跳转第n页
@@ -58,7 +58,7 @@ $('.m-pager .btn-page.to').on("keydown", function (event) {
 function jump(page) {
   var curVolume = $('#cur-volume').text();
   if (curVolume && page) {
-    window.location = '/page/' + curVolume + '_' + page;
+    window.location = '/tripitaka/' + curVolume + '_' + page;
   }
 }
 
@@ -120,7 +120,7 @@ $('.main-left').on('click', '.has-sub', function () {
 
 // 目录跳转
 $('.main-left').on('click', '.leaf', function () {
-  window.location = '/page/' + $(this).attr('id');
+  window.location = '/tripitaka/' + $(this).attr('id');
 });
 
 // 回车检索
@@ -282,5 +282,5 @@ $('#my-sutra-table').DataTable({
 
 $('#my-sutra-table').on("click", '.page-code', function (event) {
   $('#sutraNavModal').modal('hide');
-  window.location = '/page/' + $(this).attr('title');
+  window.location = '/tripitaka/' + $(this).attr('title');
 });

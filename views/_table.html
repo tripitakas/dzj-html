@@ -4,12 +4,12 @@
   <tr>
     <th><input id="check-all" type="checkbox"/></th>
     {% for f in table_fields %}
-    {% set fid = f['id'].replace('-', '.') %}
+    {% set fid = f['id'] %}
     {% if f.get('filter') %}
     <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
       <span class="btn-group">
         <span class="filter" title="{{f['id']}}" data-toggle="dropdown" aria-expanded="false">
-          {% raw f['name'] %}<span class="ion-android-sort"></span>
+          {% raw f['name'] %}<span class="icon-notes"></span>
         </span>
         <ul class="dropdown-menu" role="menu">
           {% for k, v in f.get('filter').items() %}
@@ -21,7 +21,7 @@
     {% else %}
     <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
       <span class="sort {{'active' if order in [fid, '-'+fid] else ''}}" title="{{fid}}">
-      {{f['name']}}<span class="ion-arrow-down-b {{'toggle' if order == fid else ''}}"></span>
+      {{f['name']}}<span class="icon-triangle-{{'up' if order == fid else 'down'}}"></span>
       </span>
     </th>
     {% end %}
@@ -37,15 +37,15 @@
     <td><input type="checkbox"/></td>
     {% for f in table_fields %}
     <td class="{{'%s%s' % (f['id'], ' hide' if f['id'] in hide_fields else '')}}" title="{{d.get(f['id']) if f.get('filter') else ''}}">
-      {% raw format_value(prop(d, f['id'].replace('-', '.')), f['id']) or '' %}
+      {% raw format_value(prop(d, f['id']), f['id'], d) or '' %}
     </td>
     {% end %}
     <td class="action">
-      {% set info = {f: prop(d, f.replace('-', '.'), '') for f in info_fields} %}
+      {% set info = {f: prop(d, f, '') for f in info_fields} %}
       <span class="hide info">{{pack(info)}}</span>
       {% for a in actions %}
       {% set disabled = a.get('disabled') and a['disabled'](d) %}
-      <a class="{{a['action']}}{{' disabled' if disabled else ''}}" title="{{a.get('title') or ''}}">{{a['label']}}</a>
+      <a class="{{a['action']}}{{' disabled' if disabled else ''}}" url="{{a.get('url') or ''}}">{{a['label']}}</a>
       {% end %}
     </td>
   </tr>

@@ -4,21 +4,12 @@
   var currentUserId = '{{currentUserId}}';
 </script>
 
-{% if not debug and 0 %}
-<script src="{{static_url('built/base_js-9b7d6d52.js')}}"></script>
-{% else %}
-<script src="{{static_url('plugins/jquery.slimscroll.min.js')}}"></script>
-<script src="{{static_url('js/jquery.nicescroll.js')}}"></script>
-<script src="{{static_url('js/jquery.scrollTo.min.js')}}"></script>
-<script src="{{static_url('assets/jquery-detectmobile/detect.js')}}"></script>
-<script src="{{static_url('assets/jquery-blockui/jquery.blockUI.js')}}"></script>
-<script src="{{static_url('js/bootstrap.min.js')}}"></script>
-<script src="{{static_url('js/waves.js')}}"></script>
-<script src="{{static_url('js/wow.min.js')}}"></script>
-<script src="{{static_url('assets/fastclick/fastclick.js')}}"></script>
-<script src="{{static_url('assets/sweet-alert/sweet-alert.min.js')}}"></script>
+<script src="{{static_url('assets/bootstrap/js/bootstrap.min.js')}}"></script>
+<script src="{{static_url('assets/jquery/jquery.slimscroll.min.js')}}"></script>
+<script src="{{static_url('assets/sweetalert2/sweetalert2.min.js')}}"></script>
+<script src="{{static_url('assets/sweetalert2/promise.min.js')}}"></script>
 <script src="{{static_url('assets/modal-effect/js/classie.js')}}"></script>
 <script src="{{static_url('assets/modal-effect/js/modalEffects.js')}}"></script>
-<script src="{{static_url('js/jquery.app.js')}}"></script>
+<script src="{{static_url('js/util.js')}}"></script>
 <script src="{{static_url('js/backend.js')}}"></script>
-{% end %}
+<script src="{{static_url('js/l10n.js')}}"></script>

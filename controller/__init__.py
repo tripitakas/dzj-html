@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from controller import com, data, task, page, user, article, admin
 from controller.com import invalid
+from controller import com, data, task, char, page, user, article, sys
 
-views = com.views + data.views + task.views
-views += page.views + user.views + article.views + admin.views
+views = com.views + data.views + task.views + char.views
+views += page.views + user.views + article.views + sys.views
 
-handlers = com.handlers + data.handlers + task.handlers
-handlers += page.handlers + user.handlers + article.handlers + admin.handlers
+handlers = com.handlers + data.handlers + task.handlers + char.handlers
+handlers += page.handlers + user.handlers + article.handlers + sys.handlers
 
-modules = dict(list(com.modules.items()) + list(page.modules.items()))
+modules = com.modules
 
 InvalidPageHandler = invalid.InvalidPageHandler

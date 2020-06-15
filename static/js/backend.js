@@ -1,138 +1,6 @@
 /**
  * Added by Zhang Yungui on 2018/12/18.
  */
-swal.setDefaults({confirmButtonColor: '#b8906f'});
-
-function showError(title, text, timer) {
-  // 在页面提示
-  var $err = $('.ajax-error');
-  if ($err.length) {
-    $err.text(text.replace(/[。！]$/, '')).show(200);
-    return setTimeout(function () {
-      $err.hide();
-    }, 6000);
-  }
-  // 没有错误
-  if (text === '没有发生改变')
-    return showSuccess(title.replace(/失败|错误/, '跳过'), text);
-  // 弹框提示
-  var type = /失败|错误/.test(title) ? 'error' : 'warning';
-  if (typeof timer !== 'undefined')
-    swal({
-      title: title, text: text, type: type, showConfirmButton: false, html: true,
-      allowOutsideClick: true, timer: 6000
-    });
-  else
-    swal({
-      title: title, text: text, type: type, html: true, confirmButtonText: '确定',
-      showConfirmButton: true
-    });
-}
-
-function showWarning(title, text, timer) {
-  showError(title, text, timer);
-}
-
-function showSuccess(title, text, timer) {
-  timer = typeof timer === 'undefined' ? 1000 : timer;
-  swal({title: title, text: text, type: 'success', timer: timer, showConfirmButton: false});
-}
-
-function showConfirm(title, text, func, keep) {
-  var info = {
-    type: 'warning', title: title, text: text, confirmButtonText: '确定', cancelButtonText: '取消',
-    showCancelButton: true, closeOnConfirm: typeof keep !== 'undefined' && keep, html: true
-  };
-  return swal(info, func);
-}
-
-function showTips(title, text, reload, timer) {
-  if (typeof reload !== 'undefined' && reload) {
-    swal({title: title, text: text, type: 'success', confirmButtonText: '确定', showConfirmButton: true, html: true},
-        function () {
-          window.location.reload();
-        });
-  } else if (typeof timer !== 'undefined') {
-    swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true, timer: timer});
-  } else {
-    swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true});
-  }
-}
-
-function refresh(timer) {
-  timer = typeof timer !== 'undefined' ? timer : 1000;
-  setTimeout(function () {
-    window.location.reload();
-  }, timer);
-}
-
-function goto(url, timer) {
-  timer = typeof timer !== 'undefined' ? timer : 1000;
-  setTimeout(function () {
-    if (url) {
-      window.location = url;
-    }
-  }, timer);
-}
-
-function getQueryString(name) {
-  var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
-  var r = window.location.search.substr(1).match(reg);
-  if (r != null) {
-    return unescape(r[2]);
-  }
-  return '';
-}
-
-function setQueryString(name, value, onlySearch) {
-  var search = location.search;
-  var add = name + '=' + value;
-  if (search.indexOf(name + '=') !== -1) {
-    search = search.replace(new RegExp(name + '=.*?(&|$)', 'i'), add + '&');
-    search = search.replace(/&$/, '');
-  } else if (search) {
-    search = '?' + add + '&' + search.substr(1);
-  } else {
-    search = '?' + add;
-  }
-  if (typeof onlySearch !== 'undefined' && onlySearch)
-    return search;
-  else
-    return location.pathname + search;
-}
-
-function deleteQueryString(names) {
-  var url = location.href;
-  if (typeof names === 'string')
-    names = names.split(',');
-  names.forEach(function (name) {
-    url = deleteParam(url, name);
-  });
-  return url;
-}
-
-function deleteParam(query, name) {
-  query = query.replace(new RegExp(name + '=.*?&', 'i'), '');
-  query = query.replace(new RegExp('[?&]' + name + '=.*?$', 'i'), '');
-  return query;
-}
-
-function encodeFrom() {
-  // 将第一个?替换为&，然后删除to/page等参数
-  var url = location.pathname + location.search.replace('?', '&');
-  return deleteParam(url, 'to');
-}
-
-function decodeFrom() {
-  var from = '';
-  var index = location.search.indexOf('from=');
-  if (index !== -1) {
-    from = location.search.substr(index + 5);
-    if (from.indexOf('?') === -1)
-      from = from.replace('&', '?');
-  }
-  return deleteParam(from, 'to');
-}
 
 /**
  * 调用后端接口
@@ -144,8 +12,8 @@ function decodeFrom() {
  * @param is_file 是否传输文件
  */
 function ajaxApi(url, type, data, success_callback, error_callback, is_file) {
-  error_callback = error_callback || window.swal && function (obj) {
-    showError('操作失败', data.message || obj.message || '');
+  error_callback = error_callback || Swal0 && function (obj) {
+    showError('操作失败', data.message || obj.message || '', 5000);
   } || console.log.bind(console);
 
   if (data && typeof data.data === 'object') {
@@ -153,14 +21,13 @@ function ajaxApi(url, type, data, success_callback, error_callback, is_file) {
   }
   data = data || {};
 
+  url = url.substr(0, 4) === '/api' ? url : '/api' + url;
   var args = {
-    url: '/api' + url,
+    url: url,
     type: type,
-    xhrFields: {
-      withCredentials: true
-    },
-    crossDomain: true,
     cache: false,
+    crossDomain: true,
+    xhrFields: {withCredentials: true},
     success: function (data) {
       if (data.status === 'failed') {
         error_callback && error_callback(data);
@@ -237,13 +104,7 @@ $.ajaxSetup({
   }
 });
 
-var HTML_DECODE = {
-  '&lt;': '<',
-  '&gt;': '>',
-  '&amp;': '&',
-  '&nbsp;': ' ',
-  '&quot;': '"'
-};
+var HTML_DECODE = {'&lt;': '<', '&gt;': '>', '&nbsp;': ' ', '&amp;': '&', '&quot;': '"'};
 
 // 将tornado在网页中输出的对象串转为JSON对象，toHTML为true时只做网页解码
 function decodeJSON(s, toHTML) {
@@ -272,3 +133,22 @@ function parseJSON(s) {
     console.info('invalid JSON: ' + s);
   }
 }
+
+// bootstrap相关
+$("[data-toggle='tooltip']").tooltip();
+$('body').on('click', '[data-stopPropagation]', (e) => e.stopPropagation());
+
+// 帮助
+$('#help').on('click', () => $('#helpModal').modal());
+
+// 关闭提示
+$('.alert .close').on('click', function () {
+  $(this).parent().addClass('hide');
+});
+
+// 离开页面
+function leave() {
+  decodeFrom() ? window.location = decodeFrom() : window.history.back();
+}
+
+

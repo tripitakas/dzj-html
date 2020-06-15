@@ -1,34 +1,18 @@
 <meta charset="UTF-8">
-<meta name="HandheldFriendly" content="True"/>
-<meta name="MobileOptimized" content="320"/>
 <meta name="renderer" content="webkit">
+<meta name="MobileOptimized" content="320"/>
+<meta name="HandheldFriendly" content="True"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="description" content="{{site['description']}}"/>
 <meta name="keywords" content="{{site['keywords']}}"/>
-
-<!--[if IE]>
-<script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<![endif]-->
-
-{% if not debug and 0 %}
-<link rel="shortcut icon" href="{{static_url('imgs/favicon.ico')}}" type="image/x-icon">
-<link href="{{static_url('built/base_css-e823ba7b.css')}}" rel="stylesheet"/>
-<script src="{{static_url('built/base_css-f9c7afd0.js')}}"></script>
-{% else %}
 <link href="{{static_url('imgs/favicon.ico')}}" type="image/x-icon" rel="shortcut icon">
-<link href="{{static_url('css/bootstrap.min.css')}}" rel="stylesheet"/>
-<link href="{{static_url('assets/font-awesome/css/font-awesome.min.css')}}" rel="stylesheet"/>
-<link href="{{static_url('assets/ionicon/css/ionicons.min.css')}}" rel="stylesheet"/>
-<link href="{{static_url('css/material-design-iconic-font.min.css')}}" rel="stylesheet">
-<link href="{{static_url('css/animate.css')}}" rel="stylesheet"/>
-<link href="{{static_url('css/waves-effect.css')}}" rel="stylesheet">
-<link href="{{static_url('assets/sweet-alert/sweet-alert.min.css')}}" rel="stylesheet">
+<link href="{{static_url('assets/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet"/>
+<link href="{{static_url('assets/my-icons/style.css')}}" rel="stylesheet"/>
+<link href="{{static_url('assets/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet">
+<link href="{{static_url('assets/css/waves-effect.css')}}" rel="stylesheet">
+<link href="{{static_url('assets/css/animate.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/helper.css')}}" rel="stylesheet">
 <link href="{{static_url('css/style.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/base.css')}}" rel="stylesheet">
-{% if prop(handler.config, 'site.skin') %}
-<link href="{{static_url('css/%s.css' % prop(handler.config, 'site.skin'))}}" rel="stylesheet">
-{% end %}
-<script src="{{static_url('plugins/jquery.min.js')}}"></script>
-{% end %}
+<script src="{{static_url('assets/jquery/jquery.min.js')}}"></script>

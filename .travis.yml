@@ -13,6 +13,7 @@ before_script:
     - sh meta/decompress.sh
     - python utils/add_pages.py --db_name=tripitaka_test --reorder=v2
     - python utils/import_meta.py --db_name=tripitaka_test
+    - python utils/gen_chars.py --db_name=tripitaka_test
 
 script:
     - ./run_tests.py --cov=controller --cov-report=term tests

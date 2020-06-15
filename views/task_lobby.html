@@ -38,25 +38,18 @@
             <table class="sty-table">
               <thead>
               <tr>
-                <th>编码</th>
-                <th><span class="btn-group">
-                  <span class="filter" title="priority" data-toggle="dropdown" aria-expanded="false">
-                    优先级<span class="ion-android-sort"></span>
-                  </span>
-                  <ul class="dropdown-menu" role="menu">
-                      <li><a href="#" val="3">高</a></li>
-                      <li><a href="#" val="2">中</a></li>
-                      <li><a href="#" val="1">低</a></li>
-                  </ul>
-                </span></th>
+                {% for f in fields %}
+                <th>{{f[1]}}</th>
+                {% end %}
                 <th>操作</th>
               </tr>
               </thead>
               <tbody>
               {% for t in tasks %}
               <tr>
-                <td>{{t['doc_id']}}</td>
-                <td>{{handler.get_priority_name(t['priority']) or ''}}</td>
+                {% for f in fields %}
+                <td>{{format_value(t.get(f[0]) or '', f[0], t)}}</td>
+                {% end %}
                 <td><a class="pick-task" id="{{t['_id']}}" href="/task/pick/{{t['task_type']}}">领取</a></td>
               </tr>
               {% end %}
@@ -70,9 +63,9 @@
 </div>
 
 {% include _base_js.html %}
-<script src="{{static_url('js/pick-task.js')}}"></script>
+<script src="{{static_url('js/task-pick.js')}}"></script>
 <script>
-  var lobbyTaskType = '{{task_type}}';
+  var taskType = '{{task_type}}';
   // 领任务
   $('.pick-task').on("click", function (e) {
     e.preventDefault();

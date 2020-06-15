@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{char['name']}}</title>
+  {% include _base_css.html %}
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/char.css')}}" rel="stylesheet">
+  <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet">
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    #right-region {
+      width: 420px;
+      max-width: 420px;
+    }
+
+    #submit-box {
+      right: 435px;
+      bottom: 42px;
+      z-index: auto;
+      position: absolute;
+    }
+  </style>
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+        </div>
+        <div class="btn-group title" style="user-select: text">
+          <a href="#">{{char['name']}}</a>
+        </div>
+      </div>
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+      </div>
+      <div class="right">
+      </div>
+    </div>
+    <div class="m-body flex pfread">
+      <div id="left-region" class="left bd">
+        <div id="holder"></div>
+        <button class="btn btn-primary{{'' if box_auth else ' disabled'}}" id="submit-box">确认</button>
+      </div>
+      <div id="right-region" class="right bd work-panel">
+        {% module CharTxt(char, show_base=True) %}
+      </div>
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        字框权限：<span class="box-auth">{{'读写' if box_auth else '只读'}}</span>
+      </span>
+      <span class="fr">
+        文字权限：<span class="txt-auth">{{'读写' if txt_auth else '只读'}}</span>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档</h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、简介</div>
+          <div class="intro">
+            页面浏览可以针对一个页面集合逐条浏览，页面集合有检索参数决定。 浏览时可以看到页面的切分信息、文本信息、任务信息等。其中，
+            栏框、列框、字框等切分信息以及审定文本可以通过更多按钮进行修改，字框OCR和列框OCR可以直接在本页面修改保存。<br/>
+            另外，本页面还可以发布任务。<br/>
+            <b>注：</b>点击上一页或下一页时，系统将记住文本区域的显示或隐藏状态，从而可以选择仅仅浏览切分信息，或者同时浏览文本信息。
+          </div>
+          <div class="title">二、操作</div>
+          <table class="table">
+            <tr>
+              <td><img src="{{static_url('imgs/icon_back.png')}}"/></td>
+              <td>返回</td>
+            </tr>
+            <tr>
+              <td><i class="icon-image"></i></td>
+              <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
+            </tr>
+            <tr>
+              <td><i class="icon-txt"></i></td>
+              <td>打开或关闭右侧文本。关闭文本可以更好的查看切分信息</td>
+            </tr>
+            <tr>
+              <td><i class="icon-blur"></i></td>
+              <td>图片虚化处理。虚化后可以更好的看清字框、字序等信息</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+{% include _base_cut.html %}
+<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/char-txt.js')}}"></script>
+<script>
+  // 公共参数
+  var taskType = '';
+  var chars = decodeJSON('{{dumps(chars)}}');
+  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
+
+  $.cut.create({
+    holder: 'holder',
+    image: '{{img_url}}',
+    name: '{{page["name"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    chars: '{{[char["pos"]]}}',
+    scrollContainer: '#left-region',
+  });
+  $.cut.bindKeys();
+
+  // 提交字框修改
+  $('#submit-box').on('click', function () {
+    if ($(this).hasClass('disabled')) return;
+    var box = $.cut.exportBoxes()[0];
+    var data = {pos: {x: box.x, y: box.y, w: box.w, h: box.h}};
+    postApi('/char/box/{{char["name"]}}', {data: data}, function (res) {
+      location.reload();
+    });
+  });
+
+</script>
+
+</body>
+</html>

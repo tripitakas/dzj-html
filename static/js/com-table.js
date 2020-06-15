@@ -5,7 +5,7 @@
 
 // 排序
 $('.sty-table .sort').click(function () {
-  var direction = $(this).find('.ion-arrow-down-b').hasClass('toggle') ? '-' : '';
+  var direction = $(this).find('span').hasClass('icon-triangle-up') ? '-' : '';
   location.href = setQueryString('order', direction + $(this).attr('title'));
 });
 
@@ -31,21 +31,6 @@ $('#check-all').click(function () {
     $items.removeAttr('checked');
   else
     $items.prop('checked', 'true');
-});
-
-// 分页-跳转第n页
-$('.pagers .page-no').on("keydown", function (event) {
-  var keyCode = event.keyCode || event.which;
-  if (keyCode === 13) {
-    var page = $(this).val().trim();
-    page = page > 1 ? page : 1;
-    location.href = setQueryString('page', page);
-  }
-});
-
-// 分页-每页显示n条
-$('.pagers .page-size').on("change", function () {
-  location.href = setQueryString('page_size', this.value);
 });
 
 // 列表配置
@@ -147,10 +132,9 @@ var $modal = $('#updateModal');
 var fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_id'});
 
 // 新增-弹框
-$('.operation .btn-add').click(function () {
+$('.btn-add').click(function () {
   $modal.find('.modal-title').html('新增数据');
   $modal.find('.update-url').val($(this).attr('url') || location.pathname);
-  console.log($(this).attr('url') || location.pathname);
   toggleModal($modal, fields, false);
   resetModal($modal, fields);
   $modal.modal();
@@ -159,12 +143,16 @@ $('.operation .btn-add').click(function () {
 // 查看-弹框
 $('.btn-view').click(function () {
   var id = $(this).parent().parent().attr('id');
-  var data = getData(id);
-  var title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
-  $modal.find('.modal-title').html(title);
-  toggleModal($modal, fields, true);
-  setModal($modal, data, fields);
-  $modal.modal();
+  if ($(this).attr('url')) {
+    location.href = $(this).attr('url').replace('@id', id);
+  } else {
+    var data = getData(id);
+    var title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
+    $modal.find('.modal-title').html(title);
+    toggleModal($modal, fields, true);
+    setModal($modal, data, fields);
+    $modal.modal();
+  }
 });
 
 // 修改-弹框
@@ -195,7 +183,7 @@ $('.btn-remove').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
   var name = 'name' in data ? data.name : '';
-  var url = $(this).attr('title') || location.pathname + '/delete';
+  var url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_id: data._id}}, function (res) {
       if (res.count) {
@@ -217,7 +205,7 @@ $('.operation .bat-remove').click(function () {
   });
   if (!ids.length)
     return showWarning('请选择', '当前没有选中任何记录。');
-  var url = $(this).attr('title') || location.pathname + '/delete';
+  var url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_ids: ids}}, function (res) {
       if (res.count) {

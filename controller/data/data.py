@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import re
-import json
-import controller.validate as v
+from datetime import datetime
 from functools import cmp_to_key
 from controller.model import Model
-from controller.task.task import Task
-from controller.helper import prop, cmp_page_code, get_url_param
+from controller import helper as h
+from controller import validate as v
+from controller import errors
 
 
 class Tripitaka(Model):
@@ -57,8 +58,8 @@ class Sutra(Model):
     primary = 'sutra_code'
 
     page_title = '经数据管理'
-    search_tips = '请搜索统一经编码、经编码、经名'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
+    search_tips = '请搜索统一经编码、经编码、经名、起始册'
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name','start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
@@ -87,8 +88,8 @@ class Reel(Model):
     primary = 'reel_code'
 
     page_title = '卷数据管理'
-    search_tips = '请搜索统一经编码、经编码、经名和卷编码'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
+    search_tips = '请搜索统一经编码、经编码、经名、卷编码和起始册'
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name','start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
@@ -130,160 +131,93 @@ class Volume(Model):
                           options=f.get('options', [])) for f in fields]
 
     @classmethod
-    def pack_doc(cls, doc):
+    def pack_doc(cls, doc, self=None):
         doc = super().pack_doc(doc)
         if doc.get('content_pages') and isinstance(doc['content_pages'], str):
             content_pages = re.sub(r'[\[\]\"\'\s]', '', doc['content_pages']).split(',')
-            content_pages.sort(key=cmp_to_key(cmp_page_code))
+            content_pages.sort(key=cmp_to_key(h.cmp_page_code))
             doc['content_pages'] = content_pages
         doc['content_page_count'] = len(doc.get('content_pages') or [])
         if doc.get('front_cover_pages') and isinstance(doc['front_cover_pages'], str):
             front_cover_pages = re.sub(r'[\[\]\"\'\s]', '', doc['front_cover_pages']).split(',')
-            front_cover_pages.sort(key=cmp_to_key(cmp_page_code))
+            front_cover_pages.sort(key=cmp_to_key(h.cmp_page_code))
             doc['front_cover_pages'] = front_cover_pages
         if doc.get('back_cover_pages') and isinstance(doc['back_cover_pages'], str):
             back_cover_pages = re.sub(r'[\[\]\"\'\s]', '', doc['back_cover_pages']).split(',')
-            back_cover_pages.sort(key=cmp_to_key(cmp_page_code))
+            back_cover_pages.sort(key=cmp_to_key(h.cmp_page_code))
             doc['back_cover_pages'] = back_cover_pages
         return doc
 
 
-class Page(Model):
-    collection = 'page'
+class Variant(Model):
+    collection = 'variant'
     fields = [
-        {'id': 'name', 'name': '页编码'},
-        {'id': 'width', 'name': '宽度'},
-        {'id': 'height', 'name': '高度'},
-        {'id': 'source', 'name': '批次'},
-        {'id': 'layout', 'name': '页面结构'},
-        {'id': 'img_path', 'name': '图片路径'},
-        {'id': 'img_cloud_path', 'name': '云图路径'},
-        {'id': 'page_code', 'name': '对齐编码'},
-        {'id': 'uni_sutra_code', 'name': '统一经编码'},
-        {'id': 'sutra_code', 'name': '经编码'},
-        {'id': 'reel_code', 'name': '卷编码'},
-        {'id': 'blocks', 'name': '栏框数据'},
-        {'id': 'columns', 'name': '列框数据'},
-        {'id': 'chars', 'name': '字框数据'},
-        {'id': 'ocr', 'name': '字框OCR'},
-        {'id': 'ocr_col', 'name': '列框OCR'},
-        {'id': 'text', 'name': '审定文本'},
-        {'id': 'txt_html', 'name': '文本HTML'},
-        {'id': 'box_ready', 'name': '切分已就绪'},
-        {'id': 'chars_col', 'name': '用户提交字序'},
-        {'id': 'tasks', 'name': '任务'},
-        {'id': 'lock.box', 'name': '切分锁'},
-        {'id': 'lock.text', 'name': '文本锁'},
-        {'id': 'level.box', 'name': '切分等级'},
-        {'id': 'level.text', 'name': '文本等级'},
-        {'id': 'remark.box', 'name': '切分备注'},
-        {'id': 'remark.text', 'name': '文本备注'},
+        {'id': 'uid', 'name': '编码'},
+        {'id': 'txt', 'name': '异体字'},
+        {'id': 'img_name', 'name': '异体字图'},
+        {'id': 'normal_txt', 'name': '所属正字'},
+        {'id': 'remark', 'name': '备注'},
+        {'id': 'create_user_id', 'name': '创建人id'},
+        {'id': 'create_by', 'name': '创建人'},
+        {'id': 'create_time', 'name': '创建时间'},
+        {'id': 'updated_time', 'name': '更新时间'},
     ]
     rules = [
-        (v.not_empty, 'name'),
-        (v.is_page, 'name'),
-        (v.is_sutra, 'uni_sutra_code'),
-        (v.is_sutra, 'sutra_code'),
-        (v.is_reel, 'reel_code'),
-        (v.is_digit, 'reel_page_no')
+        (v.not_empty, 'normal_txt'),
     ]
-    primary = 'name'
-    layouts = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']  # 图片的版面结构
+    primary = '_id'
+
+    search_tips = '请搜异体字、异体字图、正字及备注'
+    search_fields = ['txt', 'img_name', 'normal_txt', 'remark']
 
     @classmethod
-    def metadata(cls):
-        return dict(name='', width='', height='', img_suffix='', img_path='', img_cloud_path='',
-                    page_code='', sutra_code='', uni_sutra_code='', reel_code='',
-                    reel_page_no='', lock={}, blocks=[], columns=[], chars=[],
-                    ocr='', ocr_col='', text='', txt_html='')
+    def pack_doc(cls, doc, self=None):
+        if doc.get('_id'):  # 更新
+            doc['updated_time'] = datetime.now()
+        else:  # 新增
+            r = self.db.variant.find_one({'$or': [{'txt': doc['txt']}, {'img_name': doc['txt']}]})
+            if r:
+                return self.send_error_response(errors.variant_exist)
+            doc['create_time'] = datetime.now()
+            doc['create_by'] = self.username
+            doc['create_user_id'] = self.user_id
+            if not re.match(r'^[^\x00-\xff]$', doc.get('txt')):  # 非汉字
+                doc['img_name'] = doc['txt'].strip()
+                doc.pop('txt', 0)
+                v_max = self.db.variant.find_one({'uid': {'$ne': None}}, sort=[('uid', -1)])
+                doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
+        if doc.get('uid'):
+            doc['uid'] = int(doc['uid'])
+        if doc.get('txt'):
+            doc['txt'] = doc['txt'].strip()
+        if doc.get('normal_txt'):
+            nt = doc['normal_txt']
+            variant = self.db.variant.find_one({'uid': int(nt.strip('Y'))} if 'Y' in nt else {'txt': nt})
+            if variant:
+                doc['normal_txt'] = variant.get('normal_txt')
+        doc = super().pack_doc(doc)
+        return doc
 
     @classmethod
-    def pack_doc(cls, doc):
-        for field in ['level-box', 'level-text']:
-            if doc.get(field):
-                doc[field.replace('-', '.')] = doc[field]
-        for field in ['ocr', 'ocr_col', 'text']:
-            if doc.get(field):
-                doc[field] = re.sub('\n{2,}', '||', doc[field]).replace('\n', '|')
-        if doc.get('text'):
-            doc['txt_html'] = ''
-        return super().pack_doc(doc)
-
-    @classmethod
-    def name2pagecode(cls, page_name):
-        """ 把page的name转换为page_code，如GL_1_1_1转换为GL000100010001，即补齐为4位数字"""
-        return ''.join([n.zfill(4) for n in page_name.split('_')]).lstrip('0')
-
-    @classmethod
-    def insert_many(cls, db, file_stream=None, layout=None, source=None):
-        """ 插入新页面
-        :param db 数据库连接
-        :param file_stream 已打开的文件流。
-        :param layout 页面的版面结构。
-        :param source 页面分类
-        :return {status: 'success'/'failed', code: '',  message: '...', errors:[]}
-        """
-        result = json.load(file_stream)
-        page_names = [r.split('.')[0] for r in result]
-        name2suffix = {r.split('.')[0]: r.split('.')[1] if '.' in r else None for r in result}
-        # 检查重复时，仅仅检查页码，不检查后缀
-        existed_pages = list(db.page.find({'name': {'$in': page_names}}, {'name': 1}))
-        new_names = set(page_names) - set([p['name'] for p in existed_pages])
-        pages = []
-        for page_name in new_names:
-            page = cls.metadata()
-            s = page_name.split('.')
-            page['name'] = s[0]
-            page['layout'] = layout
-            page['source'] = source
-            page['page_code'] = cls.name2pagecode(s[0])
-            page['img_suffix'] = name2suffix.get(page_name)
-            pages.append(page)
-        if pages:
-            r = db.page.insert_many(pages)
-        message = '导入page，总共%s条记录，插入%s条，%s条旧数据。' % (len(page_names), len(pages), len(existed_pages))
-        print(message)
-        return dict(status='success', message=message, inserted_ids=r.inserted_ids if pages else [])
-
-    @staticmethod
-    def get_page_search_condition(request_query):
+    def get_variant_search_condition(cls, request_query):
         condition, params = dict(), dict()
-        for field in ['name', 'source', 'remark-box', 'remark-text']:
-            value = get_url_param(field, request_query)
+        q = h.get_url_param('q', request_query)
+        if q and cls.search_fields:
+            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
+        for field in ['uid']:
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field.replace('-', '.'): {'$regex': value, '$options': '$i'}})
-        for field in ['level-box', 'level-text']:
-            value = get_url_param(field, request_query)
+                condition.update({field: int(value.strip('Y'))})
+        for field in ['txt', 'normal_txt']:
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                m = re.search(r'([><=]?)(\d+)', value)
-                if m:
-                    op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
-                    condition.update({field.replace('_', '.'): {op: value} if op else value})
-        for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
-            value = get_url_param(field, request_query)
+                condition.update({field: value})
+        for field in ['img_name', 'remark']:
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({'tasks.' + field: None if value == 'un_published' else value})
-        value = get_url_param('txt', request_query)
-        if value:
-            params[field] = value
-            condition.update({'$or': [{k: {'$regex': value}} for k in ['ocr', 'ocr_col', 'text']]})
+                condition.update({field: {'$regex': value, '$options': '$i'}})
+        print(condition)
         return condition, params
-
-    @staticmethod
-    def format_value(value, key=None):
-        """ 格式化page表的字段输出"""
-        if key == 'tasks':
-            value = value or {}
-            tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
-            value = '<br/>'.join(tasks)
-        elif key in ['lock-box', 'lock-text']:
-            if prop(value, 'is_temp') is not None:
-                value = '临时锁<a>解锁</a>' if prop(value, 'is_temp') else '任务锁'
-        elif key in ['cut-edit']:
-            value = '修改'
-        else:
-            value = Task.format_value(value, key)
-        return value

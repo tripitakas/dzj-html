@@ -3,6 +3,7 @@
 <head>
   <title>注册</title>
   {% include _base_css.html %}
+  <link href="{{static_url('assets/ionicons/css/ionicons.min.css')}}" rel="stylesheet">
   <link rel="stylesheet" href="{{static_url('css/register.css')}}">
 </head>
 
@@ -19,7 +20,7 @@
           <div class="bd">
             <div class="item">
               <input type="text" placeholder='请输入姓名' id="name">
-              <i class="ion-ios7-person-outline"></i>
+              <i class="icon-user"></i>
             </div>
             <div class="item">
               <div class="select-wrap">
@@ -29,34 +30,34 @@
                   <option value="女">女</option>
                 </select>
               </div>
-              <i class="ion-ios7-person-outline"></i>
+              <i class="icon-gender"></i>
             </div>
             <div class="item">
               <input type="password" placeholder='请输入密码' id="password">
-              <i class="ion-ios7-unlocked-outline"></i>
+              <i class="icon-lock"></i>
               <span class="hide"></span>
             </div>
             <div class="item">
               <input type="password" placeholder='请再次输入密码' id="confirm_psw">
-              <i class="ion-ios7-locked-outline"></i>
+              <i class="icon-lock-open"></i>
             </div>
             <div class="item">
               <input type="number" placeholder='请输入手机号' id="phone">
-              <i class="ion-ios7-telephone-outline"></i>
+              <i class="icon-phone"></i>
             </div>
             <div class="item">
               <input type="text" placeholder='请输入邮箱' id="email">
-              <i class="ion-ios7-email-outline"></i>
+              <i class="icon-mail"></i>
             </div>
             <div class="verify">
               <div class="item hide fl" id="phone-div">
                 <input type="text" placeholder='请输入验证码' id="phone-code">
-                <i class="ion-ios7-checkmark-outline"></i>
+                <i class="icon-check-outline"></i>
                 <a id="phone-code-btn" class="verify-code phone-code-btn">获取验证码</a>
               </div>
               <div class="item hide fr" id="email-div">
                 <input type="text" placeholder='请输入验证码，可能在垃圾邮箱' id="email-code">
-                <i class="ion-ios7-checkmark-outline"></i>
+                <i class="icon-check-outline"></i>
                 <a id="email-code-btn" class="verify-code email-code-btn">获取验证码</a>
               </div>
             </div>
@@ -75,11 +76,9 @@
     </div>
   </div>
 </div>
-{% include _footer_main.html %}
+
 {% include _base_js.html %}
-
 <script>
-
   $("#phone").on('input propertychange', function () {
     var input = $(this).val().trim();
     if (input.length === 0) {

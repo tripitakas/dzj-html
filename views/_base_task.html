@@ -1,0 +1,147 @@
+{% if hasattr(handler, 'task_type') and handler.task_type %}
+<div class="panel-body" style="padding: 0">
+  {% module ReturnModal() %}
+  {% module TaskRemarkModal() %}
+  {% module TaskConfigModal(handler.config_fields if hasattr(handler, 'config_fields') else []) %}
+</div>
+
+<script src="{{static_url('js/task-pick.js')}}"></script>
+<script>
+  // 公共参数
+  var from = decodeFrom();
+  var mode = '{{handler.mode}}';
+  var taskId = '{{handler.task_id}}';
+  var taskType = '{{handler.task_type}}';
+  var steps = decodeJSON('{{handler.steps}}');
+  var step = '{{handler.steps.get("current") or ""}}';
+  var readonly = '{{handler.readonly}}' === 'True';
+  var remark = '{{handler.task.get("remark") or ""}}';
+  var isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
+
+  $('#task-return').on('click', () => $("#returnModal").modal());
+  $('#task-remark').on('click', () => $("#remarkModal").modal());
+  $('#task-config').on('click', () => $("#taskConfigModal").modal());
+
+  // 初始化设置
+  $(document).ready(function () {
+    $("#remarkModal .remark").val(remark || getStorage('taskRemark'));
+    $('#remarkModal .is_sample :radio[value="' + isSample + '"]').prop('checked', true);
+    $('#taskConfigModal .auto-pick :radio[value=' + getStorage('autoPick', '是') + ']').prop('checked', true);
+  });
+
+  // 备注任务
+  $('#remarkModal .options :radio').on('click', function () {
+    $('#remarkModal .remark').val($(this).val());
+  });
+  $('#remarkModal .modal-confirm').on('click', function () {
+    var remark = $('#remarkModal .remark').val().trim();
+    remark && setStorage('taskRemark', remark);
+    var isSample = $('#remarkModal .is_sample :checked').val() || '否';
+    postApi('/task/remark', {data: {_id: taskId, remark: remark, is_sample: isSample}}, function () {
+      showSuccess('成功', '已备注');
+      navigate(getQueryString('to') || 'next');
+    });
+  });
+
+  // 是否自动领取新任务
+  $('#taskConfigModal .modal-confirm').on('click', function () {
+    var autoPick = $('#taskConfigModal .auto-pick :checked');
+    autoPick && setStorage('autoPick', autoPick.val());
+    $("#taskConfigModal").modal('hide');
+  });
+
+  // 离开页面
+  window.leave = function () {
+    if (from) {
+      window.location = from;
+    } else if (mode === 'do') {
+      window.location = '/task/lobby/' + taskType;
+    } else if (mode === 'update') {
+      window.location = '/task/my/' + taskType;
+    } else {
+      window.history.back();
+    }
+  };
+
+  // 保存任务
+  var getPostData = function () {
+    return {};
+  };
+
+  function saveTask(submit, jumpUrl, saveEnded) {
+    var data = getPostData();
+    $.extend(data, {submit: submit, step: step});
+    if (!data.error) {
+      $('#progress').removeClass('hide');
+      postApi(location.pathname, {data: data}, function (res) {
+        $('#progress').addClass('hide');
+        if (saveEnded)
+          saveEnded(submit, res, jumpUrl);
+        else
+          location.href = jumpUrl;
+      });
+    }
+  }
+
+  // 提交之后
+  function afterSubmitted(submit, res, jumpUrl) {
+    var autoPick = localStorage.getItem('autoPick') || '是';
+    if (mode === 'do' && autoPick === '是') {
+      showSuccess('成功', '已成功提交！将自动领取下一个任务。');
+      pick('/task/pick/' + taskType);
+    } else {
+      window.leave();
+    }
+  }
+
+  // 跳转步骤
+  function navigate(to) {
+    var jumpUrl = setQueryString('step', steps[to]);
+    if (!readonly) {
+      saveTask(to === 'next', jumpUrl);
+    } else {
+      location.href = jumpUrl;
+    }
+  }
+
+  // 上一步
+  $('#step-prev').on("click", function () {
+    navigate('prev');
+  });
+
+  // 下一步
+  $('#step-next').on("click", function () {
+    navigate('next');
+  });
+
+  // 提交任务
+  $('#task-submit').on("click", function () {
+    saveTask(true, null, afterSubmitted);
+  });
+
+  // 任务退回
+  $('#returnModal .modal-confirm').on('click', function () {
+    var reason = $('#returnModal .return_reason').val().trim();
+    if (!reason.length) {
+      return showError('失败', '尚未填写退回理由');
+    }
+    postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
+      showSuccess('成功', '任务已退回成功。');
+      goto('/task/lobby/' + taskType, 1000);
+    });
+  });
+
+  // 前一个任务
+  $('#task-prev').on('click', function () {
+    var path = '/task/browse/' + taskType + '/' + taskId;
+    location.href = path + setQueryString('to', 'prev', true);
+  });
+
+  // 后一个任务
+  $('#task-next').on('click', function () {
+    var path = '/task/browse/' + taskType + '/' + taskId;
+    location.href = path + setQueryString('to', 'next', true);
+  });
+
+</script>
+{% end %}
