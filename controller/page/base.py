@@ -30,7 +30,8 @@ class PageHandler(TaskHandler, Page, Box):
     def get_user_box_level(cls, self, task_type=None, user=None):
         """ 获取用户的数据等级"""
         user = user or self.current_user
-        if task_type:
+        task_types = list(cls.box_level['task'].keys())
+        if task_type and task_type in task_types:
             # 用户以任务模式修改切分数据时，给与最低修改等级1
             return hp.prop(cls.box_level, 'task.' + task_type) or 1
         else:

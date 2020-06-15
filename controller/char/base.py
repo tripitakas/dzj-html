@@ -31,7 +31,8 @@ class CharHandler(TaskHandler, Char):
     def get_user_txt_level(cls, self, task_type=None, user=None):
         """ 获取用户的数据等级"""
         user = user or self.current_user
-        if task_type:
+        task_types = list(cls.txt_level['task'].keys())
+        if task_type and task_type in task_types:
             return hp.prop(cls.txt_level, 'task.' + task_type) or 0
         else:
             roles = auth.get_all_roles(user['roles'])
