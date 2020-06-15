@@ -293,7 +293,10 @@ class PageTaskCutHandler(PageHandler):
             self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=self.readonly)
         else:
             self.set_box_access(page, task_type)
-            self.render('page_box.html', page=page, img_url=img_url, readonly=self.readonly)
+            steps_finished = self.prop(self.task, 'result.steps_finished')
+            steps_unfinished = True if steps_finished is None else not steps_finished
+            self.render('page_box.html', page=page, img_url=img_url, steps_unfinished=steps_unfinished,
+                        readonly=self.readonly)
 
 
 class PageTxtMatchHandler(PageHandler):

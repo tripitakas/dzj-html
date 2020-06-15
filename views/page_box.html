@@ -21,6 +21,7 @@
         </div>
         <div class="btn-group title">切分校对</div>
       </div><!--left-->
+      {% set steps_unfinished1 = 'steps_unfinished' in globals() and steps_unfinished %}
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
         <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
@@ -30,10 +31,10 @@
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
         <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
         <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
-        <div id="toggle-three" class="btn-txt icon-three" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
-        <div id="toggle-block" class="btn-txt icon-blocks" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-        <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-        <div id="toggle-char" class="btn-txt icon-chars active" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-three" class="btn-txt icon-three{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
+        <div id="toggle-block" class="btn-txt icon-blocks{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+        <div id="toggle-column" class="btn-txt icon-columns{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+        <div id="toggle-char" class="btn-txt icon-chars active{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
         <div class="btn-group hl-box more-group hide" id="more-group">
           <button id="toggle-all" class="btn btn-default btn-sm" type="button" title="显隐所有字框">所有<sup class="s-count"></sup></button>
@@ -46,8 +47,9 @@
         </div>
       </div>
       <div class="right">
-        <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
+        <div id="save" class="btn-txt icon-save {{'hide' if readonly or steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
         {% include _task_btns.html %}
+        {% include _step_btns.html %}
       </div><!--right-->
     </div>
     <div class="m-body flex">
@@ -149,6 +151,13 @@
     $.cut.data.image.node.style.display = getStorage('toggleImage', '1') === '1' ? '' : 'none';
     $.cut.data.image.node.style.opacity = getStorage('toggleBlur', '1') === '1' ? 0.2 : null;
   }
+  if ('{{steps_unfinished1}}' === 'True') {
+    $.cut.data.image.node.style.display = '';
+    $.cut.data.image.node.style.opacity = 0.2;
+    $.cut.toggleBox(false, 'block');
+    $.cut.toggleBox(false, 'column');
+    $.cut.toggleBox(true, 'char');
+  }
 
   function updateThreeBoxes() {
     $.cut.toggleBox(getStorage('toggleBlock', '-1') === '1', 'block');
@@ -215,7 +224,7 @@
       var invalid = $.cut.data.chars.map(function (c) {
         return /b0c/.test(c.char_id) && c.char_id;
       });
-      updateThreeBoxes();
+      // updateThreeBoxes();
       $.cut.toggleClass(invalid, 'flash', true);
       $.cut.toggleBox(true, null, invalid);
     }
@@ -258,6 +267,30 @@
         bsShow('已保存，发现错误!', tips, 'warning');
       }
     });
+  });
+
+  // 切换步骤
+  var clickedSteps = ['char'];
+  $('.task-step').on('click', function () {
+    var boxType = $(this).attr('data-value');
+    if (clickedSteps.indexOf(boxType) === -1) clickedSteps.push(boxType);
+    $.cut.toggleBox(false);
+    $.cut.toggleBox(true, $(this).attr('data-value'));
+    $('.task-step').removeClass('active');
+    $(this).addClass('active');
+  });
+  // 提交步骤
+  $('#submit-steps').on('click', function () {
+    if (clickedSteps.indexOf('char') === -1) {
+      return bsShow('提示', '您尚未进行字框校对，不能提交。')
+    }
+    if (clickedSteps.indexOf('column') === -1) {
+      return bsShow('提示', '您尚未进行列框校对，不能提交。')
+    }
+    if (clickedSteps.indexOf('block') === -1) {
+      return bsShow('提示', '您尚未进行栏框校对，不能提交。')
+    }
+    $('#save').click();
   });
 
 </script>

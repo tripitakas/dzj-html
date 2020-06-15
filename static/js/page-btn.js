@@ -146,11 +146,11 @@ $(document).on('click', '#enlarge-font', function () {
 $(document).on('click', '.m-footer .page-name', function () {
   if ($(this).hasClass('disabled'))
     return;
-  var url = '/page/' + $(this).text() + '?txt=off';
+  var url = '/page/' + $(this).text();
   var charName = $('.m-footer .char-name').text();
   if (typeof charName !== 'undefined' && charName !== '未选中') {
     var cid = charName.split('_').pop();
-    url += '&cid=' + cid;
+    url += '?cid=' + cid;
   }
   window.open(url, '_blank');
 });

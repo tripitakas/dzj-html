@@ -134,9 +134,11 @@ class PageTaskCutApi(PageHandler):
 
             submitted = self.prop(self.task, 'steps.submitted') or []
             if self.data['step'] == 'box':
+                update = {'result.steps_finished': True}
                 if self.data.get('submit') and 'box' not in submitted:
                     submitted.append('box')
-                    self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'steps.submitted': submitted}})
+                    update['steps.submitted'] = submitted
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
                 r = PageBoxApi.save_box(self, self.task['doc_id'], task_type)
                 self.send_data_response(r)
             elif self.data['step'] == 'order':
