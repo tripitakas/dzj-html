@@ -39,7 +39,6 @@ class PageListHandler(PageHandler):
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'bat-gen-chars', 'label': '生成字表'},
         {'operation': 'btn-check-match', 'label': '检查图文匹配'},
-        {'operation': 'btn-fetch-cmp', 'label': '获取比对文本'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True).items()

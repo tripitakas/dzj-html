@@ -50,7 +50,7 @@
             {% for t, status in page_tasks.items() %}
             <div class="info">
               <label class="label">{{Task.get_task_name(t)}}</label>
-              <div class="value">{{Task.get_status_name(status)}}</div>
+              <div class="value">{{status}}</div>
             </div>
             {% end %}
           </div>
