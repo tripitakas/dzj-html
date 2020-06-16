@@ -102,6 +102,8 @@ class CharListHandler(CharHandler):
             return value / 1000
         if key == 'txt_logs' and value:
             return '<br/>'.join([log2str(log) for log in value])
+        if key == 'tasks' and value and isinstance(value, dict):
+            return '<br/>'.join(['%s: %s' % (self.get_task_name(typ), len(tasks)) for typ, tasks in value.items()])
         if key == 'has_img' and value not in [None, False]:
             return r'<img class="char-img" src="%s"/>' % self.get_char_img(doc)
         return h.format_value(value, key, doc)
