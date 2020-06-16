@@ -4,6 +4,7 @@
 import re
 import os
 import json
+import random
 from bson.objectid import ObjectId
 from tornado.escape import native_str
 from elasticsearch.exceptions import ConnectionTimeout
@@ -83,10 +84,9 @@ class CharBoxApi(PageHandler):
             self.add_log('update_box', None, char_name, update)
             ret = dict(box_logs=box_logs)
             if r1.modified_count and r2.modified_count:  # 立即生成字图
-                chars = list(self.db.char.find({'name': char_name}))
-                t = extract_img(db=self.db, username=self.username, regen=True, chars=chars)
-                if t:
-                    ret['img_time'] = t
+                char = self.db.char.find_one({'name': char_name})
+                extract_img(db=self.db, username=self.username, regen=True, chars=[char])
+                ret['img_url'] = self.get_web_img(char_name, 'char') + '?v=%d' % random.randint(0, 9999)
             self.send_data_response(ret)
 
         except self.DbError as error:

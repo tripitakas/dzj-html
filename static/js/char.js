@@ -160,10 +160,10 @@ $('#submit-box').on('click', function () {
   postApi('/char/box/' + name, {data: data}, function (res) {
     bsShow('成功！', '已保存成功', 'success', 1000);
     updateBoxLogs(res.box_logs);
-    if (res.img_time) {  // 已更新字图
+    if (res.img_url) {  // 已更新字图
       var $img = $('.char-item#' + name + ' img');
-      if ($img.attr('src')) {
-        $img.attr('src', $img.attr('src').replace(/\.jpg.*$/, '.jpg?v=' + res.img_time));
+      if ($img.length) {
+        $img.attr('src', res.img_url);
       }
     }
   });
