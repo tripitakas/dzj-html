@@ -357,6 +357,45 @@
     });
   });
 
+  // 删除
+  $('.btn-delete').click(function () {
+    var name = $(this).parent().parent().find('.name').text().trim();
+    showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
+      postApi('/api/page/delete', {data: {page_name: name}}, function (res) {
+        if (res.deleted_count) {
+          showSuccess('成功', '数据已删除');
+          refresh(2000);
+        }
+        if (res.existed_count)
+          showError('失败', '数据有关联任务，不能删除');
+      }, function (err) {
+        showError('删除失败', err.message);
+      });
+    });
+  });
+  // 批量删除
+  $('.operation .bat-delete').click(function () {
+    var names = $.map($('table tbody :checked'), function (item) {
+      return $(item).parent().parent().find('.name').text().trim();
+    });
+    if (!names.length)
+      return showWarning('请选择', '当前没有选中任何记录。');
+    showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
+      postApi('/api/page/delete', {data: {page_names: names}}, function (res) {
+        var msg = `已删除${res.deleted_count}条数据。`;
+        if (res.existed_count)
+          msg += `${res.existed_count}条数据有关联任务，不能直接删除。`;
+        showSuccess('成功', msg);
+        if (res.deleted_count) {
+          refresh(2000);
+        }
+      }, function (err) {
+        showError('删除失败', err.message);
+      });
+    });
+  });
+
+
   // 检查图文匹配
   $('.operation .btn-check-match').on('click', function () {
     $('#checkModal').modal();
@@ -399,7 +438,6 @@
   $('.action .btn-my-view').on('click', function () {
     location.href = '/page/' + $(this).parent().siblings('.name').text();
   });
-
 
   // 详情
   $('.action .btn-detail').on('click', function () {
@@ -461,8 +499,13 @@
     $publishModal.find('#task-name').text($(this).text());
     // 前置任务
     var preTasks = taskTypes[taskType].pre_tasks || [];
-    preTasks.forEach(function (item) {
-      $('.pre_tasks .' + item).prop('checked', true);
+    $.map($publishModal.find('.pre_tasks :checkbox'), function (item) {
+      $(item).parent().toggleClass('hide', $(item).attr('title') === taskType);
+      if (preTasks.indexOf($(item).attr('title')) > -1) {
+        $(item).prop('checked', true);
+      } else {
+        $(item).removeAttr('checked');
+      }
     });
     // 子步骤
     var steps = taskTypes[taskType].steps || [];
@@ -520,7 +563,7 @@
         if (idsFile.size > (10 * 1024 * 1024))
           return showError('文件大小不能超过10M');
         formData.append('data', JSON.stringify(data));
-        formData.append('ids_file', idsFile);
+        formData.append('names_file', idsFile);
         isFile = true;
         break;
     }

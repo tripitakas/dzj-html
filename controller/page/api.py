@@ -330,16 +330,19 @@ class PageDeleteApi(BaseHandler):
     def post(self):
         """ 批量删除"""
         try:
-            rules = [(v.not_both_empty, '_id', '_ids')]
+            rules = [(v.not_both_empty, 'page_name', 'page_names')]
             self.validate(self.data, rules)
 
-            if self.data.get('_id'):
-                r = self.db.page.delete_one({'_id': ObjectId(self.data['_id'])})
-                self.add_log('delete_page', target_id=self.data['_id'])
-            else:
-                r = self.db.page.delete_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}})
-                self.add_log('delete_page', target_id=self.data['_ids'])
-            self.send_data_response(dict(count=r.deleted_count))
+            page_names = self.data.get('page_names') or [self.data['page_name']]
+            tasks = list(self.db.task.find({'doc_id': {'$in': page_names}}, {'doc_id': 1}))
+            task_names = {t['doc_id'] for t in tasks}
+            page_names = [name for name in page_names if name not in task_names]
+            deleted_count = 0
+            if page_names:
+                r = self.db.page.delete_many({'name': {'$in': page_names}})
+                self.add_log('delete_page', target_name=page_names)
+                deleted_count = r.deleted_count
+            self.send_data_response(dict(deleted_count=deleted_count, existed_count=len(task_names)))
 
         except self.DbError as error:
             return self.send_db_error(error)

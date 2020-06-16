@@ -46,7 +46,7 @@ def i18n(key):
         'priority': '优先级',
         'task_type': '任务类型',
         'task_types': '任务类型',
-        'doc_ids': '数据',
+        'page_names': '页编码',
         'sutra_code': '经编码',
         'sutra_name': '经名',
         'reel_no': '卷序号',

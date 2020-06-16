@@ -34,7 +34,7 @@ class PageListHandler(PageHandler):
         'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'box_ready',
     ]
     operations = [
-        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/page/delete'},
+        {'operation': 'bat-delete', 'label': '批量删除'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'bat-gen-chars', 'label': '生成字表'},
@@ -52,7 +52,7 @@ class PageListHandler(PageHandler):
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-my-view', 'label': '查看'},
         {'action': 'btn-update', 'label': '更新'},
-        {'action': 'btn-remove', 'label': '删除', 'url': '/api/page/delete'},
+        {'action': 'btn-delete', 'label': '删除'},
     ]
     update_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
