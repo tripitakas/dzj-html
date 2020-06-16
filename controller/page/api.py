@@ -70,7 +70,7 @@ class CharBoxApi(PageHandler):
             if h.cmp_obj(char, self.data, ['pos']):
                 return self.send_error_response(e.not_changed)
             # 检查、设置box_logs
-            old_logs = char.get('box_logs') or [{k: char.get(k) for k in ['x', 'y', 'w', 'h']}]
+            old_logs = char.get('box_logs') or [{'pos': {k: char.get(k) for k in ['x', 'y', 'w', 'h']}}]
             box_logs = self.merge_box_logs({'pos': self.data['pos']}, old_logs)
             # 更新page表和char表
             box_level = self.get_user_box_level(self, self.data.get('task_type'))
