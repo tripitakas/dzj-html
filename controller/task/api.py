@@ -176,7 +176,8 @@ class AssignTasksApi(TaskHandler):
 
             task_type = self.data['tasks'][0][1]
             collection = self.prop(self.task_types, task_type + '.data.collection')
-            log, lock_failed, assigned = dict(), [], []
+            key = 'doc_id' if collection == 'page' else 'txt_kind'
+            log, assigned = dict(), []
             now, user_id, username = self.now(), user['_id'], user['name']
             # 去掉用户无权访问的任务
             log['unauthorized'] = [t[2] for t in self.data['tasks'] if not self.can_user_access(t[1], user)]
@@ -185,27 +186,28 @@ class AssignTasksApi(TaskHandler):
             # 去掉不存在的任务
             log['un_existed'] = set(authorized) - set([str(t['_id']) for t in tasks])
             # 去掉非「已发布」的任务
-            log['un_published'] = [t['doc_id'] for t in tasks if t['status'] != self.STATUS_PUBLISHED]
+            log['un_published'] = [t.get(key, '') for t in tasks if t['status'] != self.STATUS_PUBLISHED]
             published = [t for t in tasks if t['status'] == self.STATUS_PUBLISHED]
-            published_docs = [t['doc_id'] for t in published]
-            # 去掉用户曾领取过的任务
-            cond = {'task_type': task_type, 'doc_id': {'$in': published_docs}, 'picked_user_id': user_id}
-            tasks = list(self.db.task.find(cond, {'doc_id': 1}))
-            log['picked_before'] = [t['doc_id'] for t in tasks] if tasks else []
+            if collection == 'page':
+                # 去掉用户曾领取过的任务
+                published_docs = [t['doc_id'] for t in published]
+                cond = {'task_type': task_type, 'doc_id': {'$in': published_docs}, 'picked_user_id': user_id}
+                tasks = list(self.db.task.find(cond, {'doc_id': 1}))
+                log['picked_before'] = [t['doc_id'] for t in tasks] if tasks else []
+                published = [t for t in published if t['doc_id'] not in log['picked_before']]
             # 指派已发布的任务
-            to_assign = [t for t in published if t['doc_id'] not in log['picked_before']]
-            self.db.task.update_many({'_id': {'$in': [t['_id'] for t in to_assign]}}, {'$set': {
+            self.db.task.update_many({'_id': {'$in': [t['_id'] for t in published]}}, {'$set': {
                 'status': self.STATUS_PICKED, 'picked_user_id': user_id, 'picked_by': username,
                 'picked_time': now, 'updated_time': now,
             }})
-            log['assigned'] = [t['doc_id'] for t in to_assign]
+            log['assigned'] = [t[key] for t in published]
             # 更新page的任务状态
             if collection == 'page':
-                for t in to_assign:
+                for t in published:
                     self.update_page_status(self.STATUS_PICKED, t)
             self.send_data_response({k: i for k, i in log.items() if i})
-            self.add_log('assign_task', [t['_id'] for t in to_assign], None,
-                         dict(task_type=task_type, username=username, doc_id=[t.get('doc_id') for t in to_assign]))
+            self.add_log('assign_task', [t['_id'] for t in published], None,
+                         dict(task_type=task_type, username=username, doc_id=[t.get(key) for t in published]))
 
         except self.DbError as error:
             return self.send_db_error(error)
