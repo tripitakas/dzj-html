@@ -153,6 +153,10 @@
   if ('{{steps_unfinished1}}' === 'True') {
     $.cut.data.image.node.style.display = '';
     $.cut.data.image.node.style.opacity = 0.2;
+    $('#toggle-three').removeClass('active');
+    $('#toggle-char').addClass('active');
+    $('#toggle-block').removeClass('active');
+    $('#toggle-column').removeClass('active');
     $.cut.toggleBox(false, 'block');
     $.cut.toggleBox(false, 'column');
     $.cut.toggleBox(true, 'char');
@@ -279,18 +283,17 @@
     $.cut.toggleBox(true, $(this).attr('data-value'));
     $('.task-step').removeClass('active');
     $(this).addClass('active');
+
+    $('#toggle-three').removeClass('active');
+    $('#toggle-char').toggleClass('active', boxType === 'char');
+    $('#toggle-block').toggleClass('active', boxType === 'block');
+    $('#toggle-column').toggleClass('active', boxType === 'column');
   });
   // 提交步骤
   $('#submit-steps').on('click', function () {
-    if (clickedSteps.indexOf('char') === -1) {
-      return bsShow('提示', '您尚未进行字框校对，不能提交。')
-    }
-    if (clickedSteps.indexOf('column') === -1) {
-      return bsShow('提示', '您尚未进行列框校对，不能提交。')
-    }
-    if (clickedSteps.indexOf('block') === -1) {
-      return bsShow('提示', '您尚未进行栏框校对，不能提交。')
-    }
+    if (clickedSteps.indexOf('char') === -1) return bsShow('提示', '您尚未进行字框校对，不能提交。');
+    if (clickedSteps.indexOf('column') === -1) return bsShow('提示', '您尚未进行列框校对，不能提交。');
+    if (clickedSteps.indexOf('block') === -1) return bsShow('提示', '您尚未进行栏框校对，不能提交。');
     stepsFinished = true;
     $('#save').click();
   });
