@@ -229,10 +229,16 @@
   var taskType = "{{handler.task_type if hasattr(handler, 'task_type') else ''}}";
 
   // 初始化
-  $('#toggle-column-panel').toggleClass('active', getStorage('toggle-column-panel', true));
-  $('.column-panel').toggleClass('hide', !getStorage('toggle-column-panel', true));
-  $('#toggle-work-panel').toggleClass('active', getStorage('toggle-work-panel', true));
-  $('.work-panel').toggleClass('hide', !getStorage('toggle-work-panel', true));
+  $('#taskConfigModal .page-size').val('{{handler.page_size}}');
+  $('#taskConfigModal .show-char-info :radio[value="{{show_char_info}}"]').prop('checked', true);
+  if (!getStorage('toggle-column-panel', true)) {
+    $('#toggle-column-panel').removeClass('active');
+    $('.column-panel').addClass('hide');
+  }
+  if (!getStorage('toggle-work-panel', true)) {
+    $('#toggle-work-panel').removeClass('active');
+    $('.work-panel').addClass('hide');
+  }
 
   $(document).ready(function () {
     getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
@@ -255,8 +261,9 @@
       $('.char-info, .cc').toggleClass('hide', showCharInfo.val() !== '是');
     }
     if (JSON.stringify(data) !== '{}') {
-      postApi('/session/config', {data: data});
-      location.reload();
+      postApi('/session/config', {data: data},function () {
+        location.reload();
+      });
     }
   });
 

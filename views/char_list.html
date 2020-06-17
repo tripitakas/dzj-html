@@ -286,6 +286,8 @@
     var source = $('#sourceModal .source').val();
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
+    if (data.type === 'selected' && !ids.length) return showError('错误', '选中记录不允许为空。');
+    if (data.type === 'searched' && !data.search) return showError('错误', '检索条件不允许为空。');
     postApi('/char/source', {data: data}, () => location.reload());
   });
 
