@@ -454,8 +454,8 @@ class PageTaskPublishApi(PageHandler):
             try:
                 page_names = json.loads(names_str)
             except json.decoder.JSONDecodeError:
-                ids_str = re.sub(r'\n+', '|', names_str)
-                page_names = ids_str.split(r'|')
+                ids_str = re.sub(r'(\n|\r\n)+', ',', names_str)
+                page_names = ids_str.split(r',')
             pages = list(self.db.page.find({'name': {'$in': page_names}}, {'name': 1}))
             log['un_existed'] = set(page_names) - set([page['name'] for page in pages])
             page_names = [page['name'] for page in pages]
