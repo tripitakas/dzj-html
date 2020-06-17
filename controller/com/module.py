@@ -150,8 +150,7 @@ class CharTxt(UIModule):
         if key in ['cc', 'sc'] and value:
             return value / 1000
         if key in ['pos', 'column'] and value:
-            value.pop('hash', 0)
-            return ', '.join([('%s:%.1f' % (k, v)).replace('.0', '') for k, v in value.items()])
+            return ', '.join([('%s:%.1f' % (k, v)).replace('.0', '') for k, v in value.items() if k != 'hash'])
         if key == 'txt_type':
             return Char.txt_types.get(value) or value or ''
         if key == 'nor_txt':
