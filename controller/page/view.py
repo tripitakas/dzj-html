@@ -117,7 +117,7 @@ class PageListHandler(PageHandler):
             else:
                 condition, params = Page.get_page_search_condition(self.request.query)
             # fields = ['chars', 'columns', 'blocks', 'cmp_txt', 'ocr', 'ocr_col', 'txt']
-            docs, pager, q, order = Page.find_by_page(self, condition, None, 'page_code', None)
+            docs, pager, q, order = Page.find_by_page(self, condition, default_order='name')
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, match_statuses=self.match_statuses,
                         format_value=self.format_value, **kwargs)

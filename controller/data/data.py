@@ -219,5 +219,4 @@ class Variant(Model):
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
-        print(condition)
         return condition, params

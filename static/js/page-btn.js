@@ -160,6 +160,8 @@ $(document).on('click', '.m-footer .char-name', function () {
   var charName = $(this).text();
   if ($(this).hasClass('disabled') || charName === '未选中')
     return;
+  if (!/b\dc\d+c\d+/.test(charName))
+    return showWarning('提示', '当前不是字框，无法查看');
   if (charName.indexOf('#') > -1) {
     var cid = charName.split('#').pop();
     var pageName = $('.m-footer .page-name').text();

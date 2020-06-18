@@ -109,7 +109,11 @@ class Model(object):
         return d
 
     @classmethod
-    def find_by_page(cls, self, condition=None, search_fields=None, default_order='', projection=None):
+    def reset_order(cls, order):
+        return order
+
+    @classmethod
+    def find_by_page(cls, self, condition=None, search_fields=None, default_order='',projection=None):
         """ 查找数据库中的记录，按页返回结果"""
         condition = condition or {}
         q = self.get_query_argument('q', '')
@@ -120,10 +124,11 @@ class Model(object):
             query = self.db[cls.collection].find(condition, projection)
         else:
             query = self.db[cls.collection].find(condition)
+
         order = self.get_query_argument('order', default_order)
         if order:
             o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort(o, asc)
+            query.sort(cls.reset_order(o), asc)
         if condition:
             doc_count = self.db[cls.collection].count_documents(condition)
         else:

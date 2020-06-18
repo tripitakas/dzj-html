@@ -13,7 +13,6 @@ from controller.page.base import PageHandler
 class CharListHandler(CharHandler):
     URL = '/char/list'
 
-    page_title = '字数据管理'
     table_fields = [
         {'id': 'has_img', 'name': '字图'},
         {'id': 'source', 'name': '分类'},
@@ -21,7 +20,7 @@ class CharListHandler(CharHandler):
         {'id': 'cid', 'name': 'cid'},
         {'id': 'name', 'name': '字编码'},
         {'id': 'char_id', 'name': '字序'},
-        {'id': 'uid', 'name': '字序id'},
+        {'id': 'uid', 'name': '字序编码'},
         {'id': 'data_level', 'name': '数据等级'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
@@ -40,6 +39,7 @@ class CharListHandler(CharHandler):
         {'id': 'tasks', 'name': '校对任务'},
         {'id': 'remark', 'name': '备注'},
     ]
+    page_title = '字数据管理'
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/char/delete'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
