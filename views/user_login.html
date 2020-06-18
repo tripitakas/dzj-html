@@ -22,7 +22,7 @@
             <div class="item">
               <input type="password" placeholder='请输入密码' id="password">
               <i class="icon-lock"></i>
-              <span class="forget" data-toggle="modal" data-target="#forgetModal">忘记密码？</span>
+              <span id="forget-pwd" class="forget">忘记密码？</span>
             </div>
             <div class="other clearfix">
               <div class="select fl">
@@ -47,7 +47,7 @@
 </div>
 
 <!--忘记密码-->
-<div class="panel-body hidden">
+<div class="panel-body">
   <div id="forgetModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -81,47 +81,38 @@
 {% include _footer_main.html %}
 {% include _base_js.html %}
 <script>
+  // 登录
   $('.log-btn > a').click(function () {
-    $modal.parent().removeClass('hidden');
-    postApi('/user/login?next={{next}}', {
-      data: {
-        login_id: $('#login_id').val(),
-        password: $('#password').val()
-      }
-    }, function (data) {
-      window.location = data.redirect || '{{next}}';
-    }, function (obj) {
-      showError('登录失败', obj.message);
-      if (obj.message === '密码错误') {
-        $('.forget').removeClass('hidden');
-      }
+    var data = {login_id: $('#login_id').val(), password: $('#password').val()};
+    postApi('/user/login?next={{next}}', {data: data}, function (res) {
+      window.location = res.redirect || '{{next}}';
+    }, function (err) {
+      showError('登录失败', err.message);
     });
   });
+
   // 回车
   $(document).on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode === 13) {
-      $('.log-btn > a').click();
+    if (keyCode === 13) $('.log-btn > a').click();
+  });
+
+  // 忘记密码
+  $('#forget-pwd').on('click', function () {
+    var loginId = $('#login_id').val();
+    if (!/^1[3456789]\d{9}$/.test(loginId) && !/^.+@.+\..+$/.test(loginId)) {
+      return showError('错误', '请输入手机号或邮箱');
     }
+    $('#forgetModal #account').val(loginId);
+    $('#forgetModal').modal('show');
   });
 
-  var $modal = $('#forgetModal');
-
-  $modal.on('shown.bs.modal', function () {
-    $modal.find('#account').val($('#login_id').val());
-  });
-
-  $modal.find('.btn-primary').click(function () {
-    postApi('/user/forget_pwd', {
-      data: {
-        name: $modal.find('#name').val(),
-        phone_or_email: $('#login_id').val()
-      }
-    }, function () {
+  $('#forgetModal .btn-primary').click(function () {
+    var data = {name: $('#forgetModal #name').val(), phone_or_email: $('#login_id').val()};
+    postApi('/user/forget_pwd', {data: data}, function () {
       showSuccess('新的密码已经发送，请查收。');
-      $modal.find('#name').val('新的密码已经发送，请查收。');
     }, function (err) {
-      showWarning('提示', err.message, 2000);
+      showWarning('提示', err.message);
     });
   });
 </script>

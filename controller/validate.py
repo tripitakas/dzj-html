@@ -137,7 +137,7 @@ def is_name(**kw):
     """ 检查是否为姓名。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
-    regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
+    regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{3,20}$'
     # 值为空或空串时跳过而不检查
     if v and not re.match(regex, v):
         return {k: e.invalid_name}

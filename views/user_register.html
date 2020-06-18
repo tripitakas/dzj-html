@@ -18,11 +18,11 @@
             <span class="desc fr">已有账号？点我&nbsp;<em><a href="/user/login?next={{next}}" class="login_a">登录</a></em></span>
           </div>
           <div class="bd">
-            <div class="item">
-              <input type="text" placeholder='请输入姓名' id="name">
+            <div class="item left">
+              <input type="text" placeholder='请输入姓名，2到5个汉字，或3到20个字母或横杠' id="name">
               <i class="icon-user"></i>
             </div>
-            <div class="item">
+            <div class="item right">
               <div class="select-wrap">
                 <select id="gender">
                   <option disabled selected style='display:none;'>请选择性别</option>
@@ -32,33 +32,33 @@
               </div>
               <i class="icon-gender"></i>
             </div>
-            <div class="item">
-              <input type="password" placeholder='请输入密码' id="password">
+            <div class="item left">
+              <input type="password" placeholder='请输入密码，6到18位数字、字母和符号，不能为纯数字或字母' id="password">
               <i class="icon-lock"></i>
               <span class="hide"></span>
             </div>
-            <div class="item">
+            <div class="item right">
               <input type="password" placeholder='请再次输入密码' id="confirm_psw">
               <i class="icon-lock-open"></i>
             </div>
-            <div class="item">
-              <input type="number" placeholder='请输入手机号' id="phone">
-              <i class="icon-phone"></i>
-            </div>
-            <div class="item">
+            <div class="item left">
               <input type="text" placeholder='请输入邮箱' id="email">
               <i class="icon-mail"></i>
             </div>
+            <div class="item right">
+              <input type="number" placeholder='请输入手机号' id="phone">
+              <i class="icon-phone"></i>
+            </div>
             <div class="verify">
-              <div class="item hide fl" id="phone-div">
-                <input type="text" placeholder='请输入验证码' id="phone-code">
-                <i class="icon-check-outline"></i>
-                <a id="phone-code-btn" class="verify-code phone-code-btn">获取验证码</a>
-              </div>
-              <div class="item hide fr" id="email-div">
+              <div class="item hide fl left" id="email-div">
                 <input type="text" placeholder='请输入验证码，可能在垃圾邮箱' id="email-code">
                 <i class="icon-check-outline"></i>
                 <a id="email-code-btn" class="verify-code email-code-btn">获取验证码</a>
+              </div>
+              <div class="item hide fr right" id="phone-div">
+                <input type="text" placeholder='请输入验证码' id="phone-code">
+                <i class="icon-check-outline"></i>
+                <a id="phone-code-btn" class="verify-code phone-code-btn">获取验证码</a>
               </div>
             </div>
           </div>
