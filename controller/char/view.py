@@ -143,10 +143,10 @@ class CharViewHandler(CharHandler, Char):
                 char['box_logs'] = page['chars'][0]['box_logs']
             if page and page['chars'][0].get('box_level'):
                 char['box_level'] = page['chars'][0]['box_level']
-            char['box_level'] = char.get('box_level') or 1
             char['txt_level'] = char.get('txt_level') or 1
-            char['box_point'] = self.get_required_type_and_point(char)
-            char['txt_point'] = PageHandler.get_required_type_and_point(page)
+            char['box_level'] = char.get('box_level') or 1
+            char['txt_point'] = self.get_required_type_and_point(char)
+            char['box_point'] = PageHandler.get_required_type_and_point(page)
             img_url = self.get_web_img(page['name'], 'page')
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
