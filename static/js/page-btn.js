@@ -45,6 +45,7 @@ $(document).on('click', '#zoom-out', function () {
   var pageImg = $('.page-img img');
   if (pageImg.length) {
     pageImg.width(pageImg.width() * 0.9);
+    pageImg.height(pageImg.height() * 0.9);
   } else {
     $.cut.setRatio($.cut.data.ratio * 0.9);
   }
@@ -55,6 +56,7 @@ $(document).on('click', '#zoom-in', function () {
   var pageImg = $('.page-img img');
   if (pageImg.length) {
     pageImg.width(pageImg.width() * 1.5);
+    pageImg.height(pageImg.height() * 1.5);
   } else {
     $.cut.setRatio($.cut.data.ratio * 1.5);
   }
@@ -63,8 +65,10 @@ $(document).on('click', '#zoom-in', function () {
 // 原始大小
 $(document).on('click', '#zoom-reset', function () {
   var pageImg = $('.page-img img');
+  var ratio = pageImg.width() / pageImg.height();
   if (pageImg.length) {
     pageImg.height('100%');
+    pageImg.width(pageImg.height() * ratio);
   } else {
     $.cut.setRatio(1);
   }
