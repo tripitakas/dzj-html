@@ -76,6 +76,10 @@ class ArticleUpsertApi(BaseHandler):
 class UploadImageApi(BaseHandler):
     URL = '/php/imageUp.php'
 
+    def prepare(self):
+        super(UploadImageApi, self).prepare()
+        self.is_api = True
+
     def post(self):
         """ 编辑器中的图片上传
         url参数和返回值要适配editor
@@ -83,7 +87,7 @@ class UploadImageApi(BaseHandler):
         assert self.request.files and self.request.files['upfile']
         file = self.request.files['upfile'][0]
         if len(file['body']) > 1024 * 1024:
-            return self.send_error(errors.upload_fail, reason='文件不允许超过1MB')
+            return self.send_error_response(errors.upload_fail, reason='文件不允许超过1MB')
 
         date = get_date_time()
         folder = date[:7].replace('-', 'p')
