@@ -241,7 +241,7 @@ class ChangeMyProfileApi(BaseHandler):
 
             fields, update = ['name', 'gender', 'email', 'phone'], dict()
             for field in fields:
-                update[field] = self.data.get(field) or self.current_user[field]
+                update[field] = self.data.get(field) or self.current_user.get('field') or ''
                 self.current_user[field] = update[field]
 
             r = self.db.user.update_one(dict(_id=self.user_id), {'$set': update})
