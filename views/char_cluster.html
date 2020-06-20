@@ -149,23 +149,67 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/article/help-cluster">更多</a></h4>
         </div>
         <div class="modal-body">
           <div class="title">一、简单介绍</div>
           <div class="intro">
-            聚类校对，是一种将字框OCR文字相同的单字聚集到一起的校对方式。<br/>
-            每个字图都有OCR文字，也有它的校对文字（默认为OCR文字），用户需要检查校对文字是否与字图中的文字一致，如果不一致，则需要进行修改。<br/>
+            聚类校对是一种将OCR识别出的文字按照字种聚集到一起进行批量处理的校对方式。一个聚类校对任务的字种显示在左上方，
+            该字种下所有的字图显示在左下方区域。字图中会给出图片字和OCR识别的文字，用户需要检查OCR文字是否与字图中的图
+            片字形是否相一致，如果不一致，就需要把OCR文字在右侧的校对工作区改成正确的文字。
           </div>
-          <div class="title">二、校对方法</div>
+          <div class="title">二、一般步骤</div>
           <div class="intro">
             1. 逐一点击左上区域的字种（当前字种将会高亮显示）<br/>
-            2. 检查左下区域的字图列表，如果发现图中的文字与当前字种不一致，则进行单击<br/>
-            2.1. 中间列图区域可以查看该字所在的列图<br/>
-            2.2. 右侧工作面板可以查看该字的OCR候选、校对历史<br/>
-            2.3. 右侧工作面板下方的请您校对区域，可以修改当前字图的校对文字<br/>
-            3. 依次往后翻页，如果发现某一页没有错误，则可以提交任务<br/>
+            2. 检查该字种下字图区域的字图，如果发现字图中的文字与当前字种不一致，则进行修改：<br/>
+            （1）右侧工作面板可以查看该字的OCR候选字，选择某字后该字会出现在校对工作区的输入位置；<br/>
+            （2）左侧字种下有该字种的异体字列表，选择某字后该字会出现在校对工作区的输入位置；<br/>
+            （3）如果没有合适的文字可供选择，可以手工输入正确的校对文字到工作区输入位置；<br/>
+            （4）输入后确认，该字图的文字即被修改为输入的文字<br/>
+            3. 如果发现当前页所有字图都没有错误，则可以提交当前页<br/>
+            4. 如果所有页面都已经提交，则可以提交当前任务<br/>
+            注：为提高校对效率，系统提供了条件筛选、批量修改等校对辅助功能。
           </div>
+          <div class="title">三、按钮说明</div>
+          <table class="table">
+            <tr>
+              <td><i class="icon-sort"></i></td>
+              <td>待校对的字图按置信度升序排列或按置信度降序排列</td>
+            </tr>
+            <tr>
+              <td><i class="icon-cc"></i></td>
+              <td>按置信度过滤。输入正确范围的数值（0-1），点击最左侧空白方框取消过滤</td>
+            </tr>
+            <tr>
+              <td><i class="icon-filter"></i></td>
+              <td>按照条件过滤来选择字图。<br/>
+                过滤条件包括：异文，已提交，未提交，我的修改，所有修改。<br/>
+                根据不同的过滤条件显示字图。 选择一个过滤条件后，再选择一个条件，结果是两个条件的叠加。
+                如：已提交/未提交 + 我的修改/所有修改，异文可以和任意一个其他条件组合。<br/>
+                如果两个条件不相容，则后面的覆盖前面的条件，例如：先选未提交，再选已提交，结果是已经提交的。<br/>
+                点击最左侧的空白方框取消过滤，显示所有字图。</td>
+            </tr>
+            <tr>
+              <td><i class="icon-checkbox2"></i></td>
+              <td>将本页字图区显示的字图全部选择，注意不会选择不在本页显示的字图</td>
+            </tr>
+            <tr>
+              <td><i class="icon-pencil"></i></td>
+              <td>将选中的字图批量修改为正确的字</td>
+            </tr>
+            <tr>
+              <td><i class="icon-edit1"></i></td>
+              <td>将选中的字图的类型（没问题、模糊或残损、不确定、不认识）进行批量修改</td>
+            </tr>
+            <tr>
+              <td><i class="icon-panel-txt"></i></td>
+              <td>显隐中间的原始图片列</td>
+            </tr>
+            <tr>
+              <td><i class="icon-right-panel"></i></td>
+              <td>显隐右侧工作面板</td>
+            </tr>
+          </table>
         </div>
       </div>
     </div>
@@ -261,7 +305,7 @@
       $('.char-info, .cc').toggleClass('hide', showCharInfo.val() !== '是');
     }
     if (JSON.stringify(data) !== '{}') {
-      postApi('/session/config', {data: data},function () {
+      postApi('/session/config', {data: data}, function () {
         location.reload();
       });
     }
