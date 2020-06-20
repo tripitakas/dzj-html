@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="{{static_url('css/register.css')}}">
 </head>
 
-<body>
+<body class="widescreen">
 <div class="app-main">
   <div class="main">
     <div class="register">
@@ -66,7 +66,7 @@
           <div class="tips">注：手机号和邮箱任选一个</div>
           <div class="register-agreement">
             <input type="checkbox" class="inp" style="margin-right: 5px"/>
-            <span>同意<a href="#">《网站注册协议》</a></span>
+            <span>同意<a id="regProtocol" href="#">《网站注册协议》</a></span>
           </div>
           <div class="register-btn">
             <a href="#">注&nbsp;&nbsp;&nbsp;&nbsp;册</a>
@@ -75,29 +75,83 @@
       </form>
     </div>
   </div>
+  <div class="panel-body" style="padding: 0;width: 100%">
+    <div id="registerModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+      <div class="modal-dialog" style="width: 100%">
+        <div class="modal-content" style="margin: auto;width: 900px">
+          <div class="modal-header">
+            <h4 class="modal-title">网站注册协议</h4>
+          </div>
+          <div class="modal-body">
+            <div class="intro">
+              1、如是古籍数字化平台（以下简称平台）的所有权归北京如是人工智能技术研究院所有。所提供的服务必须按照其发布的服务条款和操作规则严格执行。
+              用户通过完成注册程序并点击一下"提交"的按钮，这表示用户接受所有的服务条款。
+            </div>
+            <div class="intro">
+              2、平台运用自主设计的操作流程通过国际互联网络为用户提供数字化服务。
+              考虑到平台产品服务的重要性，用户同意提供及时、详尽及真实准确的个人资料。
+              并不断更新注册资料，符合及时、详尽准确的要求。如果用户提供的资料不准确，不真实，不合法有效，平台保留结束用户使用各项服务的权利。
+              除相应的法律、法规要求及程序服务需要平台提供用户的个人资料之外，不能公开用户的姓名、住址、出生日期、电子邮箱、账号。
+            </div>
+            <div class="intro">
+              3、用户隐私制度：尊重用户个人隐私是平台的一项基本政策。所以，作为对以上第二点个人注册资料分析的补充，
+              平台一定不会公开、编辑或透露用户的注册资料，除非平台在诚信的基础上认为透露这些信息在以下几种情况是必要的：<br/>
+              （1）遵守有关法律规定，包括在国家有关机关查询时，提供用户在平台的网页上发布的信息内容及其发布时间、互联网地址或者域名。<br/>
+              （2）在紧急情况下竭力维护用户个人和社会大众的隐私安全。<br/>
+              （3）平台认为必要的其他情况下。用户在此授权平台可以向其电子邮箱发送信息。<br/>
+            </div>
+            <div class="intro">
+              4、用户的帐号、密码和安全性，您一旦注册成功，您将会成为本平台用户，如果您未保管好自己的帐号和密码而对您、
+              平台或第三方造成的损害，您将负全部责任。另外，每个用户都要对其帐户中的所有活动和事件负全责。您可随时改变
+              您的密码，但您在本平台自始至终只能拥有一个唯一账户，不能多次注册新的账户，如果您忘记了您的密码，请点击
+              “忘记密码”来重置您的密码，如果您忘记了登录账号，您可联系平台管理人员查询您的账户名。
+              用户同意若发现任何非法使用用户帐号或安全漏洞的情况，立即通告平台。
+            </div>
+            <div class="intro">
+              5、有限责任平台对直接、间接、偶然、特殊及继起的损害不负责任。
+            </div>
+            <div class="intro">
+              6、用户对服务的使用是根据所有适用于服务的地方法律、国家法律和国际法律标准的。用户承诺：<br/>
+              （1）在平台提交的信息或者利用平台的服务时必须符合中国有关法规，不得在平台的网页上或者利用平台的服务制作、复制、发布、传播以下信息：<br/>
+                &nbsp;&nbsp;(a)反对宪法所确定的基本原则的；<br/>
+                &nbsp;&nbsp;(b)危害国家安全，泄露国家秘密，颠覆国家政权，破坏国家统一的；<br/>
+                &nbsp;&nbsp;(c)损害国家荣誉和利益的；<br/>
+                &nbsp;&nbsp;(d)煽动民族仇恨、民族歧视，破坏民族团结的；<br/>
+                &nbsp;&nbsp;(e)破坏国家宗教政策，宣扬邪教和封建迷信的；(f)散布谣言，扰乱社会秩序，破坏社会稳定的；<br/>
+                &nbsp;&nbsp;(g)散布淫秽、色情、赌博、暴力、凶杀、恐怖或者教唆犯罪的；<br/>
+                &nbsp;&nbsp;(h)侮辱或者诽谤他人，侵害他人合法权益的；<br/>
+                &nbsp;&nbsp;(i)含有法律、行政法规禁止的其他内容的。<br/>
+              （2）不利用平台的服务从事以下活动：<br/>
+                &nbsp;&nbsp;(a)未经允许，进入计算机信息网络或者使用计算机信息网络资源的；<br/>
+                &nbsp;&nbsp;(b)未经允许，对计算机信息网络功能进行删除、修改或者增加的；<br/>
+                &nbsp;&nbsp;(c)未经允许，对进入计算机信息网络中存储、处理或者传输的数据和应用程序进行删除、修改或者增加的；<br/>
+                &nbsp;&nbsp;(d)故意制作、传播计算机病毒等破坏性程序的；<br/>
+                &nbsp;&nbsp;(e)其他危害计算机信息网络安全的行为。<br/>
+              （3）不以任何方式干扰平台的服务。<br/>
+              （4）遵守平台的所有其他规定和程序。<br/>
+            </div>
+            <div class="intro">
+              7、结束服务用户或平台可随时根据实际情况中断服务。平台不需对任何个人或第三方负责而随时中断服务。<br/>
+              用户若反对任何服务条款的建议或对后来的条款修改有异议，或对平台服务不满，用户只有以下的追索权：<br/>
+              （1）不再使用平台服务。<br/>
+              （2）结束用户使用平台服务的资格。<br/>
+              （3）通告平台停止该用户的服务。结束用户服务后，用户使用平台服务的权利马上中止。从那时起，平台不再对用户承担任何义务。<br/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 {% include _base_js.html %}
 <script>
-  $("#phone").on('input propertychange', function () {
-    var input = $(this).val().trim();
-    if (input.length === 0) {
-      $('#phone-div').addClass('hide');
-    } else {
-      $('#phone-div').removeClass('hide');
+  $('.register-btn > a').on("click", function () {
+    if (!$('.register-agreement :checkbox').is(':checked')) {
+      showError('错误', '您需要阅读并勾选同意注册协议，才能进一步注册', 30000000);
+      return;
     }
-  });
-
-  $("#email").on('input propertychange', function () {
-    var input = $(this).val().trim();
-    if (input.length === 0) {
-      $('#email-div').addClass('hide');
-    } else {
-      $('#email-div').removeClass('hide');
-    }
-  });
-
-  $('.register-btn > a').click(function () {
     var password = $('#password').val();
     var confirm_psw = $('#confirm_psw').val();
     if (password !== confirm_psw) {
@@ -120,7 +174,29 @@
     });
   });
 
-  $("#email-code-btn").click(function () {
+  $("#regProtocol").on("click", function () {
+    $('#registerModal').modal('show');
+  });
+
+  $("#phone").on('input propertychange', function () {
+    var input = $(this).val().trim();
+    if (input.length === 0) {
+      $('#phone-div').addClass('hide');
+    } else {
+      $('#phone-div').removeClass('hide');
+    }
+  });
+
+  $("#email").on('input propertychange', function () {
+    var input = $(this).val().trim();
+    if (input.length === 0) {
+      $('#email-div').addClass('hide');
+    } else {
+      $('#email-div').removeClass('hide');
+    }
+  });
+
+  $("#email-code-btn").on("click", function () {
     var email = $('#email').val().trim();
     if (email.length === 0) {
       return showError('邮箱不能为空', '请输入注册邮箱');
@@ -153,7 +229,7 @@
     });
   });
 
-  $("#phone-code-btn").click(function () {
+  $("#phone-code-btn").on("click", function () {
     var phone = $('#phone').val().trim();
     if (phone.length === 0) {
       return showError('手机号不能为空', '请输入手机号码');
