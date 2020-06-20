@@ -5,6 +5,7 @@
 
 import os
 import sys
+import logging
 from os import path
 
 BASE_DIR = path.dirname(path.dirname(__file__))
@@ -15,9 +16,8 @@ from controller import helper as hp
 from controller import errors as err
 
 
-def upload_oss(img_type=''):
+def upload_oss(img_type='', only_check=False):
     """ 将本地static/img中的chars、columns中的图片上传到OSS上"""
-    assert img_type in ['chars', 'columns']
     # 检查参数
     cfg = hp.load_config()
     my_cloud = hp.prop(cfg, 'web_img.my_cloud')
@@ -27,22 +27,33 @@ def upload_oss(img_type=''):
 
     oss_web = Oss(my_cloud, key_id, key_secret, hp.prop(cfg, 'web_img.use_internal'))
     if not oss_web.is_writeable():
-        return err.oss_not_readable if not oss_web.is_readable() else (err.oss_not_writeable[0], 'OSS可读，不可写')
+        if not oss_web.is_readable():
+            return err.oss_not_readable
+        else:
+            return err.oss_not_writeable[0], 'OSS可读，不可写'
+
+    if only_check:
+        return True
 
     # 批量上传
-    print('[%s]upload_oss.py script started.' % hp.get_date_time())
+    assert img_type in ['char', 'column']
+    logging.info('[%s]upload_oss.py script started, img_type %s.' % (hp.get_date_time(), img_type))
     try:
-        img_root = path.join(BASE_DIR, 'static', 'img', 'chars/GL/8/5/10')
+        img_root = path.join(BASE_DIR, 'static', 'img', img_type + 's')
         for root, dirs, files in os.walk(img_root):
             for fn in files:
+                if not fn.endswith('.jpg'):
+                    continue
                 file = path.join(root, fn)
                 inner_path = '/'.join([s for s in fn.split('_') if len(s) < 10][:-1])
-                r = oss_web.upload_file(path.join(img_type, inner_path, fn), file)
+                oss_file = path.join(img_type + 's', inner_path, fn)
+                r = oss_web.upload_file(oss_file, file)
                 if r.status == 200:
                     os.remove(file)
-                print('[%s]%s, upload %s.' % (hp.get_date_time(), fn, 'success' if r.status == 200 else 'failed'))
+                logging.info(
+                    '[%s]%s, upload %s.' % (hp.get_date_time(), fn, 'success' if r.status == 200 else 'failed'))
     except Exception as e:
-        print('[%s] %s' % (e.__class__.__name__, str(e)))
+        logging.info('[%s] %s' % (e.__class__.__name__, str(e)))
 
 
 if __name__ == '__main__':

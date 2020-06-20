@@ -5,10 +5,10 @@ from . import view, api
 
 views = [
     view.SysScriptHandler, view.SysLogListHandler, view.SysLogHandler,
-    view.SysOplogListHandler, view.SysOplogHandler,
+    view.SysOplogListHandler, view.SysOplogHandler, view.SysUploadOssHandler,
     view.ApiTableHandler, view.ApiSourceHandler,
 ]
 
 handlers = [
-    api.LogDeleteApi, api.OpLogStatus,
+    api.LogDeleteApi, api.OpLogStatusApi, api.SysUploadOssApi,
 ]

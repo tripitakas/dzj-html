@@ -259,12 +259,14 @@ role_route_maps = {
             '/api/code/(.+)': ['GET'],
             '/sys/script': ['GET'],
             '/api/data/gen_js': ['POST'],
+            '/sys/upload_oss': ['GET'],
             '/sys/(oplog|log)': ['GET'],
             '/sys/oplog/latest': ['GET'],
             '/sys/oplog/latest/@op_type': ['GET'],
             '/sys/(oplog|log)/@oid': ['GET'],
             '/api/sys/oplog/status/@oid': ['POST'],
             '/api/sys/(oplog|log)/delete': ['POST'],
+            '/api/sys/upload_oss/(char|column)': ['POST'],
         }
     },
 }
