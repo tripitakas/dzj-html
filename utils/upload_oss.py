@@ -37,6 +37,7 @@ def upload_oss(img_type='', only_check=False):
 
     # 批量上传
     assert img_type in ['char', 'column']
+    print(img_type)
     logging.info('[%s]upload_oss.py script started, img_type %s.' % (hp.get_date_time(), img_type))
     try:
         img_root = path.join(BASE_DIR, 'static', 'img', img_type + 's')

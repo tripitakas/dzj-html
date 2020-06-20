@@ -57,8 +57,8 @@ class SysUploadOssApi(BaseHandler):
             # 启动脚本，生成字图
             script = 'nohup python3 %s/utils/upload_oss.py --img_type=%s >> log/upload_oss.log 2>&1 &'
             script = script % (h.BASE_DIR, img_type)
-            print(script)
-            # os.system(script)
+            # print(script)
+            os.system(script)
             self.send_data_response()
 
         except self.DbError as error:
