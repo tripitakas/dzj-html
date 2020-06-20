@@ -87,3 +87,7 @@ upload_fail = 5100, '上传失败'
 invalid_txt = 6001, '文字格式有误'
 invalid_txt_type = 6002, '文字类型有误'
 variant_exist = 6003, '异体字已存在'
+
+oss_not_readable = 7001, 'OSS不可读'
+oss_not_writeable = 7002, 'OSS不可写'
+no_my_cloud = 7003, 'OSS网盘没有配置'

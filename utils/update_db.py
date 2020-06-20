@@ -42,7 +42,7 @@ def init_variants(db):
     print('add %s variants' % len(variants2insert))
 
 
-def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='index_db', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
