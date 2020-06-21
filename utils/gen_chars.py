@@ -36,7 +36,7 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                 return True
         return False
 
-    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(hp.load_config()['database'])[0]
+    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(hp.load_config()['database'], db_name=db_name)[0]
     if reset:
         db.char.delete_many({})
 
@@ -72,6 +72,8 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                         m['ocr_txt'] = c.get('alternatives', '')[:1] or c.get('ocr_col') or ''
                         m['txt'] = c.get('txt') or m['ocr_txt']
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
+                        if 'column_no' not in c:
+                            c['column_no'] = c.pop('line_no')
                         m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
                         m['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
                         chars.append(m)

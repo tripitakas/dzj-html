@@ -22,7 +22,7 @@ def check_match(db=None, db_name='tripitaka', uri=None, condition=None, page_nam
     :param fields 检查哪个字段，包括cmp_txt/ocr_col/txt
     """
     cfg = hp.load_config()
-    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'])[0]
+    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'], db_name=db_name)[0]
     if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
         condition = {'name': {'$in': page_names}}

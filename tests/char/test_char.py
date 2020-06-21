@@ -28,9 +28,6 @@ class TestChar(APITestCase):
             '普通用户,单元测试用户,切分审定员,聚类审定员,生僻审定员'
         )
 
-    def tearDown(self):
-        super(TestChar, self).tearDown()
-
     def test_char_txt(self):
         """ 测试单字修改"""
         char = self._app.db.char.find_one({})
