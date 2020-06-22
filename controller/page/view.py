@@ -221,7 +221,7 @@ class PageInfoHandler(PageHandler):
             page_txts = {k: self.get_txt(page, k) for k in fields1 if self.get_txt(page, k)}
             fields2 = ['blocks', 'columns', 'chars', 'chars_col']
             page_boxes = {k: self.prop(page, k) for k in fields2 if self.prop(page, k)}
-            fields3 = list(set(page.keys()) - set(fields1 + fields2) - {'tasks', 'txt_match'})
+            fields3 = list(set(page.keys()) - set(fields1 + fields2) - {'bak', 'tasks', 'txt_match'})
             metadata = {k: self.prop(page, k) for k in fields3 if self.prop(page, k)}
 
             self.render('page_info.html', page=page, metadata=metadata, page_txts=page_txts, page_boxes=page_boxes,

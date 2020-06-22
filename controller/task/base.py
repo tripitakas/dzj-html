@@ -83,7 +83,8 @@ class TaskHandler(BaseHandler, Task):
         """ 获取任务类型。子类可重载，以便prepare函数调用"""
         # eg. /task/do/cut_proof/5e3139c6a197150011d65e9d
         s = re.search(r'/task/(do|update|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
-        task_type = s.group(2) if s else ''
+        s1 = re.search(r'/task/([^/]+?)/([0-9a-z]{24})', self.request.path)
+        task_type = s.group(2) if s else s1.group(1) if s1 else ''
         return task_type
 
     def task_name(self):

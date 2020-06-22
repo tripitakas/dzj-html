@@ -31,10 +31,10 @@
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
         <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
         <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
-        <div id="toggle-three" class="btn-txt icon-three{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
-        <div id="toggle-block" class="btn-txt icon-blocks{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-        <div id="toggle-column" class="btn-txt icon-columns{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-        <div id="toggle-char" class="btn-txt icon-chars active{{' hide' if steps_unfinished1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-three" class="btn-txt icon-three{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
+        <div id="toggle-block" class="btn-txt icon-blocks{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+        <div id="toggle-column" class="btn-txt icon-columns{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+        <div id="toggle-char" class="btn-txt icon-chars active{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
         <div class="btn-group hl-box more-group" id="more-group">
           <button id="toggle-all" class="btn btn-default btn-sm" type="button" title="显隐所有字框">所有<sup class="s-count"></sup></button>
@@ -150,17 +150,6 @@
     $.cut.data.image.node.style.display = getStorage('toggleImage', '1') === '1' ? '' : 'none';
     $.cut.data.image.node.style.opacity = getStorage('toggleBlur', '1') === '1' ? 0.2 : null;
   }
-  if ('{{steps_unfinished1}}' === 'True') {
-    $.cut.data.image.node.style.display = '';
-    $.cut.data.image.node.style.opacity = 0.2;
-    $('#toggle-three').removeClass('active');
-    $('#toggle-char').addClass('active');
-    $('#toggle-block').removeClass('active');
-    $('#toggle-column').removeClass('active');
-    $.cut.toggleBox(false, 'block');
-    $.cut.toggleBox(false, 'column');
-    $.cut.toggleBox(true, 'char');
-  }
 
   function updateThreeBoxes() {
     $.cut.toggleBox(getStorage('toggleBlock', '-1') === '1', 'block');
@@ -172,6 +161,20 @@
     $('#toggle-column').toggleClass('active', getStorage('toggleColumn', '-1') === '1');
     $('#toggle-char').toggleClass('active', getStorage('toggleChar', '-1') === '1');
     showHighLightCount();
+  }
+
+  if ('{{steps_unfinished1}}' === 'True') {
+    $.cut.data.image.node.style.display = '';
+    $.cut.data.image.node.style.opacity = 0.2;
+    $('#toggle-three').removeClass('active');
+    $('#toggle-char').addClass('active');
+    $('#toggle-block').removeClass('active');
+    $('#toggle-column').removeClass('active');
+    $.cut.toggleBox(false, 'block');
+    $.cut.toggleBox(false, 'column');
+    $.cut.toggleBox(true, 'char');
+  } else {
+    updateThreeBoxes();
   }
 
   $.cut.state.canHitBox = function (el) {
