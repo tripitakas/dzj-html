@@ -304,7 +304,7 @@ class SendUserEmailCodeApi(BaseHandler):
         """ email_list邮件列表，content邮件内容，subject发送标题 """
 
         try:
-            html = "<html><span style='font-size:16px;margin-right:10px'>您的验证码是：%s</span></html>"
+            html = "<html><span style='font-size:16px;margin-right:10px'>您的验证码是：%s</span></html>" % code
             content = code if '<html' in code else html
             msg = MIMEText(content, 'html', 'utf-8')
             account = self.config['email']['account']
