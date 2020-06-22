@@ -43,8 +43,7 @@ def get_exam_names():
     names = []
     for i in range(10):
         names.extend(eval('names%s' % i))
-    return ['GL_1434_5_10']
-    # return names
+    return names
 
 
 def transform_box(box, mode='reduce,move'):
@@ -84,13 +83,19 @@ def initial_bak_data(db):
         db.page.update_one({'_id': p['_id']}, {'$set': {'bak': bak}})
 
 
-def reset_data(db):
-    """ 从备份数据恢复"""
+def reset_expr_data(db):
+    """ 恢复练习数据"""
     pages = list(db.page.find({'name': {'$regex': 'EX'}}))
     for p in pages:
         if p.get('bak'):
             db.page.update_one({'_id': p['_id']}, {'$set': p['bak']})
-    pages = list(db.page.find({'name': {'$in': get_exam_names()}}))
+
+
+def reset_exam_data(db, names=None):
+    """ 恢复考核数据"""
+    names = names or get_exam_names()
+    names = names.split(',') if isinstance(names, str) else names
+    pages = list(db.page.find({'name': {'$in': names}}))
     for p in pages:
         if p.get('bak'):
             db.page.update_one({'_id': p['_id']}, {'$set': p['bak']})
@@ -100,9 +105,11 @@ def set_source(db):
     db.page.update_many({'name': {'$in': get_exam_names()}}, {'$set': {'remark_box': '考核数据'}})
 
 
-def shuffle_exam_data(db):
+def shuffle_exam_data(db, names=None):
     """ 处理考试数据：栏框进行放大或缩小，列框进行缩放和增删，字框进行缩放和增删"""
-    for i, name in enumerate(get_exam_names()):
+    names = names or get_exam_names()
+    names = names.split(',') if isinstance(names, str) else names
+    for i, name in enumerate(names):
         p = db.page.find_one({'name': name})
         print('processing %s' % name if p else '%s not existed' % name)
         assert len(p['chars']) > 10
@@ -132,7 +139,7 @@ def add_exam_users(db):
     db.user.insert_many(users)
 
 
-def publish_tasks_and_assign(db):
+def publish_exam_tasks_and_assign(db):
     """ 发布并指派考核任务"""
 
     def get_task(page_name, tsk_type, num=None, params=None, exam_user=None):
@@ -157,24 +164,29 @@ def publish_tasks_and_assign(db):
         db.task.insert_many(tasks)
 
 
-def reset_tasks(db):
+def reset_exam_tasks(db, user_no=None):
     """ 重置考核任务状态"""
-    db.task.update_many(dict(batch='考核任务'), {'$set': {
+    cond = dict(batch='考核任务')
+    if user_no:
+        cond['picked_by'] = '考核账号%d' % user_no
+    db.task.update_many(cond, {'$set': {
         'status': 'picked',
     }})
-    db.task.update_many(dict(batch='考核任务'), {'$unset': {
+    db.task.update_many(cond, {'$unset': {
         'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
     }})
 
 
-def reset_data_and_tasks(db):
+def reset_user_data_and_tasks(db, user_no=None):
     """ 重置体验数据、考核数据以及考核任务"""
-    reset_data(db)
-    shuffle_exam_data(db)
-    reset_tasks(db)
+    assert not user_no or user_no in range(1, 11)
+    names = eval('names%s' % (user_no - 1)) if user_no else None
+    reset_exam_data(db, names)
+    shuffle_exam_data(db, names)
+    reset_exam_tasks(db, user_no)
 
 
-def main(db_name='tripitaka', uri='localhost', func='reset_data_and_tasks', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='reset_user_data_and_tasks', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

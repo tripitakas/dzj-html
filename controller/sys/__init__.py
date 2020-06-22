@@ -11,4 +11,5 @@ views = [
 
 handlers = [
     api.LogDeleteApi, api.OpLogStatusApi, api.SysUploadOssApi,
+    api.ResetExamUserApi,
 ]

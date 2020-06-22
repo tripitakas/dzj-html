@@ -264,6 +264,7 @@ role_route_maps = {
             '/sys/oplog/latest': ['GET'],
             '/sys/oplog/latest/@op_type': ['GET'],
             '/sys/(oplog|log)/@oid': ['GET'],
+            '/api/sys/reset_exam_user': ['POST'],
             '/api/sys/oplog/status/@oid': ['POST'],
             '/api/sys/(oplog|log)/delete': ['POST'],
             '/api/sys/upload_oss/(char|column)': ['POST'],

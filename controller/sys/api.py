@@ -10,6 +10,7 @@ from controller import helper as h
 from controller import validate as v
 from controller.base import BaseHandler
 from utils.upload_oss import upload_oss
+from utils import update_exam_data as exam
 
 
 class LogDeleteApi(BaseHandler):
@@ -59,6 +60,28 @@ class SysUploadOssApi(BaseHandler):
             script = script % (h.BASE_DIR, img_type)
             # print(script)
             os.system(script)
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class ResetExamUserApi(BaseHandler):
+    URL = r'/api/sys/reset_exam_user'
+
+    def post(self):
+        """ 重置考核用户相关数据和任务"""
+        try:
+            user_no = None
+            user_id = self.data['user_id']
+            if user_id:
+                user = self.db.user.find_one({'_id': ObjectId(user_id)})
+                if not user:
+                    self.send_error_response(e.no_object)
+                else:
+                    assert '考核账号' in user['name']
+                    user_no = int(user['name'].replace('考核账号', ''))
+            exam.reset_user_data_and_tasks(self.db, user_no)
             self.send_data_response()
 
         except self.DbError as error:
