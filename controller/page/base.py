@@ -142,7 +142,7 @@ class PageHandler(TaskHandler, Page, Box):
 
         ocr_txt = ''.join([s['base'] for s in diff_segments])
         txt2apply = ''.join([s['cmp1'] for s in diff_segments])
-        assert len(ocr_txt) == len(txt2apply)
+        assert len(ocr_txt) == len(cls.filter_symbol(txt2apply))
         cls.write_back_txt(page['chars'], txt2apply, field)
         return match, txt2apply
 
