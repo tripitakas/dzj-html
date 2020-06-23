@@ -160,8 +160,10 @@ def publish_tasks_and_assign(db):
     pages = list(db.page.find({'name': {'$regex': 'EX'}}, {'name': 1}))
     for p in pages:
         tasks.append(get_task(p['name'], task_type, r_user=user))
-
     db.task.insert_many(tasks)
+    # 更新page的tasks状态
+    db.page.update_many({'name': {'$regex': 'EX'}}, {'$set': {'tasks.%s.1' % task_type: 'picked'}})
+    db.page.update_many({'name': {'$in': get_exam_names()}}, {'$set': {'tasks.%s.1' % task_type: 'picked'}})
 
 
 def reset_exam_data_and_tasks(db, user_no=None):
