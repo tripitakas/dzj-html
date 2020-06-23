@@ -4,6 +4,7 @@
 import re
 import os
 import json
+import random
 from bson.objectid import ObjectId
 from tornado.escape import native_str
 from elasticsearch.exceptions import ConnectionTimeout
@@ -69,7 +70,7 @@ class CharBoxApi(PageHandler):
             if h.cmp_obj(char, self.data, ['pos']):
                 return self.send_error_response(e.not_changed)
             # 检查、设置box_logs
-            old_logs = char.get('box_logs') or [{k: char.get(k) for k in ['x', 'y', 'w', 'h']}]
+            old_logs = char.get('box_logs') or [{'pos': {k: char.get(k) for k in ['x', 'y', 'w', 'h']}}]
             box_logs = self.merge_box_logs({'pos': self.data['pos']}, old_logs)
             # 更新page表和char表
             box_level = self.get_user_box_level(self, self.data.get('task_type'))
@@ -83,10 +84,9 @@ class CharBoxApi(PageHandler):
             self.add_log('update_box', None, char_name, update)
             ret = dict(box_logs=box_logs)
             if r1.modified_count and r2.modified_count:  # 立即生成字图
-                chars = list(self.db.char.find({'name': char_name}))
-                t = extract_img(db=self.db, username=self.username, regen=True, chars=chars)
-                if t:
-                    ret['img_time'] = t
+                char = self.db.char.find_one({'name': char_name})
+                extract_img(db=self.db, username=self.username, regen=True, chars=[char])
+                ret['img_url'] = self.get_web_img(char_name, 'char') + '?v=%d' % random.randint(0, 9999)
             self.send_data_response(ret)
 
         except self.DbError as error:
@@ -134,9 +134,14 @@ class PageTaskCutApi(PageHandler):
 
             submitted = self.prop(self.task, 'steps.submitted') or []
             if self.data['step'] == 'box':
+                update = {}
+                if self.data.get('steps_finished'):
+                    update['result.steps_finished'] = True
                 if self.data.get('submit') and 'box' not in submitted:
                     submitted.append('box')
-                    self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'steps.submitted': submitted}})
+                    update['steps.submitted'] = submitted
+                if update:
+                    self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
                 r = PageBoxApi.save_box(self, self.task['doc_id'], task_type)
                 self.send_data_response(r)
             elif self.data['step'] == 'order':
@@ -325,16 +330,19 @@ class PageDeleteApi(BaseHandler):
     def post(self):
         """ 批量删除"""
         try:
-            rules = [(v.not_both_empty, '_id', '_ids')]
+            rules = [(v.not_both_empty, 'page_name', 'page_names')]
             self.validate(self.data, rules)
 
-            if self.data.get('_id'):
-                r = self.db.page.delete_one({'_id': ObjectId(self.data['_id'])})
-                self.add_log('delete_page', target_id=self.data['_id'])
-            else:
-                r = self.db.page.delete_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}})
-                self.add_log('delete_page', target_id=self.data['_ids'])
-            self.send_data_response(dict(count=r.deleted_count))
+            page_names = self.data.get('page_names') or [self.data['page_name']]
+            tasks = list(self.db.task.find({'doc_id': {'$in': page_names}}, {'doc_id': 1}))
+            task_names = {t['doc_id'] for t in tasks}
+            page_names = [name for name in page_names if name not in task_names]
+            deleted_count = 0
+            if page_names:
+                r = self.db.page.delete_many({'name': {'$in': page_names}})
+                self.add_log('delete_page', target_name=page_names)
+                deleted_count = r.deleted_count
+            self.send_data_response(dict(deleted_count=deleted_count, existed_count=len(task_names)))
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -442,12 +450,13 @@ class PageTaskPublishApi(PageHandler):
             page_names = [page['name'] for page in pages]
         names_file = self.request.files.get('names_file')
         if names_file:
-            names_str = str(names_file[0]['body'], encoding='utf-8').strip('\n')
+            names_str = str(names_file[0]['body'], encoding='utf-8')
             try:
                 page_names = json.loads(names_str)
             except json.decoder.JSONDecodeError:
-                ids_str = re.sub(r'\n+', '|', names_str)
-                page_names = ids_str.split(r'|')
+                ids_str = re.sub(r'(\n|\r\n)+', ',', names_str)
+                page_names = ids_str.split(r',')
+            page_names = [n for n in page_names if n]
             pages = list(self.db.page.find({'name': {'$in': page_names}}, {'name': 1}))
             log['un_existed'] = set(page_names) - set([page['name'] for page in pages])
             page_names = [page['name'] for page in pages]

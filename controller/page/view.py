@@ -34,12 +34,11 @@ class PageListHandler(PageHandler):
         'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'box_ready',
     ]
     operations = [
-        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/page/delete'},
+        {'operation': 'bat-delete', 'label': '批量删除'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'bat-gen-chars', 'label': '生成字表'},
         {'operation': 'btn-check-match', 'label': '检查图文匹配'},
-        {'operation': 'btn-fetch-cmp', 'label': '获取比对文本'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True).items()
@@ -52,7 +51,7 @@ class PageListHandler(PageHandler):
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-my-view', 'label': '查看'},
         {'action': 'btn-update', 'label': '更新'},
-        {'action': 'btn-remove', 'label': '删除', 'url': '/api/page/delete'},
+        {'action': 'btn-delete', 'label': '删除'},
     ]
     update_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
@@ -118,7 +117,7 @@ class PageListHandler(PageHandler):
             else:
                 condition, params = Page.get_page_search_condition(self.request.query)
             # fields = ['chars', 'columns', 'blocks', 'cmp_txt', 'ocr', 'ocr_col', 'txt']
-            docs, pager, q, order = Page.find_by_page(self, condition, None, 'page_code', None)
+            docs, pager, q, order = Page.find_by_page(self, condition, default_order='name')
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, match_statuses=self.match_statuses,
                         format_value=self.format_value, **kwargs)
@@ -222,7 +221,7 @@ class PageInfoHandler(PageHandler):
             page_txts = {k: self.get_txt(page, k) for k in fields1 if self.get_txt(page, k)}
             fields2 = ['blocks', 'columns', 'chars', 'chars_col']
             page_boxes = {k: self.prop(page, k) for k in fields2 if self.prop(page, k)}
-            fields3 = list(set(page.keys()) - set(fields1 + fields2) - {'tasks', 'txt_match'})
+            fields3 = list(set(page.keys()) - set(fields1 + fields2) - {'bak', 'tasks', 'txt_match'})
             metadata = {k: self.prop(page, k) for k in fields3 if self.prop(page, k)}
 
             self.render('page_info.html', page=page, metadata=metadata, page_txts=page_txts, page_boxes=page_boxes,
@@ -293,7 +292,10 @@ class PageTaskCutHandler(PageHandler):
             self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=self.readonly)
         else:
             self.set_box_access(page, task_type)
-            self.render('page_box.html', page=page, img_url=img_url, readonly=self.readonly)
+            steps_finished = self.prop(self.task, 'result.steps_finished')
+            steps_unfinished = True if steps_finished is None else not steps_finished
+            self.render('page_box.html', page=page, img_url=img_url, steps_unfinished=steps_unfinished,
+                        readonly=self.readonly)
 
 
 class PageTxtMatchHandler(PageHandler):

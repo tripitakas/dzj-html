@@ -19,7 +19,7 @@
 
     #submit-box {
       right: 435px;
-      bottom: 42px;
+      bottom: 30px;
       z-index: auto;
       position: absolute;
     }
@@ -81,28 +81,30 @@
         <div class="modal-body">
           <div class="title">一、简介</div>
           <div class="intro">
-            页面浏览可以针对一个页面集合逐条浏览，页面集合有检索参数决定。 浏览时可以看到页面的切分信息、文本信息、任务信息等。其中，
-            栏框、列框、字框等切分信息以及审定文本可以通过更多按钮进行修改，字框OCR和列框OCR可以直接在本页面修改保存。<br/>
-            另外，本页面还可以发布任务。<br/>
-            <b>注：</b>点击上一页或下一页时，系统将记住文本区域的显示或隐藏状态，从而可以选择仅仅浏览切分信息，或者同时浏览文本信息。
+            该页面可以由工作人员以url地址直接打开，具有足够权限的用户可以直接修改字框、校对文字。<br/>
+            关于用户权限的说明请看<a href="/article/auth-intro">《如是古籍数字化平台-数据权限和积分机制》</a>
           </div>
           <div class="title">二、操作</div>
           <table class="table">
             <tr>
-              <td><img src="{{static_url('imgs/icon_back.png')}}"/></td>
-              <td>返回</td>
+              <td><i class="icon-zoom-in"></i></td>
+              <td>图片放大1.5倍</td>
             </tr>
             <tr>
-              <td><i class="icon-image"></i></td>
-              <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
+              <td><i class="icon-zoom-back"></i></td>
+              <td>图片恢复原始大小</td>
             </tr>
             <tr>
-              <td><i class="icon-txt"></i></td>
-              <td>打开或关闭右侧文本。关闭文本可以更好的查看切分信息</td>
+              <td><i class="icon-zoom-out"></i></td>
+              <td>图片缩小0.9倍</td>
             </tr>
             <tr>
-              <td><i class="icon-blur"></i></td>
-              <td>图片虚化处理。虚化后可以更好的看清字框、字序等信息</td>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
             </tr>
           </table>
         </div>

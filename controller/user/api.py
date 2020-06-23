@@ -73,11 +73,14 @@ class LoginApi(BaseHandler):
                 return
             else:
                 user = users[0]
-        if user['password'] != helper.gen_id(password):
+        if helper.gen_id(password) not in [user['password'], user.get('new_pwd')]:
             logging.info('login_failed, ' + login_id)
             if report_error and send_response:
                 return self.send_error_response(e.incorrect_password)
             return
+
+        if helper.gen_id(password) == user.get('new_pwd'):
+            self.db.user.update_one({'_id': user['_id']}, {'$set': {'password': user['new_pwd'], 'new_pwd': None}})
 
         # 清除登录失败记录
         ResetUserPasswordApi.remove_login_fails(self, login_id)
@@ -130,7 +133,7 @@ class RegisterApi(BaseHandler):
                 (v.is_password, 'password'),
                 (v.not_existed, self.db.user, 'phone', 'email')
             ]
-            if not options.testing and self.data.get('email') and self.config['email']['key'] not in ['', None, '待配置']\
+            if not options.testing and self.data.get('email') and self.config['email']['key'] not in ['', None, '待配置'] \
                     and not re.match(r'ocr-processor.*@tripitakas\.net', self.data['email']):
                 rules.append((v.not_empty, 'email_code'))
                 rules.append((v.code_verify_timeout, self.db.verify, 'email', 'email_code'))
@@ -186,14 +189,10 @@ class ForgetPasswordApi(BaseHandler):
 
         pwd = ResetUserPasswordApi.reset_pwd(self, user)
         if '@' in phone_or_email:
-            r = SendUserEmailCodeApi.send_email(self, phone_or_email, """<html>
-                <span style='font-size:16px;margin-right:10px'>密码：%s </span>
-                <a href='http://%s/user/login'>返回登录页面</a>
-                </html>
-                """ % (pwd, self.config['site']['domain']))
+            html = "<html><span style='font-size:16px;margin-right:10px'>密码：%s</span></html>" % pwd
+            r = SendUserEmailCodeApi.send_email(self, phone_or_email, html)
         else:
-            r = SendUserPhoneCodeApi.send_sms(self, phone_or_email, '密码: ' + pwd)
-
+            r = SendUserPhoneCodeApi.send_sms(self, phone_or_email, pwd)
         if r:
             self.send_data_response()
 
@@ -241,7 +240,7 @@ class ChangeMyProfileApi(BaseHandler):
 
             fields, update = ['name', 'gender', 'email', 'phone'], dict()
             for field in fields:
-                update[field] = self.data.get(field) or self.current_user[field]
+                update[field] = self.data.get(field) or self.current_user.get('field') or ''
                 self.current_user[field] = update[field]
 
             r = self.db.user.update_one(dict(_id=self.user_id), {'$set': update})
@@ -305,12 +304,8 @@ class SendUserEmailCodeApi(BaseHandler):
         """ email_list邮件列表，content邮件内容，subject发送标题 """
 
         try:
-            content = code if '<html' in code else """<html>
-                    <span style='font-size:16px;margin-right:10px'>您的验证码是：%s </span>
-                    <a href='http://%s/user/register'>返回注册页面</a>
-                    </html>
-                    """ % (code, self.config['site']['domain'])
-
+            html = "<html><span style='font-size:16px;margin-right:10px'>您的验证码是：%s</span></html>" % code
+            content = code if '<html' in code else html
             msg = MIMEText(content, 'html', 'utf-8')
             account = self.config['email']['account']
             pwd = self.config['email']['key']
@@ -443,7 +438,7 @@ class ResetUserPasswordApi(BaseHandler):
     def reset_pwd(self, user):
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         oid = ObjectId(user['_id'])
-        r = self.db.user.update_one(dict(_id=oid), {'$set': dict(password=helper.gen_id(pwd))})
+        r = self.db.user.update_one(dict(_id=oid), {'$set': dict(new_pwd=helper.gen_id(pwd))})
         if not r.matched_count:
             return self.send_error_response(e.no_user)
 

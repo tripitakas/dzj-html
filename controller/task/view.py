@@ -111,7 +111,7 @@ class TaskSampleHandler(TaskHandler):
     def get(self, task_type):
         """ 练习任务"""
         try:
-            aggregate = [{'$match': {'task_type': task_type, 'is_sample': True}}, {'$sample': {'size': 1}}]
+            aggregate = [{'$match': {'task_type': task_type, 'batch': '练习任务'}}, {'$sample': {'size': 1}}]
             tasks = list(self.db.task.aggregate(aggregate))
             if tasks:
                 return self.redirect('/task/%s/%s' % (task_type, tasks[0]['_id']))

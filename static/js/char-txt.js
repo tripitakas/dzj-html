@@ -22,7 +22,7 @@ function updateTxtLogs(logs) {
 function updateBoxLogs(logs) {
   var html2 = (logs || []).map(function (log) {
     var pos = ['x', 'y', 'w', 'h'].map(function (item) {
-      return item + ':' + log.pos[item];
+      return item + ':' + (log[item] || log.pos[item] || '');
     }).join(', ');
     var meta = log.pos ? `<label>坐标</label><span>${pos}</span><br/>` : '';
     meta += log.username ? `<label>校对人</label><span>${log.username}</span><br/>` : '';

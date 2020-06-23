@@ -41,7 +41,7 @@ def load_config():
     return config
 
 
-def connect_db(cfg, db_name_ext='', host=None):
+def connect_db(cfg, db_name_ext='', db_name=None, host=None):
     if cfg.get('user'):
         uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
         uri = uri.format(cfg['user'], cfg['password'], host or cfg['host'], cfg.get('port', 27017))
@@ -51,7 +51,7 @@ def connect_db(cfg, db_name_ext='', host=None):
         uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
         maxPoolSize=10, waitQueueTimeoutMS=5000
     )
-    return conn[cfg['name'] + db_name_ext], uri
+    return conn[db_name or cfg['name'] + db_name_ext], uri
 
 
 def prop(obj, key, default=None):

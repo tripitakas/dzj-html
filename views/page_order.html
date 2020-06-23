@@ -40,7 +40,6 @@
         <div class="btn-group more-group hide" id="more-group">
           <span id="reorder" class="btn btn-default btn-sm" type="button">重新排序</span>
           <span id="old-order" class="btn btn-default btn-sm" type="button">原始字序</span>
-          <span id="btn-box" class="btn btn-default btn-sm" type="button">{{'查看' if readonly else '修改'}}字框</span>
         </div>
       </div>
       <div class="right">
@@ -229,7 +228,7 @@
   // 跳转字框
   $('#btn-box').on('click', function () {
     var from = decodeFrom() ? '?from=' + decodeFrom() : '';
-    location.href = '/page/box{{"" if readonly else "/edit"}}/{{page["name"]}}' + from;
+    location.href = '/page/box/{{page["name"]}}' + from;
   });
 
   // 获取提交数据

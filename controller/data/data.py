@@ -59,7 +59,7 @@ class Sutra(Model):
 
     page_title = '经数据管理'
     search_tips = '请搜索统一经编码、经编码、经名、起始册'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name','start_volume']
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
@@ -89,7 +89,7 @@ class Reel(Model):
 
     page_title = '卷数据管理'
     search_tips = '请搜索统一经编码、经编码、经名、卷编码和起始册'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name','start_volume']
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
@@ -175,17 +175,20 @@ class Variant(Model):
         if doc.get('_id'):  # 更新
             doc['updated_time'] = datetime.now()
         else:  # 新增
-            r = self.db.variant.find_one({'$or': [{'txt': doc['txt']}, {'img_name': doc['txt']}]})
-            if r:
-                return self.send_error_response(errors.variant_exist)
-            doc['create_time'] = datetime.now()
-            doc['create_by'] = self.username
-            doc['create_user_id'] = self.user_id
-            if not re.match(r'^[^\x00-\xff]$', doc.get('txt')):  # 非汉字
+            # 如果不是汉字，则转为图片字
+            if doc.get('txt') and not re.match(r'^[^\x00-\xff]$', doc['txt']):
                 doc['img_name'] = doc['txt'].strip()
                 doc.pop('txt', 0)
+            cond = {'img_name': doc['img_name']} if doc.get('img_name') else {'txt': doc['txt']}
+            r = self.db.variant.find_one(cond)
+            if r:
+                return self.send_error_response(errors.variant_exist)
+            if doc.get('img_name'):  # 如果是图片，则进行编码
                 v_max = self.db.variant.find_one({'uid': {'$ne': None}}, sort=[('uid', -1)])
                 doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
+            doc['create_by'] = self.username
+            doc['create_time'] = datetime.now()
+            doc['create_user_id'] = self.user_id
         if doc.get('uid'):
             doc['uid'] = int(doc['uid'])
         if doc.get('txt'):
@@ -219,5 +222,4 @@ class Variant(Model):
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
-        print(condition)
         return condition, params

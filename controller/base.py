@@ -312,40 +312,23 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def get_web_img(self, img_name, img_type='page'):
         inner_path = '/'.join(img_name.split('_')[:-1])
-        img_name_old = img_name
         if self.get_config('web_img.with_hash'):
             img_name += '_' + md5_encode(img_name, self.get_config('web_img.salt'))
+        my_cloud = self.get_config('web_img.my_cloud')
         shared_cloud = self.get_config('web_img.shared_cloud')
         relative_url = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name)
-
         # 从本地获取图片
         local_path = self.get_config('web_img.local_path')
         if local_path:
             img_url = '/{0}/{1}'.format(local_path.strip('/'), relative_url)
             if path.exists(path.join(BASE_DIR, img_url[1:])):
                 return img_url
-            elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
-                return path.join(shared_cloud, relative_url)
-            else:
-                return img_url + '?err=1'  # cut.js 据此不显示图
-        # 从云盘获取图片
-        my_cloud = self.get_config('web_img.my_cloud')
-        if my_cloud:
-            auth = oss2.Auth(self.get_config('web_img.key_id'), self.get_config('web_img.key_secret'))
-            bucket_name = re.sub(r'http[s]?://', '', my_cloud).split('.')[0]
-            cloud_host = my_cloud.replace(bucket_name + '.', '')
-            img_bucket = oss2.Bucket(auth, cloud_host, bucket_name)
-            img_url = path.join(my_cloud.replace('-internal', ''), relative_url)
-            try:
-                if img_bucket.object_exists(relative_url):
-                    return img_url
-                elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
-                    return path.join(shared_cloud, relative_url)
-                else:
-                    return img_url + '?err=1'
-            except OssError as err:
-                logging.error(err)
-                return img_url + '?err=1'
+        # 从我的云盘获取图片
+        if my_cloud and img_type in (self.get_config('web_img.cloud_type') or ''):
+            return path.join(my_cloud.replace('-internal', ''), relative_url)
+        # 从共享盘获取图片
+        if shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
+            return path.join(shared_cloud, relative_url)
 
     @gen.coroutine
     def call_back_api(self, url, handle_response=None, handle_error=None, **kwargs):

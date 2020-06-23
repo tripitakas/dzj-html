@@ -5,6 +5,8 @@
 """
 import re
 import inspect
+from os import path
+from glob2 import glob
 from operator import itemgetter
 from bson.objectid import ObjectId
 from .model import Oplog, Log
@@ -50,7 +52,7 @@ class SysLogListHandler(BaseHandler, Log):
 
     def get(self):
         """ 操作日志"""
-        docs, pager, q, order = Log.find_by_page(self, {}, default_order='-_id')
+        docs, pager, q, order = Log.find_by_page(self, default_order='-_id')
         kwargs = self.get_template_kwargs()
         self.render('_list.html', docs=docs, pager=pager, q=q, order=order,
                     format_value=self.format_value, **kwargs)
@@ -65,6 +67,22 @@ class SysLogHandler(BaseHandler, Log):
         if not log:
             self.send_error_response(e.no_object, message='日志不存在')
         self.render('sys_log.html', log=log)
+
+
+class SysUploadOssHandler(BaseHandler, Log):
+    URL = '/sys/upload_oss'
+
+    def get(self):
+        """ 上传图片至OSS"""
+        img_root = path.join(h.BASE_DIR, 'static', 'img')
+        char_fn = glob(path.join(img_root, 'chars', '**', '*.jpg'))
+        char_count = len(char_fn)
+        char_names = [path.basename(fn) for fn in char_fn][:100]
+        column_fn = glob(path.join(img_root, 'columns', '**', '*.jpg'))
+        column_count = len(column_fn)
+        column_names = [path.basename(fn) for fn in column_fn][:100]
+        self.render('sys_upload_oss.html', char_count=char_count, char_names=char_names,
+                    column_count=column_count, column_names=column_names)
 
 
 class SysOplogListHandler(BaseHandler, Oplog):
@@ -101,7 +119,7 @@ class SysOplogListHandler(BaseHandler, Oplog):
 
     def get(self):
         """ 运维日志"""
-        docs, pager, q, order = Oplog.find_by_page(self, {}, default_order='-_id')
+        docs, pager, q, order = Oplog.find_by_page(self, default_order='-_id')
         kwargs = self.get_template_kwargs()
         self.render('_list.html', docs=docs, pager=pager, q=q, order=order,
                     format_value=self.format_value, **kwargs)

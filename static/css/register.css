@@ -56,11 +56,18 @@
 }
 
 .register .bd .item {
-  width: 50%;
   margin-bottom: 25px;
   padding-right: 48px;
   box-sizing: border-box;
   position: relative;
+}
+
+.register .bd .item.left {
+  width: 60%;
+}
+
+.register .bd .item.right {
+  width: 40%;
 }
 
 .register .bd .item:nth-child(2n+2) {
@@ -81,7 +88,7 @@
 }
 
 .register .bd .item .select-wrap {
-  margin-left: -8px;
+  /*margin-left: -8px;*/
 }
 
 .register .bd .item select {
@@ -92,7 +99,7 @@
   display: block;
   width: 100%;
   box-sizing: border-box;
-  padding-left: 40px;
+  margin-left: -5px;
   font-size: 14px;
   border: 0 none;
 }
@@ -211,8 +218,8 @@
   font-size: 14px;
 }
 
-.email-code-btn {
-  right: 0px;
+.phone-code-btn {
+  right: 0;
 }
 
 .error {

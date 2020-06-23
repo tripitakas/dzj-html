@@ -194,7 +194,7 @@ role_route_maps = {
             '/api/user/list': ['POST'],
             '/task/(page|char)/statistic': ['GET'],
             '/task/info/@task_id': ['GET'],
-            '/task/resume/page/@page_name': ['GET'],
+            '/page/task/resume/@page_name': ['GET'],
             '/task/browse/@task_type/@task_id': ['GET'],
         }
     },
@@ -259,12 +259,15 @@ role_route_maps = {
             '/api/code/(.+)': ['GET'],
             '/sys/script': ['GET'],
             '/api/data/gen_js': ['POST'],
+            '/sys/upload_oss': ['GET'],
             '/sys/(oplog|log)': ['GET'],
             '/sys/oplog/latest': ['GET'],
             '/sys/oplog/latest/@op_type': ['GET'],
             '/sys/(oplog|log)/@oid': ['GET'],
+            '/api/sys/reset_exam_user': ['POST'],
             '/api/sys/oplog/status/@oid': ['POST'],
             '/api/sys/(oplog|log)/delete': ['POST'],
+            '/api/sys/upload_oss/(char|column)': ['POST'],
         }
     },
 }

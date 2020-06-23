@@ -438,5 +438,5 @@ class BoxOrder(object):
                 c['char_id'] = '%sc%s' % (column_id, i + 1)
             ret_chars.extend(column_chars)
 
-        cls.pop_fields(ret_chars, 'column_id,column_id2,hr_nbs,side')
+        cls.pop_fields(ret_chars, 'column_id,column_id2,hr_nbs,side,ratio')
         return ret_chars

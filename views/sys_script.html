@@ -4,6 +4,7 @@
   <title>脚本管理</title>
   {% include _base_css.html %}
   <link href="{{static_url('css/home.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('assets/select2/select2.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.JS"></script>
@@ -44,38 +45,29 @@
               </tr>
               </thead>
               <tbody>
-              <tr class="update-db">
-                <td>更新数据库</td>
+              <tr class="upload-oss">
+                <td>上传OSS图片</td>
                 <td></td>
                 <td class="intro">
-                  调用后台脚本，更新数据库。
+                  将本地static/img下的字图、列图上传至OSS网盘。
                 </td>
-                <td><a>启动脚本</a></td>
+                <td><a href="/sys/upload_oss">查看</a></td>
               </tr>
-              <tr class="gen-chars">
-                <td>生成字表</td>
+              <tr class="reset-exam">
+                <td>重置考核用户</td>
                 <td></td>
                 <td class="intro">
-                  根据指定的参数，从页数据生成字数据。
+                  重置考核用户相关的数据和任务。
                 </td>
-                <td><a data-toggle="modal" data-target="#genCharsModal">启动脚本</a></td>
-              </tr>
-              <tr class="build-js">
-                <td>生成js脚本</td>
-                <td></td>
-                <td class="intro">
-                  大藏经阅读界面中，左侧目录导航的数据来源于js脚本，包括册js和经js。册js从册数据中生成，经js从经数据中生成。<br/>
-                  如果手工更新了册或经的基础数据，则可以重新生成js。
-                </td>
-                <td><a data-toggle="modal" data-target="#jsModal">启动脚本</a></td>
+                <td><a data-toggle="modal" data-target="#resetExamUser">启动</a></td>
               </tr>
               <tr class="recycle-task">
                 <td>回收超时任务</td>
-                <td class="status">运行中</td>
+                <td class="status"></td>
                 <td class="intro">
                   自动回收系统中已超时的任务。
                 </td>
-                <td><a>启动脚本</a></td>
+                <td><a class="disabled">启动</a></td>
               </tr>
               </tbody>
             </table>
@@ -87,63 +79,19 @@
 </div>
 
 <div class="panel-body">
-  <div id="jsModal" class="modal fade" role="dialog" aria-labelledby="jsModal-docs" aria-hidden="true">
+  <div id="resetExamUser" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="resetExamUser" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content" style="width: 400px; margin: auto">
+      <div class="modal-content modal-sm">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="modal-title">生成js</h4>
+          <h4 class="modal-title">重置考核用户相关的数据和任务</h4>
         </div>
         <div class="modal-body">
-          <div class="form-group">
-            <h4 class="control-label modal-title">选择数据</h4>
-            <div class="modal-radio collection">
-              <input type="radio" name="collection" value="volume" checked>册
-              <input type="radio" name="collection" value="sutra">经
-            </div>
-            <h4 class="control-label modal-title" style="margin-top: 20px">选择藏经</h4>
-            <div>
-              <select id="select-tripitaka" class="form-control">
-                {% for t in tripitakas %}
-                <option title="{{t}}">{{t}}</option>
-                {% end %}
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div id="genCharsModal" class="modal fade" role="dialog" aria-labelledby="genCharsModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">生成字表</h4>
-        </div>
-        <div class="modal-body">
-          <div class="modal-tab">
-            <h4 class="control-label">选择页面</h4>
-            <ul class="nav nav-tabs" id="tabContent">
-              <li class="active"><a href="#source-select" data-toggle="tab">按输入页码</a></li>
-              <li><a href="#source-search" data-toggle="tab">按检索参数</a></li>
-              <li><a href="#source-all" data-toggle="tab">所有页面</a></li>
-            </ul>
-            <div class="tab-content">
-              <div class="tab-pane active" id="source-select">
-                <textarea type="text" class="form-control" id="page-names" placeholder="请输入页码，按英文逗号分隔"></textarea>
-              </div>
-              <div class="tab-pane" id="source-search">
-                <input type="text" class="form-control" id="search-param" placeholder="请输入检索参数，如?name=gl"/>
-              </div>
-              <div class="tab-pane" id="source-all">
-                <span>针对所有页面</span>
-              </div>
-            </div>
+          <h4 class="control-label">选择用户</h4>
+          <div style="min-height: 150px; text-align: center">
+            <select class="form-control select-user">
+              <option></option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">
@@ -156,50 +104,36 @@
 </div>
 
 {% include _base_js.html %}
+<script src="{{static_url('assets/select2/select2.min.js')}}"></script>
+<script src="{{static_url('assets/select2/zh-CN.js')}}"></script>
 <script>
-  // 生成js
-  $("#jsModal .modal-confirm").on('click', function () {
-    var tripitaka = $('#select-tripitaka option:selected').attr('title');
-    var collection = $("#jsModal :radio[name='collection']:checked").val();
-    var data = {collection: collection, tripitaka_code: tripitaka};
-    postApi('/data/gen_js', {data: data}, function () {
-      showSuccess('成功', '数据已提交。');
-      $('#jsModal').modal('hide');
-    }, function (error) {
-      showError('提交失败', error.message);
-    });
-  });
-
-  // 生成字表
-  $("#genCharsModal .modal-confirm").on('click', function () {
-    var data = {};
-    var source = $('#genCharsModal .tab-pane.active').attr('id');
-    switch (source) {
-      case 'source-search':
-        var searchParam = $('#genCharsModal #search-param').val();
-        if (!searchParam.length)
-          return showError('检索条件不允许为空');
-        data['search'] = searchParam;
-        break;
-      case 'source-select':
-        var pageNames = $('#page-names').val().trim();
-        if (!pageNames.length)
-          return showError('请选择页码');
-        data['page_names'] = pageNames.split(',');
-        break;
-      case 'source-all':
-        data['search'] = '';
-        break;
+  $.fn.modal.Constructor.prototype.enforceFocus = function () {
+  };
+  /*---重置考核数据---*/
+  var $resetExamUser = $('#resetExamUser');
+  $resetExamUser.find(".select-user").select2({
+    dropdownParent: $resetExamUser,
+    ajax: {
+      type: 'POST', url: '/api/user/list', dataType: 'json', delay: 1000, language: 'zh-CN',
+      allowClear: true, width: "100%", placeholder: "请选择", maximumSelectionLength: 2,
+      data: function (params) {
+        return {'q': params.term || '考核', 'page': params.page || 1};
+      },
+      processResults: function (res) {
+        var data = res.data;
+        data.results.splice(0, 0, {id: '', text: '所有考核账号'});
+        return data;
+      }
     }
-    postApi('/page/start_gen_chars', {data: data}, function () {
-      Swal0.fire({
-        type: 'success', title: '成功', html: '已成功启动脚本。',
-        footer: `详情可查看<a href="/sys/oplog/latest/gen_chars" target="_blank">日志</a>`
-      });
-    });
   });
 
-
+  $resetExamUser.find('.modal-confirm').click(function () {
+    var data = {'user_id': $resetExamUser.find(".select-user").val()};
+    postApi('/sys/reset_exam_user', {'data': data}, function (res) {
+      showSuccess('成功', '重置成功');
+      $resetExamUser.modal('hide');
+    });
+  });
 </script>
 </body>
 

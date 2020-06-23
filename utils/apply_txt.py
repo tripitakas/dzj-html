@@ -77,17 +77,20 @@ def migrate_txt_to_char(db, fields=None):
 
 def set_diff_symbol(db):
     """ 设置char表的diff标记"""
-    size = 1000
+    size = 5000
     page_count = math.ceil(db.char.count_documents({}) / size)
     for i in range(page_count):
         print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
         projection = {k: 1 for k in ['ocr_txt', 'ocr_col', 'cmp_txt', 'name']}
         chars = list(db.char.find({}, projection).sort('_id', 1).skip(i * size).limit(size))
+        diff, same = [], []
         for c in chars:
-            diff = False
             if len(set(c[k] for k in ['ocr_txt', 'ocr_col', 'cmp_txt'] if c.get(k) and c[k] != '■')) > 1:
-                diff = True
-            db.char.update_one({'_id': c['_id']}, {'$set': {'diff': diff}})
+                diff.append(c['_id'])
+            else:
+                same.append(c['_id'])
+        db.char.update_many({'_id': {'$in': diff}}, {'$set': {'diff': True}})
+        db.char.update_many({'_id': {'$in': same}}, {'$set': {'diff': False}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='apply_txt', **kwargs):

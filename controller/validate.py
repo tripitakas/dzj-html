@@ -46,7 +46,7 @@ def i18n(key):
         'priority': '优先级',
         'task_type': '任务类型',
         'task_types': '任务类型',
-        'doc_ids': '数据',
+        'page_names': '页编码',
         'sutra_code': '经编码',
         'sutra_name': '经名',
         'reel_no': '卷序号',
@@ -137,7 +137,7 @@ def is_name(**kw):
     """ 检查是否为姓名。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
-    regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
+    regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{3,20}$'
     # 值为空或空串时跳过而不检查
     if v and not re.match(regex, v):
         return {k: e.invalid_name}

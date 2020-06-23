@@ -50,6 +50,7 @@ web_img:
   salt:
   local_path: static/img
   my_cloud: https://tripitaka-xxx.oss-cn-beijing.aliyuncs.com
+  cloud_type: char,column
   use_internal:
   key_id:
   key_secret:

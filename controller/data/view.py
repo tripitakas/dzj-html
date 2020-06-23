@@ -63,7 +63,7 @@ class VariantListHandler(BaseHandler, Variant):
     ]
     update_fields = [
         {'id': 'uid', 'name': '编码', 'readonly': True},
-        {'id': 'txt', 'name': '异体字', 'readonly': True},
+        {'id': 'txt', 'name': '异体字'},
         {'id': 'img_name', 'name': '异体字图'},
         {'id': 'normal_txt', 'name': '所属正字'},
         {'id': 'remark', 'name': '备注'},
@@ -84,7 +84,7 @@ class VariantListHandler(BaseHandler, Variant):
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             kwargs['img_operations'] = ['config']
             condition, params = Variant.get_variant_search_condition(self.request.query)
-            docs, pager, q, order = Variant.find_by_page(self, condition, None, '_id')
+            docs, pager, q, order = Variant.find_by_page(self, condition, default_order='_id')
             self.render('variant_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         format_value=self.format_value, **kwargs)
 

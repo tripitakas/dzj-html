@@ -31,7 +31,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    {% module ComLeft(active_id='data-page') %}
+    {% module ComLeft(active_id='#page-list') %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
@@ -50,7 +50,7 @@
             {% for t, status in page_tasks.items() %}
             <div class="info">
               <label class="label">{{Task.get_task_name(t)}}</label>
-              <div class="value">{{Task.get_status_name(status)}}</div>
+              <div class="value">{{status}}</div>
             </div>
             {% end %}
           </div>
@@ -63,6 +63,7 @@
             </div>
             {% end %}
           </div>
+          {% if page.get('txt_match') %}
           <div class="block">
             <div class="block-head">文本匹配</div>
             {% for k, v in page.get('txt_match').items() %}
@@ -72,6 +73,7 @@
             </div>
             {% end %}
           </div>
+          {% end %}
           <div class="block">
             <div class="block-head">切分信息</div>
             {% for k, v in page_boxes.items() %}
@@ -81,6 +83,17 @@
             </div>
             {% end %}
           </div>
+          {% if page.get('bak') %}
+          <div class="block">
+            <div class="block-head">备份信息</div>
+            {% for k, v in page['bak'].items() %}
+            <div class="info long {{k}}">
+              <label class="label">{{Page.get_field_name(k)}}</label>
+              <div class="value">{% raw format_value(v, k) %}</div>
+            </div>
+            {% end %}
+          </div>
+          {% end %}
         </div>
       </div>
     </div>

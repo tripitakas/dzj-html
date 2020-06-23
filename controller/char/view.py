@@ -13,7 +13,6 @@ from controller.page.base import PageHandler
 class CharListHandler(CharHandler):
     URL = '/char/list'
 
-    page_title = '字数据管理'
     table_fields = [
         {'id': 'has_img', 'name': '字图'},
         {'id': 'source', 'name': '分类'},
@@ -21,7 +20,7 @@ class CharListHandler(CharHandler):
         {'id': 'cid', 'name': 'cid'},
         {'id': 'name', 'name': '字编码'},
         {'id': 'char_id', 'name': '字序'},
-        {'id': 'uid', 'name': '字序id'},
+        {'id': 'uid', 'name': '字序编码'},
         {'id': 'data_level', 'name': '数据等级'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
@@ -40,6 +39,7 @@ class CharListHandler(CharHandler):
         {'id': 'tasks', 'name': '校对任务'},
         {'id': 'remark', 'name': '备注'},
     ]
+    page_title = '字数据管理'
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/char/delete'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
@@ -102,6 +102,8 @@ class CharListHandler(CharHandler):
             return value / 1000
         if key == 'txt_logs' and value:
             return '<br/>'.join([log2str(log) for log in value])
+        if key == 'tasks' and value and isinstance(value, dict):
+            return '<br/>'.join(['%s: %s' % (self.get_task_name(typ), len(tasks)) for typ, tasks in value.items()])
         if key == 'has_img' and value not in [None, False]:
             return r'<img class="char-img" src="%s"/>' % self.get_char_img(doc)
         return h.format_value(value, key, doc)
@@ -141,8 +143,10 @@ class CharViewHandler(CharHandler, Char):
                 char['box_logs'] = page['chars'][0]['box_logs']
             if page and page['chars'][0].get('box_level'):
                 char['box_level'] = page['chars'][0]['box_level']
-            char['box_point'] = self.get_required_type_and_point(char)
-            char['txt_point'] = PageHandler.get_required_type_and_point(page)
+            char['txt_level'] = char.get('txt_level') or 1
+            char['box_level'] = char.get('box_level') or 1
+            char['txt_point'] = self.get_required_type_and_point(char)
+            char['box_point'] = PageHandler.get_required_type_and_point(page)
             img_url = self.get_web_img(page['name'], 'page')
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
