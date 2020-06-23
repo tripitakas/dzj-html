@@ -85,6 +85,6 @@ class CharHandler(TaskHandler, Char):
 
     def get_char_img(self, char):
         url = self.get_web_img(char.get('img_name') or char['name'], 'char')
-        if char.get('img_time'):
+        if url and char.get('img_time'):
             url += '?v=%s' % char['img_time']
         return url
