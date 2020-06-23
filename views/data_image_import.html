@@ -102,11 +102,26 @@
 
 {% block custom-js %}
 <script>
-  // 任务详情
-  $('.sty-table .action .btn-detail').click(function () {
-    var node = $(this).parent().parent();
-    location.href = '/task/info/' + node.attr('id');
+  // 发布任务
+  var $publishModal = $('#publishModal');
+  var publishFields = [
+    {id: 'source'}, {id: 'priority', input_type: 'radio'}, {id: 'redo', input_type: 'radio'},
+    {id: 'layout', input_type: 'radio'}
+  ];
+  $publishModal.find(".modal-confirm").click(function () {
+    var data = getModal($publishModal, publishFields);
+    var active = $('.tab-content .tab-pane.active').attr('id');
+    var panName = active === 'wang-pan' ? $('#pan-name').val().trim() : '';
+    var importDir = active === 'wang-pan' ? $('#pan-dir').val().trim() : $('#manual-dir').val().trim();
+    Object.assign(data, {task_type: 'import_image', import_dir: importDir, pan_name: panName});
+    postApi('/publish/import_image', {data: data}, function () {
+      showSuccess('成功', '数据已提交。');
+      refresh(1000);
+    }, function (error) {
+      return showError('提交失败', error.message);
+    });
   });
+
   // 重新发布任务
   $('.btn-republish').click(function () {
     var node = $(this).parent().parent();
@@ -120,26 +135,11 @@
       });
     });
   });
-</script>
-<script>
-  // 发布任务
-  var $publishModal = $('#publishModal');
-  var publishFields = [
-    {id: 'source'}, {id: 'priority', input_type: 'radio'}, {id: 'redo', input_type: 'radio'},
-    {id: 'layout', input_type: 'radio'}
-  ];
-  $publishModal.find(".modal-confirm").click(function () {
-    var data = getModal($publishModal, publishFields);
-    var active = $('.tab-content .tab-pane.active').attr('id');
-    var panName = active === 'wang-pan' ? $('#pan-name').val().trim() : '';
-    var importDir = active === 'wang-pan' ? $('#pan-dir').val().trim() : $('#manual-dir').val().trim();
-    Object.assign(data, {task_type: 'import_image', import_dir: importDir, pan_name: panName});
-    postApi('/task/publish/import', {data: data}, function () {
-      showSuccess('成功', '数据已提交。');
-      refresh(1000);
-    }, function (error) {
-      return showError('提交失败', error.message);
-    });
+
+  // 任务详情
+  $('.sty-table .action .btn-detail').click(function () {
+    var node = $(this).parent().parent();
+    location.href = '/task/info/' + node.attr('id');
   });
 </script>
 {% end %}

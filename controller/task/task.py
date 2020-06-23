@@ -47,6 +47,9 @@ class Task(Model):
 
     # 任务类型定义
     task_types = {
+        'import_image': {
+            'name': '导入图片', 'publishable': True,
+        },
         'cut_proof': {
             'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
             'steps': [['box', '字框'], ['order', '字序']],

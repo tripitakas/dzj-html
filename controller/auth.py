@@ -215,6 +215,8 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
+            '/data/image': ['GET'],
+            '/api/publish/import_image': ['POST'],
             '/data/@metadata': ['GET'],
             '/api/data/@metadata': ['POST'],
             '/api/variant/delete': ['POST'],

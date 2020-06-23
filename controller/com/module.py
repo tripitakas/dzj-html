@@ -47,6 +47,7 @@ class ComLeft(UIModule):
                 dict(name='字任务', icon='icon-subitem', link='/char/task/list'),
             ]),
             dict(name='数据管理', icon='icon-data', id='data', sub_items=[
+                dict(name='页图片', icon='icon-subitem', link='/data/image'),
                 dict(name='藏数据', icon='icon-subitem', link='/data/tripitaka'),
                 dict(name='册数据', icon='icon-subitem', link='/data/volume'),
                 dict(name='经数据', icon='icon-subitem', link='/data/sutra'),
@@ -71,7 +72,6 @@ class ComLeft(UIModule):
             ]),
             dict(name='帮助中心', icon='icon-info', link='/help'),
         ]
-
         if skin == 'nlc':
             items = [
                 dict(name='首页', icon='icon-home', link='/home'),

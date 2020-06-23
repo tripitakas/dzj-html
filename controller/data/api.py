@@ -11,7 +11,7 @@ from tornado.escape import to_basestring
 from controller import errors as e
 from controller import validate as v
 from controller.base import BaseHandler
-from controller.helper import align_code
+from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Reel, Sutra, Volume, Variant
 
 try:
@@ -152,6 +152,27 @@ class DataGenJsApi(BaseHandler):
                 build_js(self.db, self.data['collection'], self.data['tripitaka_code'])
 
             self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class PublishImportImageApi(TaskHandler):
+    URL = r'/api/publish/import_image'
+
+    def post(self):
+        """ 发布图片导入任务"""
+        try:
+            rules = [(v.not_empty, 'source', 'import_dir', 'priority', 'redo', 'layout')]
+            self.validate(self.data, rules)
+
+            task = self.get_publish_meta('import_image')
+            params = {k: self.data.get(k) for k in ['source', 'pan_name', 'import_dir', 'layout', 'redo']}
+            task.update(dict(status=self.STATUS_PUBLISHED, priority=int(self.data['priority']), params=params))
+            r = self.db.task.insert_one(task)
+            message = '%s, %s,%s' % ('import_image', self.data['import_dir'], self.data['redo'])
+            self.add_log('publish_task', target_id=r.inserted_id, content=message)
+            self.send_data_response(dict(_id=r.inserted_id))
 
         except self.DbError as error:
             return self.send_db_error(error)
