@@ -126,8 +126,8 @@ def shuffle_exam_data(db, names=None):
         db.page.update_one({'_id': p['_id']}, {'$set': {k: p.get(k) for k in ['blocks', 'columns', 'chars']}})
 
 
-def add_exam_users(db):
-    """ 创建考核账号"""
+def add_users(db):
+    """ 创建考核以及练习账号"""
     users = []
     for i in range(10):
         users.append({
@@ -136,13 +136,19 @@ def add_exam_users(db):
             'roles': "切分校对员,文字校对员,聚类校对员",
             'password': hp.gen_id('123abc'),
         })
+    users.append({
+        'name': '练习账号',
+        'email': 'practice@tripitakas.net',
+        'roles': "切分校对员,文字校对员,聚类校对员",
+        'password': hp.gen_id('123abc'),
+    })
     db.user.insert_many(users)
 
 
 def publish_exam_tasks_and_assign(db):
     """ 发布并指派考核任务"""
 
-    def get_task(page_name, tsk_type, num=None, params=None, exam_user=None):
+    def get_task(page_name, tsk_type, num=None, params=None, r_user=None):
         steps = Ph.prop(Ph.task_types, '%s.steps' % task_type)
         if steps:
             steps = {'todo': [s[0] for s in steps]}
@@ -151,7 +157,7 @@ def publish_exam_tasks_and_assign(db):
                     steps=steps, priority=2, pre_tasks=None, params=params, result={},
                     create_time=Ph.now(), updated_time=Ph.now(), publish_time=Ph.now(),
                     publish_user_id=None, publish_by='管理员',
-                    picked_user_id=exam_user['_id'], picked_by=exam_user['name'],
+                    picked_user_id=r_user['_id'], picked_by=r_user['name'],
                     picked_time=Ph.now())
 
     for i in range(10):
@@ -160,8 +166,32 @@ def publish_exam_tasks_and_assign(db):
         task_type = 'cut_proof'
         user = db.user.find_one({'email': 'exam%d@tripitakas.net' % (i + 1)})
         for name in eval('names%s' % i):
-            tasks.append(get_task(name, task_type, exam_user=user))
+            tasks.append(get_task(name, task_type, r_user=user))
         db.task.insert_many(tasks)
+
+
+def publish_practice_tasks_and_assign(db):
+    """ 发布并指派练习任务"""
+
+    def get_task(page_name, tsk_type, num=None, params=None, r_user=None):
+        steps = Ph.prop(Ph.task_types, '%s.steps' % task_type)
+        if steps:
+            steps = {'todo': [s[0] for s in steps]}
+        return dict(task_type=tsk_type, num=int(num or 1), batch='考核任务',
+                    collection='page', id_name='name', doc_id=page_name, status='picked',
+                    steps=steps, priority=2, pre_tasks=None, params=params, result={},
+                    create_time=Ph.now(), updated_time=Ph.now(), publish_time=Ph.now(),
+                    publish_user_id=None, publish_by='管理员',
+                    picked_user_id=r_user['_id'], picked_by=r_user['name'],
+                    picked_time=Ph.now())
+
+    tasks = []
+    task_type = 'cut_proof'
+    user = db.user.find_one({'email': 'practice@tripitakas.net'})
+    pages = list(db.page.find({'name': {'$regex': 'EX'}}, {'name': 1}))
+    for p in pages:
+        tasks.append(get_task(p['name'], task_type, r_user=user))
+    db.task.insert_many(tasks)
 
 
 def reset_exam_tasks(db, user_no=None):
