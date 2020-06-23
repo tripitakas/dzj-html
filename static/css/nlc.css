@@ -1,1 +1,8 @@
 /* nlc 相关样式 */
+.login-main1 {
+  background: url(../imgs/nlc/background.jpg) no-repeat top center !important;
+}
+
+.main .main-content {
+  background: #f4f4f4 url(../imgs/nlc/bg.png) no-repeat top center !important;
+}

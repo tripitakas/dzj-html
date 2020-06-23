@@ -70,39 +70,26 @@ def add_random_column(boxes):
 
 def initial_bak_data(db):
     """ 设置备份数据"""
-    # 设置体验数据的备份数据
-    pages = list(db.page.find({'name': {'$regex': 'EX'}}))
+    pages = db.page.find({})
     for p in pages:
-        bak = {k: p.get(k) for k in ['blocks', 'columns', 'chars'] if p.get(k)}
-        db.page.update_one({'_id': p['_id']}, {'$set': {'bak': bak}})
-
-    # 设置体验数据的备份数据
-    pages = list(db.page.find({'name': {'$in': get_exam_names()}}))
-    for p in pages:
-        bak = {k: p.get(k) for k in ['blocks', 'columns', 'chars'] if p.get(k)}
-        db.page.update_one({'_id': p['_id']}, {'$set': {'bak': bak}})
+        if not p.get('bak'):
+            bak = {k: p.get(k) for k in ['blocks', 'columns', 'chars'] if p.get(k)}
+            db.page.update_one({'_id': p['_id']}, {'$set': {'bak': bak}})
 
 
-def reset_expr_data(db):
-    """ 恢复练习数据"""
-    pages = list(db.page.find({'name': {'$regex': 'EX'}}))
-    for p in pages:
-        if p.get('bak'):
-            db.page.update_one({'_id': p['_id']}, {'$set': p['bak']})
-
-
-def reset_exam_data(db, names=None):
-    """ 恢复考核数据"""
-    names = names or get_exam_names()
-    names = names.split(',') if isinstance(names, str) else names
-    pages = list(db.page.find({'name': {'$in': names}}))
+def reset_bak_data(db, names=None, data_type=None):
+    """ 恢复数据"""
+    condition = {}
+    if names:
+        condition = {'name': {'$in': names}}
+    elif data_type == 'exam':
+        condition = {'name': {'$in': get_exam_names()}}
+    elif data_type == 'experience':
+        condition = {'name': {'$regex': 'EX'}}
+    pages = db.page.find(condition)
     for p in pages:
         if p.get('bak'):
             db.page.update_one({'_id': p['_id']}, {'$set': p['bak']})
-
-
-def set_source(db):
-    db.page.update_many({'name': {'$in': get_exam_names()}}, {'$set': {'remark_box': '考核数据'}})
 
 
 def shuffle_exam_data(db, names=None):
@@ -126,8 +113,8 @@ def shuffle_exam_data(db, names=None):
         db.page.update_one({'_id': p['_id']}, {'$set': {k: p.get(k) for k in ['blocks', 'columns', 'chars']}})
 
 
-def add_exam_users(db):
-    """ 创建考核账号"""
+def add_users(db):
+    """ 创建考核以及练习账号"""
     users = []
     for i in range(10):
         users.append({
@@ -136,13 +123,19 @@ def add_exam_users(db):
             'roles': "切分校对员,文字校对员,聚类校对员",
             'password': hp.gen_id('123abc'),
         })
+    users.append({
+        'name': '练习账号',
+        'email': 'practice@tripitakas.net',
+        'roles': "切分校对员,文字校对员,聚类校对员",
+        'password': hp.gen_id('123abc'),
+    })
     db.user.insert_many(users)
 
 
-def publish_exam_tasks_and_assign(db):
-    """ 发布并指派考核任务"""
+def publish_tasks_and_assign(db):
+    """ 发布并指派任务"""
 
-    def get_task(page_name, tsk_type, num=None, params=None, exam_user=None):
+    def get_task(page_name, tsk_type, num=None, params=None, r_user=None):
         steps = Ph.prop(Ph.task_types, '%s.steps' % task_type)
         if steps:
             steps = {'todo': [s[0] for s in steps]}
@@ -151,42 +144,59 @@ def publish_exam_tasks_and_assign(db):
                     steps=steps, priority=2, pre_tasks=None, params=params, result={},
                     create_time=Ph.now(), updated_time=Ph.now(), publish_time=Ph.now(),
                     publish_user_id=None, publish_by='管理员',
-                    picked_user_id=exam_user['_id'], picked_by=exam_user['name'],
+                    picked_user_id=r_user['_id'], picked_by=r_user['name'],
                     picked_time=Ph.now())
 
+    tasks = []
+    task_type = 'cut_proof'
+    # 创建考核任务并指派任务
     for i in range(10):
         print('processing user %s' % (i + 1))
-        tasks = []
-        task_type = 'cut_proof'
         user = db.user.find_one({'email': 'exam%d@tripitakas.net' % (i + 1)})
         for name in eval('names%s' % i):
-            tasks.append(get_task(name, task_type, exam_user=user))
-        db.task.insert_many(tasks)
+            tasks.append(get_task(name, task_type, r_user=user))
+    # 创建体验任务并指派任务
+    user = db.user.find_one({'email': 'practice@tripitakas.net'})
+    pages = list(db.page.find({'name': {'$regex': 'EX'}}, {'name': 1}))
+    for p in pages:
+        tasks.append(get_task(p['name'], task_type, r_user=user))
+
+    db.task.insert_many(tasks)
 
 
-def reset_exam_tasks(db, user_no=None):
+def reset_exam_data_and_tasks(db, user_no=None):
     """ 重置考核任务状态"""
+    # 重置任务
     cond = dict(batch='考核任务')
     if user_no:
         cond['picked_by'] = '考核账号%d' % user_no
-    db.task.update_many(cond, {'$set': {
-        'status': 'picked',
-    }})
+    db.task.update_many(cond, {'$set': {'status': 'picked'}})
     db.task.update_many(cond, {'$unset': {
         'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
     }})
+    # 重置数据
+    names = eval('names%s' % (user_no - 1)) if user_no else get_exam_names()
+    db.page.update_many({'name': {'$in': names}}, {'$unset': {'tasks': ''}})
+
+
+def initial_run(db):
+    """ 初始化"""
+    initial_bak_data(db)
+    shuffle_exam_data(db)
+    add_users(db)
+    publish_tasks_and_assign(db)
 
 
 def reset_user_data_and_tasks(db, user_no=None):
     """ 重置体验数据、考核数据以及考核任务"""
     assert not user_no or user_no in range(1, 11)
     names = eval('names%s' % (user_no - 1)) if user_no else None
-    reset_exam_data(db, names)
+    reset_bak_data(db, names=names, data_type='exam')
     shuffle_exam_data(db, names)
-    reset_exam_tasks(db, user_no)
+    reset_exam_data_and_tasks(db, user_no)
 
 
-def main(db_name='tripitaka', uri='localhost', func='reset_user_data_and_tasks', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

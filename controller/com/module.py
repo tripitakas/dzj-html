@@ -21,6 +21,7 @@ class ComLeft(UIModule):
             return module not in h.prop(self.handler.config, 'modules.disabled', '')
 
         can_access = self.handler.can_access
+        skin = h.prop(self.handler.config, 'site.skin')
 
         items = [
             dict(name='首页', icon='icon-home', link='/home'),
@@ -70,6 +71,49 @@ class ComLeft(UIModule):
             ]),
             dict(name='帮助中心', icon='icon-info', link='/help'),
         ]
+
+        if skin == 'nlc':
+            items = [
+                dict(name='首页', icon='icon-home', link='/home'),
+                dict(name='古籍库', icon='icon-tripitaka', link='/tripitaka/list'),
+                dict(name='任务大厅', icon='icon-task-lobby', id='task-lobby', sub_items=[
+                    dict(name='切分校对', icon='icon-subitem', link='/task/lobby/cut_proof'),
+                    dict(name='切分审定', icon='icon-subitem', link='/task/lobby/cut_review'),
+                    dict(name='聚类校对', icon='icon-subitem', link='/task/lobby/cluster_proof'),
+                    dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/cluster_review'),
+                    dict(name='生僻校对', icon='icon-subitem', link='/task/lobby/rare_proof'),
+                    dict(name='生僻审定', icon='icon-subitem', link='/task/lobby/rare_review'),
+                ]),
+                dict(name='我的任务', icon='icon-task-my', id='task-my', sub_items=[
+                    dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
+                    dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
+                    dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof'),
+                    dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review'),
+                    dict(name='生僻校对', icon='icon-subitem', link='/task/my/rare_proof'),
+                    dict(name='生僻审定', icon='icon-subitem', link='/task/my/rare_review'),
+                ]),
+                dict(name='任务管理', icon='icon-task-admin', id='task-admin', sub_items=[
+                    dict(name='页任务', icon='icon-subitem', link='/page/task/list'),
+                    dict(name='字任务', icon='icon-subitem', link='/char/task/list'),
+                ]),
+                dict(name='数据管理', icon='icon-data', id='data', sub_items=[
+                    dict(name='藏数据', icon='icon-subitem', link='/data/tripitaka'),
+                    dict(name='册数据', icon='icon-subitem', link='/data/volume'),
+                    dict(name='经数据', icon='icon-subitem', link='/data/sutra'),
+                    dict(name='卷数据', icon='icon-subitem', link='/data/reel'),
+                    dict(name='页数据', icon='icon-subitem', link='/page/list'),
+                    dict(name='字数据', icon='icon-subitem', link='/char/list'),
+                    dict(name='异体字', icon='icon-subitem', link='/data/variant'),
+                ]),
+                dict(name='人员管理', icon='icon-users', id='user', sub_items=[
+                    dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
+                    dict(name='授权管理', icon='icon-subitem', link='/user/role'),
+                ]),
+                dict(name='相关工具', icon='icon-tool', id='tool', sub_items=[
+                    dict(name='自动标点', icon='icon-subitem', link='/com/punctuate'),
+                ]),
+                dict(name='帮助中心', icon='icon-info', link='/help'),
+            ]
 
         # 计算当前用户有权访问的item
         display_items = []

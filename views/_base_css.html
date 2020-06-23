@@ -15,4 +15,7 @@
 <link href="{{static_url('css/helper.css')}}" rel="stylesheet">
 <link href="{{static_url('css/style.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/base.css')}}" rel="stylesheet">
+{% if prop(handler.config, 'site.skin') %}
+<link href="{{static_url('css/%s.css' % prop(handler.config, 'site.skin'))}}" rel="stylesheet">
+{% end %}
 <script src="{{static_url('assets/jquery/jquery.min.js')}}"></script>
