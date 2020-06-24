@@ -98,7 +98,7 @@ class Cut(object):
             for c in chars_todo:
                 oc = [ch for ch in page['chars'] if ch['cid'] == c['cid']]
                 if not oc:
-                    log['cut_char_failed'].append(dict(id=c['id'], reason='origin cid not exist'))
+                    log['cut_char_failed'].append(dict(id=c['name'], reason='origin cid not exist'))
                     continue
                 if c.get('has_img') and not self.kwargs.get('regen') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
                     if c.get('has_img') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
@@ -112,7 +112,7 @@ class Cut(object):
                     self.write_web_img(img_c, img_name, 'char')
                     chars_done.append(c)
                 except Exception as e:
-                    log['cut_char_failed'].append(dict(id=c['uid'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
+                    log['cut_char_failed'].append(dict(id=c['name'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
                     print(e)
 
             # 列框切图
@@ -125,6 +125,7 @@ class Cut(object):
                 if not column:
                     continue
                 c = column[0]
+                img_name = '%s_%s' % (page_name, c['cid'])
                 x, y, h, w = int(c['x']) - 1, int(c['y']) - 1, int(c['h']) + 1, int(c['w']) + 1
                 try:
                     img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
@@ -133,12 +134,11 @@ class Cut(object):
                         new_im.paste(img_c)
                         img_c = new_im
                     img_c = self.resize_binary(img_c, 200, 1024)
-                    img_name = '%s_%s' % (page_name, c['cid'])
                     self.write_web_img(img_c, img_name, 'column')
-                    columns_done.append('%s_%s' % (page_name, c['cid']))
+                    columns_done.append(img_name)
                 except Exception as e:
                     reason = '[%s] %s' % (e.__class__.__name__, str(e))
-                    log['cut_column_failed'].append(dict(id='%s_%s' % (page_name, c['cid']), reason=reason))
+                    log['cut_column_failed'].append(dict(id=img_name, reason=reason))
             log['cut_char_success'].extend([c['name'] for c in chars_done])
             log['cut_column_success'].extend(columns_done)
 
