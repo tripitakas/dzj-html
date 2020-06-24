@@ -207,7 +207,7 @@ class Cut(object):
         raise OSError('oss not exist or not writeable')
 
 
-def extract_img(db=None, db_name='tripitaka', uri=None, condition=None, chars=None,
+def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
                 regen=False, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
     cfg = hp.load_config()
