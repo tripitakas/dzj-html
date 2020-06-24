@@ -135,9 +135,10 @@
 }
 
 .char-img img {
-  width: 60px;
+  max-width: 60px;
   flex-grow: 0;
   max-height: 60px;
+  margin: 0 auto;
 }
 
 .char-item .char-info {
