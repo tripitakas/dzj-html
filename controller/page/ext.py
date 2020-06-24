@@ -21,6 +21,8 @@ class PageTxtProofHandler(PageHandler):
 
             chars = page['chars']
             chars_col = self.get_chars_col(chars)
+            for ch in chars:
+                ch['name'] = page_name + '_' + str(ch['cid'])
             char_dict = {c['cid']: c for c in chars}
             img_url = self.get_web_img(page['name'])
             readonly = '/edit' not in self.request.path

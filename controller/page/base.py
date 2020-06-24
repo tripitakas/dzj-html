@@ -10,6 +10,7 @@ from controller import errors as e
 from controller import helper as hp
 from controller.page.page import Page
 from controller.task.base import TaskHandler
+from controller.page.tool import variant as v
 
 
 class PageHandler(TaskHandler, Page, Box):
@@ -265,18 +266,27 @@ class PageHandler(TaskHandler, Page, Box):
         return txt.strip('|')
 
     @classmethod
-    def char2html(cls, chars, field='txt'):
+    def char2html(cls, chars):
+        def span(ch):
+            txt = ch.get('txt') or ch.get('ocr_txt')
+            txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if ch.get(k)))
+            is_same = len(txts) == 1
+            is_variant = v.is_variants(txts)
+            classes = 'char' if is_same else 'char is_variant' if is_variant else 'char diff'
+            if ch.get('txt') and ch.get('txt') != ch.get('ocr_txt'):
+                classes += ' changed'
+            return '<span id="%s" class="%s">%s</span>' % (ch['cid'], classes, txt)
+
         if not chars:
             return ''
         pre, html = chars[0], '<div class="blocks"><div class="block"><div class="line">'
-        html += '<span id="%s" class="char">%s</span>' % (pre['cid'], pre[field])
+        html += span(chars[0])
         for b in chars[1:]:
             if pre.get('block_no') and b.get('block_no') and pre['block_no'] != b['block_no']:
                 html += '</div></div><div class="block"><div class="line">'
             elif pre.get('column_no') and b.get('column_no') and pre['column_no'] != b['column_no']:
                 html += '</div><div class="line">'
-            if b.get(field):
-                html += '<span id="%s" class="char">%s</span>' % (b['cid'], b[field])
+            html += span(b)
             pre = b
         return html + '</div></div></div>'
 

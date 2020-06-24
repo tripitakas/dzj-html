@@ -8,9 +8,70 @@ import re
 from bson import json_util
 from controller import errors as e
 from controller import helper as h
-from controller.task.task import Task
 from controller.base import BaseHandler
+from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Variant
+
+
+class DataImportImageHandler(TaskHandler):
+    URL = '/data/image'
+
+    page_title = '导入页图片'
+    search_tips = '请搜索网盘名称、导入文件夹'
+    search_fields = ['params.pan_name', 'params.import_dir']
+    operations = [
+        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
+        {'operation': 'btn-publish', 'label': '发布任务', 'data-target': 'publishModal'},
+    ]
+    img_operations = ['help']
+    actions = [
+        {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-remove', 'label': '删除', 'url': '/task/delete'},
+        {'action': 'btn-republish', 'label': '重新发布'},
+    ]
+    table_fields = [
+        {'id': '_id', 'name': '主键'},
+        {'id': 'params.pan_name', 'name': '网盘名称'},
+        {'id': 'params.import_dir', 'name': '导入文件夹'},
+        {'id': 'params.layout', 'name': '版面结构'},
+        {'id': 'params.redo', 'name': '是否覆盖已有图片'},
+        {'id': 'status', 'name': '状态'},
+        {'id': 'priority', 'name': '优先级', 'filter': TaskHandler.priorities},
+        {'id': 'return_reason', 'name': '退回理由'},
+        {'id': 'create_time', 'name': '创建时间'},
+        {'id': 'updated_time', 'name': '更新时间'},
+        {'id': 'publish_time', 'name': '发布时间'},
+        {'id': 'publish_by', 'name': '发布人'},
+        {'id': 'picked_time', 'name': '领取时间'},
+        {'id': 'picked_by', 'name': '领取人'},
+        {'id': 'finished_time', 'name': '完成时间'},
+    ]
+    hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
+    update_fields = []
+
+    def get(self):
+        """ 数据管理/页图片导入"""
+        try:
+            # 模板参数
+            kwargs = self.get_template_kwargs()
+            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
+            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
+            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
+            # 检索条件
+            condition = dict(task_type='import_image')
+            priority = self.get_query_argument('priority', '')
+            if priority:
+                condition.update({'priority': int(priority)})
+            # 查询数据
+            pan_name = self.prop(self.config, 'pan.name')
+            docs, pager, q, order = self.find_by_page(self, condition, default_order='-publish_time')
+            self.render(
+                'data_image_import.html', docs=docs, pager=pager, order=order, q=q,
+                pan_name=pan_name, format_value=self.format_value, **kwargs,
+            )
+
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class DataListHandler(BaseHandler):
