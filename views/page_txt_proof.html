@@ -23,8 +23,29 @@
       font-size: 18px;
     }
 
-    .current-char {
+    .diff {
       color: red;
+    }
+
+    .is_variant {
+      color: #3399CC;
+    }
+
+    .changed {
+      text-decoration: underline;
+    }
+
+    .browsed {
+      color: green;
+    }
+
+    .m-footer {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .current-char {
+      color: #800000;
     }
 
     .sutra-texts {
@@ -73,18 +94,23 @@
       <div id="center-region" class="right bd">
         <div class="sutra-texts">
           <div class="sutra-text">
-            {% raw handler.char2html(chars, 'txt') %}
+            {% raw handler.char2html(chars) %}
           </div>
         </div>
       </div>
       <div id="right-region" class="right bd work-panel">
-        {% module CharTxt(chars and chars[0] or {}, show_base=True) %}
+        {% module CharTxt(chars and chars[0] or {}, show_base=False) %}
       </div>
     </div>
     <div class="m-footer">
       <span class="fl">
         页编码：<span class="page-name">{{page['name']}}</span>
         权限：<span class="page-info">{{'只读' if readonly else '读写'}}</span>
+      </span>
+      <span class="center">
+        异文: <span class="diff">口</span>
+        异体字: <span class="is_variant">口</span>
+        已修改: <span class="changed">口</span>
       </span>
       <span class="fr">
         当前字框：<span class="char-name">未选中</span>
