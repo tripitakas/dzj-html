@@ -5,10 +5,8 @@
 @time: 2018/6/23
 """
 import re
-import oss2
 import logging
 import traceback
-from oss2.exceptions import OssError
 from os import path
 from bson import json_util
 from bson.errors import BSONError
@@ -150,6 +148,10 @@ class BaseHandler(CorsMixin, RequestHandler):
             body = b'{"data":' in self.request.body and json_util.loads(to_basestring(self.request.body)).get('data')
         else:
             body = json_util.loads(to_basestring(self.get_body_argument('data')))
+        if not body:
+            body = dict(self.request.arguments)
+            for k, v in body.items():
+                body[k] = to_basestring(v[0])
         return body or {}
 
     def send_data_response(self, data=None, **kwargs):
@@ -252,7 +254,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             logging.error(error.args[1])
         if 'InvalidId' == error.__class__.__name__:
             code, reason = 1, e.no_object[1]
-        if code not in [2003]:
+        if code not in [2003, 1]:
             traceback.print_exc()
 
         default_error = e.mongo_error if isinstance(error, self.MongoError) else e.db_error
