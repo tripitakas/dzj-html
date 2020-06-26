@@ -68,7 +68,7 @@ class Task(Model):
             'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
             'publishable': True,
         },
-        'ocr_txt': {
+        'ocr_text': {
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
             'publishable': True,
         },
