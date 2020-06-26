@@ -211,7 +211,8 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
                 regen=False, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
     cfg = hp.load_config()
-    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'], db_name=db_name, host=host)[0]
+    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'], db_name=db_name, host=host)[
+        0]
     cut = Cut(db, cfg, regen=regen)
 
     print('[%s]extract_img.py script started.' % hp.get_date_time())
@@ -225,17 +226,15 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
         Bh.add_op_log(db, 'extract_img', 'finished', log, username)
         return update and update['img_time']
 
-    if not condition:
-        condition = {'img_need_updated': True}
-    elif isinstance(condition, str):
-        condition = json.loads(condition)
+    condition = json.loads(condition) if isinstance(condition, str) else {}
+    condition['img_need_updated'] = True
 
     once_size = 5000
     total_count = db.char.count_documents(condition)
     log_id = Bh.add_op_log(db, 'extract_img', 'ongoing', [], username)
     print('[%s]%s chars to generate.' % (hp.get_date_time(), total_count))
-    for i in range(int(math.ceil(total_count / once_size))):
-        chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
+    while db.char.count_documents({'img_need_updated': True}):
+        chars = list(db.char.find(condition).limit(once_size))
         log = cut.cut_img(chars)
         if log.get('cut_char_success'):
             update = {'has_img': True, 'img_need_updated': False, 'img_time': hp.get_date_time('%m%d%H%M%S')}
