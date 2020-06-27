@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <title>注册</title>
-  {% include _base_css.html %}
+  {% include com/_base_css.html %}
   <link href="{{static_url('assets/ionicons/css/ionicons.min.css')}}" rel="stylesheet">
   <link rel="stylesheet" href="{{static_url('css/register.css')}}">
 </head>
@@ -148,7 +148,7 @@
 
 </div>
 
-{% include _base_js.html %}
+{% include com/_base_js.html %}
 <script>
   $('.register-btn > a').on("click", function () {
     if (!$('.register-agreement :checkbox').is(':checked')) {

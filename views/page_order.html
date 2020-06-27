@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>字序校对-{{page['name']}}</title>
-  {% include _base_css.html %}
+  {% include com/_base_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -44,7 +44,7 @@
       </div>
       <div class="right">
         <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
-        {% if hasattr(handler, 'task_type') %} {% include _task_btns.html %} {% end %}
+        {% if hasattr(handler, 'task_type') %} {% include com/_task_btns.html %} {% end %}
       </div><!--right-->
     </div>
     <div class="m-body flex">
@@ -124,7 +124,7 @@
               <td><span type="button" class="btn btn-default btn-sm">应用</span></td>
               <td>调整字框连线后重新计算字框编号</td>
             </tr>
-            {% include _task_help.html %}
+            {% include com/_task_help.html %}
           </table>
           <div class="title">三、快捷键</div>
           <table class="table" id="hot-key">
@@ -163,9 +163,9 @@
   </div>
 </div>
 
-{% include _base_js.html %}
-{% include _base_cut.html %}
-{% if hasattr(handler, 'task_type') %} {% include _base_task.html %} {% end %}
+{% include com/_base_js.html %}
+{% include com/_base_cut.html %}
+{% if hasattr(handler, 'task_type') %} {% include com/_base_task.html %} {% end %}
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script>

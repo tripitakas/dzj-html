@@ -54,7 +54,7 @@ class SysLogListHandler(BaseHandler, Log):
         """ 操作日志"""
         docs, pager, q, order = Log.find_by_page(self, default_order='-_id')
         kwargs = self.get_template_kwargs()
-        self.render('_list.html', docs=docs, pager=pager, q=q, order=order,
+        self.render('com/_list.html', docs=docs, pager=pager, q=q, order=order,
                     format_value=self.format_value, **kwargs)
 
 
@@ -121,7 +121,7 @@ class SysOplogListHandler(BaseHandler, Oplog):
         """ 运维日志"""
         docs, pager, q, order = Oplog.find_by_page(self, default_order='-_id')
         kwargs = self.get_template_kwargs()
-        self.render('_list.html', docs=docs, pager=pager, q=q, order=order,
+        self.render('com/_list.html', docs=docs, pager=pager, q=q, order=order,
                     format_value=self.format_value, **kwargs)
 
 

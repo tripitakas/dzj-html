@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>切分校对-{{page['name']}}</title>
-  {% include _base_css.html %}
+  {% include com/_base_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -47,8 +47,8 @@
       </div>
       <div class="right">
         <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
-        {% include _task_btns.html %}
-        {% include _step_btns.html %}
+        {% include com/_task_btns.html %}
+        {% include com/_step_btns.html %}
       </div><!--right-->
     </div>
     <div class="m-body flex">
@@ -125,9 +125,9 @@
   </div>
 </div>
 
-{% include _base_js.html %}
-{% include _base_cut.html %}
-{% include _base_task.html %}
+{% include com/_base_js.html %}
+{% include com/_base_cut.html %}
+{% include com/_base_task.html %}
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script>
   // 页面图

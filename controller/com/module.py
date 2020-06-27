@@ -132,12 +132,12 @@ class ComLeft(UIModule):
                     item['sub_items'] = sub_items
                     display_items.append(item)
 
-        return self.render_string('_left.html', display_items=display_items, active_id=active_id)
+        return self.render_string('com/_left.html', display_items=display_items, active_id=active_id)
 
 
 class ComHead(UIModule):
     def render(self):
-        return self.render_string('_head.html')
+        return self.render_string('com/_head.html')
 
 
 class Pager(UIModule):
@@ -171,14 +171,14 @@ class Pager(UIModule):
             pager['display_range'] = range(start, end + 1)
             pager['options'] = sorted(list({10, 30, 50, 100, 500, pager['page_size']}))
 
-        return self.render_string('_pager.html', get_page_uri=self.get_page_uri, **pager)
+        return self.render_string('com/_pager.html', get_page_uri=self.get_page_uri, **pager)
 
 
 class TxtDiff(UIModule):
     def render(self, cmp_data):
         """ 文字校对的文字区"""
         return self.render_string(
-            '_txt_diff.html', blocks=cmp_data,
+            'com/_txt_diff.html', blocks=cmp_data,
             sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0])
         )
 
@@ -206,7 +206,7 @@ class CharTxt(UIModule):
         base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt', 'nor_txt',
                        'txt_type', 'box_level', 'box_point', 'txt_level', 'txt_point', 'remark']
         return self.render_string(
-            '_char_txt.html', char=char, txt_fields=txt_fields, show_base=show_base,
+            'com/_char_txt.html', char=char, txt_fields=txt_fields, show_base=show_base,
             base_fields=base_fields, readonly=readonly, Char=Char, format_value=self.format_value,
             to_date_str=lambda t, fmt='%Y-%m-%d %H:%M': h.get_date_time(fmt=fmt, date_time=t) if t else ''
         )
@@ -221,7 +221,7 @@ class PageTxt(UIModule):
         :param cmp_data, 比对文本。如果比对文本不为空，则优先显示比对文本
         """
         active = None if cmp_data else active if active else txts[0][1]
-        return self.render_string('_page_txt.html', txts=txts, cmp_data=cmp_data, active=active,
+        return self.render_string('com/_page_txt.html', txts=txts, cmp_data=cmp_data, active=active,
                                   txt2html=Ph.txt2html)
 
 
@@ -234,7 +234,7 @@ class ComTable(UIModule):
         format_value = h.format_value if not format_value else format_value
         info_fields = [d['id'] for d in table_fields] if info_fields is None else info_fields
         return self.render_string(
-            '_table.html', docs=docs, order=order, actions=actions, table_fields=table_fields,
+            'com/_table.html', docs=docs, order=order, actions=actions, table_fields=table_fields,
             info_fields=info_fields, hide_fields=hide_fields, format_value=format_value,
             pack=pack, prop=h.prop
         )
@@ -243,14 +243,14 @@ class ComTable(UIModule):
 class ComModal(UIModule):
     def render(self, modal_fields, id='', title='', buttons=None):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')] if buttons is None else buttons
-        return self.render_string('_modal.html', modal_fields=modal_fields, id=id, title=title, buttons=buttons)
+        return self.render_string('com/_modal.html', modal_fields=modal_fields, id=id, title=title, buttons=buttons)
 
 
 class ReturnModal(UIModule):
     def render(self):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
         modal_fields = [{'id': 'return_reason', 'name': '退回理由', 'input_type': 'textarea'}]
-        return self.render_string('_modal.html', modal_fields=modal_fields, id='returnModal', title='退回任务',
+        return self.render_string('com/_modal.html', modal_fields=modal_fields, id='returnModal', title='退回任务',
                                   buttons=buttons)
 
 
@@ -261,7 +261,7 @@ class DoubtModal(UIModule):
             {'id': 'doubt_input', 'name': '存疑文本'},
             {'id': 'doubt_reason', 'name': '存疑理由', 'input_type': 'textarea'}
         ]
-        return self.render_string('_modal.html', modal_fields=modal_fields, id='doubtModal', title='存疑',
+        return self.render_string('com/_modal.html', modal_fields=modal_fields, id='doubtModal', title='存疑',
                                   buttons=buttons)
 
 
@@ -273,7 +273,7 @@ class TaskRemarkModal(UIModule):
             {'id': 'remark', 'name': '备注内容'},
             {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
         ]
-        return self.render_string('_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
+        return self.render_string('com/_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
                                   buttons=buttons)
 
 
@@ -285,7 +285,7 @@ class PageRemarkModal(UIModule):
             {'id': 'remark', 'name': '备注内容'},
             {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
         ]
-        return self.render_string('_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
+        return self.render_string('com/_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
                                   buttons=buttons)
 
 
@@ -294,5 +294,5 @@ class TaskConfigModal(UIModule):
         title = '配置项'
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
         fields = [{'id': 'auto-pick', 'name': '提交后自动领新任务', 'input_type': 'radio', 'options': ['是', '否']}]
-        return self.render_string('_config.html', modal_fields=config_fields or fields, id='taskConfigModal',
+        return self.render_string('com/_config.html', modal_fields=config_fields or fields, id='taskConfigModal',
                                   title=title, buttons=buttons)
