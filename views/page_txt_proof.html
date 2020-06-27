@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>{{page['name']}}</title>
-  {% include _base_css.html %}
+  {% include com/_base_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/char.css')}}" rel="stylesheet">
   <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet"/>
@@ -84,7 +84,7 @@
         <div id="toggle-order" class="btn-txt icon-char-order" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
       </div>
       <div class="right">
-        {% if hasattr(handler, 'task_type') %} {% include _task_btns.html %} {% end %}
+        {% if hasattr(handler, 'task_type') %} {% include com/_task_btns.html %} {% end %}
       </div>
     </div>
     <div class="m-body flex pfread">
@@ -138,7 +138,7 @@
           <div class="title">二、操作</div>
           <table class="table">
             <tr>
-              <td><img src="{{static_url('imgs/icon_back.png')}}"/></td>
+              <td><i class="icon-return-back"></i></td>
               <td>返回</td>
             </tr>
             <tr>
@@ -160,9 +160,9 @@
   </div>
 </div>
 
-{% include _base_js.html %}
-{% include _base_cut.html %}
-{% if hasattr(handler, 'task_type') %} {% include _base_task.html %} {% end %}
+{% include com/_base_js.html %}
+{% include com/_base_cut.html %}
+{% if hasattr(handler, 'task_type') %} {% include com/_base_task.html %} {% end %}
 <script src="{{static_url('js/cut/cut_adv.js')}}"></script>
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script src="{{static_url('js/com-table.js')}}"></script>

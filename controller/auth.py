@@ -22,7 +22,7 @@ url_placeholder = {
     'tripitaka_code': r'[a-zA-Z]{2}',
     'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
     'metadata': r'tripitaka|sutra|volume|reel|variant',
-    'ocr_task': r'ocr_box|ocr_txt|upload_cloud',
+    'ocr_task': r'ocr_box|ocr_text|upload_cloud',
     'page_task': r'cut_proof|cut_review|txt_match|find_cmp',
     'cluster_task': r'cluster_proof|cluster_review|rare_proof|rare_review',
     'task_type': r'ocr_\w+|cut_\w+|txt_\w+|cluster_\w+|rare_\w+|txt_match|find_cmp',

@@ -90,7 +90,7 @@ class PageTxtDiffApi(PageHandler):
             diff_blocks = self.diff(*self.data['texts'])
             if self.data.get('hints'):
                 diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
-            cmp_data = self.render_string('_txt_diff.html', blocks=diff_blocks,
+            cmp_data = self.render_string('com/_txt_diff.html', blocks=diff_blocks,
                                           sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))
             cmp_data = native_str(cmp_data)
             self.send_data_response(dict(cmp_data=cmp_data))

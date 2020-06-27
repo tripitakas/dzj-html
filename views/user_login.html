@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <title>{{site['name']}}</title>
-  {% include _base_css.html %}
+  {% include com/_base_css.html %}
   <link href="{{static_url('assets/ionicons/css/ionicons.min.css')}}" rel="stylesheet">
   <link rel="stylesheet" href="{{static_url('css/login.css')}}">
 </head>
@@ -42,7 +42,7 @@
         </div>
       </div>
     </div>
-    {% include _base_footer.html %}
+    {% include com/_base_footer.html %}
   </div>
 </div>
 
@@ -78,8 +78,8 @@
   </div>
 </div>
 
-{% include _base_footer.html %}
-{% include _base_js.html %}
+{% include com/_base_footer.html %}
+{% include com/_base_js.html %}
 <script>
   // 登录
   $('.log-btn > a').click(function () {
