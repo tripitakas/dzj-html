@@ -4,11 +4,15 @@ $('#btn-cc-up').on('click', () => location.href = setQueryString('order', 'cc'))
 $('#btn-cc-down').on('click', () => location.href = setQueryString('order', '-cc'));
 
 // 过滤
+$('#btn-diff').on('click', () => location.href = setQueryString('diff', 'true'));
 $('#btn-my-update').on('click', () => location.href = setQueryString('update', 'my'));
 $('#btn-all-update').on('click', () => location.href = setQueryString('update', 'all'));
 $('#btn-submitted').on('click', () => location.href = setQueryString('submitted', 'true'));
 $('#btn-not-submitted').on('click', () => location.href = setQueryString('submitted', 'false'));
-$('#btn-diff').on('click', () => location.href = setQueryString('diff', 'true'));
+$('#btn-no-problem').on('click', () => location.href = setQueryString('txt_type', 'Y'));
+$('#btn-vague').on('click', () => location.href = setQueryString('txt_type', 'M'));
+$('#btn-not-sure').on('click', () => location.href = setQueryString('txt_type', 'N'));
+$('#btn-not-know').on('click', () => location.href = setQueryString('txt_type', '*'));
 
 // 按置信度过滤
 $('#btn-filter').on('click', function () {

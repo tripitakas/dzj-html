@@ -346,6 +346,10 @@ class CharTaskClusterHandler(CharHandler):
                 cond['tasks.' + task_type] = self.task['_id']
             elif submitted == 'false':
                 cond['tasks.' + task_type] = {'$ne': self.task['_id']}
+            # 文字类型
+            txt_type = self.get_query_argument('txt_type', '')
+            if txt_type:
+                cond['txt_type'] = txt_type
 
         try:
             # 1.根据任务参数，设置字数据的过滤条件
