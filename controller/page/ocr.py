@@ -34,11 +34,15 @@ class FetchTasksApi(TaskHandler):
                          params=t.get('params')) for t in tasks]
 
         try:
-            size = int(self.data.get('size') or 1)
             condition = {'task_type': data_task, 'status': self.STATUS_PUBLISHED}
+            if self.data.get('only_count'):
+                total_count = self.db.task.count_documents(condition)
+                return self.send_data_response(dict(total_count=total_count))
+
+            size = int(self.data.get('size') or 1)
             tasks = list(self.db.task.find(condition).limit(size))
             if not tasks:
-                self.send_data_response(dict(tasks=None))
+                self.send_data_response(dict(tasks=[]))
             condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
             r = self.db.task.update_many(condition, {'$set': dict(
                 status=self.STATUS_FETCHED, picked_time=self.now(), updated_time=self.now(),
@@ -65,6 +69,13 @@ class ConfirmFetchApi(TaskHandler):
             if self.data['tasks']:
                 task_ids = [ObjectId(t['task_id']) for t in self.data['tasks']]
                 self.db.task.update_many({'_id': {'$in': task_ids}}, {'$set': {'status': self.STATUS_PICKED}})
+                tasks = self.db.task.find({'_id': {'$in': task_ids}}, {'doc_id': 1, 'collection': 1, 'num': 1})
+                page_names = [t['doc_id'] for t in tasks if t.get('doc_id') and t.get('collection') == 'page']
+                if page_names:
+                    # 默认小欧任务只有一个校次
+                    self.db.page.update_many({'name': {'$in': page_names}}, {'$set': {
+                        'tasks.%s.%s' % (data_task, 1): self.STATUS_PICKED
+                    }})
                 self.send_data_response()
             else:
                 self.send_error_response(e.no_object)
@@ -149,7 +160,7 @@ class SubmitTasksApi(TaskHandler):
         if not page:
             return e.no_object
         update = self.get_page_meta(task, page)
-        update.update({'tasks.%s' % task['task_type']: self.STATUS_FINISHED})
+        update.update({'tasks.%s.%s' % (task.get('num') or 1, task['task_type']): self.STATUS_FINISHED})
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
 
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
@@ -165,7 +176,7 @@ class SubmitTasksApi(TaskHandler):
         if box_changed:
             return e.box_not_identical[0], '(%s)切分信息不一致' % box_changed
         update = self.get_page_meta(task, page)
-        update.update({'tasks.%s' % task['task_type']: self.STATUS_FINISHED})
+        update.update({'tasks.%s.%s' % (task.get('num') or 1, task['task_type']): self.STATUS_FINISHED})
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
 
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
@@ -179,7 +190,7 @@ class SubmitTasksApi(TaskHandler):
             return e.no_object
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
             'img_cloud_path': self.prop(task, 'result.img_cloud_path'),
-            'tasks.%s' % task['task_type']: self.STATUS_FINISHED
+            'tasks.%s.%s' % (task.get('num') or 1, task['task_type']): self.STATUS_FINISHED
         }})
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),

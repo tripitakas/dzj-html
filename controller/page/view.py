@@ -87,8 +87,11 @@ class PageListHandler(PageHandler):
         if key == 'tasks' and value:
             ret = ''
             for tsk_type, tasks in value.items():
-                for num, status in tasks.items():
-                    ret += '%s#%s/%s<br/>' % (self.get_task_name(tsk_type), num, self.get_status_name(status))
+                if isinstance(tasks, dict):
+                    for num, status in tasks.items():
+                        ret += '%s#%s/%s<br/>' % (self.get_task_name(tsk_type), num, self.get_status_name(status))
+                else:
+                    ret += '%s/%s<br/>' % (self.get_task_name(tsk_type), self.get_status_name(tasks))
             return ret.rstrip('<br/>')
         if key == 'op_text':
             t = {True: '√', False: '×'}
