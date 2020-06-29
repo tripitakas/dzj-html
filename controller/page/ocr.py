@@ -34,12 +34,8 @@ class FetchTasksApi(TaskHandler):
                          params=t.get('params')) for t in tasks]
 
         try:
-            condition = {'task_type': data_task, 'status': self.STATUS_PUBLISHED}
-            if self.data.get('only_count'):
-                total_count = self.db.task.count_documents(condition)
-                return self.send_data_response(dict(total_count=total_count))
-
             size = int(self.data.get('size') or 1)
+            condition = {'task_type': data_task, 'status': self.STATUS_PUBLISHED}
             tasks = list(self.db.task.find(condition).limit(size))
             if not tasks:
                 self.send_data_response(dict(tasks=[]))
