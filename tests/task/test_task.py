@@ -200,7 +200,7 @@ class TestTaskApi(APITestCase):
         self.login_as_admin()
         data = dict(import_dirs=['/home/file/base_dir@abc', '/home/file/base_dir@xyz'],
                     page_names=['GL_1056_5_6', 'YB_22_346'], layout='上下一栏')
-        r = self.fetch('/api/task/init', body={'data': data})
+        r = self.fetch('/api/task/init4op', body={'data': data})
         self.assert_code(200, r)
 
         # 测试已有图片导入任务
