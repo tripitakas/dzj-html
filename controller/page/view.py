@@ -87,8 +87,11 @@ class PageListHandler(PageHandler):
         if key == 'tasks' and value:
             ret = ''
             for tsk_type, tasks in value.items():
-                for num, status in tasks.items():
-                    ret += '%s#%s/%s<br/>' % (self.get_task_name(tsk_type), num, self.get_status_name(status))
+                if isinstance(tasks, dict):
+                    for num, status in tasks.items():
+                        ret += '%s#%s/%s<br/>' % (self.get_task_name(tsk_type), num, self.get_status_name(status))
+                else:
+                    ret += '%s/%s<br/>' % (self.get_task_name(tsk_type), self.get_status_name(tasks))
             return ret.rstrip('<br/>')
         if key == 'op_text':
             t = {True: '√', False: '×'}
@@ -423,7 +426,7 @@ class PageTaskListHandler(PageHandler):
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             condition, params = self.get_task_search_condition(self.request.query, 'page')
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id',
-                                                      {'input': 0, 'result': 0})
+                                                      {'params': 0, 'result': 0})
             self.render('page_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
                         format_value=self.format_value,
                         **kwargs)

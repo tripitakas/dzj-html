@@ -232,7 +232,7 @@ class TaskHandler(BaseHandler, Task):
         collection = self.prop(self.task_types, '%s.data.collection' % task_type)
         return dict(
             task_type=task_type, batch='', collection=collection, num=1, id_name=id_name, doc_id='',
-            status='', priority='', steps={}, pre_tasks=[], input=None, result={},
+            status='', priority='', steps={}, pre_tasks=[], params=None, result={},
             create_time=now, updated_time=now, publish_time=now,
             publish_user_id=self.user_id,
             publish_by=self.username

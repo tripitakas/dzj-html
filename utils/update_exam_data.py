@@ -37,12 +37,29 @@ names8 = ['GL_165_1_12', 'GL_914_1_20', 'JX_260_1_64', 'JX_260_1_210', 'YB_24_22
           'YB_25_562', 'QL_25_400', 'QL_9_513']
 names9 = ['GL_1051_7_23', 'GL_9_1_16', 'JX_260_2_23', 'JX_245_3_142', 'YB_24_667', 'QL_24_71', 'YB_33_748',
           'YB_27_257', 'QL_26_391', 'QL_2_772']
+txt_kinds0 = ['蘊', '談', '公', '柔', '孔', '落', '違', '荅', '赤', '踰']
+txt_kinds1 = ['延', '頌', '超', '唱', '尺', '突', '臨', '寫', '懈', '承']
+txt_kinds2 = ['良', '丹', '堪', '石', '脾', '藐', '博', '貧', '恩', '葉']
+txt_kinds3 = ['尋', '勸', '葛', '虎', '鞞', '獄', '醯', '閻', '靈', '迫']
+txt_kinds4 = ['視', '殑', '讀', '肴', '美', '夭', '殿', '渠', '娜', '瞿']
+txt_kinds5 = ['蒲', '網', '曼', '慳', '俗', '佉', '矢', '怨', '隱', '甘']
+txt_kinds6 = ['睹', '羊', '勒', '背', '豈', '式', '憂', '容', '辯', '胎']
+txt_kinds7 = ['低', '愍', '興', '資', '靑', '感', '耨', '淤', '匹', '骨']
+txt_kinds8 = ['盛', '宜', '況', '秦', '亂', '連', '特', '草', '越', '吽']
+txt_kinds9 = ['卞', '捺', '陵', '訓', '固', '黃', '丈', '咸', '角', '麽']
 
 
 def get_exam_names():
     names = []
     for i in range(10):
         names.extend(eval('names%s' % i))
+    return names
+
+
+def get_exam_txt_kinds():
+    names = []
+    for i in range(10):
+        names.extend(eval('txt_kinds%s' % i))
     return names
 
 
@@ -68,7 +85,7 @@ def add_random_column(boxes):
     boxes.append(random_box)
 
 
-def initial_bak_data(db):
+def initial_bak_page(db):
     """ 设置备份数据"""
     pages = db.page.find({})
     for p in pages:
@@ -77,7 +94,7 @@ def initial_bak_data(db):
             db.page.update_one({'_id': p['_id']}, {'$set': {'bak': bak}})
 
 
-def reset_bak_data(db, names=None, data_type=None):
+def reset_bak_page(db, names=None, data_type=None):
     """ 恢复数据"""
     condition = {}
     if names:
@@ -92,7 +109,7 @@ def reset_bak_data(db, names=None, data_type=None):
             db.page.update_one({'_id': p['_id']}, {'$set': p['bak']})
 
 
-def shuffle_exam_data(db, names=None):
+def shuffle_exam_page(db, names=None):
     """ 处理考试数据：栏框进行放大或缩小，列框进行缩放和增删，字框进行缩放和增删"""
     names = names or get_exam_names()
     names = names.split(',') if isinstance(names, str) else names
@@ -132,14 +149,15 @@ def add_users(db):
     db.user.insert_many(users)
 
 
-def publish_tasks_and_assign(db):
-    """ 发布并指派任务"""
+def publish_cut_proof_and_assign(db):
+    """ 发布切分校对任务并进行指派"""
 
     def get_task(page_name, tsk_type, num=None, params=None, r_user=None):
         steps = Ph.prop(Ph.task_types, '%s.steps' % task_type)
         if steps:
             steps = {'todo': [s[0] for s in steps]}
-        return dict(task_type=tsk_type, num=int(num or 1), batch='考核任务',
+        page = db.page.find_one({'name': page_name}, {'chars': 1})
+        return dict(task_type=tsk_type, num=int(num or 1), batch='考核任务', char_count=len(page['chars']),
                     collection='page', id_name='name', doc_id=page_name, status='picked',
                     steps=steps, priority=2, pre_tasks=None, params=params, result={},
                     create_time=Ph.now(), updated_time=Ph.now(), publish_time=Ph.now(),
@@ -166,36 +184,73 @@ def publish_tasks_and_assign(db):
     db.page.update_many({'name': {'$in': get_exam_names()}}, {'$set': {'tasks.%s.1' % task_type: 'picked'}})
 
 
-def reset_exam_data_and_tasks(db, user_no=None):
-    """ 重置考核任务状态"""
-    # 重置任务
-    cond = dict(batch='考核任务')
+def reset_cut_proof(db, user_no=None):
+    """ 重置考核任务-切分校对"""
+    # 重置账号相关的所有任务为picked
+    cond = dict(task_type='cut_proof')
     if user_no:
         cond['picked_by'] = '考核账号%d' % user_no
     db.task.update_many(cond, {'$set': {'status': 'picked'}})
     db.task.update_many(cond, {'$unset': {
         'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
     }})
-    # 重置数据
-    names = eval('names%s' % (user_no - 1)) if user_no else get_exam_names()
-    db.page.update_many({'name': {'$in': names}}, {'$unset': {'tasks': ''}})
+    # 重置page的tasks字段
+    tasks = db.task.find(cond, {'doc_id': 1})
+    db.page.update_many({'name': {'$in': [t['doc_id'] for t in tasks]}}, {'$set': {'tasks.cut_proof.1': 'picked'}})
+
+    # 重置非系统指派的任务为published
+    page_names = eval('names%s' % (int(user_no) - 1)) if user_no else get_exam_names()
+    cond['doc_id'] = {'$nin': page_names}
+    db.task.update_many(cond, {'$set': {'status': 'published'}})
+    db.task.update_many(cond, {'$unset': {
+        'picked_time': '', 'picked_by': '', 'picked_user_id': ''
+    }})
+    # 重置page的tasks字段
+    tasks = db.task.find(cond, {'doc_id': 1})
+    db.page.update_many({'name': {'$in': [t['doc_id'] for t in tasks]}}, {'$set': {'tasks.cut_proof.1': 'published'}})
+
+
+def reset_cluster_proof(db, user_no=None):
+    """ 重置考核任务-聚类校对"""
+    # 重置账号相关的所有任务为picked
+    cond = dict(task_type='cluster_proof')
+    if user_no:
+        cond['picked_by'] = '考核账号%d' % user_no
+    db.task.update_many(cond, {'$set': {'status': 'picked'}})
+    db.task.update_many(cond, {'$unset': {
+        'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
+    }})
+    # 重置非系统指派的任务为published
+    txt_kinds = eval('txt_kinds%s' % (int(user_no) - 1)) if user_no else get_exam_txt_kinds()
+    cond['txt_kind'] = {'$nin': txt_kinds}
+    db.task.update_many(cond, {'$set': {'status': 'published'}})
+    db.task.update_many(cond, {'$unset': {
+        'picked_time': '', 'picked_by': '', 'picked_user_id': ''
+    }})
+    # 重置char表的txt字段
+    chars = db.char.find({'ocr_txt': {'$in': txt_kinds}}, {'ocr_txt': 1})
+    for c in chars:
+        db.char.update_one({'_id': c['_id']}, {'$set': {'txt': c['ocr_txt'], 'txt_logs': []}})
 
 
 def initial_run(db):
     """ 初始化"""
-    initial_bak_data(db)
-    shuffle_exam_data(db)
+    initial_bak_page(db)
+    shuffle_exam_page(db)
     add_users(db)
-    publish_tasks_and_assign(db)
+    publish_cut_proof_and_assign(db)
 
 
 def reset_user_data_and_tasks(db, user_no=None):
     """ 重置体验数据、考核数据以及考核任务"""
     assert not user_no or user_no in range(1, 11)
     names = eval('names%s' % (user_no - 1)) if user_no else None
-    reset_bak_data(db, names=names, data_type='exam')
-    shuffle_exam_data(db, names)
-    reset_exam_data_and_tasks(db, user_no)
+    # 处理切分校对
+    reset_bak_page(db, names=names, data_type='exam')
+    shuffle_exam_page(db, names)
+    reset_cut_proof(db, user_no)
+    # 处理聚类校对
+    reset_cluster_proof(db, user_no)
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):

@@ -83,7 +83,7 @@ $('#toggle-work-panel').on('click', function () {
 // 切换字种
 $('.txt-kind').on('click', function () {
   var txt = $(this).attr('data-value') || $(this).text().trim();
-  location.href = txt ? setQueryString('txt', txt) : location.pathname;
+  location.href = txt ? deleteParam(setQueryString('txt', txt), 'page') : location.pathname;
 });
 
 // 单击字图

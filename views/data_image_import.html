@@ -1,6 +1,13 @@
 {% extends "com/_list.html" %}
 {% block custom-css %}
 <link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
+<style>
+  td:nth-child(4) {
+    max-width: 200px;
+    text-align: left;
+    word-break: break-all;
+  }
+</style>
 {% end %}
 
 {% block custom-modal %}
