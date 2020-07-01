@@ -106,7 +106,7 @@ $('.char-check input').on('click', function (e) {
 
 /** 中间列图面板 */
 // 更新列图
-var paper, charBox, getBox;
+var paper, charBox, getBox, curColUrl;
 
 function updateColumnImg(ch) {
   var column = ch.column; // 列框
@@ -120,7 +120,7 @@ function updateColumnImg(ch) {
     $.cut.create({
       addDisable: true,
       holder: 'col-holder',
-      image: columnUrl,
+      image: columnUrl + '?t=' + (+new Date()),
       width: column.w,
       height: column.h,
       name: imgName,
