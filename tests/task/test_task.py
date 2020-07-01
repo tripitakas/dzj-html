@@ -204,7 +204,7 @@ class TestTaskApi(APITestCase):
         self.assert_code(200, r)
 
         # 测试已有图片导入任务
-        condition = {'task_type': 'import_image', 'input.import_dir': {'$in': data['import_dirs']}}
+        condition = {'task_type': 'import_image', 'params.import_dir': {'$in': data['import_dirs']}}
         tasks = list(self._app.db.task.find(condition))
         self.assertTrue(len(tasks) >= 2)
 
