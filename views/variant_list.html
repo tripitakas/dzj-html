@@ -1,0 +1,72 @@
+{% extends "com/_list.html" %}
+
+{% block custom-css %}
+<link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
+{% end %}
+
+{% block custom-modal %}
+<div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h4 class="modal-title">综合检索</h4></div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">编码</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control uid" value="{{params.get('uid') or ''}}" placeholder="请输入整数编码">
+            </div>
+            <h4 class="col-sm-2 control-label">异体字</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入异体字">
+            </div>
+            <h4 class="col-sm-2 control-label">异体字图</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control img_name" value="{{params.get('img_name') or ''}}" placeholder="请输入异体字的字图编码">
+            </div>
+            <h4 class="col-sm-2 control-label">所属正字</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control normal_txt" value="{{params.get('normal_txt') or ''}}" placeholder="请输入所属正字">
+            </div>
+            <h4 class="col-sm-2 control-label">备注</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect reset">重置</button>
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
+
+{% block custom-js %}
+<script>
+  /*---综合检索---*/
+  var $searchModal = $("#searchModal");
+  var inputFields = ['uid', 'txt', 'img_name', 'normal_txt', 'remark'];
+  $searchModal.find('.modal-confirm').on('click', function () {
+    var search = '';
+    inputFields.forEach(function (field) {
+      var value = $searchModal.find('.' + field).val();
+      if (value)
+        search += '&' + field + '=' + value;
+    });
+    if (!search.length)
+      return showWarning('请输入查询条件');
+    location.href = location.pathname + '?' + search.substr(1);
+  });
+
+  // 重置检索条件
+  $searchModal.find('.reset').on('click', function () {
+    inputFields.forEach(function (field) {
+      $searchModal.find('.' + field).val('');
+    });
+  });
+</script>
+{% end %}

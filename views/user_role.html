@@ -1,4 +1,4 @@
-{% extends "_list.html" %}
+{% extends "com/_list.html" %}
 {% block custom-css %}
 <link href="{{static_url('assets/responsive-table/rwd-table.min.css')}}" rel="stylesheet" media="screen"/>
 <style>
@@ -129,7 +129,7 @@
     }).join(',');
     var name = $roleModal.find('#name').text();
     var data = {_id: $roleModal.find('#_id').text(), roles: roles};
-    postApi('/user/admin/role', {data: data}, function () {
+    postApi('/user/role', {data: data}, function () {
       showSuccess('修改成功', name + ' 的信息已修改。');
       refresh(1000);
     }, function (err) {

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>文本匹配-{{page['name']}}</title>
+  {% include com/_base_css.html %}
+  {% include com/_font_css.html %}
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/page-txt.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .btn-group.cmp-txt {
+      display: none;
+    }
+
+    @media screen and (max-width: 1100px) {
+      #enlarge-font, #reduce-font {
+        display: none;
+      }
+    }
+
+    @media screen and (max-width: 1024px) {
+      .m-header .title {
+        display: none;
+      }
+    }
+
+    @media screen and (max-width: 940px) {
+      #enlarge-panel-font, #reduce-panel-font {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+        </div>
+        <div class="btn-group title">文本匹配
+          <div class="sub-title">-{{field_name}}</div>
+        </div>
+      </div><!--left-->
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+        <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板文字"></div>
+        <div id="btn-find-cmp" class="btn-txt icon-search{{'' if field == 'cmp_txt' else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="寻找比对文本"></div>
+      </div>
+      <div class="right">
+        {% include com/_page_txt_btns.html %}
+        <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
+        <div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
+        <div id="check-mis-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="查看不匹配的行"></div>
+        <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
+        {% if hasattr(handler, 'task_type') %} {% include com/_task_btns.html %} {% end %}
+      </div><!--right-->
+    </div>
+    <div class="m-body flex">
+      <div id="left-region" class="m-left bd">
+        <div id="holder"></div>
+      </div>
+      <div id="right-region" class="m-right bd wide-txt">
+        {% module PageTxt(txts, cmp_data=cmp_data) %}
+      </div>
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        页编码：<span class="page-name">{{page['name']}}</span>
+      </span>
+      <span class="fr">
+        状态：<span class="status" style="margin-right: 10px">{{'图文匹配' if txt_match else '图文不匹配'}}</span>
+        当前文本：<span class="txt-info">比对结果</span>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、工作目标</div>
+          <div class="intro">
+            根据图片进行文字校对，包括文字和字序两部分。<br/>
+            校对以如实为原则，即图片上是什么字，就输入什么字。如果遇到一些无法输入的字，请先使用相关工具进行查找，
+            比如<a href="http://hanzi.lqdzj.cn" target="_blank">龙泉字库</a>或<a href="http://www.guoxuedashi.com/zidian/bujian" target="_blank">国学大师</a>。
+            确实找不到时，也可以输入<a href="http://www.cbeta.org/data-format/rare-rule.htm">组字式</a>。如果拿不准，请您进行存疑，以便后续环节处理。<br/>
+            如果图片的文本有多个来源，如OCR文本或从古籍文库中选择的相似文本等，系统将会进行横向比对，找出文本间的差异，即所谓的异文。异文将以红色高亮显示。
+            双击异文，将弹框展示各个来源的文本，您可以点选，也可以在选择结果中进行修改。<br/>
+            如果只有OCR文本，则您需要逐字检查；如果有古籍文库中的相似文本，则您只需要检查异文，同文浏览一下即可。<br/>
+            文字校对完毕后，请您做一次图文匹配检查，确保您校对的文字和图片的字框的一致性。<br/>
+            注：请下载<a href=" https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/KaiXinSong.ttf">开心宋</a>或者
+            <a href="https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/hanazono-20170904.zip">花园明朝</a>
+            字体并安装，以便显示UTF-8扩展区域的字符。
+          </div>
+          <div class="title">二、功能按钮</div>
+          <table class="table">
+            <tr>
+              <td><i class="btn-txt icon-panel-no"></i></td>
+              <td>显示或隐藏浮动面板上的字框序号</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-panel-txt"></i></td>
+              <td>显示或隐藏浮动面板上的字框文字</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-font-plus"></i></td>
+              <td>增加浮动面板或者右侧文本区域的字体大小</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-font-minus"></i></td>
+              <td>减少浮动面板或者右侧文本区域的字体大小</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-more"></i></td>
+              <td>修改栏框、列框、字框、字序等。文字校对时，可以修改本页面的切分框数据</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-empty"></i></td>
+              <td>显示或隐藏空位符。空位符是一个占位符，如果异文中选中的文本为空，则显示为空位符，表示此处有异文</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-doubt"></i></td>
+              <td>存疑，以便后续环节处理。请先用鼠标选中文本，然后点击存疑</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-done-all"></i></td>
+              <td>图文匹配检查。检查左侧图片字框以及右侧文字的匹配情况，包括总列数，以及每列字数。针对不匹配的行，右侧将出现红色竖线进行提示。</td>
+            </tr>
+          </table>
+          <div class="title">三、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+            <tr>
+              <td>方向键</td>
+              <td>按照方向键↑→↓←的指示，切换当前字框</td>
+            </tr>
+            <tr>
+              <td>鼠标滚轮</td>
+              <td>鼠标滚轮上下滚动显示，按下Shift键则左右滚动显示</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="resModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="resModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">图文不匹配，如下表</h4>
+        </div>
+        <div class="modal-body">
+          <table class="table">
+            <thead>
+            <tr>
+              <th>行号</th>
+              <th>图片字数</th>
+              <th>文本字数</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include com/_base_js.html %}
+{% include com/_base_cut.html %}
+{% if hasattr(handler, 'task_type') %} {% include com/_base_task.html %} {% end %}
+<script src="{{static_url('js/cut/proof_keys.js')}}"></script>
+<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/page-txt.js')}}"></script>
+<script src="{{static_url('js/txt-btn.js')}}"></script>
+<script>
+  // 公共参数
+  var txtFields = decodeJSON('{{txt_fields}}');
+  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+
+  // 页面图和切分框
+  $.cut.create({
+    readonly: true,
+    holder: 'holder',
+    image: '{{img_url}}',
+    chars: '{{page["chars"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    name: '{{page["name"]}}_txt',
+    scrollContainer: '#left-region',
+  });
+
+  // 初始化设置
+  $.cut.bindKeys();
+  $.cut.bindMatchingKeys();
+  $.cut.toggleBox(false);
+  $.cut.switchCurrentBox(null);
+  showText = getStorage('togglePanelTxt') === '1';
+  $('#toggle-panel-txt').toggleClass('active', showText);
+
+  // 寻找比对文本
+  $('#btn-find-cmp').on('click', function () {
+    location.href = '/page/find_cmp/{{page["name"]}}?from=' + decodeFrom();
+  });
+
+  $('#check-mis-match').on('click', function () {
+    bsLoading('检查中‧‧‧');
+    var data = {field: '{{field}}', content: getText('#cmp-html'), only_check: true};
+    postApi('/page/txt_match/{{page["name"]}}', {data: data}, function (res) {
+      bsHide();
+      if (res.data.status) {
+        showSuccess('成功', '图文匹配');
+      } else {
+        $('.mis-match').removeClass('mis-match');
+        $('#resModal .table tbody').html($.map(res.data.mis_match, function (item) {
+          $('.mode-edit .line').eq(item[0] - 1).addClass('mis-match');
+          return `<tr><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`;
+        }));
+        $('#resModal').modal();
+      }
+    });
+  });
+
+  // 获取提交数据
+  function getPostData() {
+    return {field: '{{field}}', content: getText('#cmp-html')};
+  }
+
+  // 保存数据
+  $('#save').on('click', function () {
+    bsLoading('保存中‧‧‧');
+    postApi('/page/txt_match/{{page["name"]}}', {data: getPostData()}, function (res) {
+      bsHide();
+      if (res.data.status) {
+        showSuccess('成功', '已保存');
+        location.reload();
+      } else {
+        $('.mis-match').removeClass('mis-match');
+        $('#resModal .table tbody').html($.map(res.data.mis_match, function (item) {
+          $('.mode-edit .line').eq(item[0] - 1).addClass('mis-match');
+          return `<tr><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`;
+        }));
+        $('#resModal').modal();
+      }
+    });
+  });
+
+  // 任务提交之后
+  function afterSubmitted(submit, res, jumpUrl) {
+    if (res.data.status) {
+      var autoPick = localStorage.getItem('autoPick') || '是';
+      if (mode === 'do' && autoPick === '是') {
+        showSuccess('成功', '已成功提交！将自动领取下一个任务。');
+        pick('/task/pick/' + taskType);
+      } else {
+        window.leave();
+      }
+    } else {
+      $('.mis-match').removeClass('mis-match');
+      $('#resModal .table tbody').html($.map(res.data.mis_match, function (item) {
+        $('.mode-edit .line').eq(item[0] - 1).addClass('mis-match');
+        return `<tr><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`;
+      }));
+      $('#resModal').modal();
+    }
+  }
+
+</script>
+</body>
+</html>

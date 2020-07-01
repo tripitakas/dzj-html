@@ -19,30 +19,38 @@
   cursor: pointer;
 }
 
+.block .item {
+  /*margin-left: 6px;*/
+  border-left: 6px solid rgba(255, 0, 0, .4);
+  display: block;
+}
+
 .info {
   width: 50%;
   float: left;
-  padding: 4px 5px;
+  padding: 8px 0;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 .info.long {
   width: 100%;
+  overflow: auto;
 }
 
 .info .label {
   font-weight: bold;
   font-size: 1em;
-  max-width: 120px;
   text-align: left;
   color: #333;
-  flex: 1;
+  flex-grow: 0;
+  padding-left: 0;
 }
 
 .info .value {
-  display: inline-block;
+  overflow: auto;
+  margin-right: 5px;
+  display: block;
   word-break: break-all;
-  flex: 1;
 }
-
-

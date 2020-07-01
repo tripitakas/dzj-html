@@ -1,0 +1,66 @@
+<div id="{{id or 'dataModal'}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{id or 'dataModal'}}"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">{{title or '新增数据'}}</h4>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" class="fields" value="{{modal_fields}}"/>
+        <input type="hidden" class="update-url">
+        <input type="hidden" class="_id">
+        <form class="form-horizontal">
+          {% for f in modal_fields %}
+          {% set input_type, fid, name = f.get('input_type') or '', f.get('id') or '', f.get('name') or '' %}
+          <div class="form-group">
+            {% if name %}
+            <h4 class="col-sm-2 control-label">{{name}}</h4>
+            {% end %}
+            <div class="{{'col-md-10' if name else 'col-md-12'}}">
+              {% if input_type == 'radio' %}
+              <div class="modal-radio {{fid}}">
+                {% set options = [[k, v] for k,v in f['options'].items()] if isinstance(f.get('options'), dict) else f['options'] %}
+                {% for o in options %}
+                {% set o = [o, o] if isinstance(o, str) else o %}
+                <input type="radio" name="{{fid}}" value="{{o[0]}}">{{o[1]}}
+                {% end %}
+              </div>
+              {% elif input_type == 'checkbox' %}
+              <div class="modal-checkbox {{fid}}">
+                {% for o in f.get('options') %}
+                {% set o = [o, o] if isinstance(o, str) else o %}
+                <label class="checkbox-inline">
+                  <input type="checkbox" class="{{fid}}" title="{{o[0]}}" checked>{{o[1]}}
+                </label>
+                {% end %}
+              </div>
+              {% elif input_type == 'select' %}
+              <select class="modal-select {{fid}}">
+                {% for o in f.get('options') %}
+                {% set o = [o, o] if isinstance(o, str) else o %}
+                <option title="{{o[0]}}">{{o[1]}}</option>
+                {% end %}
+              </select>
+              {% elif input_type == 'textarea' %}
+              <textarea type="text" class="form-control {{fid}}" rows="4" {{'readonly' if f.get('readonly') else ''}}></textarea>
+              {% else %}
+              <input type="text" class="form-control {{fid}}" {{'readonly' if f.get('readonly') else ''}}>
+              {% end %}
+            </div>
+          </div>
+          {% end %}
+        </form>
+      </div>
+      {% if len(buttons) %}
+      <div class="modal-footer">
+        {% for b in buttons %}
+        {% set dismiss = 'modal' if 'cancel' in b[0] else '' %}
+        {% set type = 'btn-default' if 'cancel' in b[0] else 'btn-primary' %}
+        <button type="button" class="btn {{type}} waves-effect {{b[0]}}" data-dismiss="{{dismiss}}">{{b[1]}}</button>
+        {% end %}
+      </div>
+      {% end %}
+    </div>
+  </div>
+</div>

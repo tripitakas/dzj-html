@@ -3,7 +3,7 @@
   height: 100%;
 }
 
-.main {
+.login-main {
   position: relative;
   width: 100%;
   height: 100%;
@@ -87,22 +87,8 @@
   top: 27px;
 }
 
-.login .right-in .item i.user-icon {
-  background: url(../imgs/user.png) no-repeat;
-  background-position: 0 0;
-  width: 27px;
-  height: 29px;
-}
-
 .login .right-in .item input:focus + i.user-icon {
   background-position: 0 -30px;
-}
-
-.login .right-in .item .pass-icon {
-  background: url(../imgs/pass.png) no-repeat;
-  background-position: 0 0;
-  width: 23px;
-  height: 28px;
 }
 
 .login .right-in .item input:focus + i.pass-icon {
@@ -198,5 +184,5 @@ input::-ms-clear {
   top: 50%;
   transform: translateY(-50%);
   color: #985F0D;
-  font-size: 2.5em;
+  font-size: 2.2em;
 }

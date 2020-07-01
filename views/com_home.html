@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <title>{{site['description']}}</title>
-  {% include _base_css.html %}
+  {% include com/_base_css.html %}
   <link href="{{static_url('css/home.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -53,7 +53,7 @@
                   <tr>
                     <th>工作类型</th>
                     <th>优先级</th>
-                    <th>页编码</th>
+                    <th>编码</th>
                     <th>状态</th>
                     <th>领取时间</th>
                     <th>操作</th>
@@ -66,7 +66,7 @@
                     <td>
                       <div class="circle-bg">{{Th.get_priority_name(t['priority'])}}</div>
                     </td>
-                    <td>{{t['doc_id']}}</td>
+                    <td>{{t.get('doc_id') or t.get('txt_kind') or ''}}</td>
                     <td>{{Th.get_status_name(t['status'])}}</td>
                     <td>{{to_date_str(t['picked_time'])}}</td>
                     <td>
@@ -84,7 +84,7 @@
             </div>
             <div class="bottom clearfix">
               <div class="item star">
-                <p style="padding-top: 12px"><img src="{{static_url('imgs/star.png')}}"></p>
+                <p style="padding-top: 31px"><img src="{{static_url('imgs/hand3.png')}}"></p>
                 <p class="tit" style="margin-top: 6px"><img src="{{static_url('imgs/star-title.png')}}" alt=""></p>
                 <ul>
                   {% for s in month_stars %}
@@ -96,7 +96,7 @@
                 </ul>
               </div>
               <div class="item" id="trend">
-                <p class="other"><img src="{{static_url('imgs/lotus.png')}}" alt=""></p>
+                <p class="other"><img src="{{static_url('imgs/hand1.png')}}" alt=""></p>
                 <p class="tit"><img src="{{static_url('imgs/trend.png')}}" alt=""></p>
                 <ul>
                   {% for t in latest_tasks %}
@@ -108,15 +108,16 @@
                 </ul>
               </div>
               <div class="item" id="practice">
-                <p class="other"><img src="{{static_url('imgs/lotus.png')}}" alt=""></p>
+                <p class="other"><img src="{{static_url('imgs/hand2.png')}}" alt=""></p>
                 <p class="tit"><img src="{{static_url('imgs/practice.png')}}" alt=""></p>
                 <ul>
                   <li><a href="/task/sample/cut_proof">切分校对</a></li>
-                  <li><a href="/task/sample/text_proof_1">文字校对</a></li>
+                  <li><a href="/task/sample/cluster_proof">聚类校对</a></li>
+                  <li><a href="/task/sample/txt_proof">文字校对</a></li>
                 </ul>
               </div>
               <div class="item">
-                <p class="other"><img src="{{static_url('imgs/lotus.png')}}" alt=""></p>
+                <p class="other"><img src="{{static_url('imgs/hand4.png')}}" alt=""></p>
                 <p class="tit"><img src="{{static_url('imgs/announce.png')}}" alt=""></p>
                 {% for a in articles %}
                 <ul>
@@ -132,8 +133,8 @@
     </div>
   </div>
 </div>
-{% include _footer_main.html %}
-{% include _base_js.html %}
+{% include com/_base_footer.html %}
+{% include com/_base_js.html %}
 
 </body>
 </html>

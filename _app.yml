@@ -3,10 +3,11 @@ cookie_secret: 'iS2rCQ1FSrG4UOTAboVhqkY5RtRLBkA6ketwS7fMVbo='
 
 # 网站
 site:
-  name: 如是我闻古籍数字化平台
+  name: 如是古籍数字化平台
   keywords: 大藏经,古籍数字化,tripitaka
-  description: 如是我闻古籍数字化平台
+  description: 如是古籍数字化平台
   domain: work.tripitakas.net
+  skin:
   # https:
   #  certfile: tripitaka.crt
   #  keyfile: tripitaka.key
@@ -38,10 +39,33 @@ task:
   task_timeout_days: 7
   temp_lock_timeout_hours: 1
 
-# OSS
-img:
-  host: 'https://tripitaka-img.oss-cn-beijing.aliyuncs.com'
-  salt: '待配置'
+# OCR加工服务
+ocr:
+  url:
+  work_dir:
+
+# web img
+web_img:
+  with_hash: true
+  salt:
+  local_path: static/img
+  my_cloud: https://tripitaka-xxx.oss-cn-beijing.aliyuncs.com
+  cloud_type: char,column
+  use_internal:
+  key_id:
+  key_secret:
+  shared_cloud: https://tripitaka-yyy.oss-cn-beijing.aliyuncs.com
+  shared_type: page
+
+# big img
+big_img:
+  with_hash:
+  salt:
+  local_path: static/img
+  my_cloud: https://tripitaka-xxx.oss-cn-beijing.aliyuncs.com
+  use_internal:
+  key_id:
+  key_secret:
 
 # 网盘
 pan:

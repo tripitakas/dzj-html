@@ -7,6 +7,7 @@
 import random
 import logging
 import smtplib
+import re
 from os import path
 from bson import json_util
 from bson.objectid import ObjectId
@@ -21,7 +22,7 @@ from controller import helper
 from controller import errors as e
 from controller import validate as v
 from controller.user.user import User
-from controller.base import BaseHandler, DbError
+from controller.base import BaseHandler
 
 
 class LoginApi(BaseHandler):
@@ -30,12 +31,12 @@ class LoginApi(BaseHandler):
     def post(self):
         """ 登录 """
         try:
-            rules = [(v.not_empty, 'phone_or_email', 'password')]
+            rules = [(v.not_empty, 'login_id', 'password')]
             self.validate(self.data, rules)
 
             # 检查是否多次登录失败
             gap = self.now() + timedelta(seconds=-1800)
-            login_fail = {'type': 'login-fail', 'create_time': {'$gt': gap}, 'context': self.data.get('phone_or_email')}
+            login_fail = {'type': 'login-fail', 'create_time': {'$gt': gap}, 'context': self.data.get('login_id')}
             times = self.db.log.count_documents(login_fail)
             if times >= 20:
                 return self.send_error_response(e.unauthorized, message='登录失败，请半小时后重试，或者申请重置密码')
@@ -47,39 +48,50 @@ class LoginApi(BaseHandler):
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
             next_url = self.get_query_argument('next', '')
-            self.login(self, self.data.get('phone_or_email'), self.data.get('password'),
+            self.login(self, self.data.get('login_id'), self.data.get('password'),
                        send_response='info=1' not in next_url)
             if 'info=1' in next_url:
                 LoginApi.send_user_info(self)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
-    def login(self, phone_or_email, password, report_error=True, send_response=True):
-        user = self.db.user.find_one({'$or': [{'email': phone_or_email}, {'phone': phone_or_email}]})
+    def login(self, login_id, password, report_error=True, send_response=True):
+        user = self.db.user.find_one({'$or': [{'email': login_id}, {'phone': login_id}]})
         if not user:
-            if report_error:
-                self.add_op_log('login_no_user', context=phone_or_email)
-                return send_response and self.send_error_response(e.no_user)
-            return
-        if user['password'] != helper.gen_id(password):
-            if report_error:
-                self.add_op_log('login_fail', context=phone_or_email)
-                return send_response and self.send_error_response(e.incorrect_password)
+            users = list(self.db.user.find({'name': login_id}))
+            if not users:
+                logging.info('login_no_user, ' + login_id)
+                if report_error and send_response:
+                    return self.send_error_response(e.no_user)
+                return
+            elif len(users) > 1:
+                logging.info('login_username_duplicated, ' + login_id)
+                if report_error and send_response:
+                    return self.send_error_response(e.username_duplicated, message='用户名重复，请用手机或邮箱登录')
+                return
+            else:
+                user = users[0]
+        if helper.gen_id(password) not in [user['password'], user.get('new_pwd')]:
+            logging.info('login_failed, ' + login_id)
+            if report_error and send_response:
+                return self.send_error_response(e.incorrect_password)
             return
 
+        if helper.gen_id(password) == user.get('new_pwd'):
+            self.db.user.update_one({'_id': user['_id']}, {'$set': {'password': user['new_pwd'], 'new_pwd': None}})
+
         # 清除登录失败记录
-        ResetUserPasswordApi.remove_login_fails(self, phone_or_email)
+        ResetUserPasswordApi.remove_login_fails(self, login_id)
 
         user['roles'] = user.get('roles', '')
         user['login_md5'] = helper.gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
 
-        self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'], username=user['name'])
-        info = 'login id=%s, name=%s, phone_or_email=%s, roles=%s'
-        logging.info(info % (user['_id'], user['name'], phone_or_email, user['roles']))
+        content = '%s,%s,%s' % (user['name'], login_id, user['roles'])
+        self.add_log('login_ok', target_id=user['_id'], content=content)
 
         if send_response:
             self.send_data_response(user)
@@ -102,7 +114,7 @@ class LogoutApi(BaseHandler):
         if self.current_user:
             self.clear_cookie('user')
             self.current_user = None
-            self.add_op_log('logout')
+            self.add_log('logout')
         self.send_data_response()
 
 
@@ -121,7 +133,8 @@ class RegisterApi(BaseHandler):
                 (v.is_password, 'password'),
                 (v.not_existed, self.db.user, 'phone', 'email')
             ]
-            if not options.testing and self.data.get('email') and self.config['email']['key'] not in ['', None, '待配置']:
+            if not options.testing and self.data.get('email') and self.config['email']['key'] not in ['', None, '待配置'] \
+                    and not re.match(r'ocr-processor.*@tripitakas\.net', self.data['email']):
                 rules.append((v.not_empty, 'email_code'))
                 rules.append((v.code_verify_timeout, self.db.verify, 'email', 'email_code'))
             if not options.testing and self.data.get('phone'):
@@ -129,7 +142,7 @@ class RegisterApi(BaseHandler):
                 rules.append((v.code_verify_timeout, self.db.verify, 'phone', 'phone_code'))
             self.validate(self.data, rules)
 
-            roles = self.config.get('role', {}).get('init', '')
+            roles = self.prop(self.config, 'role.init') or ''
             self.data['roles'] = '用户管理员' if not self.db.user.find_one() else roles  # 如果是第一个用户，则设置为用户管理员
             r = self.db.user.insert_one(dict(
                 name=self.data['name'], email=self.data.get('email'), phone=self.data.get('phone'),
@@ -143,7 +156,7 @@ class RegisterApi(BaseHandler):
             self.set_secure_cookie('user', json_util.dumps(self.data), expires_days=2)
 
             message = '%s, %s, %s' % (self.data.get('email'), self.data.get('phone'), self.data['name'])
-            self.add_op_log('register', context=message, username=self.data['name'])
+            self.add_log('register', target_id=r.inserted_id, content=message)
 
             next_url = self.get_query_argument('next', '')
             if 'info=1' in next_url:
@@ -151,7 +164,7 @@ class RegisterApi(BaseHandler):
             else:
                 self.send_data_response(self.data)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -162,7 +175,7 @@ class ForgetPasswordApi(BaseHandler):
         """将密码发送到注册时的邮箱或手机上"""
 
         rules = [
-            (v.not_empty, 'name', 'phone_or_email'),
+            (v.not_empty, 'phone_or_email', 'name'),
             (v.is_phone_or_email, 'phone_or_email'),
         ]
         self.validate(self.data, rules)
@@ -172,18 +185,14 @@ class ForgetPasswordApi(BaseHandler):
         if not user:
             return self.send_error_response(e.no_user)
         if user['name'] != self.data['name']:
-            return self.send_error_response(e.no_user, message='姓名不匹配')
+            return self.send_error_response(e.no_user, message='用户名不匹配')
 
         pwd = ResetUserPasswordApi.reset_pwd(self, user)
         if '@' in phone_or_email:
-            r = SendUserEmailCodeApi.send_email(self, phone_or_email, """<html>
-                <span style='font-size:16px;margin-right:10px'>密码：%s </span>
-                <a href='http://%s/user/login'>返回登录页面</a>
-                </html>
-                """ % (pwd, self.config['site']['domain']))
+            html = "<html><span style='font-size:16px;margin-right:10px'>密码：%s</span></html>" % pwd
+            r = SendUserEmailCodeApi.send_email(self, phone_or_email, html)
         else:
-            r = SendUserPhoneCodeApi.send_sms(self, phone_or_email, '密码: ' + pwd)
-
+            r = SendUserPhoneCodeApi.send_sms(self, phone_or_email, pwd)
         if r:
             self.send_data_response()
 
@@ -206,10 +215,10 @@ class ChangeMyPasswordApi(BaseHandler):
                 return self.send_error_response(e.incorrect_old_password)
             update = dict(password=helper.gen_id(self.data['password']))
             self.db.user.update_one(dict(_id=self.user_id), {'$set': update})
-            self.add_op_log('change_my_password', context=self.username)
+            self.add_log('change_my_password', target_id=self.user_id)
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -231,7 +240,7 @@ class ChangeMyProfileApi(BaseHandler):
 
             fields, update = ['name', 'gender', 'email', 'phone'], dict()
             for field in fields:
-                update[field] = self.data.get(field) or self.current_user[field]
+                update[field] = self.data.get(field) or self.current_user.get('field') or ''
                 self.current_user[field] = update[field]
 
             r = self.db.user.update_one(dict(_id=self.user_id), {'$set': update})
@@ -239,10 +248,10 @@ class ChangeMyProfileApi(BaseHandler):
                 return self.send_error_response(e.not_changed)
 
             self.set_secure_cookie('user', json_util.dumps(self.current_user), expires_days=2)
-            self.add_op_log('change_my_profile', context=self.data.get('name'))
+            self.add_log('change_my_profile', target_id=self.user_id)
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -264,7 +273,7 @@ class UploadUserAvatarApi(BaseHandler):
 
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -273,11 +282,13 @@ class SendUserEmailCodeApi(BaseHandler):
 
     def post(self):
         """用户注册时，发送邮箱验证码"""
+
         try:
             rules = [(v.not_empty, 'email')]
             self.validate(self.data, rules)
 
-            code = helper.random_code()
+            seed = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            code = ''.join([random.choice(seed) for i in range(4)])
             if not self.send_email(self, self.data['email'], code):
                 return self.send_error_response(e.email_send_failed)
 
@@ -285,7 +296,7 @@ class SendUserEmailCodeApi(BaseHandler):
             self.db.verify.find_one_and_update(condition, {'$set': dict(code=code, stime=self.now())}, upsert=True)
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
@@ -293,12 +304,8 @@ class SendUserEmailCodeApi(BaseHandler):
         """ email_list邮件列表，content邮件内容，subject发送标题 """
 
         try:
-            content = code if '<html' in code else """<html>
-                    <span style='font-size:16px;margin-right:10px'>您的验证码是：%s </span>
-                    <a href='http://%s/user/register'>返回注册页面</a>
-                    </html>
-                    """ % (code, self.config['site']['domain'])
-
+            html = "<html><span style='font-size:16px;margin-right:10px'>您的验证码是：%s</span></html>" % code
+            content = code if '<html' in code else html
             msg = MIMEText(content, 'html', 'utf-8')
             account = self.config['email']['account']
             pwd = self.config['email']['key']
@@ -327,7 +334,8 @@ class SendUserPhoneCodeApi(BaseHandler):
         rules = [(v.not_empty, 'phone')]
         self.validate(self.data, rules)
 
-        code = "%04d" % random.randint(1000, 9999)
+        seed = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        code = ''.join([random.choice(seed) for i in range(4)])
         if not self.send_sms(self, self.data['phone'], code):
             return
         try:
@@ -335,7 +343,7 @@ class SendUserPhoneCodeApi(BaseHandler):
             self.db.verify.find_one_and_update(condition, {'$set': dict(code=code, stime=self.now())}, upsert=True)
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
@@ -355,13 +363,13 @@ class SendUserPhoneCodeApi(BaseHandler):
             request.add_query_param('SignName', sign_name)
             request.add_query_param('PhoneNumbers', phone)
             request.add_query_param('TemplateCode', template_code)
-            request.add_query_param('TemplateParam', '{"code": ' + code + '}')
+            request.add_query_param('TemplateParam', '{"code": "' + code + '"}')
             response = client.do_action_with_exception(request)
             response = response.decode()
             return response
 
         except Exception as error:
-            message = '发送邮件失败: [%s] %s' % (error.__class__.__name__, str(error))
+            message = '发送验证码失败: [%s] %s' % (error.__class__.__name__, str(error))
             self.send_error_response(e.verify_failed, message=message)
 
 
@@ -387,7 +395,7 @@ class UserlistApi(BaseHandler):
 
 
 class ChangeUserRoleApi(BaseHandler):
-    URL = r'/api/user/admin/role'
+    URL = r'/api/user/role'
 
     def post(self):
         """ 修改用户角色 """
@@ -403,10 +411,10 @@ class ChangeUserRoleApi(BaseHandler):
             r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': dict(roles=roles)})
             if not r.matched_count:
                 return self.send_error_response(e.no_user)
-            self.add_op_log('change_role', target_id=self.data['_id'], context='%s: %s' % (user['name'], roles))
+            self.add_log('change_role', target_id=self.data['_id'], content='%s,%s' % (user['name'], roles))
             self.send_data_response({'roles': roles})
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -423,20 +431,20 @@ class ResetUserPasswordApi(BaseHandler):
             if pwd:
                 self.send_data_response({'password': pwd})
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
     def reset_pwd(self, user):
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         oid = ObjectId(user['_id'])
-        r = self.db.user.update_one(dict(_id=oid), {'$set': dict(password=helper.gen_id(pwd))})
+        r = self.db.user.update_one(dict(_id=oid), {'$set': dict(new_pwd=helper.gen_id(pwd))})
         if not r.matched_count:
             return self.send_error_response(e.no_user)
 
         user = self.db.user.find_one(dict(_id=oid))
         ResetUserPasswordApi.remove_login_fails(self, user['_id'])
-        self.add_op_log('reset_password', target_id=user['_id'], context=user['name'])
+        self.add_log('reset_password', target_id=user['_id'], content=user['name'])
         return pwd
 
     @staticmethod
@@ -459,14 +467,14 @@ class DeleteUserApi(BaseHandler):
                 return self.send_error_response(e.cannot_delete_self)
 
             r = self.db.user.delete_many({'_id': {'$in': [ObjectId(i) for i in _ids]}})
-            self.add_op_log('delete_user', target_id=_ids)
+            self.add_log('delete_user', target_id=_ids)
             self.send_data_response(dict(count=r.deleted_count))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
-class UserAddOrUpdateApi(BaseHandler):
+class UserUpsertApi(BaseHandler):
     URL = '/api/user/admin'
 
     def post(self):
@@ -487,10 +495,10 @@ class UserAddOrUpdateApi(BaseHandler):
                 rules.append((v.not_existed, self.db.user, 'phone', 'email'))
             r = User.save_one(self.db, 'user', self.data, rules)
             if r.get('status') == 'success':
-                self.add_op_log(('update_' if r.get('update') else 'add_') + 'user', context=r.get('message'))
+                self.add_log(('update_' if r.get('update') else 'add_') + 'user', target_id=r.get('id'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)

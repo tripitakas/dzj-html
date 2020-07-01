@@ -6,18 +6,16 @@
 """
 
 import re
-import random
 import hashlib
 import logging
 import inspect
-from hashids import Hashids
-from urllib.parse import unquote
-from datetime import datetime, timedelta, timezone
-
-from tornado.util import PY3
-from os import path
-from yaml import load as load_yml, SafeLoader
 import pymongo
+from os import path
+from hashids import Hashids
+from tornado.util import PY3
+from urllib.parse import unquote
+from yaml import load as load_yml, SafeLoader
+from datetime import datetime, timedelta, timezone
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 
@@ -43,23 +41,90 @@ def load_config():
     return config
 
 
-def connect_db(cfg, db_name_ext=''):
+def connect_db(cfg, db_name_ext='', db_name=None, host=None):
     if cfg.get('user'):
         uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
-        uri = uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
+        uri = uri.format(cfg['user'], cfg['password'], host or cfg['host'], cfg.get('port', 27017))
     else:
-        uri = 'mongodb://{0}:{1}/'.format(cfg.get('host') or '127.0.0.1', cfg.get('port', 27017))
+        uri = 'mongodb://{0}:{1}/'.format(host or cfg.get('host') or '127.0.0.1', cfg.get('port', 27017))
     conn = pymongo.MongoClient(
         uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
         maxPoolSize=10, waitQueueTimeoutMS=5000
     )
-    return conn[cfg['name'] + db_name_ext], uri
+    return conn[db_name or cfg['name'] + db_name_ext], uri
 
 
-def md5_encode(page_code, salt):
+def prop(obj, key, default=None):
+    obj = obj or dict()
+    for s in key.split('.'):
+        obj = obj.get(s) if isinstance(obj, dict) else None
+    return default if obj is None else obj
+
+
+def cmp_obj(a, b, fields=None):
+    fields = fields if fields else list(a.keys())
+    for f in fields:
+        if prop(a, f) != prop(b, f):
+            return False
+    return True
+
+
+def gen_id(value, salt='', rand=False, length=16):
+    coder = Hashids(salt=salt and rand and salt + str(datetime.now().second) or salt, min_length=16)
+    if isinstance(value, bytes):
+        return coder.encode(*value)[:length]
+    return coder.encode(*[ord(c) for c in list(value or [])])[:length]
+
+
+def md5_encode(img_name, salt):
     md5 = hashlib.md5()
-    md5.update((page_code + salt).encode('utf-8'))
+    md5.update((img_name + (salt or '')).encode('utf-8'))
     return md5.hexdigest()
+
+
+def align_code(code):
+    # 把带code中的_替换为0填充、补齐4位，如GL_1_1_1转换为GL000100010001
+    return ''.join([n.zfill(4) for n in code.split('_')]).lstrip('0')
+
+
+def code2int(code):
+    # 把藏经编码转换成整数
+    m = re.match(r'^([A-Z]{2})((_\d+)+)', code)
+    if m:
+        h1 = sum([ord(s) for s in m.group(1)]) % 99
+        h2 = ''.join([n.zfill(4) for n in m.group(2)[1:].split('_')])
+        return '%d%s' % (h1, h2)
+        # return int('%d%s' % (h1, h2))
+
+
+def format_value(value, key=None, doc=None):
+    if isinstance(value, datetime):
+        return get_date_time('%Y-%m-%d %H:%M', value)
+    if isinstance(value, list):
+        return '<br/>'.join([str(v) for v in value])
+    if isinstance(value, dict):
+        return '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
+    return value
+
+
+def cmp_page_code(a, b):
+    al, bl = a.split('_'), b.split('_')
+    if len(al) != len(bl):
+        return len(al) - len(bl)
+    for i in range(len(al)):
+        length = max(len(al[i]), len(bl[i]))
+        ai, bi = al[i].zfill(length), bl[i].zfill(length)
+        if ai != bi:
+            return 1 if ai > bi else -1
+    return 0
+
+
+def get_url_param(key, url_query):
+    trans = {'True': True, 'False': False, 'None': None}
+    regex = r'(^|\?|&)%s=(.*?)($|&)' % key
+    r = re.search(regex, url_query, re.I)
+    r = unquote(r.group(2)) if r else ''
+    return trans.get(r) if r in trans else r
 
 
 def get_date_time(fmt=None, date_time=None, diff_seconds=None):
@@ -74,51 +139,6 @@ def get_date_time(fmt=None, date_time=None, diff_seconds=None):
 
     time_zone = timezone(timedelta(hours=8))
     return time.astimezone(time_zone).strftime(fmt or '%Y-%m-%d %H:%M:%S')
-
-
-def gen_id(value, salt='', rand=False, length=16):
-    coder = Hashids(salt=salt and rand and salt + str(datetime.now().second) or salt, min_length=16)
-    if isinstance(value, bytes):
-        return coder.encode(*value)[:length]
-    return coder.encode(*[ord(c) for c in list(value or [])])[:length]
-
-
-def cmp_page_code(a, b):
-    """ 比较图片名称大小 """
-    al, bl = a.split('_'), b.split('_')
-    if len(al) != len(bl):
-        return len(al) - len(bl)
-    for i in range(len(al)):
-        length = max(len(al[i]), len(bl[i]))
-        ai, bi = al[i].zfill(length), bl[i].zfill(length)
-        if ai != bi:
-            return 1 if ai > bi else -1
-    return 0
-
-
-def random_code():
-    code = ''
-    for i in range(4):
-        current = random.randrange(0, 4)
-        if current != i:
-            temp = chr(random.randint(65, 90))
-        else:
-            temp = random.randint(0, 9)
-        code += str(temp)
-    return code
-
-
-def prop(obj, key, default=None):
-    obj = obj or dict()
-    for s in key.split('.'):
-        obj = obj.get(s) if isinstance(obj, dict) else None
-    return default if obj is None else obj
-
-
-def get_url_param(key, url_query):
-    regex = r'(^|\?|&)%s=(.*?)($|&)' % key
-    r = re.search(regex, url_query, re.I)
-    return unquote(r.group(2)) if r else ''
 
 
 def my_framer():

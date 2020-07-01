@@ -1,15 +1,19 @@
-from . import api, ocr, view
+from . import view, api, ocr, ext
 
 views = [
-    view.CutTaskHandler, view.CutEditHandler,
-    view.TextProofHandler, view.TextReviewHandler, view.TextEditHandler,
+    view.PageListHandler, view.PageBrowseHandler, view.PageViewHandler, view.PageInfoHandler,
+    view.PageBoxHandler, view.PageOrderHandler, view.PageTaskCutHandler,
+    view.PageTxtMatchHandler, view.PageTaskTxtMatchHandler, view.PageFindCmpHandler,
+    ext.PageTxtProofHandler, ext.PageTextProofHandler,
+    view.PageTaskListHandler, view.PageTaskStatHandler, view.PageTaskResumeHandler,
 ]
 
 handlers = [
-    api.CutTaskApi, api.CutEditApi, api.DetectWideCharsApi,
-    api.SelectTextApi, api.NeighborTextApi, api.DiffTextsApi,
-    api.TextProofApi, api.TextReviewApi, api.TextHardApi, api.TextEditApi,
-    ocr.FetchOcrTasksApi, ocr.SubmitOcrTasksApi, ocr.ConfirmFetchOcrTasksApi,
+    api.PageDeleteApi, api.PageUpsertApi, api.PageSourceApi,
+    api.PageBoxApi, api.CharBoxApi, api.PageOrderApi, api.PageTaskCutApi,
+    api.PageCmpTxtApi, api.PageFindCmpTxtApi, api.PageCmpTxtNeighborApi,
+    api.PageTxtMatchApi, api.PageTxtMatchDiffApi, api.PageTaskTxtMatchApi,
+    api.PageTaskPublishApi, api.PageStartGenCharsApi, api.PageStartCheckMatchApi, api.PageStartFindCmpApi,
+    ocr.FetchTasksApi, ocr.SubmitTasksApi, ocr.ConfirmFetchApi,
+    ext.PageTxtDiffApi, ext.PageDetectCharsApi,
 ]
-
-modules = {'TextArea': view.TextArea}

@@ -1,7 +1,7 @@
 tornado==5.0.2
 hashids==1.2.0
 tornado-cors
-pymongo==3.7.2
+pymongo==3.10.1
 pyconvert
 pyyaml
 Pillow
@@ -11,5 +11,4 @@ cdifflib
 aliyun-python-sdk-core-v3
 elasticsearch
 lxml
-boto3
-numpy
+oss2

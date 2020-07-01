@@ -55,13 +55,13 @@ class TestTripitakaApi(APITestCase):
         self.assert_code(200, r)
 
     def test_tripitaka_view(self):
-        """ 测试藏经阅读 """
+        """ 测试藏经阅读"""
         tripitakas = []
         for _, code in glob(path.join(self._app.BASE_DIR, 'meta', 'meta', 'Volume-*.csv'), True):
             tripitakas.append(code[0])
 
         for tripitaka in tripitakas:
-            r = self.fetch('/page/%s?_raw=1&_no_auth=1' % tripitaka)
+            r = self.fetch('/tripitaka/%s?_raw=1&_no_auth=1' % tripitaka)
             self.assert_code([200, e.img_unavailable, e.no_object], r, msg=tripitaka)
             if self.get_code(r) == 200:
                 d = self.parse_response(r)

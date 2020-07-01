@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>浏览字图</title>
+  {% include com/_base_css.html %}
+  <link href="{{static_url('css/char.css')}}" rel="stylesheet">
+  <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet">
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+        </div>
+        <div class="btn-group title">
+          浏览字图
+        </div>
+      </div><!--left-->
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="btn-sort" class="btn-group" title="排序">
+          <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li><a id="btn-cc-up" href="#">按置信度升序</a></li>
+            <li><a id="btn-cc-down" href="#">按置信度降序</a></li>
+          </ul>
+        </div>
+        <div class="btn-group" title="按置信度过滤">
+          <i class="btn-txt icon-cc dropdown-toggle" data-toggle="dropdown"></i>
+          <div class="dropdown-menu filter-menu" data-stopPropagation="true">
+            <div class="menu-title">按置信度过滤</div>
+            <li class="divider"></li>
+            <div class="input-line">
+              <input id="filter-start" type="text" class="form-control input-sm" placeholder="起始值">
+              <span>~</span>
+              <input id="filter-end" type="text" class="form-control input-sm" placeholder="终止值">
+            </div>
+            <button id="btn-filter" type="button" class="btn btn-primary btn-sm">确定</button>
+          </div>
+        </div>
+        <div class="search">
+          <input id="search-variant" type="text" placeholder="搜索异体字字典">
+          <i id="icon-search" class="icon-search"></i>
+        </div>
+      </div>
+    </div>
+    <div class="m-body flex">
+      <div class="char-panel">
+        <div class="char-items">
+          {% for d in docs %}
+          <div class="char-item proof{{len(d.get('txt_logs') or [])}}" id="{{d['name']}}" data-id="{{d['name']}}">
+            <div class="char-img">
+              <img src="{{handler.get_char_img(d)}}"/>
+            </div>
+            <div class="char-info">
+              <span class="txt">{{d.get('txt', '')}}</span><span class="cc">{{d.get('cc', 0)/1000}}</span>
+            </div>
+          </div>
+          {% end %}
+        </div>
+        {% module Pager(pager) %}
+      </div>
+      <div class="column-panel">
+        <div id="col-holder"></div>
+        <button id="submit-box" class="btn btn-primary btn-sm" style="margin-top: 6px">确认</button>
+      </div>
+      <div class="work-panel">
+        {% module CharTxt(docs and docs[0] or {}, show_base = True) %}
+      </div>
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
+      <span class="fl"></span>
+      <span class="fr">
+        页编码：<span class="page-name" style="margin-right: 10px"></span>
+        字编码：<span class="char-name">未选中</span>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、简单介绍</div>
+          <div class="intro">
+            聚类校对，是一种将字框OCR文字相同的单字聚集到一起的校对方式。<br/>
+            每个字图都有OCR文字，也有它的校对文字（默认为OCR文字），用户需要检查校对文字是否与字图中的文字一致，如果不一致，则需要进行修改。<br/>
+          </div>
+          <div class="title">二、校对方法</div>
+          <div class="intro">
+            1. 逐一点击左上区域的字种（当前字种将会高亮显示）<br/>
+            2. 检查左下区域的字图列表，如果发现图中的文字与当前字种不一致，则进行单击<br/>
+            2.1. 中间列图区域可以查看该字所在的列图<br/>
+            2.2. 右侧工作面板可以查看该字的OCR候选、校对历史<br/>
+            2.3. 右侧工作面板下方的请您校对区域，可以修改当前字图的校对文字<br/>
+            3. 依次往后翻页，如果发现某一页没有错误，则可以提交任务<br/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include com/_base_js.html %}
+{% include com/_base_cut.html %}
+<script src="{{static_url('js/char.js')}}"></script>
+<script src="{{static_url('js/char-txt.js')}}"></script>
+<script>
+  // 公共参数
+  var taskType = "";
+  var columnBaseUrl = "{{column_url}}";
+  var chars = decodeJSON('{{dumps(chars)}}');
+  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
+
+  // 初始化
+  $(document).ready(function () {
+    getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
+  });
+
+</script>
+
+</body>
+</html>

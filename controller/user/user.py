@@ -40,7 +40,7 @@ class User(Model):
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
     actions = [  # 列表单条记录包含哪些操作
-        {'action': 'btn-update', 'label': '修改'},
+        {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
         {'action': 'btn-reset-pwd', 'label': '重置密码'},
     ]

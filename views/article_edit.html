@@ -3,7 +3,7 @@
 <head>
   {% set title = '更新文章' if article_id else '新建文章' %}
   <title>{{title}}</title>
-  {% include _base_css.html %}
+  {% include com/_base_css.html %}
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -72,12 +72,12 @@
   <div class="main">
     <header class="m-header">
       <div class="back">
-        <a href="/article"><img src="{{static_url('imgs/home.png')}}" class="btn-img"/></a>
+        <a class="btn-txt icon-home" href="/article/admin" data-toggle="tooltip" data-placement="bottom" title="返回文章管理"></a>
       </div>
       <div class="title">{{title}}</div>
       <div class="btn-group right">
-        <img src="{{static_url('imgs/icon_preview.png')}}" class="btn-img" id="btn-preview" title="预览"/>
-        <img src="{{static_url('imgs/icon_submit.png')}}" class="btn-img" id="btn-submit" title="保存"/>
+        <span class="btn-txt icon-eye" id="btn-view" data-toggle="tooltip" data-placement="bottom" title="查看"></span>
+        <span class="btn-txt icon-submit" id="btn-submit" data-toggle="tooltip" data-placement="bottom" title="保存"></span>
       </div><!--right-->
     </header>
     <div class="content">
@@ -115,7 +115,7 @@
   </div>
 </div>
 
-{% include _base_js.html %}
+{% include com/_base_js.html %}
 
 <!-- UM Editor -->
 <link href="{{static_url('editor/themes/default/_css/umeditor.css')}}" rel="stylesheet"/>
@@ -127,27 +127,31 @@
 
 <!-- CUSTOM JS -->
 <script>
-  var article_id = '{{article_id}}';
+  var articleId = '{{article_id}}';
   var _id = '{{article.get("_id") or ""}}';
-  var $preview = $('#btn-preview');
   initEditor('content-editor', decodeJSON('{{article.get("content") or ""}}', true));
+
+  // 提交
   $('#btn-submit').on('click', function () {
-    var url = article_id ? '/article/update' : '/article/add';
+    if (!$('#article-id').val().length)
+      return showError('提示', '请填写文章标识', 2000);
     var data = {
       _id: _id, article_id: $('#article-id').val(), title: $('#article-title').val(),
       category: $('#article-category').val(), active: $('#article-active').val(),
       content: UM.getEditor('content-editor').getContent()
     };
+    var url = '/article/admin/' + (articleId ? 'update' : 'add');
     postApi(url, {data: data}, function () {
       window.location = '/article/update/' + $('#article-id').val();
     });
   });
 
-  $preview.click(function () {
-    if (!article_id)
+  // 查看
+  $('#btn-view').on('click', function () {
+    if (!articleId)
       return showError('提示', '请先保存文章');
     else
-      window.location = '/article/' + article_id;
+      window.location = '/article/' + articleId;
   });
 
   // 设置编辑器高度

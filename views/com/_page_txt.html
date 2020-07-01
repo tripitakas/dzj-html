@@ -1,0 +1,48 @@
+<!--本UIModule依赖于page-txt.css和page-txt.js-->
+<div class="page-txt sutra-texts">
+  <div id="work-panel" class="sutra-text{{'' if cmp_data else ' hide'}}">
+    <div id="toggle-status" class="right-toolbar">
+      <i id="btn-work-text" class="icon icon-pencil" data-toggle="tooltip" data-placement="left" title="切换为纯文本模式"></i>
+      <i id="btn-work-html" class="icon icon-file-text hide" data-toggle="tooltip" data-placement="left" title="切换为文本比对模式"></i>
+    </div>
+    <div id="work-html">
+      <div id="cmp-html" class="html-text">
+        <div class="blocks">
+          {% if isinstance(cmp_data, dict) %}
+          {% module TxtDiff(cmp_data=cmp_data) %}
+          {% else %}
+          {% raw cmp_data %}
+          {% end %}
+        </div>
+      </div>
+      <div id="pfread-dialog" class="pfread-dialog">
+        <div class="dialog-common dialog-abs">
+          <div class="dlg-before"></div>
+          <div id="dlg-items" class="items">
+            {% for i, (txt, field, label) in enumerate(txts) %}
+            <dl class="item">
+              <dt>{{label}}</dt>
+              <dd class="text option" id="dlg-{{'cmp%s' % i if i else 'base'}}"></dd>
+            </dl>
+            {% end %}
+          </div>
+          <dl class="item res">
+            <dt>选择结果</dt>
+            <dd class="text">
+              <span id="dlg-select" contenteditable="true"></span>
+            </dd>
+          </dl>
+          <div class="dlg-after"></div>
+        </div>
+      </div>
+    </div>
+    <div id="work-text" class="hide">
+      <textarea class="editable"></textarea>
+    </div>
+  </div>
+  {% for i, (txt, field, label) in enumerate(txts) %}
+  <div id="text-{{field}}" class="sutra-text{{'' if active == field else ' hide'}}">
+    <div class="blocks">{% raw txt2html(txt) %}</div>
+  </div>
+  {% end %}
+</div>

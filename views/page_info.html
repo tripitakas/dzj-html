@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>页面详情-{{page['name']}}</title>
+  {% include com/_base_css.html %}
+  <link href="{{static_url('css/info.css')}}" rel="stylesheet">
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .columns .value, .chars .value {
+      width: 100%;
+      overflow: auto;
+      max-height: 400px;
+      word-break: keep-all;
+    }
+
+    .long .value div{
+      white-space:nowrap;
+    }
+
+    .info.long {
+      display: block !important;
+    }
+
+  </style>
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    {% module ComLeft(active_id='#page-list') %}
+    <div class="main-content">
+      {% module ComHead() %}
+      <div class="layout">
+        <div class="wrapper">
+          <div class="block">
+            <div class="block-head">基本信息</div>
+            {% for k, v in metadata.items() %}
+            <div class="info">
+              <label class="label">{{Page.get_field_name(k)}}</label>
+              <div class="value">{% raw format_value(v, k) %}</div>
+            </div>
+            {% end %}
+          </div>
+          <div class="block">
+            <div class="block-head">相关任务</div>
+            {% for t, status in page_tasks.items() %}
+            <div class="info">
+              <label class="label">{{Task.get_task_name(t)}}</label>
+              <div class="value">{{status}}</div>
+            </div>
+            {% end %}
+          </div>
+          <div class="block">
+            <div class="block-head">文本信息</div>
+            {% for k, v in page_txts.items() %}
+            <div class="info long">
+              <label class="label">{{Page.get_field_name(k)}}</label>
+              <div class="value">{% raw format_value(v, k) %}</div>
+            </div>
+            {% end %}
+          </div>
+          {% if page.get('txt_match') %}
+          <div class="block">
+            <div class="block-head">文本匹配</div>
+            {% for k, v in page.get('txt_match').items() %}
+            <div class="info long">
+              <label class="label">{{Page.get_field_name(k)}}</label>
+              <div class="value">{% raw format_value(v, k) %}</div>
+            </div>
+            {% end %}
+          </div>
+          {% end %}
+          <div class="block">
+            <div class="block-head">切分信息</div>
+            {% for k, v in page_boxes.items() %}
+            <div class="info long {{k}}">
+              <label class="label">{{Page.get_field_name(k)}}</label>
+              <div class="value">{% raw format_value(v, k) %}</div>
+            </div>
+            {% end %}
+          </div>
+          {% if page.get('bak') %}
+          <div class="block">
+            <div class="block-head">备份信息</div>
+            {% for k, v in page['bak'].items() %}
+            <div class="info long {{k}}">
+              <label class="label">{{Page.get_field_name(k)}}</label>
+              <div class="value">{% raw format_value(v, k) %}</div>
+            </div>
+            {% end %}
+          </div>
+          {% end %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include com/_base_js.html %}
+
+</body>
+</html>

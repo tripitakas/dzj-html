@@ -66,4 +66,4 @@ def scan_dup_html(html_path, base_file):
 
 
 static_path = path.join(path.dirname(__file__), '..', 'static')
-scan_dup_html(path.dirname(__file__), '_base_css.html')
+scan_dup_html(path.dirname(__file__), 'com/_base_css.html')

@@ -7,16 +7,15 @@ import os
 import re
 import hashlib
 from PIL import Image
-from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors
 import controller.validate as v
+from controller.base import BaseHandler
 from controller.helper import get_date_time
-from controller.base import BaseHandler, DbError
 
 
 class ArticleDeleteApi(BaseHandler):
-    URL = '/api/article/delete'
+    URL = '/api/article/admin/delete'
 
     def post(self):
         """ 删除文章"""
@@ -26,18 +25,18 @@ class ArticleDeleteApi(BaseHandler):
 
             if self.data.get('_id'):
                 r = self.db.article.delete_one({'_id': ObjectId(self.data['_id'])})
-                self.add_op_log('delete_article', target_id=self.data['_id'])
+                self.add_log('delete_article', target_id=self.data['_id'])
             else:
                 r = self.db.article.delete_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}})
-                self.add_op_log('delete_article', target_id=self.data['_ids'])
+                self.add_log('delete_article', target_id=self.data['_ids'])
             self.send_data_response(dict(count=r.deleted_count))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
-class ArticleAddOrUpdateApi(BaseHandler):
-    URL = '/api/article/(add|update)'
+class ArticleUpsertApi(BaseHandler):
+    URL = '/api/article/admin/(add|update)'
 
     def post(self, mode):
         """ 保存文章"""
@@ -60,22 +59,26 @@ class ArticleAddOrUpdateApi(BaseHandler):
                 r = self.db.article.update_one({'_id': _id}, {'$set': info})
                 if not r.matched_count:
                     return self.send_error_response(errors.no_object, message='文章不存在')
-                self.add_op_log('update_article', target_id=_id, context=info['title'])
+                self.add_log('update_article', target_id=_id, content=info['title'])
             else:
                 info.update(dict(create_time=self.now(), author_id=self.user_id, author_name=self.username))
                 r = self.db.article.insert_one(info)
-                self.add_op_log('add_article', target_id=r.inserted_id, context=info['title'])
+                self.add_log('add_article', target_id=r.inserted_id, content=info['title'])
                 info['_id'] = str(r.inserted_id)
 
             info.pop('content', 0)
             self.send_data_response(info)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
 class UploadImageApi(BaseHandler):
     URL = '/php/imageUp.php'
+
+    def prepare(self):
+        super(UploadImageApi, self).prepare()
+        self.is_api = True
 
     def post(self):
         """ 编辑器中的图片上传
@@ -84,7 +87,7 @@ class UploadImageApi(BaseHandler):
         assert self.request.files and self.request.files['upfile']
         file = self.request.files['upfile'][0]
         if len(file['body']) > 1024 * 1024:
-            return self.send_error(errors.upload_fail, reason='文件不允许超过1MB')
+            return self.send_error_response(errors.upload_fail, reason='文件不允许超过1MB')
 
         date = get_date_time()
         folder = date[:7].replace('-', 'p')
@@ -105,7 +108,7 @@ class UploadImageApi(BaseHandler):
         filename, w, h = self.resize_image(filename)
         filename = filename.replace(upload_path, '').strip('/\\')
 
-        self.add_op_log('upload_image', context='%s,%dx%d' % (filename, w, h))
+        self.add_log('upload_image', content='%s,%dx%d' % (filename, w, h))
         self.write(dict(state='SUCCESS', url=filename, w=w, h=h))
 
     @staticmethod

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>字序校对-{{page['name']}}</title>
+  {% include com/_base_css.html %}
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+        </div>
+        <div class="btn-group title">字序校对</div>
+      </div><!--left-->
+      <div class="center order">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+        <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
+        <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
+        <div id="toggle-block" class="btn-txt icon-blocks" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+        <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+        <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-char-no" class="btn-txt icon-char-no" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+        <div id="toggle-order" class="btn-txt icon-char-order active" data-toggle="tooltip" data-placement="bottom" title="显隐连线"></div>
+        <div id="show-err-order" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="检查字序"></div>
+        <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
+        <div class="btn-group more-group hide" id="more-group">
+          <span id="reorder" class="btn btn-default btn-sm" type="button">重新排序</span>
+          <span id="old-order" class="btn btn-default btn-sm" type="button">原始字序</span>
+        </div>
+      </div>
+      <div class="right">
+        <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
+        {% if hasattr(handler, 'task_type') %} {% include com/_task_btns.html %} {% end %}
+      </div><!--right-->
+    </div>
+    <div class="m-body flex">
+      <div class="bd" id="holder-container">
+        <div id="holder"></div>
+      </div>
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        页编码：<span class="page-name">{{page['name']}}</span>
+        权限：<span class="page-info">{{'只读' if readonly else '读写'}}</span>
+      </span>
+      <span class="fr">
+        <span class="char-info"></span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、功能概述</div>
+          <div class="intro">
+            字序指的是字框的先后顺序，字序校对的目标是保证字框的顺序与阅读顺序一致。针对同一列字框，字序有编号和连线两种表示方式。<br/>
+            1）编号。按照数字编号显示字序。<br/>
+            2）连线。每个字框都有左右两个点，从前一个字框的右边画一条线到后一个字框的左边，就建立起了两个字框的先后顺序。<br/>
+            删除连线，有两种方式：一是Delete键；二是将连线的任意一个点拖拽至空白处释放。Delete键删除当前连线时，并不需要鼠标完全选中连线，只需要靠近后，有高亮提示即可。<br/>
+            修改连线，可以直接用鼠标拖拽。当鼠标移动至连线的端点时，也会高亮提示，表示已选中当前端点。并不需要将光标完全放在端点上，只需要靠近后有提示，就可以进行拖拽了。<br/>
+            注：本工作界面仍然可以键盘调整字框大小，保存及提交。<br/>
+          </div>
+          <div class="title">二、功能按钮</div>
+          <table class="table">
+            <tr>
+              <td><img src="{{static_url('imgs/icon_lobby.png')}}"/></td>
+              <td>返回任务大厅</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_lr.png')}}"/></td>
+              <td>撤销上一步操作</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_rr.png')}}"/></td>
+              <td>取消撤销</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">图片</span></td>
+              <td>显示或隐藏图片。隐藏图片有助于看清字框间的连线</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">透明</span></td>
+              <td>设置或取消图片半透明</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">列框</span></td>
+              <td>显示或隐藏列框</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">编号</span></td>
+              <td>显示或隐藏字框序号</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">查漏</span></td>
+              <td>程序自动检查字序并提示可能存在的问题</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">应用</span></td>
+              <td>调整字框连线后重新计算字框编号</td>
+            </tr>
+            {% include com/_task_help.html %}
+          </table>
+          <div class="title">三、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+            <tr>
+              <td>方向键</td>
+              <td>按照方向键↑→↓←的指示，切换当前字框</td>
+            </tr>
+            <tr>
+              <td>鼠标滚轮</td>
+              <td>鼠标滚轮上下滚动显示，按下Shift键则左右滚动显示</td>
+            </tr>
+            <tr>
+              <td>wsad</td>
+              <td>按照指示（wsad代表上下左右四个方向）移动当前字框</td>
+            </tr>
+            <tr>
+              <td>shift + 方向键</td>
+              <td>shift表示扩大字框，方向键代表字框的四条边</td>
+            </tr>
+            <tr>
+              <td>alt + 方向键</td>
+              <td>alt表示缩小字框，方向键代表字框的四条边</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include com/_base_js.html %}
+{% include com/_base_cut.html %}
+{% if hasattr(handler, 'task_type') %} {% include com/_base_task.html %} {% end %}
+<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/cut/char_order.js')}}"></script>
+<script>
+  // 页面图
+  $.cut.create({
+    readonly: true,
+    orderMode: true,
+    holder: 'holder',
+    image: "{{img_url}}",
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    name: '{{page["name"]}}_order',
+    chars: '{{page["chars"]}}',
+    blocks: '{{page["blocks"]}}',
+    columns: '{{page["columns"]}}',
+    scrollContainer: '#holder-container',
+  });
+  $.cut.bindKeys();
+  $.cut.switchCurrentBox(null);
+  $.cut.bindCharOrderKeys();
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
+
+  // 初始化设置
+  if ($.cut.data.image) {
+    $.cut.data.image.node.style.display = getStorage('toggleOrderImage', '1') === '1' ? '' : 'none';
+    $.cut.data.image.node.style.opacity = getStorage('toggleOrderBlur', '1') === '1' ? 0.2 : null;
+  }
+  $.cut.toggleBox(getStorage('toggleOrderBlock', '-1') === '1', 'block');
+  $.cut.toggleBox(getStorage('toggleOrderColumn', '-1') === '1', 'column');
+  $.cut.toggleBox(getStorage('toggleOrderChar', '-1') === '1', 'char');
+  $.cut.setLink(getStorage('toggleOrderLink', '1') === '1');
+  $.cut.setLabel(getStorage('toggleOrderCharNo', '-1') === '1');
+  $('#toggle-image').toggleClass('active', getStorage('toggleOrderImage', '1') === '1');
+  $('#toggle-blur').toggleClass('active', getStorage('toggleOrderBlur', '1') === '1');
+  $('#toggle-block').toggleClass('active', getStorage('toggleOrderBlock', '-1') === '1');
+  $('#toggle-column').toggleClass('active', getStorage('toggleOrderColumn', '-1') === '1');
+  $('#toggle-char').toggleClass('active', getStorage('toggleOrderChar', '-1') === '1');
+  $('#toggle-link').toggleClass('active', getStorage('toggleOrderLink', '1') === '1');
+  $('#toggle-char-no').toggleClass('active', getStorage('toggleOrderCharNo', '-1') === '1');
+  setTimeout(() => $.cut.showErrorBoxes(), 1000);
+
+  $.cut.state.canHitBox = function (el) {
+    if ($('#toggle-order-char').hasClass('active') && el.data('class') === 'char')
+      return true;
+    if ($('#toggle-order-column').hasClass('active') && el.data('class') === 'column')
+      return true;
+    if ($('#toggle-order-block').hasClass('active') && el.data('class') === 'block')
+      return true;
+  };
+
+  // 检查错误字序
+  $('#show-err-order').on('click', () => $.cut.showErrorBoxes(true));
+
+  // 重新计算字序
+  $('#reorder').on('click', () => location.href = setQueryString('reorder', 'down'));
+
+  // 显示原始字序
+  $('#old-order').on('click', () => location.href = deleteQueryString('reorder'));
+
+  // 跳转字框
+  $('#btn-box').on('click', function () {
+    var from = decodeFrom() ? '?from=' + decodeFrom() : '';
+    location.href = '/page/box/{{page["name"]}}' + from;
+  });
+
+  // 获取提交数据
+  function getPostData() {
+    var r = $.cut.getCharsCol();
+    if (!r.error && r.chars_col.length !== parseInt('{{len(page["columns"])}}')) {
+      r.error = '列数有误，请检查是否有断开的列。';
+    }
+    if (r.error) {
+      bsShow('失败！', r.error, 'warning');
+    }
+    r.step = 'order';
+    return r;
+  }
+
+  // 保存数据
+  $('#save').on('click', function () {
+    var data = getPostData();
+    if (data && !data.error) {
+      bsLoading('保存中‧‧‧');
+      postApi(location.pathname, {data: data}, function () {
+        bsShow('成功!', '已保存。');
+        location.reload();
+      });
+    }
+  });
+
+</script>
+</body>
+</html>

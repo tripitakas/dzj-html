@@ -1,0 +1,30 @@
+{% if not debug and 0 %}
+<script src="{{static_url('built/cut_assets.js')}}"></script>
+<script src="{{static_url('built/cut_local.js')}}"></script>
+{% else %}
+<script src="{{static_url('js/cut/raphael.js')}}"></script>
+<script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/cut/jquery.mapkey.js')}}"></script>
+<script src="{{static_url('js/cut/cut.js')}}"></script>
+<script src="{{static_url('js/cut/cut_keys.js')}}"></script>
+<script src="{{static_url('js/cut/cut_adv.js')}}"></script>
+{% end %}
+
+<script>
+  function updateUndo() {
+    $('#undo').toggleClass('disabled', !$.cut.canUndo());
+    $('#redo').toggleClass('disabled', $.cut.canUndo());
+  }
+
+  updateUndo();
+
+  $('#undo').on('click', function () {
+    $.cut.undo();
+    updateUndo();
+  });
+
+  $('#redo').on('click', function () {
+    $.cut.redo();
+    updateUndo();
+  });
+</script>

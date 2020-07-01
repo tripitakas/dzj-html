@@ -46,7 +46,7 @@ def i18n(key):
         'priority': '优先级',
         'task_type': '任务类型',
         'task_types': '任务类型',
-        'doc_ids': '数据',
+        'page_names': '页编码',
         'sutra_code': '经编码',
         'sutra_name': '经名',
         'reel_no': '卷序号',
@@ -70,6 +70,7 @@ def i18n(key):
         'blocks': '栏框',
         'columns': '列框',
         'chars': '字框',
+        'normal_txt': '正字',
     }
     return maps[key] if key in maps else key
 
@@ -97,6 +98,21 @@ def not_both_empty(**kw):
         return {k1: err, k2: err}
 
 
+def not_all_empty(**kw):
+    """不允许同时为空以及空串"""
+    code, message = e.not_allowed_empty
+    if len([k for k, v in kw.items() if not v]) == 0:
+        err = code, message % (','.join([i18n(k) for k, v in kw.items()]))
+        return err
+
+
+def not_none(**kw):
+    """不允许为空"""
+    code, message = e.not_allowed_empty
+    errs = {k: (code, message % i18n(k)) for k, v in kw.items() if v is None}
+    return errs or None
+
+
 def not_equal(**kw):
     assert len(kw) == 2
     k1, k2 = kw.keys()
@@ -121,7 +137,7 @@ def is_name(**kw):
     """ 检查是否为姓名。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
-    regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
+    regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{3,20}$'
     # 值为空或空串时跳过而不检查
     if v and not re.match(regex, v):
         return {k: e.invalid_name}
@@ -242,6 +258,30 @@ def is_digit(**kw):
     """ 检查是否为数字。"""
     code, message = e.invalid_digit
     errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(r'^\d+$', str(v))}
+    return errs or None
+
+
+def is_txt(**kw):
+    """ 检查是否为校对文字。"""
+    code, message = e.invalid_txt
+    regex = r'^([^\x00-\xff]|Y\d+)$'
+    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    return errs or None
+
+
+def is_txt_type(**kw):
+    """ 检查文字类型。"""
+    code, message = e.invalid_txt_type
+    regex = r'^[YMN*]$'
+    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    return errs or None
+
+
+def is_char_uid(**kw):
+    """ 检查是否为char的uid。"""
+    code, message = e.invalid_txt_type
+    regex = r'^Y\d+$'
+    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
     return errs or None
 
 

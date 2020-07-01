@@ -1,0 +1,37 @@
+<div class="btn-group view-txt" title="查看文本">
+  <span class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></span>
+  <ul class="dropdown-menu dropdown-menu-right" data-stopPropagation="true">
+    {% for i, (txt, key, label) in enumerate(txts) %}
+    <li data-id="text-{{key}}" class="btn-show-txt{{' active' if active == key else ''}}">
+      <a href="#">{{label}}</a>
+    </li>
+    {% end %}
+    {% if len(txts) > 1 %}
+    <li data-id="work-html" class="btn-show-txt">
+      <a href="#">比对结果</a>
+    </li>
+    {% end %}
+  </ul>
+</div>
+<div class="btn-group cmp-txt">
+  <i class="btn-txt icon-cmp-txt dropdown-toggle" data-toggle="dropdown" title="重新比对"></i>
+  <div class="dropdown-menu dropdown-menu-right cmp-menu" data-stopPropagation="true" style="width: 300px;padding: 8px">
+    <div class="menu-title">文本比对</div>
+    <li class="divider"></li>
+    <label class="control-label">选择底本</label>
+    <div class="form-group base-txt">
+      {% for i, (txt, key, label) in enumerate(txts) %}
+      <label class="radio-inline"><input type="radio" name="base-txt" value="{{key}}">{{label}}</label>
+      {% end %}
+    </div>
+    <label class="control-label">选择校本</label>
+    <div class="form-group cmp-txt">
+      {% for i, (txt, key, label) in enumerate(txts) %}
+      <label class="checkbox-inline"><input type="checkbox" value="{{key}}" checked>{{label}}</label>
+      {% end %}
+    </div>
+    <div class="btn-group fr">
+      <button id="btn-cmp-txt" type="button" class="btn btn-primary btn-sm">确定</button>
+    </div>
+  </div>
+</div>

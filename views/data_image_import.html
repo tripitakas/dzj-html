@@ -1,0 +1,153 @@
+{% extends "com/_list.html" %}
+{% block custom-css %}
+<link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
+<style>
+  td:nth-child(4) {
+    max-width: 200px;
+    text-align: left;
+    word-break: break-all;
+  }
+</style>
+{% end %}
+
+{% block custom-modal %}
+<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">帮助文档</h4>
+      </div>
+      <div class="modal-body">
+        <div class="title">一、简介</div>
+        <div class="intro">
+          任务管理模块提供管理员对任务进行操作，包括发布、删除、重新发布等，还可以查看任务，或者查看任务详情、历程。
+        </div>
+        <div class="title">二、任务操作</div>
+        <table class="table">
+          <tr>
+            <td>批量删除</td>
+            <td>可以批量删除所有非「进行中」或「已完成」的任务。如果需要删除「进行中」的任务，请先选择重新发布，然后再删除。</td>
+          </tr>
+          <tr>
+            <td>发布任务</td>
+            <td>
+              任务相关数据已就绪时，可以发布任务。任务管理员在发布任务时，如果任务没有前置任务，则系统直接发布为「已发布」。如果有前置
+              任务，则根据前置任务情况：如果都已完成，则发布为「已发布」；如果有一个前置任务未完成，则发布为「等待前置任务」。该任务的
+              前置任务在完成时，系统会自动检查，如果所有前置任务都已完成，则自动发布为「已发布」。
+              用户可以在任务大厅领取所有「已发布」的任务。领取后可以进行保存、提交，也可以选择退回任务。
+            </td>
+          </tr>
+          <tr>
+            <td>重新发布</td>
+            <td>「进行中」的任务可以重新发布。</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title" id="modal-title">发布任务/导入图片</h4>
+      </div>
+      <div class="modal-body">
+        <h4 class="control-label">分类</h4>
+        <div>
+          <input type="text" class="form-control source" placeholder="请输入图片分类"/>
+        </div>
+        <div class="modal-tab import_dir">
+          <h4 class="control-label">导入哪个文件夹</h4>
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#wang-pan" data-toggle="tab">网盘目录</a></li>
+            <li><a href="#manual" data-toggle="tab">手工输入</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active" id="wang-pan">
+              <div style="display: flex">
+                <input type="text" class="form-control" id="pan-name" value="{{pan_name}}"/>
+                <span style="margin-top: 5px">@</span>
+                <input type="text" class="form-control" id="pan-dir" placeholder="请输入网盘中的文件夹路径"/>
+              </div>
+            </div>
+            <div class="tab-pane" id="manual">
+              <input type="text" class="form-control" id="manual-dir" placeholder="请输入绝对路径"/>
+            </div>
+          </div>
+        </div>
+        <h4 class="control-label">选择优先级</h4>
+        <div class="priority">
+          <input type="radio" name="priority" value="3" style="margin-right: 10px">高
+          <input type="radio" name="priority" value="2" style="margin: 0 10px" checked>中
+          <input type="radio" name="priority" value="1" style="margin: 0 10px">低
+        </div>
+        <h4 class="control-label">版面结构</h4>
+        <div class="layout">
+          <input type="radio" name="layout" value="上下一栏" style="margin-right: 10px" checked>上下一栏
+          <input type="radio" name="layout" value="上下两栏" style="margin: 0 10px">上下两栏
+          <input type="radio" name="layout" value="上下三栏" style="margin: 0 10px">上下三栏
+          <input type="radio" name="layout" value="左右两栏" style="margin: 0 10px">左右两栏
+        </div>
+        <h4 class="control-label">重复时如何处理？</h4>
+        <div class="redo">
+          <input type="radio" name="redo" value="否" style="margin-right: 10px" checked>跳过
+          <input type="radio" name="redo" value="是" style="margin: 0 10px">重新导入
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
+
+{% block custom-js %}
+<script>
+  // 发布任务
+  var $publishModal = $('#publishModal');
+  var publishFields = [
+    {id: 'source'}, {id: 'priority', input_type: 'radio'}, {id: 'redo', input_type: 'radio'},
+    {id: 'layout', input_type: 'radio'}
+  ];
+  $publishModal.find(".modal-confirm").click(function () {
+    var data = getModal($publishModal, publishFields);
+    var active = $('.tab-content .tab-pane.active').attr('id');
+    var panName = active === 'wang-pan' ? $('#pan-name').val().trim() : '';
+    var importDir = active === 'wang-pan' ? $('#pan-dir').val().trim() : $('#manual-dir').val().trim();
+    Object.assign(data, {task_type: 'import_image', import_dir: importDir, pan_name: panName});
+    postApi('/publish/import_image', {data: data}, function () {
+      showSuccess('成功', '数据已提交。');
+      refresh(1000);
+    }, function (error) {
+      return showError('提交失败', error.message);
+    });
+  });
+
+  // 重新发布任务
+  $('.btn-republish').click(function () {
+    var node = $(this).parent().parent();
+    var regex = /(进行中|失败)/i;
+    if (!node.find('.status').text().trim().match(regex)) {
+      return showWarning('状态有误', '只能重新发布进行中或已失败的任务！');
+    }
+    showConfirm("确定重新发布吗？", "任务" + node.find('.doc_id').text().trim() + "将被重新发布！", function () {
+      postApi('/task/republish/' + node.attr('id'), {data: {}}, function () {
+        window.location.reload();
+      });
+    });
+  });
+
+  // 任务详情
+  $('.sty-table .action .btn-detail').click(function () {
+    var node = $(this).parent().parent();
+    location.href = '/task/info/' + node.attr('id');
+  });
+</script>
+{% end %}
+

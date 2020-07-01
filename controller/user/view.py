@@ -14,7 +14,6 @@ class UserLoginHandler(BaseHandler):
 
     def get(self):
         """ 登录页面 """
-        self.update_user_time()
         self.render('user_login.html', next=self.get_query_argument('next', '/'))
 
 
@@ -56,7 +55,7 @@ class UsersAdminHandler(BaseHandler, User):
 
 
 class UserRolesHandler(BaseHandler, User):
-    URL = '/user/admin/role'
+    URL = '/user/role'
 
     operations = []
     img_operations = []

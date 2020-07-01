@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 任务基础表。
+@desc: 任务基础表
 @time: 2019/10/16
 """
 from datetime import datetime
 from bson.objectid import ObjectId
 from controller.model import Model
-from controller.helper import prop, get_date_time, get_url_param
+from controller import helper as h
 
 
 class Task(Model):
@@ -18,6 +18,7 @@ class Task(Model):
         {'id': '_id', 'name': '主键'},
         {'id': 'batch', 'name': '批次号'},
         {'id': 'task_type', 'name': '类型'},
+        {'id': 'num', 'name': '校次'},
         {'id': 'collection', 'name': '数据表'},
         {'id': 'id_name', 'name': '主键名'},
         {'id': 'doc_id', 'name': '数据ID'},
@@ -25,8 +26,11 @@ class Task(Model):
         {'id': 'priority', 'name': '优先级'},
         {'id': 'steps', 'name': '步骤'},
         {'id': 'pre_tasks', 'name': '前置任务'},
-        {'id': 'input', 'name': '输入参数'},
+        {'id': 'params', 'name': '输入参数'},
         {'id': 'result', 'name': '输出结果'},
+        {'id': 'txt_kind', 'name': '字种'},
+        {'id': 'char_count', 'name': '单字总数'},
+        {'id': 'type_tips', 'name': '类型说明'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
@@ -42,92 +46,56 @@ class Task(Model):
     ]
 
     # 任务类型定义
-    # pre_tasks：默认的前置任务
-    # data.collection：任务所对应数据表
-    # data.id：数据表的主键名称
-    # data.input_field：任务所依赖的数据字段。如果该字段不为空，则可以发布任务
-    # data.output_field：任务输出的字段。如果该字段不为空，则表示任务已完成
-    # data.shared_field：任务共享和保护的数据字段
     task_types = {
         'import_image': {
-            'name': '导入图片',
-        },
-        'upload_cloud': {
-            'name': '上传云端',
-            'data': {'collection': 'page', 'id': 'name', 'output_field': 'img_cloud_path'},
-        },
-        'ocr_box': {
-            'name': 'OCR字框',
-            'data': {'collection': 'page', 'id': 'name'},
+            'name': '导入图片', 'publishable': True,
         },
         'cut_proof': {
-            'name': '切分校对', 'pre_tasks': ['ocr_box', 'upload_cloud'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
+            'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
             'steps': [['box', '字框'], ['order', '字序']],
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True,
         },
         'cut_review': {
-            'name': '切分审定', 'pre_tasks': ['cut_proof'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
+            'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
             'steps': [['box', '字框'], ['order', '字序']],
+            'num': [1, 2, 3], 'pre_tasks': ['cut_proof'], 'publishable': True,
+        },
+        'upload_cloud': {
+            'name': '上传云端', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': True,
+        },
+        'ocr_box': {
+            'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': True,
         },
         'ocr_text': {
-            'name': 'OCR文字', 'pre_tasks': ['cut_review'],
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
+            'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': True,
         },
-        'text_proof_1': {
-            'name': '文字校一', 'pre_tasks': ['ocr_text'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '校对']],
+        'txt_match': {
+            'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': False, 'remark': '不要设置校次，以免影响field字段',
         },
-        'text_proof_2': {
-            'name': '文字校二', 'pre_tasks': ['ocr_text'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '校对']],
+        'find_cmp': {
+            'name': '比对文本', 'data': {'collection': 'page', 'id': 'name'},
+            'publishable': False,
         },
-        'text_proof_3': {
-            'name': '文字校三', 'pre_tasks': ['ocr_text'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '校对']],
+        'cluster_proof': {
+            'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True,
         },
-        'text_review': {
-            'name': '文字审定', 'pre_tasks': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
+        'cluster_review': {
+            'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': True,
         },
-        'text_hard': {
-            'name': '难字审定', 'pre_tasks': ['text_review'],
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
+        'rare_proof': {
+            'name': '生僻校对', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': False,
         },
-    }
-
-    # 其它任务定义
-    # 1. groups表示组任务，对于同一数据的一组任务而言，用户只能领取其中的一个。
-    #    在任务大厅和我的任务中，任务组中的任务将合并显示。 组任务仅在以上两处起作用，不影响其他任务管理功能。
-    # 2. 数据编辑伪任务。数据编辑需要仿照任务，按照一定的步骤进行。在这里定义。
-    task_extras = {
-        'text_proof': {
-            'name': '文字校对',
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '校对']],
-            'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
+        'rare_review': {
+            'name': '生僻审定', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': False,
         },
-        'cut_edit': {
-            'name': '切分修改',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
-            'steps': [['box', '字框'], ['order', '字序']],
-        },
-        'cut_view': {
-            'name': '切分查看',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
-            'steps': [['box', '字框'], ['order', '字序']],
-        },
-        'text_edit': {
-            'name': '文字修改',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        },
-        'text_view': {
-            'name': '文字查看',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        }
     }
 
     # 任务状态表
@@ -148,57 +116,31 @@ class Task(Model):
     priorities = {3: '高', 2: '中', 1: '低'}
 
     @classmethod
-    def all_task_types(cls):
-        task_types = cls.task_types.copy()
-        task_types.update(cls.task_extras)
-        return task_types
+    def has_num(cls, task_type):
+        num = cls.prop(cls.task_types, task_type + '.num')
+        return num is not None
 
     @classmethod
-    def is_group(cls, task_type):
-        return 'groups' in prop(cls.all_task_types(), task_type)
+    def get_page_tasks(cls):
+        return {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == 'page'}
 
     @classmethod
-    def get_ocr_tasks(cls):
-        """ 获取OCR任务类型，即小欧处理的任务"""
-        return ['import_image', 'upload_cloud', 'ocr_box', 'ocr_text']
+    def get_char_tasks(cls):
+        return {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == 'char'}
 
     @classmethod
-    def get_task_types(cls, collection):
-        return {t: v['name'] for t, v in cls.task_types.items() if prop(v, 'data.collection') == collection}
-
-    @classmethod
-    def get_task_meta(cls, task_type):
-        return cls.all_task_types().get(task_type)
-
-    @classmethod
-    def get_data_conf(cls, task_type):
-        d = prop(cls.all_task_types(), '%s.data' % task_type) or dict()
-        return d.get('collection'), d.get('id'), d.get('input_field'), d.get('shared_field')
-
-    @classmethod
-    def get_shared_field(cls, task_type):
-        return prop(cls.all_task_types(), '%s.data.shared_field' % task_type)
-
-    @classmethod
-    def get_data_collection(cls, task_type):
-        return prop(cls.all_task_types(), '%s.data.collection' % task_type)
-
-    @classmethod
-    def get_pre_tasks(cls, task_type):
-        return prop(cls.all_task_types(), task_type + '.pre_tasks', [])
-
-    @classmethod
-    def task_names(cls):
-        return {k: v.get('name') for k, v in cls.all_task_types().items()}
-
-    @classmethod
-    def get_task_name(cls, task_type):
-        return cls.task_names().get(task_type) or task_type
-
-    @classmethod
-    def get_steps(cls, task_type):
-        steps = prop(cls.all_task_types(), '%s.steps' % task_type, [])
-        return [s[0] for s in steps] if steps else []
+    def task_names(cls, collection=None, publishable=None):
+        if collection:
+            r = {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == collection}
+            if publishable is not None:
+                return {k: t['name'] for k, t in r.items() if t.get('publishable') == publishable}
+            else:
+                return {k: t['name'] for k, t in r.items()}
+        else:
+            if publishable is not None:
+                return {k: t['name'] for k, t in cls.task_types.items() if t.get('publishable') == publishable}
+            else:
+                return {k: t['name'] for k, t in cls.task_types.items()}
 
     @classmethod
     def step_names(cls):
@@ -213,6 +155,13 @@ class Task(Model):
         return cls.step_names().get(step) or step
 
     @classmethod
+    def get_task_name(cls, task_type):
+        name = h.prop(cls.task_types, '%s.name' % task_type.split('#')[0]) or task_type
+        if len(task_type.split('#')) > 1:
+            name += '#' + task_type.split('#')[-1]
+        return name
+
+    @classmethod
     def get_status_name(cls, status):
         return cls.task_statuses.get(status) or status
 
@@ -221,73 +170,61 @@ class Task(Model):
         return cls.priorities.get(priority) or priority
 
     @classmethod
-    def format_value(cls, value, key=None):
+    def format_value(cls, value, key=None, doc=None):
         """ 格式化task表的字段输出"""
         if key == 'task_type':
-            value = cls.get_task_name(value)
-        elif key == 'status':
-            value = cls.get_status_name(value)
-        elif key == 'pre_tasks':
-            value = '/'.join([cls.get_task_name(t) for t in value])
-        elif key == 'steps':
-            value = '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
-        elif key == 'priority':
-            value = cls.get_priority_name(int(value))
-        elif isinstance(value, datetime):
-            value = get_date_time('%Y-%m-%d %H:%M', value)
-        elif isinstance(value, dict):
-            value = value.get('error') or value.get('message') or \
-                    '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
-        return value
+            return cls.get_task_name(value)
+        if key == 'status' and value:
+            return cls.get_status_name(value)
+        if key == 'pre_tasks' and value:
+            return '/'.join([cls.get_task_name(t) for t in value])
+        if key == 'steps' and value:
+            return '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
+        if key == 'priority' and value:
+            return cls.get_priority_name(int(value or 0))
+        return h.format_value(value, key, doc)
 
     @classmethod
-    def get_task_search_condition(cls, request_query, collection=None, mode=None):
+    def get_task_search_condition(cls, request_query, collection=None):
         """ 获取任务的查询条件"""
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        value = get_url_param('task_type', request_query)
-        if value:
-            params['task_type'] = value
-            condition.update({'task_type': value})
-        elif mode == 'browse':
-            # 浏览模式过滤掉小欧任务
-            condition.update({'task_type': {'$nin': cls.get_ocr_tasks()}})
-        for field in ['collection', 'status', 'priority']:
-            value = get_url_param(field, request_query)
+        for field in ['task_type', 'collection', 'status', 'priority']:
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: value})
         for field in ['batch', 'doc_id', 'remark']:
-            value = get_url_param(field, request_query)
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
-        picked_user_id = get_url_param('picked_user_id', request_query)
+        picked_user_id = h.get_url_param('picked_user_id', request_query)
         if picked_user_id:
             params['picked_user_id'] = picked_user_id
             condition.update({'picked_user_id': ObjectId(picked_user_id)})
-        publish_start = get_url_param('publish_start', request_query)
+        publish_start = h.get_url_param('publish_start', request_query)
         if publish_start:
             params['publish_start'] = publish_start
             condition['publish_time'] = {'$gt': datetime.strptime(publish_start, '%Y-%m-%d %H:%M:%S')}
-        publish_end = get_url_param('publish_end', request_query)
+        publish_end = h.get_url_param('publish_end', request_query)
         if publish_end:
             params['publish_end'] = publish_end
             condition['publish_time'] = condition.get('publish_time') or {}
             condition['publish_time'].update({'$lt': datetime.strptime(publish_end, '%Y-%m-%d %H:%M:%S')})
-        picked_start = get_url_param('picked_start', request_query)
+        picked_start = h.get_url_param('picked_start', request_query)
         if picked_start:
             params['picked_start'] = picked_start
             condition['picked_time'] = {'$gt': datetime.strptime(picked_start, '%Y-%m-%d %H:%M:%S')}
-        picked_end = get_url_param('picked_end', request_query)
+        picked_end = h.get_url_param('picked_end', request_query)
         if picked_end:
             params['picked_end'] = picked_end
             condition['picked_time'] = condition.get('picked_time') or {}
             condition['picked_time'].update({'$lt': datetime.strptime(picked_end, '%Y-%m-%d %H:%M:%S')})
-        finished_start = get_url_param('finished_start', request_query)
+        finished_start = h.get_url_param('finished_start', request_query)
         if finished_start:
             params['finished_start'] = finished_start
             condition['picked_time'] = {'$gt': datetime.strptime(finished_start, '%Y-%m-%d %H:%M:%S')}
-        finished_end = get_url_param('finished_end', request_query)
+        finished_end = h.get_url_param('finished_end', request_query)
         if finished_end:
             params['finished_end'] = finished_end
             condition['finished_time'] = condition.get('finished_time') or {}

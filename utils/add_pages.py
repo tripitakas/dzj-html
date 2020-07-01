@@ -13,15 +13,13 @@ from glob2 import glob
 from tornado.util import PY3
 from datetime import datetime
 from os import path, makedirs, walk
-from operator import itemgetter
+from pymongo.errors import PyMongoError
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from controller.helper import prop
-from controller.data.data import Page
-from controller.page.tool import PageTool
-from controller.page.base import PageHandler
+from controller.helper import prop, align_code
+from controller.page.base import PageHandler as Ph
 
 
 class AddPage(object):
@@ -68,18 +66,34 @@ class AddPage(object):
                 return False
         return True
 
-    def add_text(self, pages, src_dir, field='ocr', update=False):
-        """ 更新数据库page表的tex字段
-        :param pages, 待更新的页面名称
-        :param src_dir, 从该文件夹中查找
-        :param field, 更新哪个字段
-        :param update, 数据库中存在时，是否更新
-        """
+    @classmethod
+    def copy_pages_img(cls, page_names, src_dir, overwrite=False):
+        """ 拷贝图片文件 """
+        if not path.exists(src_dir):
+            return
+        img_path = path.join(BASE_DIR, 'static', 'img', 'pages')
+        if not path.exists(img_path):
+            makedirs(img_path)
+
+        for root, dirs, files in walk(src_dir):
+            for fn in files:
+                if not fn.endswith('.jpg') or fn[:-4] not in page_names:
+                    continue
+                inner_path = fn.split('_')[:-1] if len(fn.split('_')[-1]) < 24 else fn.split('_')[:-2]
+                dst_dir = path.join(img_path, *inner_path)
+                if not path.exists(dst_dir):
+                    makedirs(dst_dir)
+                dst_file = path.join(dst_dir, fn)
+                if not path.exists(dst_file) or overwrite:
+                    shutil.copy(path.join(root, fn), dst_file)
+
+    def add_pages_text(self, page_names, src_dir, field, overwrite=False):
+        """ 更新数据库page表的text字段"""
         if not path.exists(src_dir):
             return
         for root, dirs, files in walk(src_dir):
             for fn in files:
-                if (fn.endswith('.ocr') or fn.endswith('.txt')) and fn[:-4] in pages:
+                if (fn.endswith('.ocr') or fn.endswith('.txt')) and fn[:-4] in page_names:
                     cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
                     page = self.db.page.find_one(cond)
                     if not page:
@@ -87,186 +101,90 @@ class AddPage(object):
                     pathname = path.join(root, fn)
                     with open(pathname, encoding='UTF-8') if PY3 else open(pathname) as f:
                         text = f.read().strip().replace('\n', '|')
-                    if not page.get('text') or update:
+                    if not page.get('text') or overwrite:
                         self.db.page.update_many(cond, {'$set': {field: re.sub(r'[<>]', '', text)}})
 
-    @classmethod
-    def copy_img_files(cls, pages, src_dir, update=False):
-        """ 拷贝图片文件
-        :param pages, 待拷贝的页面名称
-        :param src_dir, 从该文件夹中查找
-        :param update, 图片存在时，是否更新
-        """
-        if not path.exists(src_dir):
-            return
-        img_path = path.join(BASE_DIR, 'static', 'img')
-        if not path.exists(img_path):
-            makedirs(img_path)
-
-        for root, dirs, files in walk(src_dir):
-            for fn in files:
-                if not fn.endswith('.jpg') or fn[:-4] not in pages:
-                    continue
-                dst_dir = path.join(img_path, fn[:2])
-                if not path.exists(dst_dir):
-                    makedirs(dst_dir)
-                dst_file = path.join(dst_dir, fn)
-                if not path.exists(dst_file) or update:
-                    shutil.copy(path.join(root, fn), dst_file)
-
-    @staticmethod
-    def filter_line_no(boxes):
-        for b in boxes:
-            if b.get('line_no') and not b.get('column_no'):
-                b['column_no'] = b.get('line_no')
-            b.pop('line_no', 0)
-        return boxes
-
-    def add_box(self, name, info):
-        """ 导入切分信息 """
-        exist = self.db.page.find_one(dict(name=name))
-        if self.check_only and exist:
+    def add_page_box(self, name, info):
+        """ 导入切分信息"""
+        page = self.db.page.find_one(dict(name=name))
+        if self.check_only and page:
             print('%s exist' % name)
             return
-        if (self.update or not exist) and info.get('chars'):
-            width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width') or 0)
-            height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height') or 0)
-            chars = self.filter_line_no(prop(info, 'chars', []))
-            columns = self.filter_line_no(prop(info, 'columns', []))
-            meta = Page.metadata()
-            meta.update(dict(
-                name=name, width=width, height=height, page_code=Page.name2pagecode(name),
-                blocks=prop(info, 'blocks', []), columns=columns, chars=chars,
-            ))
-            if not width or not height:
-                assert exist
-                meta.pop('width')
-                meta.pop('height')
-
-            for field in ['source', 'create_time', 'ocr_col', 'img_name', 'char_ocr']:
-                if info.get(field):
-                    meta[field] = info[field]
-            if info.get('ocr'):
-                if isinstance(info['ocr'], list):
-                    info['ocr'] = '|'.join(info['ocr']).replace('\u3000', '|').replace(' ', '')
-                else:
-                    info['ocr'] = info['ocr'].replace('\n', '|')
-                meta['ocr'] = info['ocr'].replace(r'\|+', '|')
-            if info.get('text'):
-                if isinstance(info['text'], list):
-                    info['text'] = '|'.join(info['text']).replace('\u3000', '|').replace(' ', '')
-                else:
-                    info['text'] = info['text'].replace('\n', '|')
-                meta['text'] = info['text'].replace(r'\|+', '|')
-            if info.get('text') == info.get('ocr'):
-                info.pop('text', 0)
-            if self.use_local_img:
-                meta['use_local_img'] = True
-            if self.source:
-                meta['source'] = self.source
+        if self.update or not page:
+            meta = Ph.metadata()
+            meta['page_code'] = align_code(name)
+            meta['name'] = name
+            fields1 = ['width', 'height']
+            meta.update({k: int(v) for k, v in info.get('imgsize', info).items() if v and k in fields1})
+            meta['source'] = self.source if self.source else info.get('source')
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
+            fields2 = ['blocks', 'columns', 'chars', 'txt', 'cmp_txt']
+            meta.update({k: v for k, v in info.items() if v and k in fields2})
+            fields3 = ['ocr', 'ocr_col']
+            meta.update({k: Ph.get_txt(meta, k).replace(' ', '') for k in fields3})
+            Ph.update_page_cid(meta)
+            if info.get('create_time'):
+                meta['create_time'] = datetime.now()
+                # meta['create_time'] = info['create_time']
+                # if isinstance(meta.get('create_time'), str):
+                #     meta['create_time'] = datetime.strptime(meta['create_time'], '%Y-%m-%d %H:%M:%S')
+            else:
+                meta['create_time'] = datetime.now()
 
-            if name.startswith('JS_'):
-                self.fix_jin_san(info, meta, width)
-
-            PageHandler.update_chars_cid(meta['chars'])
             if self.check_id and not self.check_ids(meta):
                 return False
 
             if self.check_only:
                 return meta
 
-            info.pop('id', 0)
-            message = '%s:\t%d x %d chars=%d columns=%d blocks=%d layout=%s'
-            print(message % (name, width, height, len(meta['chars']), len(meta['columns']),
-                             len(meta['blocks']), meta['layout']))
+            print('%s:\t%d x %d blocks=%d columns=%d chars=%d sub_columns=%d' % (
+                name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']),
+                len(meta['chars']), len([c for c in meta['columns'] if c.get('sub_columns')])
+            ))
 
             if self.reorder:
-                meta['blocks'], meta['columns'], meta['chars'] = PageTool.reorder_boxes(page=meta)
-                if len(meta['blocks']) == 1:  # 单栏页面的栏框原为整个页面，自动缩小为实际范围
-                    for col in meta['columns']:
-                        chars = [c for c in meta['chars'] if c['block_no'] == col['block_no']
-                                 and c['column_no'] == col['column_no']]
-                        for c in chars:
-                            col['y'] = min(col['y'], c['y'])
-                            col['h'] = max(col['y'] + col['h'], c['y'] + c['h']) - col['y']
-                    PageTool.adjust_blocks(meta['blocks'], meta['chars'])
+                meta['blocks'], meta['columns'], meta['chars'] = Ph.reorder_boxes(page=meta)
 
-            if exist and self.update:
-                meta.pop('create_time', 0)
-                r = self.db.page.update_one(dict(name=name), {'$set': meta})
-                info['id'] = str(exist['_id'])
+            if page and self.update:
+                return self.db.page.update_one(dict(name=name), {'$set': meta})
             else:
-                if meta.get('create_time') and isinstance(meta['create_time'], str):
-                    meta['create_time'] = datetime.strptime(meta['create_time'], '%Y-%m-%d %H:%M:%S')
-                meta['create_time'] = prop(meta, 'create_time', datetime.now())
-                r = self.db.page.insert_one(meta)
-                info['id'] = str(r.inserted_id)
+                return self.db.page.insert_one(meta)
 
-            return r
-
-    @staticmethod
-    def fix_jin_san(info, meta, width):
-        # 得到所有列框的坐标范围
-        min_x = min(c['x'] for c in info['columns']) if info['columns'] else 0
-        max_x = max(c['x'] + c['w'] for c in info['columns']) if info['columns'] else 0
-        min_y = min(c['y'] for c in info['columns']) if info['columns'] else 0
-        max_y = max(c['y'] + c['h'] for c in info['columns']) if info['columns'] else 0
-        x1, x2 = 710, 796
-
-        # 去除完全重合的列框，得到左右页面的列框
-        columns = sorted(PageTool.deduplicate_columns2(meta['columns']), key=itemgetter('x'))
-        left_cols = columns and [c for c in columns if c['x'] + c['w'] < width / 2 and c['h'] > columns[0]['h'] / 3]
-        right_cols = columns and [c for c in columns if c['x'] > width / 2 and c['h'] > columns[0]['h'] / 3]
-        no_mid = len(left_cols) + len(right_cols) == len(columns) and not [
-            c for c in meta['chars'] if c['x'] > x1 and c['x'] + c['w'] < x2]
-
-        # 重置栏框
-        mid_blk = dict(x=x1, y=min_y, w=0 if no_mid else x2 - x1, h=max_y - min_y)
-        blocks = [dict(x=min_x, y=min_y, w=x1 - min_x, h=max_y - min_y), mid_blk,
-                  dict(x=x2, y=min_y, w=max_x - x2, h=max_y - min_y)]
-        meta['blocks'] = [c for c in blocks if c['w'] > 10]
-        meta['layout'] = '左右两栏' if len(meta['blocks']) == 3 else '上下一栏'
-
-        # 合并中缝列框
-        mid_columns = [c for c in columns if x1 - 5 < c['x'] and c['x'] + c['w'] < x2 + 5]
-        if mid_columns:
-            mid_columns[0].update(dict(x=mid_blk['x'], y=min_y, w=mid_blk['w'], h=max_y - min_y))
-        meta['columns'] = PageTool.deduplicate_columns2(columns)
-
-    def add_many_from_dir(self, src_dir, kind):
-        """ 导入json格式的切分数据
-        :param src_dir, 待导入的文件夹
-        :param kind, 指定藏经类别
-        """
-        pages = set()
+    def add_pages_box(self, src_dir, kind):
+        """ 导入json格式的切分数据，kind可以指定藏经类别"""
+        page_names = set()
         for pathname in sorted(glob(path.join(src_dir, '**', '*.json'))):
             fn = path.basename(pathname)
-            if kind and kind != fn[:2] or '_char' in fn:
+            if kind and kind != fn[:2]:
                 continue
-            if fn[:-5] in pages:
+            if fn[:-5] in page_names:
                 sys.stderr.write('duplicate page name %s \n' % pathname)
                 continue
             info = self.load_json(pathname)
             if not info:
                 sys.stderr.write('invalid json %s \n' % pathname)
                 continue
-            if 1:
-                name = info.get('img_name') or info.get('imgname') or info.get('name')
-                if not re.match(r'^[A-Z]{2}(_\d+)+$', name):
-                    sys.stderr.write('invalid name in file %s \n' % pathname)
-                    continue
-                if name != fn[:-5]:
-                    sys.stderr.write('filename not equal to name in json %s \n' % pathname)
-                    continue
-                if self.add_box(name, info):
-                    pages.add(name)
-        return pages
+            name = info.get('img_name') or info.get('imgname') or info.get('name')
+            if not re.match(r'^[A-Z]{2}(_\d+)+$', name):
+                sys.stderr.write('invalid name in file %s \n' % pathname)
+                continue
+            if name != fn[:-5]:
+                sys.stderr.write('filename not equal to name in json %s \n' % pathname)
+                continue
+            if not info['chars']:
+                sys.stderr.write('%s no chars\n' % name)
+                continue
+            try:
+                if self.add_page_box(name, info):
+                    page_names.add(name)
+            except PyMongoError as e:
+                print('%s: %s' % (name, str(e)))
+        return page_names
 
 
 def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', source='', check_id=False, reorder=True, reset=False,
+         txt_field='', kind='', source='', check_id=False, reorder=False, reset=False,
          use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数
@@ -295,10 +213,12 @@ def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='
         txt_path = json_path = img_path = path.join(BASE_DIR, 'meta', 'sample')
 
     add = AddPage(db, source, update, check_only, use_local_img, check_id, reorder)
-    pages = add.add_many_from_dir(json_path, kind)
-    add.copy_img_files(pages, img_path)
-    add.add_text(pages, txt_path, txt_field)
-    return 'add %s pages' % len(pages)
+    page_names = add.add_pages_box(json_path, kind)
+    add.copy_pages_img(page_names, img_path)
+    if txt_field:
+        add.add_pages_text(page_names, txt_path, txt_field)
+
+    return 'add %s pages' % len(page_names)
 
 
 if __name__ == '__main__':

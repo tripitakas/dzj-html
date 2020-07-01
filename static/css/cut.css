@@ -1,7 +1,7 @@
 .wrapper {
   margin: 0;
-  padding-bottom: 0;
   height: 100%;
+  padding-bottom: 0;
 }
 
 .bd-container {
@@ -16,34 +16,18 @@
   font-size: 75%;
 }
 
+#holder {
+  text-align: center;
+}
+
+#holder svg {
+  margin: auto;
+}
+
 rect.highlight {
   fill: red;
   stroke: black;
   stroke-width: 2;
-}
-
-@keyframes fade {
-    from {
-        opacity: 1.0;
-    }
-    50% {
-        opacity: 0.3;
-    }
-    to {
-        opacity: 1.0;
-    }
-}
-
-@-webkit-keyframes fade {
-    from {
-        opacity: 1.0;
-    }
-    50% {
-        opacity: 0.3;
-    }
-    to {
-        opacity: 1.0;
-    }
 }
 
 rect.flash {
@@ -51,10 +35,32 @@ rect.flash {
   -webkit-animation: fade 600ms infinite;
 }
 
-#holder {
-  text-align: center;
+text tspan {
+  fill: red;
+  color: #333333;
+  font-weight: 200;
 }
 
-#holder svg {
-  margin: auto;
+@keyframes fade {
+  from {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1.0;
+  }
+}
+
+@-webkit-keyframes fade {
+  from {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1.0;
+  }
 }

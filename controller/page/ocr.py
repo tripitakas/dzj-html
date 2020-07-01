@@ -7,50 +7,38 @@
 import logging
 from bson.objectid import ObjectId
 from controller import errors as e
-from controller.base import DbError
 from controller import validate as v
-from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
 
-class FetchOcrTasksApi(TaskHandler):
+class FetchTasksApi(TaskHandler):
     URL = '/api/task/fetch_many/@ocr_task'
 
     def post(self, data_task):
-        """ 批量领取数据任务"""
+        """ 批量领取小欧任务"""
 
         def get_tasks():
-            # ocr_box、ocr_text时，锁定box，以免修改
-            condition = {'name': {'$in': [t['doc_id'] for t in tasks]}}
-            if data_task in ['ocr_box', 'ocr_text']:
-                self.db.page.update_many(condition, {'$set': {'lock.box': {
-                    'is_temp': False,
-                    'lock_type': dict(tasks=data_task),
-                    'locked_by': self.username,
-                    'locked_user_id': self.user_id,
-                    'locked_time': self.now()
-                }}})
-            # ocr_box、ocr_text时，把layout/blocks/columns/chars等参数传过去
-            if data_task in ['ocr_box', 'ocr_text']:
-                params = self.db.page.find(condition)
-                fields = ['layout'] if data_task == 'ocr_box' else ['layout', 'blocks', 'columns', 'chars']
-                params = {p['name']: {k: p.get(k) for k in fields} for p in params}
+            doc_ids = [t['doc_id'] for t in tasks]
+            pages = self.db.page.find({'name': {'$in': doc_ids}})
+            pages = {p['name']: {k: p.get(k) for k in ['layout', 'blocks', 'columns', 'chars']} for p in pages}
+            if data_task == 'ocr_box':
+                # 把layout参数传过去
                 for t in tasks:
-                    t['input'] = params.get(t['doc_id'])
-                    if not t['input']:
-                        logging.warning('page %s not found' % t['doc_id'])
+                    t['params'] = dict(layout=self.prop(pages, '%s.layout' % t['doc_id']))
+            if data_task == 'ocr_text':
+                # 把layout/blocks/columns/chars等参数传过去
+                for t in tasks:
+                    t['params'] = pages.get(t['doc_id'])
 
             return [dict(task_id=str(t['_id']), priority=t.get('priority'), page_name=t.get('doc_id'),
-                         input=t.get('input')) for t in tasks]
+                         params=t.get('params')) for t in tasks]
 
         try:
             size = int(self.data.get('size') or 1)
             condition = {'task_type': data_task, 'status': self.STATUS_PUBLISHED}
             tasks = list(self.db.task.find(condition).limit(size))
             if not tasks:
-                self.send_data_response(dict(tasks=None))
-
-            # 批量获取任务
+                self.send_data_response(dict(tasks=[]))
             condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
             r = self.db.task.update_many(condition, {'$set': dict(
                 status=self.STATUS_FETCHED, picked_time=self.now(), updated_time=self.now(),
@@ -60,39 +48,45 @@ class FetchOcrTasksApi(TaskHandler):
                 logging.info('%d %s tasks fetched' % (r.matched_count, data_task))
                 self.send_data_response(dict(tasks=get_tasks()))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
-class ConfirmFetchOcrTasksApi(TaskHandler):
+class ConfirmFetchApi(TaskHandler):
     URL = '/api/task/confirm_fetch/@ocr_task'
 
     def post(self, data_task):
-        """ 确认批量领取任务成功 """
+        """ 确认批量领取任务成功"""
 
         try:
             rules = [(v.not_empty, 'tasks')]
             self.validate(self.data, rules)
 
-            task_ids = [ObjectId(t['task_id']) for t in self.data['tasks']]
-            if task_ids:
+            if self.data['tasks']:
+                task_ids = [ObjectId(t['task_id']) for t in self.data['tasks']]
                 self.db.task.update_many({'_id': {'$in': task_ids}}, {'$set': {'status': self.STATUS_PICKED}})
+                tasks = self.db.task.find({'_id': {'$in': task_ids}}, {'doc_id': 1, 'collection': 1, 'num': 1})
+                page_names = [t['doc_id'] for t in tasks if t.get('doc_id') and t.get('collection') == 'page']
+                if page_names:
+                    # 默认小欧任务只有一个校次
+                    self.db.page.update_many({'name': {'$in': page_names}}, {'$set': {
+                        'tasks.%s.%s' % (data_task, 1): self.STATUS_PICKED
+                    }})
                 self.send_data_response()
             else:
                 self.send_error_response(e.no_object)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
-class SubmitOcrTasksApi(TaskHandler):
+class SubmitTasksApi(TaskHandler):
     URL = '/api/task/submit/@ocr_task'
 
     def post(self, task_type):
         """ 批量提交数据任务。提交参数为tasks，格式如下：
         [{'task_type': '', 'ocr_task_id':'', 'task_id':'', 'page_name':'', 'status':'success', 'result':{}},
-         {'task_type': '', 'ocr_task_id':'','task_id':'', 'page_name':'', 'status':'failed', 'message':''},
-        ]
+         {'task_type': '', 'ocr_task_id':'','task_id':'', 'page_name':'', 'status':'failed', 'message':''},]
         其中，ocr_task_id是远程任务id，task_id是本地任务id，status为success/failed，
         result是成功时的数据，message为失败时的错误信息。
         """
@@ -100,100 +94,108 @@ class SubmitOcrTasksApi(TaskHandler):
             rules = [(v.not_empty, 'tasks')]
             self.validate(self.data, rules)
 
-            tasks = []
-            for task in self.data['tasks']:
-                r = self.submit_one(task)
-                message = '' if r is True else r
-                status = 'success' if r is True else 'failed'
-                tasks.append(dict(ocr_task_id=task['ocr_task_id'], task_id=task['task_id'], status=status,
-                                  page_name=task.get('page_name'), message=message))
-            self.send_data_response(dict(tasks=tasks))
+            ret_tasks = []
+            for rt in self.data['tasks']:
+                r = None
+                lt = self.db.task.find_one({'_id': ObjectId(rt['task_id']), 'task_type': rt['task_type']})
+                if not lt:
+                    r = e.task_not_existed
+                elif lt['picked_user_id'] != self.user_id:
+                    r = e.task_has_been_picked
+                elif self.prop(rt, 'page_name') and self.prop(rt, 'page_name') != lt.get('doc_id'):
+                    r = e.doc_id_not_equal
+                elif task_type == 'ocr_box':
+                    r = self.submit_ocr_box(rt)
+                elif task_type == 'ocr_text':
+                    r = self.submit_ocr_text(rt)
+                elif task_type == 'upload_cloud':
+                    r = self.submit_upload_cloud(rt)
+                elif task_type == 'import_image':
+                    self.submit_import_image(rt)
 
-        except DbError as error:
+                message = '' if r in [None, True] else r
+                status = 'success' if r in [None, True] else 'failed'
+                ret_tasks.append(dict(ocr_task_id=rt['ocr_task_id'], task_id=rt['task_id'], status=status,
+                                      page_name=rt.get('page_name'), message=message))
+
+            self.send_data_response(dict(tasks=ret_tasks))
+
+        except self.DbError as error:
             return self.send_db_error(error)
 
-    def submit_one(self, task):
-        _task = self.db.task.find_one({'_id': ObjectId(task['task_id']), 'task_type': task['task_type']})
-        if not _task:
-            return e.task_not_existed
-        elif _task['picked_user_id'] != self.user_id:
-            return e.task_unauthorized_locked
-        page_name = self.prop(task, 'page_name')
-        if page_name and page_name != _task.get('doc_id'):
-            return e.doc_id_not_equal
+    @staticmethod
+    def get_page_meta(task, page):
+        result = task.get('result')
+        width = result.get('width') or page.get('width')
+        height = result.get('height') or page.get('height')
+        layout = result.get('layout') or page.get('layout')
+        chars = result.get('chars') or page.get('chars')
+        blocks = result.get('blocks') or page.get('blocks')
+        columns = result.get('columns') or page.get('columns')
+        return {
+            'width': width, 'height': height, 'layout': layout,
+            'chars': chars, 'blocks': blocks, 'columns': columns,
+        }
 
-        try:
-            if task['task_type'] in ['ocr_box', 'ocr_text']:
-                return self.submit_ocr(task)
-            elif task['task_type'] == 'upload_cloud':
-                return self.submit_upload_cloud(task)
-            elif task['task_type'] == 'import_image':
-                return self.submit_import_image(task)
-        except DbError as error:
-            return error
+    @staticmethod
+    def is_box_changed(page_a, page_b, ignore_none=True):
+        """ 检查两个页面的切分信息是否发生了修改"""
+        for field in ['blocks', 'columns', 'chars']:
+            a, b = page_a.get(field), page_b.get(field)
+            if ignore_none and (not a or not b):
+                continue
+            if len(a) != len(b):
+                return field + '.len'
+            for i in range(len(a)):
+                for j in ['x', 'y', 'w', 'h']:
+                    if abs(a[i][j] - b[i][j]) > 0.1 and (field != 'blocks' or len(a) > 1):
+                        return '%s[%d] %s %f != %f' % (field, i, j, a[i][j], b[i][j])
 
-    def submit_ocr(self, task):
-        """ 提交OCR任务 """
-        now = self.now()
-        page_name, result, message = task.get('page_name'), task['result'], task.get('message')
-        if task['status'] == 'failed' or result.get('status') == 'failed':
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
-                'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message
-            }})
-        else:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                return e.no_object
-            # ocr_text任务不允许修改切分信息
-            box_changed = task['task_type'] == 'ocr_text' and PageTool.is_box_changed(result, page)
-            if box_changed:
-                return e.box_not_identical[0], '(%s)切分信息不一致' % box_changed
-            # 更新task
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
-                'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
-            })
-            # 更新page，释放数据锁，更新任务状态
-            ocr, ocr_col = result.get('ocr', ''), result.get('ocr_col', '')
-            ocr = '|'.join(ocr) if isinstance(ocr, list) else ocr
-            ocr_col = '|'.join(ocr_col) if isinstance(ocr_col, list) else ocr_col
-            width = result.get('width') or page.get('width')
-            height = result.get('height') or page.get('height')
-            chars = result.get('chars') or page.get('chars')
-            blocks = result.get('blocks') or page.get('blocks')
-            columns = result.get('columns') or page.get('columns')
-            self.db.page.update_one({'name': page_name}, {'$set': {
-                'width': width, 'height': height, 'chars': chars, 'blocks': blocks, 'columns': columns,
-                'ocr': ocr, 'ocr_col': ocr_col, 'tasks.%s' % task['task_type']: self.STATUS_FINISHED,
-                'lock.box': {},
-            }})
-        return True
+    def submit_ocr_box(self, task):
+        page = self.db.page.find_one({'name': task.get('page_name')})
+        if not page:
+            return e.no_object
+        update = self.get_page_meta(task, page)
+        update.update({'tasks.%s.%s' % (task.get('num') or 1, task['task_type']): self.STATUS_FINISHED})
+        self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
+
+        self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+            'result': task.get('result'), 'message': task.get('message'),
+            'status': self.STATUS_FINISHED, 'finished_time': self.now(),
+        }})
+
+    def submit_ocr_text(self, task):
+        page = self.db.page.find_one({'name': task.get('page_name')})
+        if not page:
+            return e.no_object
+        box_changed = self.is_box_changed(task.get('result'), page)
+        if box_changed:
+            return e.box_not_identical[0], '(%s)切分信息不一致' % box_changed
+        update = self.get_page_meta(task, page)
+        update.update({'tasks.%s.%s' % (task.get('num') or 1, task['task_type']): self.STATUS_FINISHED})
+        self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
+
+        self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+            'result': task.get('result'), 'message': task.get('message'),
+            'status': self.STATUS_FINISHED, 'finished_time': self.now(),
+        }})
 
     def submit_upload_cloud(self, task):
-        """ 提交upload_cloud任务。page中包含有云端路径img_cloud_path """
-        now = self.now()
-        page_name, result, message = task.get('page_name'), task['result'], task.get('message')
-        task_update = {'updated_time': now, 'result': result, 'message': message}
-        if task['status'] == 'failed' or result.get('status') == 'failed':
-            task_update.update({'status': self.STATUS_FAILED, 'finished_time': now})
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
-        else:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                return e.no_object
-            task_update.update({'status': self.STATUS_FINISHED, 'finished_time': now})
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
-            page_update = dict(img_cloud_path=self.prop(task, 'result.img_cloud_path'))
-            self.db.page.update_one({'name': page_name}, {'$set': page_update})
-        return True
+        page = self.db.page.find_one({'name': task.get('page_name')})
+        if not page:
+            return e.no_object
+        self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
+            'img_cloud_path': self.prop(task, 'result.img_cloud_path'),
+            'tasks.%s.%s' % (task.get('num') or 1, task['task_type']): self.STATUS_FINISHED
+        }})
+        self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+            'result': task.get('result'), 'message': task.get('message'),
+            'status': self.STATUS_FINISHED, 'finished_time': self.now(),
+        }})
 
     def submit_import_image(self, task):
-        """ 提交import_image任务 """
-        now = self.now()
-        result, message = task.get('result') or {}, task.get('message')
-        if task['status'] == 'failed' or result.get('status') == 'failed':
-            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
-        else:
-            task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
-        return True
+        """ 提交import_image任务"""
+        self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+            'result': task.get('result'), 'message': task.get('message'),
+            'status': self.STATUS_FINISHED, 'finished_time': self.now(),
+        }})

@@ -1,0 +1,19 @@
+{% for i, block in sort_by_key(blocks) %}
+<ul class="block" id="block-{{i}}">
+  {% for k, line in sort_by_key(block) %}
+  <li class="line{{'' if len(line) else ' empty-line'}}" id="line-{{k}}">
+    {% for s in line %}
+    {% set selected = ' selected' if s.get('selected') else '' %}
+    {% set empty_place = '' if s.get('base') else ' empty-place' %}
+    {% set is_same = 'same is_variant' if s.get('is_variant') else 'same' if s.get('is_same') else 'diff' %}
+    {% set fields = [field for field in ['base', 'cmp1', 'cmp2', 'cmp3', 'offset', 'utf8mb4'] if field in s] %}
+    <span contentEditable="true" class="{{is_same}}{{selected}}{{empty_place}}"
+          {% for field in fields %}
+          {{field}}="{{s[field]}}"
+          {% end %}
+    >{{s['base']}}</span>
+    {% end %}
+  </li>
+  {% end %}
+</ul>
+{% end %}

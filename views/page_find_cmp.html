@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>选择比对文本-{{page['name']}}</title>
+  {% include com/_base_css.html %}
+  {% include com/_font_css.html %}
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <!--  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>-->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .m-left {
+      flex: 1;
+      width: 50%;
+    }
+
+    .m-right {
+      flex: 1;
+      border-left: 1px solid #ccc;
+      background: var(--Grey_Content);
+    }
+
+    .m-right .bd {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .m-right .selectable {
+      height: 50%;
+      font-size: 18px;
+      overflow-y: auto;
+      margin-left: 20px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .m-right .selectable .more {
+      display: block;
+    }
+
+    .m-right .selected {
+      max-height: 50%;
+      font-size: 18px;
+      width: calc(100% - 30px);
+      height: calc(50% - 30px);
+      margin-bottom: 10px;
+      margin-left: 20px;
+      overflow-y: auto;
+    }
+
+    .m-right kw {
+      color: var(--Brown_Darker);
+    }
+
+    .m-right .cmp-more {
+      cursor: pointer;
+      line-height: 20px;
+      user-select: none;
+      background-color: rgba(207, 207, 207, 0.6);
+      letter-spacing: 4px;
+      display: none;
+      text-align: center;
+      color: white;
+    }
+
+    .m-right .search-pagination {
+      margin-left: 8px;
+      font-size: 16px;
+      padding: 5px 0;
+      height: 30px;
+    }
+
+    #ocrModal {
+      font-size: 18px;
+    }
+
+  </style>
+
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+        </div>
+        <div class="btn-group title">切分校对</div>
+      </div><!--left-->
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+      </div>
+      <div class="right">
+        <div id="select-txt" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="选中文本"></div>
+        <div id="show-txts" class="btn-txt icon-article" data-toggle="tooltip" data-placement="bottom" title="显示OCR文本"></div>
+        <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
+      </div><!--right-->
+    </div>
+    <div class="m-body flex">
+      <div class="m-left fl" id="left-region">
+        <div class="bd" id="holder-container">
+          <div id="holder"></div>
+        </div>
+      </div><!--left-->
+      <div class="m-right fr" id="right-region">
+        <div class="bd">
+          <div class="selectable" id="selectable">
+            <span class="cmp-more" id="prev" title="更多">···</span>
+            <span class="cmp" id="cmp">加载中···</span>
+            <span class="cmp-more" id="next" title="更多">···</span>
+          </div>
+          <div id="pagination" class="search-pagination ms-search-pagination"></div>
+          <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……">
+          {{cmp_txt or ''}}
+          </textarea>
+        </div>
+      </div><!--right-->
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        页编码：<span class="page-name">{{page['name']}}</span>
+      </span>
+      <span class="fr">
+      </span>
+    </div>
+  </div>
+</div>
+</body>
+
+
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、工作目标</div>
+          <div class="intro">
+            从右侧文本区域，选择与左侧图片最相似的文本，作为下一步文字校对的比对文本。
+            请用先用光标选中文本，然后点击<img src="{{static_url('imgs/icon_select.png')}}"/>按钮，将选中的文本拷贝至结果输入框中。<br/>
+            右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。您只需要选择文本而无需修改，下一步可以做更准确的文字校对工作。
+            为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。
+          </div>
+          <div class="title">二、功能按钮</div>
+          <table class="table">
+            <tr>
+              <td><i class="icon-check"></i></td>
+              <td>将当前选中的文本拷贝至文本输入框中</td>
+            </tr>
+            <tr>
+              <td><i class="icon-article"></i></td>
+              <td>显示OCR文本面板。该面板展示了当前OCR的文本内容</td>
+            </tr>
+          </table>
+          <div class="title">三、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <div class="modal-header">OCR</div>
+        <div class="modal-body">
+          {% raw ocr.replace('|', '<br>') %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% include com/_base_js.html %}
+{% include com/_base_cut.html %}
+<script src="{{static_url('js/page-btn.js')}}"></script>
+<script>
+  // 页面图和切分框
+  $.cut.create({
+    readonly: true,
+    holder: 'holder',
+    image: '{{img_url}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    name: '{{page["name"]}}_cmp_txt',
+    scrollContainer: '#holder-container',
+    chars: [],
+  });
+  $.cut.bindKeys();
+  $.cut.toggleBox(false);
+  $.cut.switchCurrentBox(null);
+  $('#holder-container').focus();
+
+  // 显示OCR文本
+  $('#show-txts').on('click', () => $('#ocrModal').modal());
+
+  // 初始化加载比对文本
+  $(document).ready(function () {
+    postApi('/page/find_cmp/{{page["name"]}}', {data: {}}, function (data) {
+      $('#cmp').html(data.cmp);
+      $('#pagination').html(data['hit_page_codes'].map(function (pageCode, i) {
+        return "<a" + (i ? '' : ' class="cur"') + " title='" + pageCode + "'>" + (i + 1) + "</a>";
+      }).join(''));
+      $('.cmp-more').css('display', 'inline-block');
+    });
+  });
+
+  // 选择第n个比对文本
+  $(document).on('click', '#pagination a', function () {
+    var $this = $(this);
+    postApi('/page/find_cmp/{{page["name"]}}', {data: {num: $this.text()}}, function (res) {
+      $('#pagination a').removeClass('cur');
+      $this.addClass('cur').attr('title', res.cmp_page_code);
+      $('#cmp').html(res.cmp);
+      $('.selectable .more').remove();
+      $('.selectable .cmp-more').removeClass('hide');
+    });
+  });
+
+  // 加载前一页比对文本
+  $(document).on('click', '.selectable #prev', function () {
+    var pageCode = $('#pagination a.cur').eq(0).attr('title');
+    var data = {cmp_page_code: pageCode, neighbor: 'prev'};
+    postApi('/page/find_cmp/neighbor', {data: data}, function (res) {
+      if (res.txt.length) {
+        $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
+        $('#selectable').animate({scrollTop: $('#cmp').offset().top - 100}, 500);
+      } else {
+        showWarning('提示', '没有更多内容');
+      }
+    });
+  });
+
+  // 加载后一页比对文本
+  $(document).on('click', '.selectable #next', function () {
+    var pageCode = $('#pagination a.cur').eq(0).attr('title');
+    var data = {cmp_page_code: pageCode, neighbor: 'next'};
+    postApi('/page/find_cmp/neighbor', {data: data}, function (res) {
+      if (res.txt.length) {
+        $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
+        $('#selectable').animate({scrollTop: $('#cmp').offset().bottom}, 500);
+      } else {
+        showWarning('提示', '没有更多内容');
+      }
+    });
+  });
+
+  // 选中作为比对本
+  $(document).on('click', '#select-txt', function () {
+    var $selected = $('#selected');
+    $selected.val(($selected.val() + window.getSelection().toString()).trim());
+    $selected.height($selected.prop('scrollHeight'));
+  });
+
+  $(document).on('change', '#selected', function () {
+    var $selected = $('#selected');
+    $selected.height($selected.prop('scrollHeight'));
+  });
+
+  // 获取提交数据
+  function getPostData() {
+    return {cmp_txt: $('#selected').val()};
+  }
+
+  // 保存数据
+  $('#save').on('click', function () {
+    bsLoading('保存中‧‧‧');
+    postApi('/page/cmp_txt/{{page["name"]}}', {data: getPostData()}, function (res) {
+      bsShow('成功!', '已保存。');
+    });
+  });
+
+</script>

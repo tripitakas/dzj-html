@@ -6,7 +6,10 @@
 import re
 import uuid
 import mimetypes
+from datetime import datetime
+from tests.users import admin
 from bson import json_util
+from bson.objectid import ObjectId
 from tornado.util import PY3
 from functools import partial
 from tornado.options import options
@@ -16,10 +19,9 @@ from tornado.testing import AsyncHTTPTestCase
 from tornado.escape import to_basestring, native_str
 import controller as c
 from controller import auth
+from controller import helper as h
 from controller.app import Application
-from controller.page.tool import PageTool
-from controller.task.base import TaskHandler as Th
-from tests.users import admin
+from controller.page.base import PageHandler as Ph
 
 if PY3:
     import http.cookies as Cookie
@@ -149,14 +151,14 @@ class APITestCase(AsyncHTTPTestCase):
         return response
 
     def login(self, email, password):
-        return self.fetch('/api/user/login', body={'data': dict(phone_or_email=email, password=password)})
+        return self.fetch('/api/user/login', body={'data': dict(login_id=email, password=password)})
 
     def login_as_admin(self):
         return self.login(admin[0], admin[1])
 
     def register_and_login(self, info):
         """ 先用info信息登录，如果成功则返回，如果失败则用info注册。用户注册后，系统会按注册信息自动登录。 """
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
+        r = self.fetch('/api/user/login', body={'data': dict(login_id=info['email'], password=info['password'])})
         return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})
 
     def add_users_by_admin(self, users, roles=None):
@@ -171,7 +173,7 @@ class APITestCase(AsyncHTTPTestCase):
         if roles:
             for u in users:
                 u['roles'] = u.get('roles', roles)
-                r = self.fetch('/api/user/admin/role', body={'data': dict(_id=u['_id'], roles=u['roles'])})
+                r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u['roles'])})
                 self.assert_code(200, r)
         return users
 
@@ -184,42 +186,48 @@ class APITestCase(AsyncHTTPTestCase):
         r = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
         self.assert_code(200, r)
         u = self.parse_response(r)
-        r = self.fetch('/api/user/admin/role',
+        r = self.fetch('/api/user/role',
                        body={'data': dict(_id=u['_id'], roles=','.join(auth.get_assignable_roles()))})
         self.assert_code(200, r)
         return r
 
-    @staticmethod
-    def get_boxes(page, submit=True):
-        return {'blocks': json_encode(page['blocks']), 'columns': json_encode(page['columns']),
-                'chars': json_encode(page['chars']), 'step': 'box', 'submit': submit}
+    def assert_status(self, pages, response, task2status, msg=None):
+        for task_type, status in task2status.items():
+            data = response.get('data', {})
+            _pages = data.get(status, []) or data.get(task_type, {}).get(status, [])
+            self.assertEqual(set(pages), set(_pages), msg=msg)
 
     @staticmethod
-    def get_chars_col(page, submit=True):
-        return {'chars_col': PageTool.get_chars_col(page['chars']), 'step': 'order', 'submit': submit}
-
-    @staticmethod
-    def init_data(data):
+    def set_pub_data(data):
+        assert data.get('task_type')
+        task_type = data['task_type']
+        steps = h.prop(Ph.task_types, task_type + '.steps')
+        pre_tasks = h.prop(Ph.task_types, task_type + '.pre_tasks')
+        data['num'] = data.get('num', 1)
         data['force'] = data.get('force', '0')
+        data['priority'] = data.get('priority', 2)
         data['batch'] = data.get('batch', '测试批次号')
-        data['priority'] = data.get('priority', 3)
-        task_type = data.get('task_type') or data.get('task_types')[0]
-        data['pre_tasks'] = data.get('pre_tasks', Th.prop(Th.task_types, '%s.pre_tasks' % task_type))
-        if 'cut' in task_type and 'steps' not in data:
-            data['steps'] = data.get('steps', ['box', 'order'])
-        if 'text_proof' in task_type and 'steps' not in data:
-            data['steps'] = data.get('steps', ['select', 'proof'])
+        data['steps'] = data.get('steps') or (steps and [s[0] for s in steps])
+        data['pre_tasks'] = data.get('pre_tasks') if 'pre_tasks' in data else pre_tasks
         return data
 
     def publish_page_tasks(self, data):
-        """ 发布页面任务"""
-        assert 'task_type' in data and ('doc_ids' in data or 'prefix' in data)
-        return self.fetch('/api/task/publish/page', body={'data': self.init_data(data)})
+        return self.fetch('/api/page/task/publish', body={'data': self.set_pub_data(data)})
 
-    def delete_tasks_and_locks(self):
-        """ 清空任务以及数据锁 """
+    def publish_char_tasks(self, task_type):
+        self._app.db.char.update_many({}, {'$set': {'source': '测试数据'}})
+        data = dict(batch='测试任务', source='测试数据', task_type=task_type)
+        return self.fetch('/api/char/task/publish', body={'data': data})
+
+    def finish_task(self, task_id):
+        return self.fetch('/api/task/finish/' + str(task_id), body={'data': {}})
+
+    def reset_tasks_and_data(self):
+        """ 重置任务以及数据 """
         self._app.db.task.delete_many({})
-        self._app.db.page.update_many({}, {'$set': {'lock': {}, 'level': {}, 'img_cloud_path': None}})
-
-    def get_one_task(self, task_type, doc_id):
-        return self._app.db.task.find_one({'task_type': task_type, 'doc_id': doc_id})
+        self._app.db.char.update_many({}, {'$unset': {'txt_level': '', 'txt_logs': ''}})
+        self._app.db.page.update_many({}, {'$unset': {'tasks': ''}})
+        for k in ['blocks', 'columns', 'chars']:
+            self._app.db.page.update_many({k + '.box_level': {'$in': [1, 10, 100]}}, {'$unset': {
+                k + '.$.box_level': '', k + '.$.box_logs': ''
+            }})

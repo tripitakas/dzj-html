@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <title>脚本管理</title>
+  {% include com/_base_css.html %}
+  <link href="{{static_url('css/home.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('assets/select2/select2.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.JS"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.JS/1.3.0/respond.min.JS"></script>
+  <![endif]-->
+  <style>
+    .sty-list {
+      padding: 0 20px;
+    }
+
+    .intro {
+      width: 70%;
+      text-align: left !important;
+    }
+
+    .status {
+      color: #797979 !important;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    {% module ComLeft() %}
+    <div class="main-content">
+      {% module ComHead() %}
+      <div class="layout">
+        <div class="wrapper">
+          <div class="sty-list">
+            <table class="sty-table">
+              <thead>
+              <tr>
+                <th><span>脚本</span></th>
+                <th><span>状态</span></th>
+                <th><span>介绍</span></th>
+                <th><span>操作</span></th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr class="upload-oss">
+                <td>上传OSS图片</td>
+                <td></td>
+                <td class="intro">
+                  将本地static/img下的字图、列图上传至OSS网盘。
+                </td>
+                <td><a href="/sys/upload_oss">查看</a></td>
+              </tr>
+              <tr class="reset-exam">
+                <td>重置考核用户</td>
+                <td></td>
+                <td class="intro">
+                  重置考核用户相关的数据和任务。
+                </td>
+                <td><a data-toggle="modal" data-target="#resetExamUser">启动</a></td>
+              </tr>
+              <tr class="recycle-task">
+                <td>回收超时任务</td>
+                <td class="status"></td>
+                <td class="intro">
+                  自动回收系统中已超时的任务。
+                </td>
+                <td><a class="disabled">启动</a></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel-body">
+  <div id="resetExamUser" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="resetExamUser" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">重置考核用户相关的数据和任务</h4>
+        </div>
+        <div class="modal-body">
+          <h4 class="control-label">选择用户</h4>
+          <div style="min-height: 150px; text-align: center">
+            <select class="form-control select-user">
+              <option></option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include com/_base_js.html %}
+<script src="{{static_url('assets/select2/select2.min.js')}}"></script>
+<script src="{{static_url('assets/select2/zh-CN.js')}}"></script>
+<script>
+  $.fn.modal.Constructor.prototype.enforceFocus = function () {
+  };
+  /*---重置考核数据---*/
+  var $resetExamUser = $('#resetExamUser');
+  $resetExamUser.find(".select-user").select2({
+    dropdownParent: $resetExamUser,
+    ajax: {
+      type: 'POST', url: '/api/user/list', dataType: 'json', delay: 1000, language: 'zh-CN',
+      allowClear: true, width: "100%", placeholder: "请选择", maximumSelectionLength: 2,
+      data: function (params) {
+        return {'q': params.term || '考核', 'page': params.page || 1};
+      },
+      processResults: function (res) {
+        var data = res.data;
+        data.results.splice(0, 0, {id: '', text: '所有考核账号'});
+        return data;
+      }
+    }
+  });
+
+  $resetExamUser.find('.modal-confirm').click(function () {
+    var data = {'user_id': $resetExamUser.find(".select-user").val()};
+    postApi('/sys/reset_exam_user', {'data': data}, function (res) {
+      showSuccess('成功', '重置成功');
+      $resetExamUser.modal('hide');
+    });
+  });
+</script>
+</body>
+
+</html>

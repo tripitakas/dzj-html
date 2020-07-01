@@ -23,7 +23,7 @@ class HomeHandler(TaskHandler):
             for task_type in task_types:
                 month_begin = datetime.strptime(get_date_time('%Y-%m'), '%Y-%m')
                 condition = {'status': self.STATUS_FINISHED, 'finished_time': {'$gte': month_begin}}
-                condition['task_type'] = {'$regex': task_type} if self.is_group(task_type) else task_type
+                condition['task_type'] =task_type
                 counts = list(self.db.task.aggregate([
                     {'$match': condition},
                     {'$group': {'_id': '$picked_user_id', 'count': {'$sum': 1}}},

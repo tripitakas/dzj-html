@@ -1,10 +1,10 @@
 from . import api, view
 
 views = [
-    view.ArticleAdminHandler, view.ArticleAddOrUpdateHandler, view.ArticleViewHandler,
+    view.ArticleAdminHandler, view.ArticleUpsertHandler, view.ArticleViewHandler,
     view.ArticleListHandler,
 ]
 
 handlers = [
-    api.ArticleAddOrUpdateApi, api.ArticleDeleteApi, api.UploadImageApi,
+    api.ArticleUpsertApi, api.ArticleDeleteApi, api.UploadImageApi,
 ]

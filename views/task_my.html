@@ -1,11 +1,22 @@
-{% extends "_list.html" %}
+{% extends "com/_list.html" %}
 
 {% block custom-css %}
 <style>
   .disabled {
     display: none;
   }
+
+  .point {
+    color: #B8906F;
+    margin-left: 10px;
+  }
 </style>
+{% end %}
+
+{% block operation %}
+{% if point %}
+<div class="point">我的积分：{{point}}</div>
+{% end %}
 {% end %}
 
 {% block custom-js %}
