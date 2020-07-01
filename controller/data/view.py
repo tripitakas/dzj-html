@@ -34,7 +34,7 @@ class DataImportImageHandler(TaskHandler):
         {'id': 'params.pan_name', 'name': '网盘名称'},
         {'id': 'params.import_dir', 'name': '导入文件夹'},
         {'id': 'params.layout', 'name': '版面结构'},
-        {'id': 'params.redo', 'name': '是否覆盖已有图片'},
+        {'id': 'params.redo', 'name': '是否覆盖　<br/>已有图片'},
         {'id': 'status', 'name': '状态'},
         {'id': 'priority', 'name': '优先级', 'filter': TaskHandler.priorities},
         {'id': 'return_reason', 'name': '退回理由'},

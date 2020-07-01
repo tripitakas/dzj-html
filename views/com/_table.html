@@ -21,7 +21,7 @@
     {% else %}
     <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
       <span class="sort {{'active' if order in [fid, '-'+fid] else ''}}" title="{{fid}}">
-      {{f['name']}}<span class="icon-triangle-{{'up' if order == fid else 'down'}}"></span>
+      {% raw f['name'] %}<span class="icon-triangle-{{'up' if order == fid else 'down'}}"></span>
       </span>
     </th>
     {% end %}
