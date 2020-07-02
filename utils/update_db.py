@@ -19,7 +19,7 @@ def index_db(db):
     """ 给数据库增加索引"""
     fields2index = {
         'user': ['name', 'email', 'phone'],
-        'page': ['name', 'page_code', 'source'],
+        'page': ['name', 'page_code', 'source', 'tasks'],
         'char': ['name', 'source', 'uid', 'ocr_txt', 'txt', 'diff', 'cc', 'sc', 'txt_level', 'has_img'],
         'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
         'variant': ['txt', 'normal_txt'],
