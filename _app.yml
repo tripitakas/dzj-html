@@ -36,13 +36,9 @@ role:
 
 # 任务
 task:
+  auto_recycle: true
   task_timeout_days: 7
-  temp_lock_timeout_hours: 1
 
-# OCR加工服务
-ocr:
-  url:
-  work_dir:
 
 # web img
 web_img:
