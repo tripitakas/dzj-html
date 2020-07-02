@@ -28,6 +28,7 @@ class Page(Model):
         {'id': 'cmp_txt', 'name': '比对文本'},
         {'id': 'txt', 'name': '审定文本'},
         {'id': 'box_ready', 'name': '切分就绪'},
+        {'id': 'has_gen_chars', 'name': '已生成字表'},
         {'id': 'chars_col', 'name': '字序'},
         {'id': 'tasks', 'name': '任务'},
         {'id': 'txt_match', 'name': '文本匹配'},

@@ -25,7 +25,7 @@ class Worker(object):
         self.db = db or connect_db(load_config()['database'])
 
     def add_log(self, op_type, target_id='', content=''):
-        logging.info('%s,content=%s' % (op_type, content))
+        logging.info('[%s]content=%s' % (op_type, content))
         self.db.log.insert_one(dict(type=op_type, target_id=target_id, content=content, create_time=datetime.now()))
 
     def work(self, **kwargs):
