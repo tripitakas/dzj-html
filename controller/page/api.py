@@ -512,8 +512,8 @@ class PageTaskPublishApi(PageHandler):
             steps = self.data.get('steps') and dict(todo=self.data['steps'])
             return dict(task_type=task_type, num=int(self.data.get('num') or 1), batch=self.data['batch'],
                         collection='page', id_name='name', doc_id=page_name, char_count=char_count, status=status,
-                        steps=steps, priority=self.data['priority'], pre_tasks=pre_tasks, params=params, result={},
-                        create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
+                        steps=steps, priority=self.data['priority'], pre_tasks=pre_tasks, params=params or {},
+                        result={}, create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                         publish_user_id=self.user_id, publish_by=self.username)
 
         if not page_names:
