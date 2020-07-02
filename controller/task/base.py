@@ -184,6 +184,8 @@ class TaskHandler(BaseHandler, Task):
         if mode in ['do', 'update']:
             if not task:
                 error = e.task_not_existed
+            elif not self.current_user:
+                error = e.need_login
             elif task.get('picked_user_id') != self.current_user.get('_id'):
                 error = e.task_has_been_picked
             elif mode == 'do' and task['status'] != self.STATUS_PICKED:
