@@ -36,7 +36,8 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                 return True
         return False
 
-    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(hp.load_config()['database'], db_name=db_name)[0]
+    db = db or uri and pymongo.MongoClient(uri)[db_name] or \
+         hp.connect_db(hp.load_config()['database'], db_name=db_name)[0]
     if reset:
         db.char.delete_many({})
 
@@ -108,6 +109,8 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
         if un_existed:
             db.char.insert_many(un_existed, ordered=False)
             print('insert new %s records: %s' % (len(un_existed), ','.join([c['name'] for c in un_existed])))
+        # 更新page表的has_gen_chars字段
+        db.page.update_many({'name': {'$in': valid_pages}}, {'$set': {'has_gen_chars': True}})
         log = dict(inserted_char=[c['name'] for c in un_existed], updated_char=[c['name'] for c in existed],
                    deleted_char=[c['name'] for c in deleted], invalid_char=invalid_chars,
                    valid_pages=valid_pages, invalid_pages=invalid_pages,

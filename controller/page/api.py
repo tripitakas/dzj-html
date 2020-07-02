@@ -40,14 +40,14 @@ class PageBoxApi(PageHandler):
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
         page_updated, char_updated = self.get_box_update(self.data, page, task_type)
-        self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})  # 更新page表
-        gen_chars(db=self.db, page_names=page_name, username=self.username)  # 更新char表
+        self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})
         valid, message, box_type, out_boxes = self.check_box_cover(page)
         self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
-        # 更新字图
-        script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
-        script = script % (h.BASE_DIR, self.username, 1)
-        os.system(script)
+        if page.get('has_gen_chars'):  # 更新char表和字图
+            gen_chars(db=self.db, page_names=page_name, username=self.username)
+            script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
+            script = script % (h.BASE_DIR, self.username, 1)
+            os.system(script)
         return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
 
 
