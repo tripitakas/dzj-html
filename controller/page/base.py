@@ -167,12 +167,12 @@ class PageHandler(TaskHandler, Page, Box):
         post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
         # 检查删除
         post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
-        to_delete = [b for b in page[box_type] if b['cid'] not in post_cids]
+        to_delete = [b for b in page[box_type] if not b.get('cid') or b['cid'] not in post_cids]
         deleted = [b['cid'] for b in to_delete if self.can_write(b, page, task_type)]
         # cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
-        boxes = [b for b in page[box_type] if b['cid'] not in deleted]  # 删除可删除的字框，保留其它字框
+        boxes = [b for b in page[box_type] if not b.get('cid') or b['cid'] not in deleted]  # 删除可删除的字框，保留其它字框
         # 检查修改
-        change_cids = [b.get('cid') for b in post_boxes if b.get('changed') is True]
+        change_cids = [b['cid'] for b in post_boxes if b.get('changed') is True]
         to_change = [b for b in boxes if b['cid'] in change_cids]
         can_change = [b for b in to_change if self.can_write(b, page, task_type)]
         # cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_change]

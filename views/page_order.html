@@ -40,6 +40,7 @@
         <div class="btn-group more-group hide" id="more-group">
           <span id="reorder" class="btn btn-default btn-sm" type="button">重新排序</span>
           <span id="old-order" class="btn btn-default btn-sm" type="button">原始字序</span>
+          <span id="btn-box" class="btn btn-default btn-sm{{'' if '/page/order' in handler.request.uri else ' hide'}}" type="button" title="修改字框">字框</span>
         </div>
       </div>
       <div class="right">
@@ -177,7 +178,7 @@
     image: "{{img_url}}",
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
-    name: '{{page["name"]}}_order_{{handler.application.version}}',
+    name: '{{page["name"]}}_order',
     chars: '{{page["chars"]}}',
     blocks: '{{page["blocks"]}}',
     columns: '{{page["columns"]}}',
@@ -238,7 +239,11 @@
       r.error = '列数有误，请检查是否有断开的列。';
     }
     if (r.error) {
-      bsShow('失败！', r.error, 'warning');
+      var tips = r.error;
+      if (location.pathname.indexOf('/task') > -1) {
+        tips += `<a href="${setQueryString('step', 'box')}">上一步</a>`;
+      }
+      bsShow('失败！', tips, 'warning');
     }
     r.step = 'order';
     return r;
