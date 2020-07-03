@@ -152,7 +152,8 @@ Raphael.el.setRotation = function(angle, x, y) {
 // set element zoomed stroke width
 Raphael.el.setStrokeWidth = function(value) {
   if (value == 0 || (value = parseFloat(value))) {
-    this.attr({ "stroke-width": value * this.zoom });
+    var zoom = Math.min(this.zoom, Raphael.maxStrokeWidthZoom || 100);
+    this.attr({ "stroke-width": value * zoom });
     this.zoom_memory["stroke-width"] = value;
   }
   
