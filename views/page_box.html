@@ -135,13 +135,13 @@
   $.cut.create({
     holder: 'holder',
     image: "{{img_url}}",
-    name: '{{page["name"]}}_box',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     chars: '{{page["chars"]}}',
     blocks: '{{page["blocks"]}}',
     columns: '{{page["columns"]}}',
     scrollContainer: '#holder-container',
+    name: '{{page["name"]}}_box_' + new Date().getTime(),
   });
   $.cut.bindKeys();
   $.cut.switchCurrentBox(null);
