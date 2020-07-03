@@ -135,10 +135,11 @@ class CharViewHandler(CharHandler, Char):
         """ 查看Char页面"""
         try:
             char = self.db.char.find_one({'name': char_name})
-            if not char:  # JS_64_179_265
+            if not char:
                 char = {'page_name': '_'.join(char_name.split('_')[:-1]),
                         'cid': int(char_name.split('_')[-1]), 'name': char_name,
-                        'txt': '没有找到数据'}
+                        'txt': '没有找到字数据',
+                        'error': True}
                 # return self.send_error_response(e.no_object, message='没有找到数据%s' % char_name)
             projection = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
             page = self.db.page.find_one({'name': char['page_name'], 'chars.cid': char['cid']}, projection)
