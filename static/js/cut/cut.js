@@ -573,6 +573,7 @@
       if (p.minRatio) {
         data.ratioInitial = p.minRatio;
       }
+      Raphael.maxStrokeWidthZoom = data.ratioInitial * 1.5;
 
       $(data.holder)
           .mousedown(mouseDown)
