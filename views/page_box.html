@@ -147,7 +147,7 @@
   $.cut.switchCurrentBox(null);
 
   // 初始化
-  if ('{{steps_unfinished1}}' === 'True' || '{{handler.mode}}' === 'do') {
+  if ('{{steps_unfinished1}}' === 'True') {
     updateImage(true, true);
     updateThreeBoxes(true, false, false);
   } else {
@@ -184,24 +184,24 @@
 
   $.cut.state.canHitBox = function (el) {
     var boxType = $('.task-step.active').attr('data-value');
+    var threeActive = (stepsFinished || !boxType) && $('#toggle-three').hasClass('active');
+    var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
     var blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
     var columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
-    var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
-    var threeActive = (stepsFinished || !boxType) && $('#toggle-three').hasClass('active');
 
     // 栏框内的列字框可显示不能点击，列框内的字框同理。而 readonly 属性用于部分明确是只读的框，可点击不可编辑
     if (el.data('_readonly')) return false;
     if ((charActive || threeActive) && el.data('class') === 'char') return true;
-    if ((columnActive || threeActive) && el.data('class') === 'column') return true;
     if ((blockActive || threeActive) && el.data('class') === 'block') return true;
+    if ((columnActive || threeActive) && el.data('class') === 'column') return true;
   };
 
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'added') {
       var boxType = $('.task-step.active').attr('data-value');
+      var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
       var blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
       var columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
-      var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
       var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
       if (active.length > 6) {
         $.cut.removeBox();
@@ -234,7 +234,7 @@
       var invalid = $.cut.data.chars.map(function (c) {
         return /b0c/.test(c.char_id) && c.char_id;
       });
-      updateThreeBoxes();
+      // updateThreeBoxes();
       showHighLightCount();
       $.cut.toggleClass(invalid, null, 'flash', true);
       $.cut.toggleBox(true, null, invalid);
@@ -284,6 +284,21 @@
     });
   });
 
+  afterStepped = function (submit, res, jumpUrl) {
+    if (res.valid) {
+      location.href = jumpUrl;
+    } else {
+      // 高亮未被覆盖的框
+      $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
+      $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
+      var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示。`;
+      if (location.pathname.indexOf('/task') > -1) {
+        tips += `<a href="${setQueryString('step', 'order')}">下一步</a>`;
+      }
+      bsShow('已保存，发现错误!', tips, 'warning');
+    }
+  };
+
   // 切换步骤
   var stepsFinished = null;
   var clickedSteps = ['char'];
@@ -291,16 +306,16 @@
     var boxType = $(this).attr('data-value');
     if (clickedSteps.indexOf(boxType) === -1) clickedSteps.push(boxType);
     $.cut.toggleBox(false);
-    $.cut.toggleBox(true, $(this).attr('data-value'));
+    $.cut.toggleBox(true, boxType);
     $('.task-step').removeClass('active');
     $(this).addClass('active');
-
     $('#toggle-three').removeClass('active');
     $('#toggle-char').toggleClass('active', boxType === 'char');
     $('#toggle-block').toggleClass('active', boxType === 'block');
     $('#toggle-column').toggleClass('active', boxType === 'column');
     showHighLightCount();
   });
+
   // 提交步骤
   $('#submit-steps').on('click', function () {
     if (clickedSteps.indexOf('char') === -1) return bsShow('提示', '您尚未进行字框校对，不能提交。');
