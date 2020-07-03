@@ -164,9 +164,10 @@ class PageHandler(TaskHandler, Page, Box):
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
         """ 合并用户提交和数据库中已有数据，过程中将进行权限检查"""
         user_level = self.get_user_box_level(self, task_type)
+        post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
+        page_cids = [b['cid'] for b in page[box_type] if b.get('cid')]
         post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
         # 检查删除
-        post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
         to_delete = [b for b in page[box_type] if not b.get('cid') or b['cid'] not in post_cids]
         deleted = [b['cid'] for b in to_delete if self.can_write(b, page, task_type)]
         # cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
@@ -189,23 +190,27 @@ class PageHandler(TaskHandler, Page, Box):
             changed.append({'cid': b['cid'], 'pos': {'x': b['x'], 'y': b['y'], 'w': b['w'], 'h': b['h']}})
         # 检查新增
         to_add = [b for b in post_boxes if b.get('added') is True]
+        can_add = []
         added = []
         for pb in to_add:
             pb.pop('added', 0)
+            if pb['cid'] in page_cids or pb.get('changed'):
+                continue
             update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
             my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
             pb.update({'box_level': user_level, 'box_logs': [my_log], 'new': True})
+            can_add.append(pb)
             added.append({'cid': pb['cid'], 'pos': {'x': pb['x'], 'y': pb['y'], 'w': pb['w'], 'h': pb['h']}})
-        boxes.extend(to_add)
+        boxes.extend(can_add)
         page[box_type] = boxes
         return dict(deleted=deleted, changed=changed, added=added)
 
     def get_box_update(self, post_data, page, task_type=None):
         """ 获取切分校对的提交"""
         # 预处理
-        self.pop_fields(page['chars'], 'readonly')
-        self.pop_fields(page['blocks'], 'readonly')
-        self.pop_fields(page['columns'], 'readonly')
+        self.pop_fields(page['chars'], 'readonly,class')
+        self.pop_fields(page['blocks'], 'readonly,class')
+        self.pop_fields(page['columns'], 'readonly,class')
         self.update_page_cid(post_data)
         # 合并用户提交和已有数据
         self.merge_post_boxes(post_data['blocks'], 'blocks', page, task_type)

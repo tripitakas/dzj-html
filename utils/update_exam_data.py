@@ -230,7 +230,7 @@ def reset_cluster_proof(db, user_no=None):
     # 重置char表的txt字段
     chars = db.char.find({'ocr_txt': {'$in': txt_kinds}}, {'ocr_txt': 1})
     for c in chars:
-        db.char.update_one({'_id': c['_id']}, {'$set': {'txt': c['ocr_txt'], 'txt_logs': []}})
+        db.char.update_one({'_id': c['_id']}, {'$set': {'txt': c['ocr_txt'], 'txt_logs': [], 'tasks': {}}})
 
 
 def initial_run(db):
