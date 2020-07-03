@@ -136,7 +136,7 @@
     image: "{{img_url}}",
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
-    name: '{{page["name"]}}_box',
+    name: '{{page["name"]}}_box_{{handler.application.version}}',
     chars: '{{page["chars"]}}',
     blocks: '{{page["blocks"]}}',
     columns: '{{page["columns"]}}',
@@ -291,6 +291,7 @@
     $('#toggle-char').toggleClass('active', boxType === 'char');
     $('#toggle-block').toggleClass('active', boxType === 'block');
     $('#toggle-column').toggleClass('active', boxType === 'column');
+    showHighLightCount();
   });
   // 提交步骤
   $('#submit-steps').on('click', function () {
