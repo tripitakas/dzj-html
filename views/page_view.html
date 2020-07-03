@@ -139,7 +139,7 @@
   $.cut.toggleBox(false);
   setTimeout(function () {
     $.cut.switchCurrentBox('{{cur_cid}}');
-    $.cut.toggleClass(['{{cur_cid}}'], 'flash', true);
+    $.cut.toggleClass(['{{cur_cid}}'], null, 'flash', true);
   }, 500);
 
   $.cut.state.canHitBox = function (el) {
