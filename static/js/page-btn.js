@@ -154,6 +154,7 @@ $(document).on('click', '.m-footer .page-name', function () {
   var charName = $('.m-footer .char-name').text();
   if (typeof charName !== 'undefined' && charName !== '' && charName !== '未选中') {
     var cid = charName.split('_').pop();
+    cid = cid.split('#').pop();
     url += '?cid=' + cid;
   }
   window.open(url, '_blank');

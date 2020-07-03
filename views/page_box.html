@@ -21,7 +21,6 @@
         </div>
         <div class="btn-group title">切分校对</div>
       </div><!--left-->
-      {% set steps_unfinished1 = 'steps_unfinished' in globals() and steps_unfinished %}
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
         <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
@@ -31,6 +30,7 @@
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
         <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
         <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
+        {% set steps_unfinished1 = 'steps_unfinished' in globals() and steps_unfinished %}
         <div id="toggle-three" class="btn-txt icon-three{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
         <div id="toggle-block" class="btn-txt icon-blocks{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
         <div id="toggle-column" class="btn-txt icon-columns{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
@@ -146,49 +146,40 @@
   $.cut.bindKeys();
   $.cut.switchCurrentBox(null);
 
-  // 初始化设置
-  if ($.cut.data.image) {
-    $.cut.data.image.node.style.display = getStorage('toggleImage', '1') === '1' ? '' : 'none';
-    $.cut.data.image.node.style.opacity = getStorage('toggleBlur', '1') === '1' ? 0.2 : null;
-  }
-
-  function updateThreeBoxes(blockActive, columnActive, charActive) {
-    if (blockActive === 'initial') {
-      blockActive = getStorage('toggleBlock', '-1') === '1';
-      columnActive = getStorage('toggleColumn', '-1') === '1';
-      charActive = getStorage('toggleChar', '-1') === '1';
-
-      $('#toggle-image').toggleClass('active', getStorage('toggleImage', '1') === '1');
-      $('#toggle-blur').toggleClass('active', getStorage('toggleBlur', '1') === '1');
-    } else if (blockActive === undefined) {
-      var boxType = $('.task-step.active').attr('data-value');
-      blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
-      columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
-      charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
-    }
-
-    $.cut.toggleBox(blockActive, 'block');
-    $.cut.toggleBox(columnActive, 'column');
-    $.cut.toggleBox(charActive, 'char');
-    $('#toggle-block').toggleClass('active', blockActive);
-    $('#toggle-column').toggleClass('active', columnActive);
-    $('#toggle-char').toggleClass('active', charActive);
-
-    showHighLightCount();
-  }
-
-  if ('{{steps_unfinished1}}' === 'True') {
-    $.cut.data.image.node.style.display = '';
-    $.cut.data.image.node.style.opacity = 0.2;
-    $('#toggle-three').removeClass('active');
-    $('#toggle-char').addClass('active');
-    $('#toggle-block').removeClass('active');
-    $('#toggle-column').removeClass('active');
-    $.cut.toggleBox(false, 'block');
-    $.cut.toggleBox(false, 'column');
-    $.cut.toggleBox(true, 'char');
+  // 初始化
+  if ('{{steps_unfinished1}}' === 'True' || '{{handler.mode}}' === 'do') {
+    updateImage(true, true);
+    updateThreeBoxes(true, false, false);
   } else {
-    updateThreeBoxes('initial');
+    updateImage();
+    updateThreeBoxes();
+  }
+
+  // 设置显隐图片、图片虚化
+  function updateImage(display, blur) {
+    if (!$.cut.data.image) return;
+    if (display === undefined) display = getStorage('toggleImage', '1') === '1';
+    $.cut.data.image.node.style.display = display ? '' : 'none';
+    $('#toggle-image').toggleClass('active', display);
+
+    if (blur === undefined) blur = getStorage('toggleBlur', '1') === '1';
+    $.cut.data.image.node.style.opacity = blur ? 0.2 : null;
+    $('#toggle-blur').toggleClass('active', blur);
+  }
+
+  // 设置三种切分框的状态。默认显示字框、隐藏列框和栏框
+  function updateThreeBoxes(charActive, columnActive, blockActive) {
+    if (charActive === undefined) charActive = getStorage('toggleChar', '1') === '1';
+    $('#toggle-char').toggleClass('active', charActive);
+    $.cut.toggleBox(charActive, 'char');
+
+    if (columnActive === undefined) columnActive = getStorage('toggleColumn', '-1') === '1';
+    $('#toggle-column').toggleClass('active', columnActive);
+    $.cut.toggleBox(columnActive, 'column');
+
+    if (blockActive === undefined) blockActive = getStorage('toggleBlock', '-1') === '1';
+    $('#toggle-block').toggleClass('active', blockActive);
+    $.cut.toggleBox(blockActive, 'block');
   }
 
   $.cut.state.canHitBox = function (el) {
@@ -198,14 +189,11 @@
     var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
     var threeActive = (stepsFinished || !boxType) && $('#toggle-three').hasClass('active');
 
-    if (el.data('_readonly'))  // 栏框内的列字框可显示不能点击，列框内的字框同理。而 readonly 属性用于部分明确是只读的框，可点击不可编辑
-      return false;
-    if ((charActive || threeActive) && el.data('class') === 'char')
-      return true;
-    if ((columnActive || threeActive) && el.data('class') === 'column')
-      return true;
-    if ((blockActive || threeActive) && el.data('class') === 'block')
-      return true;
+    // 栏框内的列字框可显示不能点击，列框内的字框同理。而 readonly 属性用于部分明确是只读的框，可点击不可编辑
+    if (el.data('_readonly')) return false;
+    if ((charActive || threeActive) && el.data('class') === 'char') return true;
+    if ((columnActive || threeActive) && el.data('class') === 'column') return true;
+    if ((blockActive || threeActive) && el.data('class') === 'block') return true;
   };
 
   $.cut.onBoxChanged(function (info, box, reason) {
@@ -229,7 +217,7 @@
       if ($.cut.data.hlType) {
         $.cut.clearHighlight();
         $.cut.highlightBoxes($.cut.data.hlType, false, true);
-        $.cut.toggleClass([info.char_id], 'flash', false);
+        $.cut.toggleClass([info.char_id], null, 'flash', false);
       }
       showHighLightCount();
       updateUndo();
@@ -247,7 +235,8 @@
         return /b0c/.test(c.char_id) && c.char_id;
       });
       updateThreeBoxes();
-      $.cut.toggleClass(invalid, 'flash', true);
+      showHighLightCount();
+      $.cut.toggleClass(invalid, null, 'flash', true);
       $.cut.toggleBox(true, null, invalid);
     }
   }, true);

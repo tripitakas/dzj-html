@@ -96,7 +96,13 @@
 
   function findCharById(id) {
     return id && data.chars.filter(function (box) {
-      return box.char_id === id || box.cid == id;
+      return box.char_id == id || box.cid == id;
+    })[0];
+  }
+
+  function findBoxById(id, boxType) {
+    return id && data.chars.filter(function (box) {
+      return (box.char_id == id || box.cid == id) && (!boxType || box.class.indexOf(boxType) > -1);
     })[0];
   }
 
@@ -469,8 +475,7 @@
         self.activateHandle(state.edit, state.editHandle, state.down);
         if (state.editHandle.index >= 0) {
           state.down = getHandle(state.edit, state.editHandle.index);
-        }
-        else if (!self.isInRect(state.down, state.edit, 3) && !state.readonly &&
+        } else if (!self.isInRect(state.down, state.edit, 3) && !state.readonly &&
             !(state.edit && (state.edit.data('readonly') || state.edit.data('_readonly')))) {
           // 不能拖动当前字框的控制点，则取消当前字框的高亮显示，准备画出一个新字框
           self.hoverOut(state.edit);
@@ -1051,7 +1056,8 @@
 
     toggleBox: function (visible, cls, boxIds, readonly) {
       data.chars.forEach(function (box) {
-        if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
+        if (box.shape && (!cls || cls === box.shape.data('class'))
+            && (!boxIds || (boxIds.indexOf(box.char_id) >= 0 || boxIds.indexOf(box.cid) >= 0))) {
           var readonly2 = readonly || box.readonly;
           if (!$(box.shape.node).hasClass('flash')) {
             $(box.shape.node).toggle(visible || !!readonly);
@@ -1060,7 +1066,7 @@
               opacity: readonly2 ? 0.3 : 1,
               stroke: (box.column_no || 0) % 2 ?
                   (readonly2 ? '#977' : data.normalColor2) : (readonly2 ? '#779' : data.normalColor)
-              });
+            });
           }
         }
       });
@@ -1069,9 +1075,10 @@
       }
     },
 
-    toggleClass: function (boxIds, className, value) {
+    toggleClass: function (boxIds, boxType, className, value) {
       var res = [];
-      boxIds.map(findCharById).forEach(function (c) {
+      boxIds.forEach(function (id) {
+        var c = findBoxById(id, boxType);
         if (c && c.shape && res.indexOf(c) < 0) {
           res.push(c);
           var el = $(c.shape.node), old = el.attr('class') + ' ';
