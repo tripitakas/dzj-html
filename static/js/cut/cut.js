@@ -847,7 +847,7 @@
           }
         });
         if (c.cid === undefined) {
-          var boxType = c.class.indexOf('char') > -1 ? 'char' : c.class.indexOf('column') > -1 ? 'column' : 'block';
+          var boxType = c.class && (c.class.indexOf('char') > -1 ? 'char' : c.class.indexOf('column') > -1 ? 'column' : 'block');
           c.cid = getMacCid(boxType) + 1;
         }
         if (c.class === 'block' || c.class === 'column') {
