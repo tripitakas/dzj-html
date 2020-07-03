@@ -142,10 +142,14 @@ class CharViewHandler(CharHandler, Char):
                 # return self.send_error_response(e.no_object, message='没有找到数据%s' % char_name)
             projection = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
             page = self.db.page.find_one({'name': char['page_name'], 'chars.cid': char['cid']}, projection)
-            if page and page['chars'][0].get('box_logs'):
-                char['box_logs'] = page['chars'][0]['box_logs']
-            if page and page['chars'][0].get('box_level'):
-                char['box_level'] = page['chars'][0]['box_level']
+            if page:
+                c = page['chars'][0]
+                if c.get('box_logs'):
+                    char['box_logs'] = c['box_logs']
+                if c.get('box_level'):
+                    char['box_level'] = c['box_level']
+                if not char.get('pos'):
+                    char['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
             char['txt_level'] = char.get('txt_level') or 1
             char['box_level'] = char.get('box_level') or 1
             char['txt_point'] = self.get_required_type_and_point(char)
