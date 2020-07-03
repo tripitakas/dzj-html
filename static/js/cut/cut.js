@@ -385,7 +385,7 @@
 
     switchCurrentBox: function (el) {
       function xf(v) {
-        return Math.round(v * 10 / data.ratio / data.ratioInitial) / 10;
+        return v ? Math.round(v * 10 / data.ratio / data.ratioInitial) / 10 : 0;
       }
 
       // 去掉当前高亮显示
@@ -417,7 +417,7 @@
           el.show();
         }
         this.scrollToVisible(el);
-        var box = el.getBBox();
+        var box = el.getBBox() || {};
         console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
             + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }

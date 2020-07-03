@@ -163,19 +163,27 @@ class PageHandler(TaskHandler, Page, Box):
 
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
         """ 合并用户提交和数据库中已有数据，过程中将进行权限检查"""
+        max_cid1 = max(b.get('cid', 0) for b in page[box_type])
+        max_cid2 = max(b.get('cid', 0) for b in post_boxes)
+        max_cid = max(max_cid1, max_cid2)
+        for b in post_boxes:
+            if not b.get('cid'):
+                max_cid += 1
+                b['cid'] = max_cid
+
         user_level = self.get_user_box_level(self, task_type)
         post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
         # 检查删除
         post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
-        to_delete = [b for b in page[box_type] if b['cid'] not in post_cids]
-        deleted = [b['cid'] for b in to_delete if self.can_write(b, page, task_type)]
-        # cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
-        boxes = [b for b in page[box_type] if b['cid'] not in deleted]  # 删除可删除的字框，保留其它字框
+        to_delete = [b for b in page[box_type] if not b.get('cid') or b['cid'] not in post_cids]
+        deleted = [b.get('cid') for b in to_delete if self.can_write(b, page, task_type)]
+        # cannot_delete = [b['cid'] for b in to_delete if b.get('cid') not in can_delete]
+        boxes = [b for b in page[box_type] if not b.get('cid') or b['cid'] not in deleted]  # 删除可删除的字框，保留其它字框
         # 检查修改
         change_cids = [b.get('cid') for b in post_boxes if b.get('changed') is True]
-        to_change = [b for b in boxes if b['cid'] in change_cids]
+        to_change = [b for b in boxes if b.get('cid') in change_cids]
         can_change = [b for b in to_change if self.can_write(b, page, task_type)]
-        # cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_change]
+        # cannot_change = [b['cid'] for b in to_change if b.get('cid') not in can_change]
         changed = []
         for b in can_change:
             pb = post_box_dict.get(b['cid'])
