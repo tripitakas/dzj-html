@@ -152,7 +152,7 @@ $(document).on('click', '.m-footer .page-name', function () {
     return;
   var url = '/page/' + $(this).text();
   var charName = $('.m-footer .char-name').text();
-  if (typeof charName !== 'undefined' && charName !== '未选中') {
+  if (typeof charName !== 'undefined' && charName !== '' && charName !== '未选中') {
     var cid = charName.split('_').pop();
     url += '?cid=' + cid;
   }
