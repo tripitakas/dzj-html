@@ -72,9 +72,7 @@
     var data = getPostData();
     $.extend(data, {submit: submit, step: step});
     if (!data.error) {
-      $('#progress').removeClass('hide');
       postApi(location.pathname, {data: data}, function (res) {
-        $('#progress').addClass('hide');
         if (saveEnded)
           saveEnded(submit, res, jumpUrl);
         else
@@ -95,10 +93,11 @@
   }
 
   // 跳转步骤
+  var afterStepped = null;
   function navigate(to) {
     var jumpUrl = setQueryString('step', steps[to]);
     if (!readonly) {
-      saveTask(to === 'next', jumpUrl);
+      saveTask(to === 'next', jumpUrl, afterStepped);
     } else {
       location.href = jumpUrl;
     }
