@@ -178,11 +178,11 @@
     image: "{{img_url}}",
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
-    name: '{{page["name"]}}_order',
     chars: '{{page["chars"]}}',
     blocks: '{{page["blocks"]}}',
     columns: '{{page["columns"]}}',
     scrollContainer: '#holder-container',
+    name: '{{page["name"]}}_order_' + new Date().getTime(),
   });
   $.cut.bindKeys();
   $.cut.switchCurrentBox(null);
