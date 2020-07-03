@@ -156,7 +156,7 @@ class SubmitTasksApi(TaskHandler):
         if not page:
             return e.no_object
         update = self.get_page_meta(task, page)
-        update.update({'tasks.%s.%s' % (task.get('num') or 1, task['task_type']): self.STATUS_FINISHED})
+        update.update({'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED})
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
 
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
@@ -172,7 +172,7 @@ class SubmitTasksApi(TaskHandler):
         if box_changed:
             return e.box_not_identical[0], '(%s)切分信息不一致' % box_changed
         update = self.get_page_meta(task, page)
-        update.update({'tasks.%s.%s' % (task.get('num') or 1, task['task_type']): self.STATUS_FINISHED})
+        update.update({'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED})
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
 
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
@@ -186,7 +186,7 @@ class SubmitTasksApi(TaskHandler):
             return e.no_object
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
             'img_cloud_path': self.prop(task, 'result.img_cloud_path'),
-            'tasks.%s.%s' % (task.get('num') or 1, task['task_type']): self.STATUS_FINISHED
+            'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED
         }})
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
