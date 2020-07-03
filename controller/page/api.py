@@ -147,7 +147,7 @@ class PageTaskCutApi(PageHandler):
             elif self.data['step'] == 'order':
                 if self.data.get('submit') and 'order' not in submitted:
                     submitted.append('order')
-                    update = {'status': self.STATUS_FINISHED, 'steps.submitted': submitted}
+                    update = {'status': self.STATUS_FINISHED, 'steps.submitted': submitted, 'finished_time': self.now()}
                     self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
                     self.update_post_tasks(self.task)
                     self.update_page_status(self.STATUS_FINISHED, self.task)
