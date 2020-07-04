@@ -73,8 +73,8 @@
 
   var LET_RADIUS = 3;
   var colors = {
-    link: ['#00f', '#08f', '#f00'], // 两个交替列的线色、改动色
-    sel: '#00f'   // 选中对象的颜色
+    link: ['#008000', '#0000ff', '#C53433'], // 两个交替列的线色、改动色
+    sel: '#ff0000'   // 选中对象的颜色
   };
   var data = $.cut.data;
   var state = $.cut.state;

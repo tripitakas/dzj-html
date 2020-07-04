@@ -150,9 +150,9 @@
   }
 
   var data = {
-    normalColor: '#59b138',                   // 正常字框的线色
-    normalColor2: '#6966c8',                  // 另一列字框的的线色
-    changedColor: '#C53433',                  // 改动字框的线色
+    normalColor: '#008000',                   // 正常字框的线色
+    normalColor2: '#0000ff',                  // 另一列字框的的线色
+    changedColor: '#C53433',                   // 改动字框的线色
     hoverColor: '#e42d81',                    // 掠过时的字框线色
     hoverFill: '#ff0000',                     // 掠过时的字框填充色
     handleColor: '#e3e459',                   // 字框控制点的线色
@@ -1059,7 +1059,7 @@
       }
     },
 
-    showGrayBox: function(cls) {
+    showGrayBox: function (cls) {
       this.toggleBox(true, cls, null, true);
     },
 

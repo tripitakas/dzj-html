@@ -209,8 +209,8 @@ class PageHandler(TaskHandler, Page, Box):
         """ 获取切分校对的提交"""
         # 预处理
         self.pop_fields(page['chars'], 'readonly,class')
-        self.pop_fields(page['blocks'], 'readonly,class')
-        self.pop_fields(page['columns'], 'readonly,class')
+        self.pop_fields(page['blocks'], 'readonly,class,char_id,char_no')
+        self.pop_fields(page['columns'], 'readonly,class,char_id,char_no')
         self.update_page_cid(post_data)
         # 合并用户提交和已有数据
         self.merge_post_boxes(post_data['blocks'], 'blocks', page, task_type)
