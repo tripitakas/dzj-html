@@ -723,7 +723,7 @@
       var added = !info.char_id;
 
       info.added = info.added || added; // 保存新增标记
-      info.changed = !added;  // 新增再改动就会变为已修改
+      info.changed = !info.added;
       if (added) {
         for (var i = 1; i < 999; i++) {
           info.char_id = 'new' + i;
