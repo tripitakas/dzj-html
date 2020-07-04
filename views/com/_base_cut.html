@@ -13,7 +13,7 @@
 <script>
   function updateUndo() {
     $('#undo').toggleClass('disabled', !$.cut.canUndo());
-    $('#redo').toggleClass('disabled', $.cut.canRedo());
+    $('#redo').toggleClass('disabled', !$.cut.canRedo());
   }
 
   updateUndo();
