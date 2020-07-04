@@ -228,7 +228,7 @@
           .setAttr({
             stroke: color,
             'stroke-opacity': zoomed ? 0.3 : 0.5,
-            'stroke-width': 3 / data.ratioInitial,
+            'stroke-width': 2.5 / data.ratioInitial,
             'stroke-linecap': up && !zoomed ? 'butt' : 'round'
           })
           .data('id', this.getId())
