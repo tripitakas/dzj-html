@@ -128,7 +128,7 @@ def update_order(db):
                     no_error = False
                     print('key error: %s' % c)
             update = dict(blocks=p['blocks'], columns=p['columns'], chars=p['chars'])
-            if p['chars_col']:
+            if p.get('chars_col'):
                 chars_col = []
                 for row in p['chars_col']:
                     try:
