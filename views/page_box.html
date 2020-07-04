@@ -262,11 +262,8 @@
         // 高亮未被覆盖的框
         $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
         $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
-        var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示。`;
-        if (location.pathname.indexOf('/task') > -1) {
-          tips += `<a href="${setQueryString('step', 'order')}">下一步</a>`;
-        }
-        bsShow('已保存，发现错误!', tips, 'warning');
+        var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
+        bsShow('已保存!', tips, 'warning');
       }
     });
   });
@@ -278,11 +275,8 @@
       // 高亮未被覆盖的框
       $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
       $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
-      var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示。`;
-      if (location.pathname.indexOf('/task') > -1) {
-        tips += `<a href="${setQueryString('step', 'order')}">下一步</a>`;
-      }
-      bsShow('已保存，发现错误!', tips, 'warning');
+      var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
+      bsShow('已保存!', tips, 'warning');
     }
   };
 
@@ -314,9 +308,6 @@
 
   // 提交步骤
   $('#submit-steps').on('click', function () {
-    if (clickedSteps.indexOf('char') === -1) return bsShow('提示', '您尚未进行字框校对，不能提交。');
-    if (clickedSteps.indexOf('column') === -1) return bsShow('提示', '您尚未进行列框校对，不能提交。');
-    if (clickedSteps.indexOf('block') === -1) return bsShow('提示', '您尚未进行栏框校对，不能提交。');
     stepsFinished = true;
     $('#save').click();
   });
