@@ -10,6 +10,7 @@ import json
 import pymongo
 from os import path, walk
 from operator import itemgetter
+from functools import cmp_to_key
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -95,6 +96,14 @@ def update_cid(db):
 
 def update_order(db):
     """ 更新切分框(包括栏框、列框、字框)的cid"""
+
+    def cmp_char(a, b):
+        for f in ['block_no', 'column_no', 'char_no']:
+            s = int(a.get(f) or 10000) - int(b.get(f) or 10000)
+            if s != 0:
+                return s
+        return False
+
     size = 1000
     cond = {'name': {'$regex': 'JS_'}}
     page_count = math.ceil(db.page.count_documents(cond) / size)
@@ -106,7 +115,7 @@ def update_order(db):
             print('[%s]processing %s' % (hp.get_date_time(), p['name']))
             p['blocks'].sort(key=itemgetter('block_no'))
             p['columns'].sort(key=itemgetter('block_no', 'column_no'))
-            p['chars'].sort(key=itemgetter('block_no', 'column_no', 'char_no'))
+            p['chars'].sort(key=cmp_to_key(cmp_char))
             trans_cid = dict()
             for n, c in enumerate(p['chars']):
                 if c.get('cid'):
