@@ -73,8 +73,8 @@
 
   var LET_RADIUS = 3;
   var colors = {
-    link: ['#00f', '#08f', '#f00'], // 两个交替列的线色、改动色
-    sel: '#00f'   // 选中对象的颜色
+    link: ['#008000', '#0000ff', '#C53433'], // 两个交替列的线色、改动色
+    sel: '#ff0000'   // 选中对象的颜色
   };
   var data = $.cut.data;
   var state = $.cut.state;
@@ -228,7 +228,7 @@
           .setAttr({
             stroke: color,
             'stroke-opacity': zoomed ? 0.3 : 0.5,
-            'stroke-width': 3 / data.ratioInitial,
+            'stroke-width': 2.5 / data.ratioInitial,
             'stroke-linecap': up && !zoomed ? 'butt' : 'round'
           })
           .data('id', this.getId())

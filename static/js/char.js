@@ -123,7 +123,6 @@ function updateColumnImg(ch) {
       image: columnUrl + '?t=' + (+new Date()),
       width: column.w,
       height: column.h,
-      name: imgName,
       chars: [{x: ch.pos.x - column.x, y: ch.pos.y - column.y, w: ch.pos.w, h: ch.pos.h}]
     });
     $.cut.bindKeys();

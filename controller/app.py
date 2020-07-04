@@ -66,8 +66,9 @@ class Application(web.Application):
             user = hasattr(handler, 'current_user') and handler.current_user
             username = user and (hasattr(user, 'name') and user.name or user.get('name')) or ''
             request_time = 1000.0 * handler.request.request_time()
+            cls = re.split("[.']", str(handler.__class__))[-2]
             log_method = access_log.info if s < 400 else access_log.warning if s < 500 else access_log.error
-            log_method("%d %s %.2fms%s", s, summary, request_time, username and ' [%s]' % username or '')
+            log_method("%d %s %s %.2fms%s", s, summary, cls, request_time, username and ' [%s]' % username or '')
 
     @property
     def db(self):
