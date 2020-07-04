@@ -166,12 +166,6 @@
     $.cut.toggleBox(charActive, 'char');
     $.cut.toggleBox(columnActive, 'column');
     $.cut.toggleBox(blockActive, 'block');
-    if (!charActive && !columnActive && blockActive) {
-      $.cut.showGrayBox('column');
-    }
-    if (!charActive && !blockActive && columnActive) {
-      $.cut.showGrayBox('char');
-    }
     $.cut.switchCurrentBox(null);
   }
 
@@ -310,6 +304,12 @@
     $('#toggle-block').toggleClass('active', boxType === 'block');
     $('#toggle-column').toggleClass('active', boxType === 'column');
     updateThreeBoxes();
+    if (boxType === 'block') {
+      $.cut.showGrayBox('column');
+    }
+    if (boxType === 'column') {
+      $.cut.showGrayBox('char');
+    }
   });
 
   // 提交步骤
