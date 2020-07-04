@@ -113,7 +113,7 @@ def update_order(db):
         pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
             print('[%s]processing %s' % (hp.get_date_time(), p['name']))
-            if p['chars'][0]['cid'] == 1:
+            if p['chars'][0].get('char_id') == 'b1c1c1':
                 continue
             p['blocks'].sort(key=itemgetter('block_no'))
             p['columns'].sort(key=itemgetter('block_no', 'column_no'))
