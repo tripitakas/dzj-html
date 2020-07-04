@@ -9,6 +9,7 @@ import math
 import json
 import pymongo
 from os import path, walk
+from operator import itemgetter
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -90,6 +91,34 @@ def update_cid(db):
             if updated:
                 update = {k: page.get(k) for k in ['chars', 'columns', 'blocks']}
                 db.page.update_one({'_id': page['_id']}, {'$set': update})
+
+
+def update_order(db):
+    """ 更新切分框(包括栏框、列框、字框)的cid"""
+    size = 1000
+    cond = {'name': {'$regex': 'JS_'}}
+    page_count = math.ceil(db.page.count_documents(cond) / size)
+    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    for i in range(page_count):
+        project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1, 'chars_col': 1}
+        pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        for p in pages:
+            print('[%s]processing %s' % (hp.get_date_time(), p['name']))
+            p['blocks'].sort(key=itemgetter('block_no'))
+            p['columns'].sort(key=itemgetter('block_no', 'column_no'))
+            p['chars'].sort(key=itemgetter('block_no', 'column_no', 'char_no'))
+            trans_cid = dict()
+            for n, c in enumerate(p['chars']):
+                if c.get('cid'):
+                    trans_cid[c['cid']] = n + 1
+                c['cid'] = n + 1
+            update = dict(blocks=p['blocks'], columns=p['columns'], chars=p['chars'])
+            if p['chars_col']:
+                chars_col = []
+                for row in p['chars_col']:
+                    chars_col.append([trans_cid[cid] for cid in row])
+                update['chars_col'] = chars_col
+            db.page.update_one({'_id': p['_id']}, {'$set': update})
 
 
 def trim_txt_blank(db):
