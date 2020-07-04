@@ -113,21 +113,32 @@ def update_order(db):
         pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
             print('[%s]processing %s' % (hp.get_date_time(), p['name']))
+            if p['chars'][0]['cid'] == 1:
+                continue
             p['blocks'].sort(key=itemgetter('block_no'))
             p['columns'].sort(key=itemgetter('block_no', 'column_no'))
             p['chars'].sort(key=cmp_to_key(cmp_char))
             trans_cid = dict()
+            no_error = True
             for n, c in enumerate(p['chars']):
-                if c.get('cid'):
+                try:
                     trans_cid[c['cid']] = n + 1
-                c['cid'] = n + 1
+                    c['cid'] = n + 1
+                except KeyError:
+                    no_error = False
+                    print('key error: %s' % c)
             update = dict(blocks=p['blocks'], columns=p['columns'], chars=p['chars'])
             if p['chars_col']:
                 chars_col = []
                 for row in p['chars_col']:
-                    chars_col.append([trans_cid[cid] for cid in row])
+                    try:
+                        chars_col.append([trans_cid[cid] for cid in row])
+                    except KeyError:
+                        no_error = False
+                        print('key error: %s' % row)
                 update['chars_col'] = chars_col
-            db.page.update_one({'_id': p['_id']}, {'$set': update})
+            if no_error:
+                db.page.update_one({'_id': p['_id']}, {'$set': update})
 
 
 def trim_txt_blank(db):
