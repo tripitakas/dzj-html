@@ -9,6 +9,8 @@ import math
 import json
 import pymongo
 from os import path, walk
+from operator import itemgetter
+from functools import cmp_to_key
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -90,6 +92,53 @@ def update_cid(db):
             if updated:
                 update = {k: page.get(k) for k in ['chars', 'columns', 'blocks']}
                 db.page.update_one({'_id': page['_id']}, {'$set': update})
+
+
+def update_order(db):
+    """ 更新切分框(包括栏框、列框、字框)的cid"""
+
+    def cmp_char(a, b):
+        for f in ['block_no', 'column_no', 'char_no']:
+            s = int(a.get(f) or 10000) - int(b.get(f) or 10000)
+            if s != 0:
+                return s
+        return False
+
+    size = 1000
+    cond = {'name': {'$regex': 'JS_'}}
+    page_count = math.ceil(db.page.count_documents(cond) / size)
+    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    for i in range(page_count):
+        project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1, 'chars_col': 1}
+        pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        for p in pages:
+            print('[%s]processing %s' % (hp.get_date_time(), p['name']))
+            if p['chars'][0]['cid'] == 1:
+                continue
+            p['blocks'].sort(key=itemgetter('block_no'))
+            p['columns'].sort(key=itemgetter('block_no', 'column_no'))
+            p['chars'].sort(key=cmp_to_key(cmp_char))
+            trans_cid = dict()
+            no_error = True
+            for n, c in enumerate(p['chars']):
+                try:
+                    trans_cid[c['cid']] = n + 1
+                    c['cid'] = n + 1
+                except KeyError:
+                    no_error = False
+                    print('key error: %s' % c)
+            update = dict(blocks=p['blocks'], columns=p['columns'], chars=p['chars'])
+            if p.get('chars_col'):
+                chars_col = []
+                for row in p['chars_col']:
+                    try:
+                        chars_col.append([trans_cid[cid] for cid in row])
+                    except KeyError:
+                        no_error = False
+                        print('key error: %s' % row)
+                update['chars_col'] = chars_col
+            if no_error:
+                db.page.update_one({'_id': p['_id']}, {'$set': update})
 
 
 def trim_txt_blank(db):

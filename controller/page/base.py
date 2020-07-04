@@ -252,7 +252,7 @@ class PageHandler(TaskHandler, Page, Box):
 
         def get_txt(box):
             if box_type == 'char':
-                return box['alternatives'][0] if box.get('alternatives') else '■'
+                return box.get('alternatives') and box['alternatives'][0] or box.get('ocr_txt') or ''
             elif box.get('sub_columns') and len(box['sub_columns']) > 1 and box['sub_columns'][1].get('ocr_txt'):
                 return ''.join([c.get('ocr_txt') or '' for c in box['sub_columns']])
             return box.get('ocr_txt') or ''

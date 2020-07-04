@@ -72,11 +72,11 @@ class CharTxtApi(CharHandler):
             # 检查数据等级和积分
             self.check_txt_level_and_point(self, char, self.data.get('task_type'))
             # 检查参数，设置更新
-            fields = ['txt', 'nor_txt', 'txt_type']
+            fields = ['txt', 'nor_txt', 'txt_type', 'remark']
             update = {k: self.data[k] for k in fields if self.data.get(k) not in ['', None]}
             if h.cmp_obj(update, char, fields):
                 return self.send_error_response(e.not_changed)
-            my_log = {k: self.data[k] for k in fields + ['remark', 'task_type'] if self.data.get(k) not in ['', None]}
+            my_log = {k: self.data[k] for k in fields + ['task_type'] if self.data.get(k) not in ['', None]}
             my_log.update({'updated_time': self.now()})
             new_log, logs = True, char.get('txt_logs') or []
             for i, log in enumerate(logs):
