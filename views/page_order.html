@@ -234,8 +234,9 @@
   // 获取提交数据
   function getPostData() {
     var r = $.cut.getCharsCol();
-    if (!r.error && r.chars_col.length !== parseInt('{{len(page["columns"])}}')) {
-      r.error = '列数有误，请检查是否有断开的列。';
+    var columnLen = parseInt('{{len(page["columns"])}}');
+    if (!r.error && r.chars_col.length !== columnLen) {
+      r.error = `${r.chars_col.length}(字序列数) != ${columnLen}(字框列数)，请检查。`;
     }
     if (r.error) {
       var tips = r.error;
