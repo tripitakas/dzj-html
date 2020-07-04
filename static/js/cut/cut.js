@@ -106,7 +106,7 @@
     })[0];
   }
 
-  function getMacCid(boxType) {
+  function getMaxCid(boxType) {
     var maxCid = 0;
     data.chars.forEach(function (box) {
       if (box.cid && box.cid > maxCid && (!boxType || box.class.indexOf(boxType) > -1)) {
@@ -840,7 +840,7 @@
         });
         if (c.cid === undefined) {
           var boxType = c.class && (c.class.indexOf('char') > -1 ? 'char' : c.class.indexOf('column') > -1 ? 'column' : 'block');
-          c.cid = getMacCid(boxType) + 1;
+          c.cid = getMaxCid(boxType) + 1;
         }
         if (c.class === 'block' || c.class === 'column') {
           if (ret.char_id.indexOf('new') === -1)
