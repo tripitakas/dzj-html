@@ -722,8 +722,8 @@
       var info = src && this.findCharById(src.data('char_id')) || {};
 
       info.added = info.added || !info.char_id;
-      info.changed = info.char_id;
-      if (!!info.char_id) {
+      info.changed = !!info.char_id;
+      if (!info.char_id) {
         for (var i = 1; i < 999; i++) {
           info.char_id = 'new' + i;
           if (!this.findCharById(info.char_id)) {
