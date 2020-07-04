@@ -291,14 +291,10 @@ class CharBrowseHandler(CharHandler):
             condition = Char.get_char_search_condition(self.request.query)[0]
             docs, pager, q, order = Char.find_by_page(self, condition)
             chars = {str(d['name']): d for d in docs}
-            column_url = ''
             for d in docs:
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
-                d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
-                if not column_url:
-                    column_url = self.get_web_img(column_name, 'column')
-            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order, column_url=column_url,
-                        chars=chars)
+                d['column']['img_url'] = self.get_web_img(column_name, 'column')
+            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order, chars=chars)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -382,18 +378,15 @@ class CharTaskClusterHandler(CharHandler):
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             chars = {d['name']: d for d in docs}
             # 设置列图hash值
-            column_url = ''
             for d in docs:
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
-                d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
-                if not column_url:
-                    column_url = self.get_web_img(column_name, 'column')
+                d['column']['img_url'] = self.get_web_img(column_name, 'column')
             char_count = self.task.get('char_count')
             show_char_info = json_util.loads(self.get_secure_cookie('cluster_char_info') or '0') or '是'
             self.render(
                 'char_cluster.html', docs=docs, pager=pager, q=q, order=order, chars=chars, ocr_txts=ocr_txts,
                 txts=txts, v_txts=v_txts, cur_txt=cur_txt, variants=variants, char_count=char_count,
-                column_url=column_url, show_char_info=show_char_info, Char=Char
+                show_char_info=show_char_info, Char=Char
             )
 
         except Exception as error:

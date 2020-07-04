@@ -106,21 +106,20 @@ $('.char-check input').on('click', function (e) {
 
 /** 中间列图面板 */
 // 更新列图
-var paper, charBox, getBox, curColUrl;
+var paper, charBox, getBox;
 
 function updateColumnImg(ch) {
   var column = ch.column; // 列框
   var columnImg = $('#col-holder'); // 列框容器DIV
   var ratio = Math.min(columnImg.height() / column.h, 108 / column.w);  // 列图显示比例
   var imgName = ch['page_name'] + '_' + ch.column.cid;  // 列图文件名
-  var imgPath = 'columns/' + imgName.split('_').slice(0, -1).join('/') + '/' + imgName + '_' + ch.column.hash + '.jpg';
-  var columnUrl = columnBaseUrl.replace(/columns\/.*?.jpg/, imgPath); // 列图URL
+  var columnUrl = ch.column.img_url + '?t=' + (+new Date()); // 列图URL
 
   if ($.cut) {
     $.cut.create({
       addDisable: true,
       holder: 'col-holder',
-      image: columnUrl + '?t=' + (+new Date()),
+      image: columnUrl,
       width: column.w,
       height: column.h,
       chars: [{x: ch.pos.x - column.x, y: ch.pos.y - column.y, w: ch.pos.w, h: ch.pos.h}]
