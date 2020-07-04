@@ -190,18 +190,12 @@
   };
 
   var undoData = {
-    d: {},
+    d: {level: 1},
     apply: null,
 
-    load: function (name, version, apply) {
-      console.assert(name && name.length > 1);
+    load: function (apply) {
       this.apply = apply;
-      this.d = {};
-      name += version || '';
-      if (this.d.name !== name) {
-        this.d = {name: name, level: 1};
-        localStorage.removeItem('cutUndo');
-      }
+      this.d = {level: 1};
       if (this.d.level === 1) {
         this.d.stack = [$.cut.exportBoxes()];
       } else {
@@ -209,7 +203,6 @@
       }
     },
     _save: function () {
-      localStorage.setItem('cutUndo', JSON.stringify(this.d));
     },
     change: function () {
       this.d.stack.length = this.d.level;
@@ -614,9 +607,7 @@
       });
       self.switchCurrentBox(leftTop);
       self.setRatio(1);
-      data.name = p.name;
-      data.version = p.version;
-      undoData.load(p.name, p.version, self._apply.bind(self));
+      undoData.load(self._apply.bind(self));
 
       return data;
     },
@@ -643,11 +634,11 @@
       }
     },
 
-    switchPage: function (name, pageData) {
+    switchPage: function (pageData) {
       this.setRatio();
       state.hover = state.edit = null;
       $.extend(data, pageData);
-      undoData.load(name || data.name, data.version, this._apply.bind(this));
+      undoData.load(this._apply.bind(this));
       this.navigate('left');
     },
 
