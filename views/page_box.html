@@ -31,10 +31,10 @@
         <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
         <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
         {% set steps_unfinished1 = 'steps_unfinished' in globals() and steps_unfinished %}
-        <div id="toggle-three" class="btn-txt icon-three{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
-        <div id="toggle-block" class="btn-txt icon-blocks{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-        <div id="toggle-column" class="btn-txt icon-columns{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-        <div id="toggle-char" class="btn-txt icon-chars active{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-three" class="btn-txt toggle-boxes icon-three{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
+        <div id="toggle-block" class="btn-txt toggle-boxes icon-blocks{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+        <div id="toggle-column" class="btn-txt toggle-boxes icon-columns{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+        <div id="toggle-char" class="btn-txt toggle-boxes icon-chars active{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
         <div class="btn-group hl-box more-group" id="more-group">
           <button id="toggle-all" class="btn btn-default btn-sm" type="button" title="显隐所有字框">所有<sup class="s-count"></sup></button>
@@ -145,15 +145,6 @@
   $.cut.bindKeys();
   $.cut.switchCurrentBox(null);
 
-  // 初始化
-  if ('{{steps_unfinished1}}' === 'True') {
-    updateImage(true, true);
-    updateThreeBoxes(true, false, false);
-  } else {
-    updateImage();
-    updateThreeBoxes();
-  }
-
   // 设置显隐图片、图片虚化
   function updateImage(display, blur) {
     if (!$.cut.data.image) return;
@@ -166,33 +157,35 @@
     $('#toggle-blur').toggleClass('active', blur);
   }
 
-  // 设置三种切分框的状态。默认显示字框、隐藏列框和栏框
+  // 设置三种切分框的状态
   function updateThreeBoxes(charActive, columnActive, blockActive) {
-    if (charActive === undefined) charActive = getStorage('toggleChar', '1') === '1';
-    $('#toggle-char').toggleClass('active', charActive);
+    var charActive = $('#toggle-char').hasClass('active');
+    var blockActive = $('#toggle-block').hasClass('active');
+    var columnActive = $('#toggle-column').hasClass('active');
+
     $.cut.toggleBox(charActive, 'char');
-
-    if (columnActive === undefined) columnActive = getStorage('toggleColumn', '-1') === '1';
-    $('#toggle-column').toggleClass('active', columnActive);
     $.cut.toggleBox(columnActive, 'column');
-
-    if (blockActive === undefined) blockActive = getStorage('toggleBlock', '-1') === '1';
-    $('#toggle-block').toggleClass('active', blockActive);
     $.cut.toggleBox(blockActive, 'block');
+    if (!charActive && !columnActive && blockActive) {
+      $.cut.showGrayBox('column');
+    }
+    if (!charActive && !blockActive && columnActive) {
+      $.cut.showGrayBox('char');
+    }
+    $.cut.switchCurrentBox(null);
   }
 
   $.cut.state.canHitBox = function (el) {
     var boxType = $('.task-step.active').attr('data-value');
-    var threeActive = (stepsFinished || !boxType) && $('#toggle-three').hasClass('active');
     var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
     var blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
     var columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
 
     // 栏框内的列字框可显示不能点击，列框内的字框同理。而 readonly 属性用于部分明确是只读的框，可点击不可编辑
     if (el.data('_readonly')) return false;
-    if ((charActive || threeActive) && el.data('class') === 'char') return true;
-    if ((blockActive || threeActive) && el.data('class') === 'block') return true;
-    if ((columnActive || threeActive) && el.data('class') === 'column') return true;
+    if (charActive && el.data('class') === 'char') return true;
+    if (blockActive && el.data('class') === 'block') return true;
+    if (columnActive && el.data('class') === 'column') return true;
   };
 
   $.cut.onBoxChanged(function (info, box, reason) {
@@ -202,6 +195,7 @@
       var blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
       var columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
       var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
+
       if (active.length > 6) {
         $.cut.removeBox();
         bsShow('失败！', '当前显示有多种切分框，请仅选择其中一个，然后再创建。', 'warning');
@@ -229,14 +223,14 @@
         $('.m-footer .char-name').text('未选中');
         $('.m-footer .char-info').text('');
       }
-    } else if (reason === 'initial' || reason === 'undo') {
+    } else if (reason === 'initial') {
       var invalid = $.cut.data.chars.map(function (c) {
         return /b0c/.test(c.char_id) && c.char_id;
       });
-      // updateThreeBoxes();
-      showHighLightCount();
       $.cut.toggleClass(invalid, null, 'flash', true);
       $.cut.toggleBox(true, null, invalid);
+    } else if (reason === 'undo') {
+      updateThreeBoxes();
     }
   }, true);
 
@@ -301,18 +295,21 @@
   // 切换步骤
   var stepsFinished = null;
   var clickedSteps = ['char'];
+
   $('.task-step').on('click', function () {
     var boxType = $(this).attr('data-value');
-    if (clickedSteps.indexOf(boxType) === -1) clickedSteps.push(boxType);
-    $.cut.toggleBox(false);
-    $.cut.toggleBox(true, boxType);
+
+    if (clickedSteps.indexOf(boxType) === -1) {
+      clickedSteps.push(boxType);
+    }
     $('.task-step').removeClass('active');
     $(this).addClass('active');
+
     $('#toggle-three').removeClass('active');
     $('#toggle-char').toggleClass('active', boxType === 'char');
     $('#toggle-block').toggleClass('active', boxType === 'block');
     $('#toggle-column').toggleClass('active', boxType === 'column');
-    showHighLightCount();
+    updateThreeBoxes();
   });
 
   // 提交步骤
@@ -329,6 +326,19 @@
     var from = decodeFrom() ? '?from=' + decodeFrom() : '';
     location.href = '/page/order/{{page["name"]}}' + from;
   });
+
+  // 初始化
+  if ('{{steps_unfinished1}}' === 'True') {
+    updateImage(true, true);
+    $('#task-step1').click();
+  } else {
+    updateImage();
+    $('#toggle-three').removeClass('active');
+    $('#toggle-char').toggleClass('active', getStorage('toggleChar', '1') === '1');
+    $('#toggle-block').toggleClass('active', getStorage('toggleBlock', '-1') === '1');
+    $('#toggle-column').toggleClass('active', getStorage('toggleColumn', '-1') === '1');
+    updateThreeBoxes();
+  }
 
 </script>
 </body>

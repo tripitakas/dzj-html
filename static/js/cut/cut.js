@@ -1060,14 +1060,18 @@
       }
     },
 
-    toggleBox: function (visible, cls, boxIds, readonly) {
+    showGrayBox: function(cls) {
+      this.toggleBox(true, cls, null, true);
+    },
+
+    toggleBox: function (visible, cls, boxIds, grayBox) {
       data.chars.forEach(function (box) {
         if (box.shape && (!cls || cls === box.shape.data('class'))
             && (!boxIds || (boxIds.indexOf(box.char_id) >= 0 || boxIds.indexOf(box.cid) >= 0))) {
-          var readonly2 = readonly || box.readonly;
+          var readonly2 = grayBox || box.readonly;
           if (!$(box.shape.node).hasClass('flash')) {
-            $(box.shape.node).toggle(visible || !!readonly);
-            box.shape.data('_readonly', readonly);
+            $(box.shape.node).toggle(visible || grayBox || false);
+            box.shape.data('_readonly', grayBox);
             box.shape.attr({
               opacity: readonly2 ? 0.3 : 1,
               stroke: (box.column_no || 0) % 2 ?
