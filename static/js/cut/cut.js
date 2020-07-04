@@ -555,7 +555,7 @@
 
       data.image = p.image && p.image.indexOf('err=1') < 0 && data.paper.image(p.image, 0, 0, p.width, p.height);
       data.board = data.paper.rect(0, 0, p.width, p.height)
-          .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
+          .attr({stroke: 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
@@ -720,10 +720,11 @@
       }
 
       var info = src && this.findCharById(src.data('char_id')) || {};
+      var added = !info.char_id;
 
-      info.added = info.added || !info.char_id;
-      info.changed = !!info.char_id;
-      if (!info.char_id) {
+      info.added = info.added || added; // 保存新增标记
+      info.changed = !added;  // 新增再改动就会变为已修改
+      if (added) {
         for (var i = 1; i < 999; i++) {
           info.char_id = 'new' + i;
           if (!this.findCharById(info.char_id)) {
