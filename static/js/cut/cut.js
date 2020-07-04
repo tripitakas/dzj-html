@@ -558,13 +558,20 @@
           .attr({stroke: 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
+
+      var w = data.scrollContainer ? data.scrollContainer.width() : $(data.holder).width();
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
-      data.ratioInitial = (h - 20) / p.height;
-      if (h && p.widthFull) {
-        data.ratioInitial = ($(data.holder).width() - 20) / p.width;
-      }
+      var wRatio = (w - 10) / p.width;
+      var hRatio = (h - 20) / p.height;
+      data.ratioInitial = hRatio;
       if (p.minRatio) {
-        data.ratioInitial = p.minRatio;
+        data.ratioInitial = Math.min(hRatio, wRatio);
+      } else if (p.maxRatio) {
+        data.ratioInitial = Math.max(hRatio, wRatio);
+      } else if (p.wRatio) {
+        data.ratioInitial = wRatio;
+      } else if (p.uRatio) {
+        data.ratioInitial = p.uRatio;
       }
       Raphael.maxStrokeWidthZoom = data.ratioInitial * 1.5;
 
