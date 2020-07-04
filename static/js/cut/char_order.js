@@ -311,13 +311,14 @@
       self.state.avgLen = 0;
       this.remove();
       this.chars_col = chars_col || this.chars_col || [];
-      this.linksOfCol = this.chars_col.map(function (ids, colIndex) {
+      this.linksOfCol = this.chars_col.map(function (ids) {
         return (ids.length === 1 ? ids : ids.slice(1)).map(function (id, i) {
           var c1 = self.findNode(ids[i]), c2 = self.findNode(id);
           if (!c1 || !c2 /*|| !c1.isValidId() || !c2.isValidId()*/) {
             return;
           }
           var link = new Link(c1, c2);
+          var colIndex = c1.char.column_no;
           link.shapes.line = link.createLine(colors.link[colIndex % 2]);
           self.links.push(link);
           self.state.avgLen += getDistance(link.getStartPos(), link.getEndPos());
