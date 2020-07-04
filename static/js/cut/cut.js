@@ -106,7 +106,7 @@
     })[0];
   }
 
-  function getMacCid(boxType) {
+  function getMaxCid(boxType) {
     var maxCid = 0;
     data.chars.forEach(function (box) {
       if (box.cid && box.cid > maxCid && (!boxType || box.class.indexOf(boxType) > -1)) {
@@ -150,9 +150,9 @@
   }
 
   var data = {
-    normalColor: '#59b138',                   // 正常字框的线色
-    normalColor2: '#6966c8',                  // 另一列字框的的线色
-    changedColor: '#C53433',                  // 改动字框的线色
+    normalColor: '#008000',                   // 正常字框的线色
+    normalColor2: '#0000ff',                  // 另一列字框的的线色
+    changedColor: '#C53433',                   // 改动字框的线色
     hoverColor: '#e42d81',                    // 掠过时的字框线色
     hoverFill: '#ff0000',                     // 掠过时的字框填充色
     handleColor: '#e3e459',                   // 字框控制点的线色
@@ -190,18 +190,12 @@
   };
 
   var undoData = {
-    d: {},
+    d: {level: 1},
     apply: null,
 
-    load: function (name, version, apply) {
-      console.assert(name && name.length > 1);
+    load: function (apply) {
       this.apply = apply;
-      this.d = {};
-      name += version || '';
-      if (this.d.name !== name) {
-        this.d = {name: name, level: 1};
-        localStorage.removeItem('cutUndo');
-      }
+      this.d = {level: 1};
       if (this.d.level === 1) {
         this.d.stack = [$.cut.exportBoxes()];
       } else {
@@ -209,7 +203,6 @@
       }
     },
     _save: function () {
-      localStorage.setItem('cutUndo', JSON.stringify(this.d));
     },
     change: function () {
       this.d.stack.length = this.d.level;
@@ -562,7 +555,7 @@
 
       data.image = p.image && p.image.indexOf('err=1') < 0 && data.paper.image(p.image, 0, 0, p.width, p.height);
       data.board = data.paper.rect(0, 0, p.width, p.height)
-          .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
+          .attr({stroke: 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
@@ -614,9 +607,7 @@
       });
       self.switchCurrentBox(leftTop);
       self.setRatio(1);
-      data.name = p.name;
-      data.version = p.version;
-      undoData.load(p.name, p.version, self._apply.bind(self));
+      undoData.load(self._apply.bind(self));
 
       return data;
     },
@@ -643,11 +634,11 @@
       }
     },
 
-    switchPage: function (name, pageData) {
+    switchPage: function (pageData) {
       this.setRatio();
       state.hover = state.edit = null;
       $.extend(data, pageData);
-      undoData.load(name || data.name, data.version, this._apply.bind(this));
+      undoData.load(this._apply.bind(this));
       this.navigate('left');
     },
 
@@ -731,8 +722,8 @@
       var info = src && this.findCharById(src.data('char_id')) || {};
       var added = !info.char_id;
 
-      info.added = added;
-      info.changed = !added;
+      info.added = info.added || added; // 保存新增标记
+      info.changed = !info.added;
       if (added) {
         for (var i = 1; i < 999; i++) {
           info.char_id = 'new' + i;
@@ -849,7 +840,7 @@
         });
         if (c.cid === undefined) {
           var boxType = c.class && (c.class.indexOf('char') > -1 ? 'char' : c.class.indexOf('column') > -1 ? 'column' : 'block');
-          c.cid = getMacCid(boxType) + 1;
+          c.cid = getMaxCid(boxType) + 1;
         }
         if (c.class === 'block' || c.class === 'column') {
           if (ret.char_id.indexOf('new') === -1)
@@ -1069,14 +1060,18 @@
       }
     },
 
-    toggleBox: function (visible, cls, boxIds, readonly) {
+    showGrayBox: function (cls) {
+      this.toggleBox(true, cls, null, true);
+    },
+
+    toggleBox: function (visible, cls, boxIds, grayBox) {
       data.chars.forEach(function (box) {
         if (box.shape && (!cls || cls === box.shape.data('class'))
             && (!boxIds || (boxIds.indexOf(box.char_id) >= 0 || boxIds.indexOf(box.cid) >= 0))) {
-          var readonly2 = readonly || box.readonly;
+          var readonly2 = grayBox || box.readonly;
           if (!$(box.shape.node).hasClass('flash')) {
-            $(box.shape.node).toggle(visible || !!readonly);
-            box.shape.data('_readonly', readonly);
+            $(box.shape.node).toggle(visible || grayBox || false);
+            box.shape.data('_readonly', grayBox);
             box.shape.attr({
               opacity: readonly2 ? 0.3 : 1,
               stroke: (box.column_no || 0) % 2 ?

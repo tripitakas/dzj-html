@@ -678,6 +678,7 @@ body.widescreen {
 
 .btn-txt.disabled {
   color: #aaa;
+  cursor: not-allowed;
 }
 
 .btn-nav {
