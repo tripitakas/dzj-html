@@ -117,6 +117,7 @@ function updateColumnImg(ch) {
 
   if ($.cut) {
     $.cut.create({
+      minRatio: true,
       addDisable: true,
       holder: 'col-holder',
       image: columnUrl,

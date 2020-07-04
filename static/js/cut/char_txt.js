@@ -172,8 +172,8 @@ Array.min = Array.min || function(array) {
         width: size.width,
         height: size.height,
         chars: size.boxes,
-        widthFull: true,
-        minRatio: 0.4
+        wRatio: true,
+        uRatio: 0.4
       });
       createImageText();
     },
