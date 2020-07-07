@@ -231,6 +231,8 @@ def reset_cluster_proof(db, user_no=None):
     chars = db.char.find({'ocr_txt': {'$in': txt_kinds}}, {'ocr_txt': 1})
     for c in chars:
         db.char.update_one({'_id': c['_id']}, {'$set': {'txt': c['ocr_txt'], 'txt_logs': [], 'tasks': {}}})
+    # 清空用户新增的异体字
+    db.variant.delete_many({'create_by': '考核账号%d' % user_no if user_no else {'$regex': '考核账号'}})
 
 
 def initial_run(db):
