@@ -8,6 +8,7 @@ from .base import PageHandler
 from controller import helper as h
 from controller import validate as v
 from .api import PageBoxApi, PageOrderApi
+from controller.char.base import CharHandler
 
 
 class PageTaskPublishApi(PageHandler):
@@ -169,6 +170,23 @@ class PageTaskCutApi(PageHandler):
                     self.update_page_status(self.STATUS_FINISHED, self.task)
                 PageOrderApi.save_order(self, self.task['doc_id'])
                 self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class PageTaskTextApi(PageHandler):
+    URL = ['/api/task/do/(text_proof|text_review)/@task_id',
+           '/api/task/update/(text_proof|text_review)/@task_id']
+
+    def post(self, task_type, task_id):
+        """ 文字校对、审定页面"""
+        try:
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
+                'status': self.STATUS_FINISHED, 'finished_time': self.now()
+            }})
+            self.update_page_status(self.STATUS_FINISHED, self.task)
+            return self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)

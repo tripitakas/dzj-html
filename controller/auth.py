@@ -25,7 +25,7 @@ url_placeholder = {
     'ocr_task': r'import_image|ocr_box|ocr_text|upload_cloud',
     'page_task': r'cut_proof|cut_review|txt_match|find_cmp',
     'cluster_task': r'cluster_proof|cluster_review|rare_proof|rare_review',
-    'task_type': r'ocr_\w+|cut_\w+|txt_\w+|cluster_\w+|rare_\w+|txt_match|find_cmp',
+    'task_type': r'ocr_\w+|cut_\w+|text_\w+|cluster_\w+|rare_\w+|txt_match|find_cmp',
 }
 
 """ 
@@ -128,6 +128,27 @@ role_route_maps = {
             '/api/task/(do|update)/(find_cmp|txt_match)/@task_id': ['POST'],
         }
     },
+    '文字校对员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/task/(lobby|my)/text_proof': ['GET'],
+            '/api/task/pick/text_proof': ['POST'],
+            '/task/(do|update)/text_proof/@task_id': ['GET'],
+            '/api/task/(do|update)/text_proof/@task_id': ['POST'],
+        }
+    },
+    '文字审定员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/task/(lobby|my)/text_review': ['GET'],
+            '/api/task/pick/text_review': ['POST'],
+            '/task/(do|update)/text_review/@task_id': ['GET'],
+            '/api/task/(do|update)/text_review/@task_id': ['POST'],
+            '/api/data/variant': ['POST'],
+        }
+    },
     '聚类校对员': {
         'is_assignable': True,
         'roles': ['工作人员'],
@@ -174,7 +195,7 @@ role_route_maps = {
     },
     '文字专家': {
         'is_assignable': True,
-        'roles': ['工作人员', '文字预处理员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],
+        'roles': ['工作人员', '文字预处理员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],
         'routes': {}
     },
     'OCR加工员': {

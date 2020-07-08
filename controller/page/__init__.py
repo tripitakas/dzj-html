@@ -4,7 +4,8 @@ views = [
     view.PageListHandler, view.PageBrowseHandler, view.PageViewHandler, view.PageInfoHandler,
     view.PageBoxHandler, view.PageOrderHandler, view.PageTxtHandler,
     view.PageTxtMatchHandler, view.PageFindCmpHandler,
-    vt.PageTaskCutHandler, vt.PageTaskListHandler, vt.PageTaskStatHandler, vt.PageTaskResumeHandler,
+    vt.PageTaskCutHandler, vt.PageTaskTextHandler,
+    vt.PageTaskListHandler, vt.PageTaskStatHandler, vt.PageTaskResumeHandler,
 ]
 
 handlers = [
@@ -12,5 +13,6 @@ handlers = [
     api.PageCmpTxtApi, api.PageFindCmpTxtApi, api.PageCmpTxtNeighborApi,
     api.PageBoxApi, api.PageOrderApi, api.PageCharBoxApi, api.PageCharTxtApi,
     api.PageTxtMatchApi, api.PageTxtMatchDiffApi, api.PageStartGenCharsApi, api.PageStartCheckMatchApi,
-    at.PageTaskPublishApi, at.PageTaskCutApi, ao.FetchTasksApi, ao.SubmitTasksApi, ao.ConfirmFetchApi,
+    at.PageTaskPublishApi, at.PageTaskCutApi, at.PageTaskTextApi,
+    ao.FetchTasksApi, ao.SubmitTasksApi, ao.ConfirmFetchApi,
 ]

@@ -96,9 +96,10 @@
         <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
         <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-order" class="btn-txt icon-char-order" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
+        <div id="toggle-layout1" class="btn-txt icon-right-panel2" data-toggle="tooltip" data-placement="bottom" title="切换为列图模式"></div>
       </div>
       <div class="right">
-        <div id="toggle-layout1" class="btn-txt icon-right-panel" data-toggle="tooltip" data-placement="bottom" title="切换为列图模式"></div>
         {% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_task_btns.html %} {% end %}
       </div>
     </div>

@@ -29,6 +29,8 @@ class ComLeft(UIModule):
             dict(name='任务大厅', icon='icon-task-lobby', id='task-lobby', sub_items=[
                 dict(name='切分校对', icon='icon-subitem', link='/task/lobby/cut_proof'),
                 dict(name='切分审定', icon='icon-subitem', link='/task/lobby/cut_review'),
+                dict(name='文字校对', icon='icon-subitem', link='/task/lobby/text_proof'),
+                dict(name='文字审定', icon='icon-subitem', link='/task/lobby/text_review'),
                 dict(name='聚类校对', icon='icon-subitem', link='/task/lobby/cluster_proof'),
                 dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/cluster_review'),
                 dict(name='生僻校对', icon='icon-subitem', link='/task/lobby/rare_proof'),
@@ -37,6 +39,8 @@ class ComLeft(UIModule):
             dict(name='我的任务', icon='icon-task-my', id='task-my', sub_items=[
                 dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
                 dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
+                dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof'),
+                dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review'),
                 dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof'),
                 dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review'),
                 dict(name='生僻校对', icon='icon-subitem', link='/task/my/rare_proof'),
