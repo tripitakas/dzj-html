@@ -290,7 +290,7 @@ class PageHandler(TaskHandler, Page, Box):
     def char2html(cls, chars):
         def span(ch):
             txt = ch.get('txt') or ch.get('ocr_txt')
-            txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if ch.get(k)))
+            txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if ch.get(k) not in [None, '■']))
             is_same = len(txts) == 1
             is_variant = v.is_variants(txts)
             classes = 'char' if is_same else 'char is_variant' if is_variant else 'char diff'
