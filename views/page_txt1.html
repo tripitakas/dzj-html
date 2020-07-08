@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{page_title+'-'+page["name"]}}</title>
+  {% include com/_base_css.html %}
+  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet"/>
+  <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet">
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    text tspan {
+      font-size: 20px;
+      fill: #333 !important;
+      font-weight: 400 !important;
+    }
+  </style>
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+        </div>
+        <div class="title" title="{{page['name']}}">{{page_title}}</div>
+      </div><!--left-->
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="toggle-right" class="btn-txt icon-txt active}}" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+        <div id="toggle-block" class="btn-txt icon-blocks" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+        <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+        <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-order" class="btn-txt icon-char-order" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
+      </div>
+      <div class="right">
+        <div id="toggle-layout0" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="切换为页图模式"></div>
+        {% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_task_btns.html %} {% end %}
+      </div>
+    </div>
+    <div class="m-body flex">
+      <div id="left-region" class="left bd">
+        <div id="holder"></div>
+      </div>
+      <div id="right-region" class="right bd work-panel">
+        {% set ch = page["chars"] and page["chars"][0] or {} %}
+        {% module CharTxt(ch, show_base=False, submit_id='submit-page-txt') %}
+      </div>
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        页编码：<span class="page-name">{{page['name']}}</span>
+      </span>
+      <span class="fr">
+        当前字框：<span class="char-name">未选中</span><span class="char-info"></span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档</h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、功能概述</div>
+          <div class="intro">
+            本页面用于检查每个字框对应的单字内容，并对不正确的字进行修改。<br/>
+            可输入正确的字，或者选择一个后续字，应以原始图片为准，异体字可在“<a href="http://hanzi.lqdzj.cn/variant_search" target="_blank">龙泉字库</a>”网站检索。<br/>
+            <b>注：</b>请您看下第三部分的快捷键介绍。通过键盘快捷键进行操作，可以很好的提升效率。
+          </div>
+          <div class="title">二、功能按钮</div>
+          <table class="table">
+            <tr>
+              <td><i class="icon-return-back"></i></td>
+              <td>返回去识别其它页面图片</td>
+            </tr>
+            <tr>
+              <td><i class="icon-zoom-back"></i></td>
+              <td>缩放到初始比例</td>
+            </tr>
+            <tr>
+              <td>候选字按钮</td>
+              <td>将当前字框的字及输入框内容改为候选字，点击后不用再点“改”按钮</td>
+            </tr>
+            <tr>
+              <td>“改”按钮</td>
+              <td>将左侧输入框的字应用到当前字框，在输入框按回车也行</td>
+            </tr>
+          </table>
+          <div class="title">三、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+            <tr>
+              <td>方向键</td>
+              <td>按照方向键↑→↓←的指示，切换当前字框</td>
+            </tr>
+            <tr>
+              <td>wsad</td>
+              <td>按照指示（wsad代表上下左右四个方向）移动当前字框</td>
+            </tr>
+            <tr>
+              <td>shift + 方向键</td>
+              <td>shift表示扩大字框，方向键代表字框的四条边</td>
+            </tr>
+            <tr>
+              <td>alt + 方向键</td>
+              <td>alt表示缩小字框，方向键代表字框的四条边</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include com/_base_js.html %}
+{% include com/_base_cut.html %}
+<script src="{{static_url('js/char.js')}}"></script>
+<script src="{{static_url('js/char-txt.js')}}"></script>
+<script src="{{static_url('js/cut/char_txt.js') }}"></script>
+<script>
+  var from = decodeFrom();
+  var pageName = '{{page["name"]}}';
+  var chars = decodeJSON("{{dumps(chars)}}");
+  var columnDict = decodeJSON("{{dumps(column_dict)}}");
+  var taskType = '{{handler.task_type or ""}}';
+  var txtTypes = decodeJSON('{{dumps(txt_types)}}');
+
+  // 显示页面图和切分框
+  $.cut.createColumns({
+    holder: 'holder',
+    scrollContainer: '#left-region',
+    image: '{{img_url}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    blocks: '{{page["blocks"]}}',
+    columns: '{{page["columns"]}}',
+    chars: '{{handler.pop_fields(page["chars"], "box_logs,txt_logs")}}',
+  });
+  $.cut.bindKeys();
+
+  // 字框切换时更新字输入元素
+  $.cut.onBoxChanged(function (info, box, reason) {
+    if (reason === 'navigate') {
+      if (info.class === 'char') {
+        var ch = chars[pageName + '_' + info.cid];
+        updateCharTxtPanel(ch);
+        $('.m-footer .char-info').text(ch.txt || ch.ocr_txt);
+        $('.m-footer .char-name').text(ch.char_id + '#' + ch.cid);
+      }
+      if (info.class === 'column') {
+        var ch = columnDict[info.column_id] || {};
+        $('.m-footer .char-info').text(ch.txt || ch.ocr_txt);
+        $('.m-footer .char-name').text(ch.column_id + '#' + ch.cid);
+        info.shape.attr({'fill-opacity': 0.2});
+      }
+    }
+  }, true);
+
+  // 保存文本
+  $('#submit-page-txt').on('click', function () {
+    if ($(this).hasClass('disabled')) return;
+    var name = $('.char-edit .current-name').val();
+    var ch = chars[name];
+    var data = {
+      task_type: taskType || '',
+      txt: $('.proof .txt').val() || '',
+      nor_txt: $('.proof .nor-txt').val() || '',
+      txt_type: $('.txt-types :checked').val() || '',
+      remark: $('.proof .remark').val() || '',
+    };
+    postApi('/page/char/txt/' + name, {data: data}, function (res) {
+      bsShow('成功！', '已保存成功', 'success', 1000, '#s-alert');
+      if (typeof chars !== 'undefined') {
+        data.txt_logs = res.txt_logs;
+        chars[name] = $.extend(chars[name], data);
+      }
+      updateTxtLogs(res.txt_logs);
+      updateBaseInfo(chars[name]);
+      // 更新文本
+      $('#t' + ch.char_id).addClass('changed').find('tspan').text(data.txt || data.nor_txt);
+    });
+  });
+
+  $('#toggle-layout0').on('click', function () {
+    location.href = deleteQueryString('layout');
+  });
+
+</script>
+</body>
+</html>

@@ -99,14 +99,15 @@ class PageHandler(TaskHandler, Page, Box):
         for b in page['blocks']:
             b['readonly'] = not self.can_write(b, page, task_type)
 
-    def pack_boxes(self, page, extract_sub_columns=None):
-        self.pop_fields(page['chars'], 'box_logs')
+    def pack_boxes(self, page, pack_chars=True, extract_sub_columns=False):
         self.pop_fields(page['blocks'], 'box_logs')
         if extract_sub_columns:
             for col in page['columns']:
                 if col.get('sub_columns'):
                     page['columns'].extend(col['sub_columns'])
         self.pop_fields(page['columns'], 'box_logs,sub_columns')
+        if pack_chars:
+            self.pop_fields(page['chars'], 'box_logs,txt_logs')
 
     @classmethod
     def filter_symbol(cls, txt):
@@ -147,10 +148,25 @@ class PageHandler(TaskHandler, Page, Box):
         cls.write_back_txt(page['chars'], txt2apply, field)
         return match, txt2apply
 
+    def merge_txt_logs(self, user_log, txt_logs):
+        """ 合并log至txt_logs中。如果用户已在txt_logs中，则更新用户已有的log；否则，新增一条log"""
+        is_new = True
+        txt_logs = txt_logs or []
+        user_log['updated_time'] = self.now()
+        for i, log in enumerate(txt_logs):
+            if log.get('user_id') == self.user_id:
+                log.update(user_log)
+                is_new = False
+        if is_new:
+            user_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
+            txt_logs.append(user_log)
+        return txt_logs
+
     def merge_box_logs(self, user_log, box_logs):
         """ 合并log至box_logs中。如果用户已在box_logs中，则更新用户已有的log；否则，新增一条log"""
         assert 'pos' in user_log
         is_new = True
+        box_logs = box_logs or []
         user_log['updated_time'] = self.now()
         for i, log in enumerate(box_logs):
             if log.get('user_id') == self.user_id:

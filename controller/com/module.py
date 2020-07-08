@@ -199,15 +199,15 @@ class CharTxt(UIModule):
             return '%s/%s' % (Task.get_task_name(value[0]), value[1])
         return h.format_value(value, key, doc)
 
-    def render(self, char, show_base=False, txt_fields=None, readonly=None):
+    def render(self, char, show_base=False, txt_fields=None, readonly=None, submit_id=None):
         """ 单字校对区域"""
 
         txt_fields = txt_fields or ['txt', 'nor_txt']
         base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt', 'nor_txt',
                        'txt_type', 'box_level', 'box_point', 'txt_level', 'txt_point', 'remark']
         return self.render_string(
-            'com/_char_txt.html', char=char, txt_fields=txt_fields, show_base=show_base,
-            base_fields=base_fields, readonly=readonly, Char=Char, format_value=self.format_value,
+            'com/_char_txt.html', Char=Char, char=char, txt_fields=txt_fields, show_base=show_base,
+            submit_id=submit_id, base_fields=base_fields, readonly=readonly, format_value=self.format_value,
             to_date_str=lambda t, fmt='%Y-%m-%d %H:%M': h.get_date_time(fmt=fmt, date_time=t) if t else ''
         )
 

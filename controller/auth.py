@@ -89,7 +89,8 @@ role_route_maps = {
             '/api/page/txt/(diff|detect_chars)': ['POST'],
             '/char/@char_name': ['GET'],
             '/api/chars/(txt|txt_type|box)': ['POST'],
-            '/api/char/(txt|box)/@char_name': ['POST'],
+            '/api/char/txt/@char_name': ['POST'],
+            '/api/page/char/(box|txt)/@char_name': ['POST'],
         }
     },
     '切分校对员': {
@@ -225,7 +226,7 @@ role_route_maps = {
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
             '/api/page': ['POST'],
-            '/page/(box|order|find_cmp|ocr_col|cmp_txt|txt|text_proof|txt_proof)/@page_name': ['GET'],
+            '/page/(box|order|txt|txt_match|find_cmp)/@page_name': ['GET'],
             '/api/page/(delete|source|start_gen_chars|start_check_match)': ['POST'],
             '/api/page/(box|order|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
             '/char/(list|browse|statistic)': ['GET'],

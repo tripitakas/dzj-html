@@ -838,6 +838,11 @@ body.widescreen {
   margin: 20px 0;
 }
 
+.wide-txt {
+  font-family: 宋体, KaiXinSong, Arial, Helvetica, sans-serif;
+  /*font-family: Microsoft YaHei, SimSun, sans-serif, Helvetica Neue, Helvetica, KaiXinSong;*/
+}
+
 /* 帮助文档modal */
 .modal a.more-help {
   color: var(--Brown_Dark);

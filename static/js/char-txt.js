@@ -74,7 +74,7 @@ function updateCharTxtPanel(ch) {
   $('.proof .nor-txt').val(ch.nor_txt || '');
   $('.proof .remark').val('');
   $('.proof .txt-types :radio').each(function (i, item) {
-    $(item).val() === (ch.txt_type || '') ? $(item).prop('checked', true) : $(item).removeAttr('checked');
+    $(item).val() === (ch.txt_type || 'Y') ? $(item).prop('checked', true) : $(item).removeAttr('checked');
   });
 }
 

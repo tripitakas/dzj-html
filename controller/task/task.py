@@ -76,9 +76,13 @@ class Task(Model):
             'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
             'publishable': False, 'remark': '不要设置校次，以免影响field字段',
         },
-        'find_cmp': {
-            'name': '比对文本', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': False,
+        'text_proof': {
+            'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
+            'num': [1, 2, 3], 'pre_tasks': ['cut_review'], 'publishable': True,
+        },
+        'text_review': {
+            'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['text_proof'], 'publishable': True,
         },
         'cluster_proof': {
             'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},
