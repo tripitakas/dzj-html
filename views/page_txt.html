@@ -13,9 +13,10 @@
   <![endif]-->
   <style>
     .line {
-      letter-spacing: 2px;
+      font-size: 0;
       display: flex;
       flex-wrap: wrap;
+      letter-spacing: 1px;
     }
 
     .line.current-line {
@@ -61,7 +62,9 @@
     }
 
     .current-char {
-      color: #800000;
+      color: #fff;
+      opacity: 0.6;
+      background: #FF0000;
     }
 
     .sutra-texts {
@@ -96,6 +99,8 @@
         <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
         <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-order" class="btn-txt icon-char-order" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+        <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
+        <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
         <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
         <div id="toggle-layout1" class="btn-txt icon-right-panel2" data-toggle="tooltip" data-placement="bottom" title="切换为列图模式"></div>
       </div>
@@ -191,14 +196,11 @@
 <script src="{{static_url('js/char.js')}}"></script>
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
-  var from = decodeFrom();
+  var taskType = '{{handler.task_type or ""}}';
+  var from = taskType ? '/task/lobby/' + taskType : decodeFrom();
   var pageName = '{{page["name"]}}';
   var chars = decodeJSON("{{dumps(chars)}}");
-  var taskType = '{{handler.task_type or ""}}';
   var txtTypes = decodeJSON('{{dumps(txt_types)}}');
-
-  $('#help').on('click', () => $('#helpModal').modal());
-  window.leave = () => from ? window.location = from : window.history.back();
 
   // 切换文本
   $('.char').on('click', function () {
