@@ -168,6 +168,7 @@ class PageTaskTextHandler(PageHandler):
     def get(self, task_type, task_id):
         """ 文字校对、审定页面"""
         try:
+            self.page_title = '文字审定' if task_type == 'text_review' else '文字校对'
             PageTxtHandler.page_txt(self, self.task['doc_id'])
 
         except Exception as error:

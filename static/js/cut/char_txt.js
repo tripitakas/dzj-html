@@ -67,12 +67,10 @@ Array.min = Array.min || function (array) {
           c._text = null;
         }
         if (c._box && c.txt && '?N□'.indexOf(c.txt) < 0) {
-          var x = c._box.x + c.w / 2;
-          var y = c._box.y + c.h / 2 + 20;
-          var cls = 'char-txt';
-          if (c.is_small) cls += ' small-txt';
-          if (c.class) cls = cls + ' ' + c.class;
-          c._text = data.paper.text(x * ratio, y * ratio, c.txt).attr({'class': cls});
+          var x = c._box.x + c.w / 2, y = c._box.y + c.h / 2;
+          var cls = c.class ? 'char-txt' + ' ' + c.class : 'char-txt';
+          c._text = data.paper.text(x * ratio, y * ratio, c.txt)
+              .attr({'class': cls, 'font-size': 30 * c.ratio});
           c._text.node.id = 't' + c.char_id;
         }
       });

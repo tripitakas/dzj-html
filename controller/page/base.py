@@ -22,6 +22,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
+        self.page_title = ''
 
     @classmethod
     def get_required_box_level(cls, char):
@@ -300,9 +301,9 @@ class PageHandler(TaskHandler, Page, Box):
     @classmethod
     def char2html(cls, chars):
         def span(ch):
-            txt = ch.get('txt') or ch.get('ocr_txt') or '■'
             classes = 'char ' + ch['class'] if ch['class'] else 'char'
-            return '<span id="%s" class="char %s">%s</span>' % (ch['cid'], classes, txt)
+            txt = ch.get('txt') if ch.get('txt') not in [None, '■'] else ch.get('ocr_txt') or '■'
+            return '<span id="%s" class="%s">%s</span>' % (ch['cid'], classes, txt)
 
         if not chars:
             return ''

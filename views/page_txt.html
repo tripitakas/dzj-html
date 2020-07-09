@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{page_title+'-'+page["name"]}}</title>
+  <title>{{handler.page_title+'-'+page["name"]}}</title>
   {% include com/_base_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/char.css')}}" rel="stylesheet">
@@ -27,7 +27,7 @@
 
     .char {
       cursor: pointer;
-      font-size: 18px;
+      font-size: 20px;
     }
 
     .changed {
@@ -85,7 +85,7 @@
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
-        <div class="title" title="{{page['name']}}">{{page_title}}</div>
+        <div class="title" title="{{page['name']}}">{{handler.page_title}}</div>
       </div>
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>

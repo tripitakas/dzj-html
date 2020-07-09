@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import math
 from bson import json_util
 from controller import errors as e
 from controller import helper as h
@@ -340,6 +341,7 @@ class PageTxtHandler(PageHandler):
     def get(self, page_name):
         """ 单字修改页面"""
         try:
+            self.page_title = '文字校对'
             self.page_txt(self, page_name)
 
         except Exception as error:
@@ -351,16 +353,23 @@ class PageTxtHandler(PageHandler):
         if not page:
             self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
 
-        chars_col = self.get_chars_col(page['chars'])
+        # 设置字框大小
+        ch_a = sorted([c['w'] * c['h'] for c in page['chars']])
+        ch_a = ch_a[:-2] if len(ch_a) > 4 else ch_a[:-1] if len(ch_a) > 3 else ch_a
+        ch_a = ch_a[2:] if len(ch_a) > 4 else ch_a[:1] if len(ch_a) > 3 else ch_a
+        nm_a = sum(ch_a) / len(ch_a)
         for ch in page['chars']:
             ch['name'] = page_name + '_' + str(ch['cid'])
+            r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
+            ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
+
         chars = {c['name']: c for c in page['chars']}
-        img_url = self.get_web_img(page['name'])
-        column_dict = {c['column_id']: c for c in page['columns']}
+        columns = {c['column_id']: c for c in page['columns']}
         self.pack_boxes(page, pack_chars=False)
         self.set_char_class(page['chars'])
+        img_url = self.get_web_img(page['name'])
+        chars_col = self.get_chars_col(page['chars'])
         layout = self.get_query_argument('layout', '')
         template = 'page_txt1.html' if layout == '1' else 'page_txt.html'
-        self.render(template, page=page, chars=chars, chars_col=chars_col, page_title='文字校对',
-                    txt_types=CharHandler.txt_types, img_url=img_url, column_dict=column_dict,
-                    readonly=False)
+        self.render(template, page=page, chars=chars, columns=columns, chars_col=chars_col,
+                    txt_types=CharHandler.txt_types, img_url=img_url, readonly=False)
