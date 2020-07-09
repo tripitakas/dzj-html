@@ -287,19 +287,26 @@ class PageHandler(TaskHandler, Page, Box):
         return txt.strip('|')
 
     @classmethod
-    def char2html(cls, chars):
-        def span(ch):
-            txt = ch.get('txt') or ch.get('ocr_txt') or '■'
+    def set_char_class(cls, chars):
+        for ch in chars or []:
             txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if ch.get(k) not in [None, '■']))
             is_same = len(txts) == 1
             is_variant = v.is_variants(txts)
-            classes = 'char' if is_same else 'char is_variant' if is_variant else 'char diff'
+            classes = '' if is_same else 'is_variant' if is_variant else 'diff'
             if ch.get('txt') and ch.get('txt') != ch.get('ocr_txt'):
                 classes += ' changed'
-            return '<span id="%s" class="%s">%s</span>' % (ch['cid'], classes, txt)
+            ch['class'] = classes
+
+    @classmethod
+    def char2html(cls, chars):
+        def span(ch):
+            txt = ch.get('txt') or ch.get('ocr_txt') or '■'
+            classes = 'char ' + ch['class'] if ch['class'] else 'char'
+            return '<span id="%s" class="char %s">%s</span>' % (ch['cid'], classes, txt)
 
         if not chars:
             return ''
+        cls.set_char_class(chars)
         pre, html = chars[0], '<div class="blocks"><div class="block"><div class="line">'
         html += span(chars[0])
         for b in chars[1:]:

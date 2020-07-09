@@ -340,22 +340,27 @@ class PageTxtHandler(PageHandler):
     def get(self, page_name):
         """ 单字修改页面"""
         try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
-
-            chars_col = self.get_chars_col(page['chars'])
-            for ch in page['chars']:
-                ch['name'] = page_name + '_' + str(ch['cid'])
-            chars = {c['name']: c for c in page['chars']}
-            img_url = self.get_web_img(page['name'])
-            column_dict = {c['column_id']: c for c in page['columns']}
-            self.pack_boxes(page, pack_chars=False)
-            layout = self.get_query_argument('layout', '')
-            template = 'page_txt1.html' if layout == '1' else 'page_txt.html'
-            self.render(template, page=page, chars=chars, chars_col=chars_col, page_title='文字校对',
-                        txt_types=CharHandler.txt_types, img_url=img_url, column_dict=column_dict,
-                        readonly=False)
+            self.page_txt(self, page_name)
 
         except Exception as error:
             return self.send_db_error(error)
+
+    @staticmethod
+    def page_txt(self, page_name):
+        page = self.db.page.find_one({'name': page_name})
+        if not page:
+            self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
+
+        chars_col = self.get_chars_col(page['chars'])
+        for ch in page['chars']:
+            ch['name'] = page_name + '_' + str(ch['cid'])
+        chars = {c['name']: c for c in page['chars']}
+        img_url = self.get_web_img(page['name'])
+        column_dict = {c['column_id']: c for c in page['columns']}
+        self.pack_boxes(page, pack_chars=False)
+        self.set_char_class(page['chars'])
+        layout = self.get_query_argument('layout', '')
+        template = 'page_txt1.html' if layout == '1' else 'page_txt.html'
+        self.render(template, page=page, chars=chars, chars_col=chars_col, page_title='文字校对',
+                    txt_types=CharHandler.txt_types, img_url=img_url, column_dict=column_dict,
+                    readonly=False)

@@ -7,6 +7,7 @@ from controller import errors as e
 from controller import helper as h
 from controller.page.base import PageHandler
 from controller.char.base import CharHandler
+from controller.page.view import PageTxtHandler
 
 
 class PageTaskListHandler(PageHandler):
@@ -166,19 +167,8 @@ class PageTaskTextHandler(PageHandler):
 
     def get(self, task_type, task_id):
         """ 文字校对、审定页面"""
-        page = self.db.page.find_one({'name': self.task['doc_id']})
-        if not page:
-            self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+        try:
+            PageTxtHandler.page_txt(self, self.task['doc_id'])
 
-        chars_col = self.get_chars_col(page['chars'])
-        for ch in page['chars']:
-            ch['name'] = self.task['doc_id'] + '_' + str(ch['cid'])
-        chars = {c['name']: c for c in page['chars']}
-        img_url = self.get_web_img(page['name'])
-        column_dict = {c['column_id']: c for c in page['columns']}
-        self.pack_boxes(page, pack_chars=False)
-        layout = self.get_query_argument('layout', '')
-        template = 'page_txt1.html' if layout == '1' else 'page_txt.html'
-        self.render(template, page=page, chars=chars, chars_col=chars_col, page_title='文字校对',
-                    txt_types=CharHandler.txt_types, img_url=img_url, column_dict=column_dict,
-                    readonly=False)
+        except Exception as error:
+            return self.send_db_error(error)

@@ -12,11 +12,59 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    text tspan {
-      font-size: 20px;
-      fill: #333 !important;
+    .char-txt tspan {
+      font-size: 32px;
+      text-align: center;
+      fill: #333;
       font-weight: 400 !important;
     }
+
+    .small-txt tspan {
+      font-size: 20px;
+    }
+
+    .changed {
+      text-decoration: underline;
+    }
+
+    .diff tspan {
+      fill: red;
+    }
+
+    .diff.changed tspan {
+      fill: green;
+    }
+
+    .is_variant tspan {
+      fill: #3399CC;
+    }
+
+    .m-footer {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .m-footer .changed {
+      text-decoration: underline;
+    }
+
+    .m-footer .diff {
+      color: red;
+    }
+
+    .m-footer .diff.changed {
+      color: green;
+    }
+
+    .m-footer .is_variant {
+      color: #3399CC;
+    }
+
+    .m-footer .diff, .m-footer .is_variant, .m-footer .changed {
+      font-family: '宋体';
+      margin-right: 8px;
+    }
+
   </style>
 </head>
 
@@ -33,7 +81,7 @@
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
         <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-        <div id="toggle-right" class="btn-txt icon-txt active}}" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
         <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
         <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
         <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
@@ -42,7 +90,8 @@
         <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
         <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-order" class="btn-txt icon-char-order" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
-        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
+        <div id="enlarge-txt-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
+        <div id="reduce-txt-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
         <div id="toggle-layout0" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="切换为页图模式"></div>
       </div>
       <div class="right">
@@ -65,6 +114,12 @@
     <div class="m-footer">
       <span class="fl">
         页编码：<span class="page-name">{{page['name']}}</span>
+      </span>
+      <span class="center">
+        异文: <span class="diff">■</span>
+        已修改: <span class="changed">　</span>
+        已修改异文: <span class="diff changed">■</span>
+        异体字: <span class="is_variant">■</span>
       </span>
       <span class="fr">
         当前字框：<span class="char-name">未选中</span><span class="char-info"></span>
@@ -146,12 +201,12 @@
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script src="{{static_url('js/cut/char_txt.js') }}"></script>
 <script>
-  var from = decodeFrom();
+  var taskType = '{{handler.task_type or ""}}';
+  var from = taskType ? '/task/lobby/' + taskType : decodeFrom();
   var pageName = '{{page["name"]}}';
   var chars = decodeJSON("{{dumps(chars)}}");
-  var columnDict = decodeJSON("{{dumps(column_dict)}}");
-  var taskType = '{{handler.task_type or ""}}';
   var txtTypes = decodeJSON('{{dumps(txt_types)}}');
+  var columnDict = decodeJSON("{{dumps(column_dict)}}");
 
   // 显示页面图和切分框
   $.cut.createColumns({
@@ -209,8 +264,30 @@
     });
   });
 
+  // 切换至页图模式
   $('#toggle-layout0').on('click', function () {
     location.href = deleteQueryString('layout');
+  });
+
+
+  // 减少文本字号
+  $('#reduce-txt-font').on('click', function () {
+    var $div = $('.sutra-text span');
+    var size = parseInt($div.css('font-size'));
+    if (size > 8) {
+      size--;
+      $div.css('font-size', size + 'px');
+    }
+  });
+
+  // 增加文本字号
+  $('#enlarge-txt-font').on('click', function () {
+    var $div = $('.sutra-text span');
+    var size = parseInt($div.css('font-size'));
+    if (size < 36) {
+      size++;
+      $div.css('font-size', size + 'px');
+    }
   });
 
 </script>
