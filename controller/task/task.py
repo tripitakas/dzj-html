@@ -62,15 +62,15 @@ class Task(Model):
         },
         'upload_cloud': {
             'name': '上传云端', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': True,
+            'publishable': True, 'is_sys_task': True,
         },
         'ocr_box': {
             'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': True,
+            'publishable': True, 'is_sys_task': True,
         },
         'ocr_text': {
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': True,
+            'publishable': True, 'is_sys_task': True,
         },
         'txt_match': {
             'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
@@ -133,18 +133,15 @@ class Task(Model):
         return {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == 'char'}
 
     @classmethod
-    def task_names(cls, collection=None, publishable=None):
+    def task_names(cls, collection=None, publishable=None, include_sys_task=False):
+        r = cls.task_types
         if collection:
-            r = {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == collection}
-            if publishable is not None:
-                return {k: t['name'] for k, t in r.items() if t.get('publishable') == publishable}
-            else:
-                return {k: t['name'] for k, t in r.items()}
-        else:
-            if publishable is not None:
-                return {k: t['name'] for k, t in cls.task_types.items() if t.get('publishable') == publishable}
-            else:
-                return {k: t['name'] for k, t in cls.task_types.items()}
+            r = {k: t for k, t in r.items() if cls.prop(t, 'data.collection') == collection}
+        if publishable is not None:
+            r = {k: t for k, t in r.items() if t.get('publishable') == publishable}
+        if not include_sys_task:
+            r = {k: t for k, t in r.items() if t.get('is_sys_task') in [None, False]}
+        return {k: t['name'] for k, t in r.items()}
 
     @classmethod
     def step_names(cls):

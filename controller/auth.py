@@ -118,16 +118,6 @@ role_route_maps = {
         'roles': ['切分校对员', '切分审定员'],
         'routes': {}
     },
-    '文字预处理员': {
-        'is_assignable': True,
-        'roles': ['工作人员'],
-        'routes': {
-            '/task/(lobby|my)/(find_cmp|txt_match)': ['GET'],
-            '/api/task/pick/(find_cmp|txt_match)': ['POST'],
-            '/task/(do|update)/(find_cmp|txt_match)/@task_id': ['GET'],
-            '/api/task/(do|update)/(find_cmp|txt_match)/@task_id': ['POST'],
-        }
-    },
     '文字校对员': {
         'is_assignable': True,
         'roles': ['工作人员'],
@@ -210,21 +200,14 @@ role_route_maps = {
             '/api/data/@metadata/upload': ['POST'],
         }
     },
-    '任务浏览员': {
+    '任务管理员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
             '/api/user/list': ['POST'],
-            '/task/(page|char)/statistic': ['GET'],
             '/task/info/@task_id': ['GET'],
             '/page/task/resume/@page_name': ['GET'],
             '/task/browse/@task_type/@task_id': ['GET'],
-        }
-    },
-    '任务管理员': {
-        'is_assignable': True,
-        'roles': ['工作人员', '任务浏览员'],
-        'routes': {
             '/(page|char)/task/(list|statistic)': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/(page|char)/task/publish': ['POST'],
@@ -232,6 +215,11 @@ role_route_maps = {
             '/api/task/republish/@task_id': ['POST'],
             '/api/task/(assign|delete|batch|remark)': ['POST'],
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
+            '/sys/oplog': ['GET'],
+            '/sys/oplog/@oid': ['GET'],
+            '/sys/oplog/latest': ['GET'],
+            '/sys/oplog/latest/@op_type': ['GET'],
+            '/api/sys/oplog/status/@oid': ['POST'],
         }
     },
     '数据管理员': {
@@ -277,7 +265,7 @@ role_route_maps = {
         }
     },
     '系统管理员': {
-        'is_assignable': True,
+        'is_assignable': False,
         'roles': ['普通用户'],
         'routes': {
             '/api': ['GET'],

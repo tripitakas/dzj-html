@@ -35,17 +35,6 @@ class PageListHandler(PageHandler):
     hide_fields = [
         'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'box_ready',
     ]
-    operations = [
-        {'operation': 'bat-delete', 'label': '批量删除'},
-        {'operation': 'btn-duplicate', 'label': '查找重复'},
-        {'operation': 'bat-source', 'label': '更新分类'},
-        {'operation': 'bat-gen-chars', 'label': '生成字表'},
-        {'operation': 'btn-check-match', 'label': '检查图文匹配'},
-        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-        {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True).items()
-        ]},
-    ]
     actions = [
         {'action': 'btn-box', 'label': '字框'},
         {'action': 'btn-order', 'label': '字序'},
@@ -70,6 +59,26 @@ class PageListHandler(PageHandler):
     }
     match_fields = {'cmp_txt': '比对文本', 'ocr_col': 'OCR列文', 'txt': '校对文本'}
     match_statuses = {'': '', None: '无', True: '匹配', False: '不匹配'}
+
+    def get_operations(self):
+        operations = [
+            {'operation': 'bat-delete', 'label': '批量删除'},
+            {'operation': 'btn-duplicate', 'label': '查找重复'},
+            {'operation': 'bat-source', 'label': '更新分类'},
+            {'operation': 'bat-gen-chars', 'label': '生成字表'},
+            {'operation': 'btn-check-match', 'label': '检查图文匹配'},
+            {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+            {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
+                {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, False).items()
+            ]},
+        ]
+        if self.prop(self.config, 'site.skin') == 'nlc':
+            operations = [o for o in operations if o.get('label') not in ['生成字表', '检查图文匹配']]
+        if '系统管理员' in self.current_user['roles']:
+            operations[-1]['groups'] = [
+                {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, True).items()
+            ]
+        return operations
 
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""
@@ -114,6 +123,7 @@ class PageListHandler(PageHandler):
         """ 页数据管理"""
         try:
             kwargs = self.get_template_kwargs()
+            kwargs['operations'] = self.get_operations()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
