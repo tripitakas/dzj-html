@@ -10,8 +10,6 @@ import sys
 import socket
 import logging
 
-sys.path.append('/extra_modules')
-
 from tornado.httpserver import HTTPServer
 from tornado import ioloop, netutil, process
 from tornado.options import define, options as opt
