@@ -85,14 +85,11 @@ class PageListHandler(PageHandler):
 
         def format_txt(field, show_none=True):
             txt = self.get_txt(doc, field)
+            st = {True: '√', False: '×'}.get(self.prop(doc, 'txt_match.%s.status' % field)) or ''
             if txt:
-                return '<a title="%s">%s%s</a>' % (
-                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.%s.status' % field)) or ''
-                )
+                return '<a title="%s">%s%s</a>' % (field, self.match_fields.get(field), st)
             elif show_none:
-                return '<a title="%s">%s%s(无)</a>' % (
-                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.%s.status' % field)) or '',
-                )
+                return '<a title="%s">%s%s(无)</a>' % (field, self.match_fields.get(field), st)
             else:
                 return ''
 
@@ -106,7 +103,6 @@ class PageListHandler(PageHandler):
                     ret += '%s/%s<br/>' % (self.get_task_name(tsk_type), self.get_status_name(tasks))
             return ret.rstrip('<br/>')
         if key == 'op_text':
-            t = {True: '√', False: '×'}
             return '<br/>'.join([format_txt(k, k != 'txt') for k in ['ocr_col', 'cmp_txt', 'txt']])
         return h.format_value(value, key, doc)
 
