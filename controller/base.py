@@ -150,8 +150,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             body = json_util.loads(to_basestring(self.get_body_argument('data')))
         if not body:
             body = dict(self.request.arguments)
-            for k, v in body.items():
-                body[k] = to_basestring(v[0])
+            for k, s in body.items():
+                body[k] = to_basestring(s[0])
         return body or {}
 
     def send_data_response(self, data=None, **kwargs):

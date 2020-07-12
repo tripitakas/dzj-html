@@ -8,7 +8,6 @@ from .base import PageHandler
 from controller import helper as h
 from controller import validate as v
 from .api import PageBoxApi, PageOrderApi
-from controller.char.base import CharHandler
 
 
 class PageTaskPublishApi(PageHandler):

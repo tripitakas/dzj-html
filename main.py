@@ -31,7 +31,8 @@ if __name__ == '__main__':
             else process.fork_processes(opt.num_processes)
         server.add_sockets(sockets)
         protocol = 'https' if ssl_options else 'http'
-        logging.info('Start the service #%d v%s on %s://localhost:%d' % (fork_id, app.version, protocol, opt.port))
+        logging.info('Start the service #%d v%s on %s://localhost:%d debug=%s' % (
+            fork_id, app.version, protocol, opt.port, opt.debug))
         if fork_id == 0 and app.config.get('task', {}).get('auto_recycle'):
             script = app.db and 'sh start_worker.sh {0} {1}'.format(app.db_uri, app.config['database']['name'])
             os.system(script)
