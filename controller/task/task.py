@@ -29,7 +29,7 @@ class Task(Model):
         {'id': 'params', 'name': '输入参数'},
         {'id': 'result', 'name': '输出结果'},
         {'id': 'txt_kind', 'name': '字种'},
-        {'id': 'char_count', 'name': '单字总数'},
+        {'id': 'char_count', 'name': '单字数量'},
         {'id': 'type_tips', 'name': '类型说明'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},

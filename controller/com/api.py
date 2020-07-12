@@ -8,13 +8,14 @@ from bson import json_util
 from controller.base import BaseHandler
 from controller.page.tool.esearch import find
 from controller.page.tool.variant import normalize
+from controller.helper import prop
 
 
-def punc_str(orig_str):
+def punc_str(orig_str, host, port):
     import requests
     import logging
     try:
-        res = requests.get("http://localhost:10888/seg", params={'q': orig_str}, timeout=0.1)
+        res = requests.get("http://%s:%s/seg" % (host, port), params={'q': orig_str}, timeout=0.1)
     except Exception as e:
         logging.error(str(e))
         return orig_str
@@ -29,7 +30,8 @@ class PunctuationApi(BaseHandler):
         """ 自动标点"""
         try:
             q = self.data.get('q', '').strip()
-            res = punc_str(q) if q else ''
+            res = punc_str(q, prop(self.config, 'punctuate.host', 'localhost'),
+                           prop(self.config, 'punctuate.port', '10888')) if q else ''
             self.send_data_response(dict(res=res))
 
         except self.DbError as error:

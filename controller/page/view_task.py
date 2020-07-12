@@ -19,6 +19,7 @@ class PageTaskListHandler(PageHandler):
     table_fields = [
         {'id': '_id', 'name': '主键'},
         {'id': 'doc_id', 'name': '页编码'},
+        {'id': 'char_count', 'name': '单字数量'},
         {'id': 'batch', 'name': '批次号'},
         {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page')},
         {'id': 'num', 'name': '校次'},

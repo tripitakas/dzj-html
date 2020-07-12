@@ -93,6 +93,8 @@ class Box(BoxOrder):
     @classmethod
     def get_chars_col(cls, chars):
         """ 按照column_no对chars分组并设置cid。假定chars已排序"""
+        if not chars:
+            return []
         ret = []
         cid_col = [chars[0]['cid']]
         for i, c in enumerate(chars[1:]):
