@@ -27,7 +27,7 @@ esearch:
 
 # 标点服务
 punctuate:
-  host: 127.0.0.1
+  host: localhost
 
 # 模块
 module:
