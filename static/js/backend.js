@@ -148,7 +148,7 @@ $('.alert .close').on('click', function () {
 
 // 离开页面
 function leave() {
-  var url = from === undefined ? decodeFrom() : from;
+  var url = typeof from === 'undefined' ? decodeFrom() : from;
   url ? window.location = url : window.history.back();
 }
 
