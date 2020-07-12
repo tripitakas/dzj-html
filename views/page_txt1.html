@@ -131,33 +131,39 @@
           <h4 class="modal-title">帮助文档</h4>
         </div>
         <div class="modal-body">
-          <div class="title">一、功能概述</div>
+          <div class="title">一、简介</div>
           <div class="intro">
-            本页面用于检查每个字框对应的单字内容，并对不正确的字进行修改。<br/>
-            可输入正确的字，或者选择一个后续字，应以原始图片为准，异体字可在“<a href="http://hanzi.lqdzj.cn/variant_search" target="_blank">龙泉字库</a>”网站检索。<br/>
-            <b>注：</b>请您看下第三部分的快捷键介绍。通过键盘快捷键进行操作，可以很好的提升效率。
+            文字校对提供对照图片进行文字校对的功能，有两种模式：页图模式和列图模式，用户可根据个人喜好选择在哪种模式下校对。
+            两种模式下都会以不同颜色标识异文、异体字以及修改过的文字，详见底部状态栏。<br/>
+            图片和文字可以达到字符级别对应，页面右侧工作面板上部区域提供来自OCR字引擎、列引擎及比对文本的候选文字供用户选择。
+            下部区域为文字输入区，可输入原字和所属正字，并可对校对结果标注类别：没问题，图片模糊或残损，不确定，不认识。
           </div>
-          <div class="title">二、功能按钮</div>
+          <div class="title">二、操作</div>
           <table class="table">
             <tr>
               <td><i class="icon-return-back"></i></td>
-              <td>返回去识别其它页面图片</td>
+              <td>返回</td>
             </tr>
             <tr>
-              <td><i class="icon-zoom-back"></i></td>
-              <td>缩放到初始比例</td>
+              <td><i class="icon-image"></i></td>
+              <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
             </tr>
             <tr>
-              <td>候选字按钮</td>
-              <td>将当前字框的字及输入框内容改为候选字，点击后不用再点“改”按钮</td>
+              <td><i class="icon-right-panel"></i></td>
+              <td>显示或隐藏右侧工作面板</td>
             </tr>
             <tr>
-              <td>“改”按钮</td>
-              <td>将左侧输入框的字应用到当前字框，在输入框按回车也行</td>
+              <td><i class="icon-blur"></i></td>
+              <td>图片虚化处理。虚化后可以更好的看清字框、字序等信息</td>
             </tr>
-          </table>
-          <div class="title">三、快捷键</div>
-          <table class="table" id="hot-key">
+            <tr>
+              <td><i class="icon-right-panel2"></i></td>
+              <td>切换为列图模式</td>
+            </tr>
+            <tr>
+              <td><i class="icon-panel-txt"></i></td>
+              <td>切换为页图模式</td>
+            </tr>
             <tr>
               <td>1/2/3/4/5</td>
               <td>图片放大1~5倍</td>
@@ -168,19 +174,7 @@
             </tr>
             <tr>
               <td>方向键</td>
-              <td>按照方向键↑→↓←的指示，切换当前字框</td>
-            </tr>
-            <tr>
-              <td>wsad</td>
-              <td>按照指示（wsad代表上下左右四个方向）移动当前字框</td>
-            </tr>
-            <tr>
-              <td>shift + 方向键</td>
-              <td>shift表示扩大字框，方向键代表字框的四条边</td>
-            </tr>
-            <tr>
-              <td>alt + 方向键</td>
-              <td>alt表示缩小字框，方向键代表字框的四条边</td>
+              <td>列图模式下，用方向键↑→↓←，切换当前字框</td>
             </tr>
           </table>
         </div>
