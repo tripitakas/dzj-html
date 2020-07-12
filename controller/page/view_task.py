@@ -4,9 +4,7 @@
 import re
 from bson import json_util
 from controller import errors as e
-from controller import helper as h
 from controller.page.base import PageHandler
-from controller.char.base import CharHandler
 from controller.page.view import PageTxtHandler
 
 
