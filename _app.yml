@@ -25,6 +25,10 @@ esearch:
   host: 127.0.0.1
   port: 9200
 
+# 标点服务
+punctuate:
+  host: 127.0.0.1
+
 # 模块
 module:
   disabled:
