@@ -94,6 +94,7 @@ class ComLeft(UIModule):
                 ]),
                 dict(name='任务管理', icon='icon-task-admin', id='task-admin', link='/page/task/list'),
                 dict(name='数据管理', icon='icon-data', id='data', sub_items=[
+                    dict(name='导图片', icon='icon-subitem', link='/data/image'),
                     dict(name='部数据', icon='icon-subitem', link='/data/tripitaka'),
                     dict(name='册数据', icon='icon-subitem', link='/data/volume'),
                     dict(name='页数据', icon='icon-subitem', link='/page/list'),
@@ -214,7 +215,7 @@ class PageTxt(UIModule):
         :param active, txts文本中，当前显示哪个文本
         :param cmp_data, 比对文本。如果比对文本不为空，则优先显示比对文本
         """
-        active = None if cmp_data else active if active else txts[0][1]
+        active = None if cmp_data else active if active else txts[0][1] if txts else None
         return self.render_string('com/_page_txt.html', txts=txts, cmp_data=cmp_data, active=active,
                                   txt2html=Ph.txt2html)
 
