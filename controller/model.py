@@ -113,7 +113,7 @@ class Model(object):
         return order
 
     @classmethod
-    def find_by_page(cls, self, condition=None, search_fields=None, default_order='',projection=None):
+    def find_by_page(cls, self, condition=None, search_fields=None, default_order='', projection=None):
         """ 查找数据库中的记录，按页返回结果"""
         condition = condition or {}
         q = self.get_query_argument('q', '')

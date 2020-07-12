@@ -3,10 +3,7 @@
 # python3 utils/update_page.py --uri=uri --func=init_variants
 # 更新考核和体验相关的数据和任务
 
-import re
 import sys
-import math
-import json
 import random
 import pymongo
 from os import path

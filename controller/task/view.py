@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
-from bson import json_util
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller.task.base import TaskHandler
