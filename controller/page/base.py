@@ -449,7 +449,7 @@ class PageHandler(TaskHandler, Page, Box):
     @classmethod
     def match_diff(cls, ocr_char, cmp1):
         """ 生成文字匹配的segment
-        :param ocr_char OCR字框文本
+        :param ocr_char OCR切分文本
         :param cmp1 列文本、比对文本(从cbeta选择得到)或校对结果
         针对异文的几种情况，处理如下：
         1. ocr_char为空，直接舍弃该segment

@@ -151,9 +151,12 @@
 
   // 初始化
   if ('{{steps_unfinished1}}' === 'True') {
-    console.log(getStorage('toggleChar', '1') + ':' + getStorage('toggleBlock', '-1') + ':' + getStorage('toggleColumn', '-1'));
     updateImage(true, true);
-    $('#task-step1').click();
+    $('#toggle-three').removeClass('active');
+    $('#toggle-char').addClass('active');
+    $('#toggle-block').removeClass('active');
+    $('#toggle-column').removeClass('active');
+    updateThreeBoxes();
   } else {
     updateImage();
     $('#toggle-three').removeClass('active');
@@ -184,6 +187,7 @@
     $.cut.toggleBox(blockActive, 'block');
     var columnActive = $('#toggle-column').hasClass('active');
     $.cut.toggleBox(columnActive, 'column');
+    console.log(charActive + '|' + columnActive + '|' | blockActive);
   }
 
   $.cut.state.canHitBox = function (el) {
