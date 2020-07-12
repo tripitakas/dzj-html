@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from controller.model import Model
-from controller.page.api import PageTaskPublishApi
+from controller.page.api_task import PageTaskPublishApi
 
 
 class Log(Model):

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{page['name']}}</title>
+  <title>{{handler.page_title+'-'+page["name"]}}</title>
   {% include com/_base_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/char.css')}}" rel="stylesheet">
@@ -13,26 +13,43 @@
   <![endif]-->
   <style>
     .line {
-      letter-spacing: 2px;
+      font-size: 0;
       display: flex;
       flex-wrap: wrap;
+      letter-spacing: 1px;
+    }
+
+    .line.current-line {
+      padding-left: 4px;
+      margin-left: -10px;
+      border-left: 6px solid rgba(255, 0, 0, .4);
     }
 
     .char {
       cursor: pointer;
-      font-size: 18px;
+      font-size: 20px;
+    }
+
+    .changed {
+      text-decoration: underline;
     }
 
     .diff {
       color: red;
     }
 
+    .diff.changed {
+      color: green;
+    }
+
     .is_variant {
       color: #3399CC;
     }
 
-    .changed {
-      text-decoration: underline;
+
+    .m-footer .diff, .m-footer .is_variant, .m-footer .changed {
+      font-family: '宋体';
+      margin-right: 8px;
     }
 
     .browsed {
@@ -45,7 +62,9 @@
     }
 
     .current-char {
-      color: #800000;
+      color: #fff;
+      opacity: 0.6;
+      background: #FF0000;
     }
 
     .sutra-texts {
@@ -66,14 +85,12 @@
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
-        <div class="btn-group title" style="user-select: text">
-          <a href="#">{{page['name']}}</a>
-        </div>
+        <div class="title" title="{{page['name']}}">{{handler.page_title}}</div>
       </div>
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
         <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-        <div id="toggle-right" class="btn-txt icon-txt active}}" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
         <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
         <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
         <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
@@ -82,9 +99,12 @@
         <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
         <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-order" class="btn-txt icon-char-order" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+        <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
+        <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
+        <div id="toggle-layout1" class="btn-txt icon-right-panel2" data-toggle="tooltip" data-placement="bottom" title="切换为列图模式"></div>
       </div>
       <div class="right">
-        {% if hasattr(handler, 'task_type') %} {% include com/_task_btns.html %} {% end %}
+        {% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_task_btns.html %} {% end %}
       </div>
     </div>
     <div class="m-body flex pfread">
@@ -93,14 +113,19 @@
       </div>
       <div id="center-region" class="right bd">
         <div class="sutra-texts">
-          <div class="sutra-text">
-            {% raw handler.char2html(chars) %}
+          <div class="sutra-text wide-txt">
+            {% raw handler.char2html(page["chars"]) %}
           </div>
         </div>
       </div>
       <div id="right-region" class="right bd work-panel">
-        {% module CharTxt(chars and chars[0] or {}, show_base=False) %}
+        {% set ch = page["chars"] and page["chars"][0] or {} %}
+        {% module CharTxt(ch, show_base=False, submit_id='submit-page-txt') %}
       </div>
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
     </div>
     <div class="m-footer">
       <span class="fl">
@@ -108,9 +133,10 @@
         权限：<span class="page-info">{{'只读' if readonly else '读写'}}</span>
       </span>
       <span class="center">
-        异文: <span class="diff">口</span>
-        异体字: <span class="is_variant">口</span>
-        已修改: <span class="changed">口</span>
+        异文: <span class="diff">■</span>
+        已修改: <span class="changed">　</span>
+        已修改异文: <span class="diff changed">■</span>
+        异体字: <span class="is_variant">■</span>
       </span>
       <span class="fr">
         当前字框：<span class="char-name">未选中</span>
@@ -162,32 +188,59 @@
 
 {% include com/_base_js.html %}
 {% include com/_base_cut.html %}
-{% if hasattr(handler, 'task_type') %} {% include com/_base_task.html %} {% end %}
+{% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_base_task.html %} {% end %}
 <script src="{{static_url('js/cut/cut_adv.js')}}"></script>
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
-<script src="{{static_url('js/com-table.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script src="{{static_url('js/char.js')}}"></script>
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
-  var taskType = "";
-  var from = decodeFrom();
+  var taskType = '{{handler.task_type or ""}}';
+  var from = taskType ? '/task/lobby/' + taskType : decodeFrom();
   var pageName = '{{page["name"]}}';
   var chars = decodeJSON("{{dumps(chars)}}");
-  var charDict = decodeJSON("{{dumps(char_dict)}}");
   var txtTypes = decodeJSON('{{dumps(txt_types)}}');
-
-  $('#help').on('click', () => $('#helpModal').modal());
-  window.leave = () => from ? window.location = from : window.history.back();
 
   // 切换文本
   $('.char').on('click', function () {
     var cid = $(this).attr('id');
-    updateCharTxtPanel(charDict[cid]);
-    $('.m-footer .char-name').text(charDict[cid]['char_id'] + '#' + cid);
+    var charName = pageName + '_' + cid;
+    updateCharTxtPanel(chars[charName]);
+    $('.m-footer .char-name').text(chars[charName]['char_id'] + '#' + cid);
     $('.current-char').removeClass('current-char');
     $(this).addClass('current-char');
+    $('.current-line').removeClass('current-line');
+    $(this).parent().addClass('current-line');
     $.cut.switchCurrentBox(cid);
+  });
+
+  // 保存文本
+  $('#submit-page-txt').on('click', function () {
+    if ($(this).hasClass('disabled')) return;
+    var name = $('.char-edit .current-name').val();
+    var cid = name.split('_').pop();
+    var data = {
+      task_type: taskType || '',
+      txt: $('.proof .txt').val() || '',
+      nor_txt: $('.proof .nor-txt').val() || '',
+      txt_type: $('.txt-types :checked').val() || '',
+      remark: $('.proof .remark').val() || '',
+    };
+    postApi('/page/char/txt/' + name, {data: data}, function (res) {
+      bsShow('成功！', '已保存成功', 'success', 1000, '#s-alert');
+      if (typeof chars !== 'undefined') {
+        data.txt_logs = res.txt_logs;
+        chars[name] = $.extend(chars[name], data);
+      }
+      updateTxtLogs(res.txt_logs);
+      updateBaseInfo(chars[name]);
+      // 更新文本
+      $('#' + cid).addClass('changed').text(data.txt || data.nor_txt);
+    });
+  });
+
+  $('#toggle-layout1').on('click', function () {
+    location.href = setQueryString('layout', 1);
   });
 
 </script>
@@ -196,13 +249,13 @@
   $.cut.create({
     readonly: true,
     holder: 'holder',
+    scrollContainer: '#left-region',
     image: '{{img_url}}',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
-    chars: '{{page["chars"]}}',
     blocks: '{{page["blocks"]}}',
     columns: '{{page["columns"]}}',
-    scrollContainer: '#left-region',
+    chars: '{{handler.pop_fields(page["chars"], "box_logs,txt_logs")}}',
   });
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();

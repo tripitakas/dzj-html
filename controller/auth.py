@@ -25,7 +25,7 @@ url_placeholder = {
     'ocr_task': r'import_image|ocr_box|ocr_text|upload_cloud',
     'page_task': r'cut_proof|cut_review|txt_match|find_cmp',
     'cluster_task': r'cluster_proof|cluster_review|rare_proof|rare_review',
-    'task_type': r'ocr_\w+|cut_\w+|txt_\w+|cluster_\w+|rare_\w+|txt_match|find_cmp',
+    'task_type': r'ocr_\w+|cut_\w+|text_\w+|cluster_\w+|rare_\w+|txt_match|find_cmp',
 }
 
 """ 
@@ -89,7 +89,8 @@ role_route_maps = {
             '/api/page/txt/(diff|detect_chars)': ['POST'],
             '/char/@char_name': ['GET'],
             '/api/chars/(txt|txt_type|box)': ['POST'],
-            '/api/char/(txt|box)/@char_name': ['POST'],
+            '/api/char/txt/@char_name': ['POST'],
+            '/api/page/char/(box|txt)/@char_name': ['POST'],
         }
     },
     '切分校对员': {
@@ -117,14 +118,25 @@ role_route_maps = {
         'roles': ['切分校对员', '切分审定员'],
         'routes': {}
     },
-    '文字预处理员': {
+    '文字校对员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/task/(lobby|my)/(find_cmp|txt_match)': ['GET'],
-            '/api/task/pick/(find_cmp|txt_match)': ['POST'],
-            '/task/(do|update)/(find_cmp|txt_match)/@task_id': ['GET'],
-            '/api/task/(do|update)/(find_cmp|txt_match)/@task_id': ['POST'],
+            '/task/(lobby|my)/text_proof': ['GET'],
+            '/api/task/pick/text_proof': ['POST'],
+            '/task/(do|update)/text_proof/@task_id': ['GET'],
+            '/api/task/(do|update)/text_proof/@task_id': ['POST'],
+        }
+    },
+    '文字审定员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/task/(lobby|my)/text_review': ['GET'],
+            '/api/task/pick/text_review': ['POST'],
+            '/task/(do|update)/text_review/@task_id': ['GET'],
+            '/api/task/(do|update)/text_review/@task_id': ['POST'],
+            '/api/data/variant': ['POST'],
         }
     },
     '聚类校对员': {
@@ -173,7 +185,7 @@ role_route_maps = {
     },
     '文字专家': {
         'is_assignable': True,
-        'roles': ['工作人员', '文字预处理员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],
+        'roles': ['工作人员', '文字预处理员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],
         'routes': {}
     },
     'OCR加工员': {
@@ -188,21 +200,14 @@ role_route_maps = {
             '/api/data/@metadata/upload': ['POST'],
         }
     },
-    '任务浏览员': {
+    '任务管理员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
             '/api/user/list': ['POST'],
-            '/task/(page|char)/statistic': ['GET'],
             '/task/info/@task_id': ['GET'],
             '/page/task/resume/@page_name': ['GET'],
             '/task/browse/@task_type/@task_id': ['GET'],
-        }
-    },
-    '任务管理员': {
-        'is_assignable': True,
-        'roles': ['工作人员', '任务浏览员'],
-        'routes': {
             '/(page|char)/task/(list|statistic)': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/(page|char)/task/publish': ['POST'],
@@ -210,6 +215,11 @@ role_route_maps = {
             '/api/task/republish/@task_id': ['POST'],
             '/api/task/(assign|delete|batch|remark)': ['POST'],
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
+            '/sys/oplog': ['GET'],
+            '/sys/oplog/@oid': ['GET'],
+            '/sys/oplog/latest': ['GET'],
+            '/sys/oplog/latest/@op_type': ['GET'],
+            '/api/sys/oplog/status/@oid': ['POST'],
         }
     },
     '数据管理员': {
@@ -225,7 +235,7 @@ role_route_maps = {
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
             '/api/page': ['POST'],
-            '/page/(box|order|find_cmp|ocr_col|cmp_txt|txt|text_proof|txt_proof)/@page_name': ['GET'],
+            '/page/(box|order|txt|txt_match|find_cmp)/@page_name': ['GET'],
             '/api/page/(delete|source|start_gen_chars|start_check_match)': ['POST'],
             '/api/page/(box|order|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
             '/char/(list|browse|statistic)': ['GET'],
@@ -255,7 +265,7 @@ role_route_maps = {
         }
     },
     '系统管理员': {
-        'is_assignable': True,
+        'is_assignable': False,
         'roles': ['普通用户'],
         'routes': {
             '/api': ['GET'],

@@ -420,7 +420,7 @@ class BoxOrder(object):
         assert chars
         assert small_direction in [None, '', 'down', 'left']
         small_direction = 'down' if not small_direction else small_direction
-        cls.pop_fields(chars, 'column_id,column_id2,char_no,hr_nbs,side,size,is_small')
+        cls.pop_fields(chars, 'column_id,column_id2,char_no,hr_nbs,side')
 
         ret_chars = []
         column_dict = {c['column_id']: c for c in columns}

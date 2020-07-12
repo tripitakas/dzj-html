@@ -45,7 +45,7 @@
       </div>
       <div class="right">
         <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
-        {% if hasattr(handler, 'task_type') %} {% include com/_task_btns.html %} {% end %}
+        {% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_task_btns.html %} {% end %}
       </div><!--right-->
     </div>
     <div class="m-body flex">
@@ -166,7 +166,7 @@
 
 {% include com/_base_js.html %}
 {% include com/_base_cut.html %}
-{% if hasattr(handler, 'task_type') %} {% include com/_base_task.html %} {% end %}
+{% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_base_task.html %} {% end %}
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script>
@@ -193,27 +193,24 @@
     $.cut.data.image.node.style.display = getStorage('toggleOrderImage', '1') === '1' ? '' : 'none';
     $.cut.data.image.node.style.opacity = getStorage('toggleOrderBlur', '1') === '1' ? 0.2 : null;
   }
+  $.cut.toggleBox(getStorage('toggleOrderChar', '-1') === '1', 'char');
   $.cut.toggleBox(getStorage('toggleOrderBlock', '-1') === '1', 'block');
   $.cut.toggleBox(getStorage('toggleOrderColumn', '-1') === '1', 'column');
-  $.cut.toggleBox(getStorage('toggleOrderChar', '-1') === '1', 'char');
   $.cut.setLink(getStorage('toggleOrderLink', '1') === '1');
   $.cut.setLabel(getStorage('toggleOrderCharNo', '-1') === '1');
   $('#toggle-image').toggleClass('active', getStorage('toggleOrderImage', '1') === '1');
   $('#toggle-blur').toggleClass('active', getStorage('toggleOrderBlur', '1') === '1');
+  $('#toggle-char').toggleClass('active', getStorage('toggleOrderChar', '-1') === '1');
   $('#toggle-block').toggleClass('active', getStorage('toggleOrderBlock', '-1') === '1');
   $('#toggle-column').toggleClass('active', getStorage('toggleOrderColumn', '-1') === '1');
-  $('#toggle-char').toggleClass('active', getStorage('toggleOrderChar', '-1') === '1');
   $('#toggle-link').toggleClass('active', getStorage('toggleOrderLink', '1') === '1');
   $('#toggle-char-no').toggleClass('active', getStorage('toggleOrderCharNo', '-1') === '1');
   setTimeout(() => $.cut.showErrorBoxes(), 1000);
 
   $.cut.state.canHitBox = function (el) {
-    if ($('#toggle-order-char').hasClass('active') && el.data('class') === 'char')
-      return true;
-    if ($('#toggle-order-column').hasClass('active') && el.data('class') === 'column')
-      return true;
-    if ($('#toggle-order-block').hasClass('active') && el.data('class') === 'block')
-      return true;
+    if ($('#toggle-order-char').hasClass('active') && el.data('class') === 'char') return true;
+    if ($('#toggle-order-column').hasClass('active') && el.data('class') === 'column') return true;
+    if ($('#toggle-order-block').hasClass('active') && el.data('class') === 'block') return true;
   };
 
   // 检查错误字序

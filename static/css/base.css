@@ -323,7 +323,7 @@ body.widescreen {
 }
 
 .main .main-content {
-  background: #f4f4f4 url(../imgs/bg.png) no-repeat !important;
+  background: #f4f4f4 url(../imgs/bg.png) no-repeat;
   background-size: 100%;
   width: 100%;
   height: 100%;
@@ -836,6 +836,11 @@ body.widescreen {
 
 .modal-footer .pagers {
   margin: 20px 0;
+}
+
+.wide-txt {
+  font-family: Microsoft YaHei, SimSun, 宋体, KaiXinSong, Arial, Helvetica, sans-serif;
+  /*font-family: Microsoft YaHei, SimSun, sans-serif, Helvetica Neue, Helvetica, KaiXinSong;*/
 }
 
 /* 帮助文档modal */

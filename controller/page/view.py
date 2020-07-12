@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import re
+import math
 from bson import json_util
-from .page import Page
-from .base import PageHandler
 from controller import errors as e
 from controller import helper as h
 from controller.task.task import Task
+from controller.page.page import Page
+from controller.page.base import PageHandler
+from controller.char.base import CharHandler
 
 
 class PageListHandler(PageHandler):
@@ -33,20 +35,10 @@ class PageListHandler(PageHandler):
     hide_fields = [
         'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'box_ready',
     ]
-    operations = [
-        {'operation': 'bat-delete', 'label': '批量删除'},
-        {'operation': 'btn-duplicate', 'label': '查找重复'},
-        {'operation': 'bat-source', 'label': '更新分类'},
-        {'operation': 'bat-gen-chars', 'label': '生成字表'},
-        {'operation': 'btn-check-match', 'label': '检查图文匹配'},
-        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-        {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True).items()
-        ]},
-    ]
     actions = [
         {'action': 'btn-box', 'label': '字框'},
         {'action': 'btn-order', 'label': '字序'},
+        {'action': 'btn-text', 'label': '文字'},
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-my-view', 'label': '查看'},
@@ -68,19 +60,36 @@ class PageListHandler(PageHandler):
     match_fields = {'cmp_txt': '比对文本', 'ocr_col': 'OCR列文', 'txt': '校对文本'}
     match_statuses = {'': '', None: '无', True: '匹配', False: '不匹配'}
 
+    def get_operations(self):
+        operations = [
+            {'operation': 'bat-delete', 'label': '批量删除'},
+            {'operation': 'btn-duplicate', 'label': '查找重复'},
+            {'operation': 'bat-source', 'label': '更新分类'},
+            {'operation': 'bat-gen-chars', 'label': '生成字表'},
+            {'operation': 'btn-check-match', 'label': '检查图文匹配'},
+            {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+            {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
+                {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, False).items()
+            ]},
+        ]
+        if self.prop(self.config, 'site.skin') == 'nlc':
+            operations = [o for o in operations if o.get('label') not in ['生成字表', '检查图文匹配']]
+        if '系统管理员' in self.current_user['roles']:
+            operations[-1]['groups'] = [
+                {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, True).items()
+            ]
+        return operations
+
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""
 
         def format_txt(field, show_none=True):
             txt = self.get_txt(doc, field)
+            st = {True: '√', False: '×'}.get(self.prop(doc, 'txt_match.%s.status' % field)) or ''
             if txt:
-                return '<a title="%s">%s%s</a>' % (
-                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.%s.status' % field)) or ''
-                )
+                return '<a title="%s">%s%s</a>' % (field, self.match_fields.get(field), st)
             elif show_none:
-                return '<a title="%s">%s%s(无)</a>' % (
-                    field, self.match_fields.get(field), t.get(self.prop(doc, 'txt_match.%s.status' % field)) or '',
-                )
+                return '<a title="%s">%s%s(无)</a>' % (field, self.match_fields.get(field), st)
             else:
                 return ''
 
@@ -94,7 +103,6 @@ class PageListHandler(PageHandler):
                     ret += '%s/%s<br/>' % (self.get_task_name(tsk_type), self.get_status_name(tasks))
             return ret.rstrip('<br/>')
         if key == 'op_text':
-            t = {True: '√', False: '×'}
             return '<br/>'.join([format_txt(k, k != 'txt') for k in ['ocr_col', 'cmp_txt', 'txt']])
         return h.format_value(value, key, doc)
 
@@ -111,6 +119,7 @@ class PageListHandler(PageHandler):
         """ 页数据管理"""
         try:
             kwargs = self.get_template_kwargs()
+            kwargs['operations'] = self.get_operations()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
@@ -274,38 +283,13 @@ class PageOrderHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTaskCutHandler(PageHandler):
-    URL = ['/task/(cut_proof|cut_review)/@task_id',
-           '/task/do/(cut_proof|cut_review)/@task_id',
-           '/task/browse/(cut_proof|cut_review)/@task_id',
-           '/task/update/(cut_proof|cut_review)/@task_id']
-
-    def get(self, task_type, task_id):
-        """ 切分校对、审定页面"""
-        page = self.db.page.find_one({'name': self.task['doc_id']})
-        if not page:
-            self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
-        self.pack_boxes(page)
-        img_url = self.get_web_img(page['name'], 'page')
-        if self.steps['current'] == 'order':
-            reorder = self.get_query_argument('reorder', '')
-            if reorder:
-                page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
-            chars_col = self.get_chars_col(page['chars'])
-            self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=self.readonly)
-        else:
-            self.set_box_access(page, task_type)
-            steps_finished = self.prop(self.task, 'result.steps_finished')
-            steps_unfinished = True if steps_finished is None else not steps_finished
-            self.render('page_box.html', page=page, img_url=img_url, steps_unfinished=steps_unfinished,
-                        readonly=self.readonly)
-
-
 class PageTxtMatchHandler(PageHandler):
-    URL = '/page/(ocr_col|cmp_txt|txt)/@page_name'
+    URL = '/page/txt_match/@page_name'
 
-    def get(self, field, page_name):
+    def get(self, page_name):
         """ 文字匹配页面"""
+        field = self.get_query_argument('field', '')
+        assert field in ['txt', 'cmp_txt', 'ocr_col']
         self.txt_match(self, field, page_name)
 
     @staticmethod
@@ -314,7 +298,7 @@ class PageTxtMatchHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            cmp_txt = self.get_txt(page, field)
+            cmp_txt = self.prop(page, 'txt_match.%s.value' % field) or self.get_txt(page, field)
             field_name = Page.get_field_name(field)
             if not cmp_txt:
                 if field == 'cmp_txt':
@@ -322,10 +306,9 @@ class PageTxtMatchHandler(PageHandler):
                 else:
                     self.send_error_response(e.no_object, message='页面没有%s' % field_name)
 
-            txts = self.get_txts(page, [field, 'ocr'])
-            txt_fields = [t[1] for t in txts]
+            char_txt = self.get_txt(page, 'ocr')
+            txts = [(cmp_txt, field, field_name), (char_txt, 'ocr', '字框OCR')]
             txt_dict = {t[1]: t for t in txts}
-            char_txt = txts[1][0]
             cmp_data = self.match_diff(char_txt, cmp_txt)
             img_url = self.get_web_img(page['name'], 'page')
             txt_match = self.prop(page, 'txt_match.' + field)
@@ -333,23 +316,11 @@ class PageTxtMatchHandler(PageHandler):
             self.render(
                 'page_match.html', page=page, img_url=img_url, char_txt=char_txt, cmp_data=cmp_data,
                 field=field, field_name=field_name, txt_match=txt_match, txts=txts,
-                txt_fields=txt_fields, txt_dict=txt_dict, active='work-html',
+                txt_fields=[field, 'OCR'], txt_dict=txt_dict, active='work-html',
             )
 
         except Exception as error:
             return self.send_db_error(error)
-
-
-class PageTaskTxtMatchHandler(PageHandler):
-    URL = ['/task/txt_match/@task_id',
-           '/task/do/txt_match/@task_id',
-           '/task/browse/txt_match/@task_id',
-           '/task/update/txt_match/@task_id']
-
-    def get(self, task_id):
-        """ 图文匹配页面"""
-        page_name, field = self.task['doc_id'], self.prop(self.task, 'params.field')
-        PageTxtMatchHandler.txt_match(self, field, page_name)
 
 
 class PageFindCmpHandler(PageHandler):
@@ -370,121 +341,41 @@ class PageFindCmpHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTaskListHandler(PageHandler):
-    URL = '/page/task/list'
-
-    page_title = '页任务管理'
-    search_tips = '请搜索页编码、批次号或备注'
-    search_fields = ['doc_id', 'batch', 'remark']
-    table_fields = [
-        {'id': '_id', 'name': '主键'},
-        {'id': 'doc_id', 'name': '页编码'},
-        {'id': 'batch', 'name': '批次号'},
-        {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page')},
-        {'id': 'num', 'name': '校次'},
-        {'id': 'status', 'name': '状态', 'filter': PageHandler.task_statuses},
-        {'id': 'priority', 'name': '优先级', 'filter': PageHandler.priorities},
-        {'id': 'steps', 'name': '步骤'},
-        {'id': 'pre_tasks', 'name': '前置任务'},
-        {'id': 'return_reason', 'name': '退回理由'},
-        {'id': 'create_time', 'name': '创建时间'},
-        {'id': 'updated_time', 'name': '更新时间'},
-        {'id': 'publish_time', 'name': '发布时间'},
-        {'id': 'publish_by', 'name': '发布人'},
-        {'id': 'picked_time', 'name': '领取时间'},
-        {'id': 'picked_by', 'name': '领取人'},
-        {'id': 'finished_time', 'name': '完成时间'},
-        {'id': 'remark', 'name': '备注'},
-    ]
-    operations = [
-        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
-        {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
-        {'operation': 'bat-batch', 'label': '更新批次'},
-        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-        {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
-            {'operation': 'picked_user_id', 'label': '按用户'},
-            {'operation': 'task_type', 'label': '按类型'},
-            {'operation': 'status', 'label': '按状态'},
-        ]},
-    ]
-    actions = [
-        {'action': 'btn-nav', 'label': '浏览'},
-        {'action': 'btn-detail', 'label': '详情'},
-        {'action': 'btn-history', 'label': '历程'},
-        {'action': 'btn-delete', 'label': '删除'},
-        {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
-    ]
-    hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
-    update_fields = []
-
-    def get(self):
-        """ 任务管理-页任务管理"""
-        try:
-            kwargs = self.get_template_kwargs()
-            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
-            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
-            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            condition, params = self.get_task_search_condition(self.request.query, 'page')
-            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id',
-                                                      {'params': 0, 'result': 0})
-            self.render('page_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                        format_value=self.format_value,
-                        **kwargs)
-        except Exception as error:
-            return self.send_db_error(error)
-
-
-class PageTaskStatHandler(PageHandler):
-    URL = '/page/task/statistic'
-
-    def get(self):
-        """ 根据用户、任务类型或任务状态统计页任务"""
-        try:
-            kind = self.get_query_argument('kind', '')
-            if kind not in ['picked_user_id', 'task_type', 'status']:
-                return self.send_error_response(e.statistic_type_error, message='只能按用户、任务类型或任务状态统计')
-
-            counts = list(self.db.task.aggregate([
-                {'$match': self.get_task_search_condition(self.request.query, 'page')[0]},
-                {'$group': {'_id': '$%s' % kind, 'count': {'$sum': 1}}},
-            ]))
-
-            trans = {}
-            if kind == 'picked_user_id':
-                users = list(self.db.user.find({'_id': {'$in': [c['_id'] for c in counts]}}))
-                trans = {u['_id']: u['name'] for u in users}
-            elif kind == 'task_type':
-                trans = {k: t['name'] for k, t in PageHandler.task_types.items()}
-            elif kind == 'status':
-                trans = self.task_statuses
-            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态')[kind]
-            self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='page')
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-
-class PageTaskResumeHandler(PageHandler):
-    URL = '/page/task/resume/@page_name'
-
-    order = [
-        'upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
-        'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'
-    ]
-    display_fields = [
-        'doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
-        'updated_time', 'finished_time', 'publish_by', 'publish_time',
-        'picked_by', 'picked_time', 'message'
-    ]
+class PageTxtHandler(PageHandler):
+    URL = '/page/txt/@page_name'
 
     def get(self, page_name):
-        """ 页任务简历"""
-        from functools import cmp_to_key
+        """ 单字修改页面"""
         try:
-            page = self.db.page.find_one({'name': page_name}) or dict(name=page_name)
-            tasks = list(self.db.task.find({'collection': 'page', 'doc_id': page_name}))
-            tasks.sort(key=cmp_to_key(lambda a, b: self.order.index(a['task_type']) - self.order.index(b['task_type'])))
-            self.render('task_resume.html', page=page, tasks=tasks, display_fields=self.display_fields)
+            self.page_title = '文字校对'
+            self.page_txt(self, page_name)
 
         except Exception as error:
             return self.send_db_error(error)
+
+    @staticmethod
+    def page_txt(self, page_name):
+        page = self.db.page.find_one({'name': page_name})
+        if not page:
+            self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
+
+        # 设置字框大小
+        ch_a = sorted([c['w'] * c['h'] for c in page['chars']])
+        ch_a = ch_a[:-2] if len(ch_a) > 4 else ch_a[:-1] if len(ch_a) > 3 else ch_a
+        ch_a = ch_a[2:] if len(ch_a) > 4 else ch_a[:1] if len(ch_a) > 3 else ch_a
+        nm_a = sum(ch_a) / len(ch_a)
+        for ch in page['chars']:
+            ch['name'] = page_name + '_' + str(ch['cid'])
+            r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
+            ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
+
+        chars = {c['name']: c for c in page['chars']}
+        columns = {c['column_id']: c for c in page['columns']}
+        self.pack_boxes(page, pack_chars=False)
+        self.set_char_class(page['chars'])
+        img_url = self.get_web_img(page['name'])
+        chars_col = self.get_chars_col(page['chars'])
+        layout = self.get_query_argument('layout', '')
+        template = 'page_txt1.html' if layout == '1' else 'page_txt.html'
+        self.render(template, page=page, chars=chars, columns=columns, chars_col=chars_col,
+                    txt_types=CharHandler.txt_types, img_url=img_url, readonly=False)
