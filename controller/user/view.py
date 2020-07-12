@@ -69,6 +69,8 @@ class UserRolesHandler(BaseHandler, User):
             init_roles = self.prop(self.config, 'role.init')
             disabled_roles = self.prop(self.config, 'role.disabled', [])
             roles = [r for r in auth.get_assignable_roles() if r not in disabled_roles]
+            if '系统管理员' in self.current_user['roles'] and '系统管理员' not in roles:
+                roles.append('系统管理员')
 
             self.render('user_role.html', docs=docs, pager=pager, q=q, order=order, roles=roles,
                         init_roles=init_roles, disabled_roles=disabled_roles, **kwargs)
