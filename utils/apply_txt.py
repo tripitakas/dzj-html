@@ -43,8 +43,9 @@ def apply_txt(db, field, regen=None):
     if regen:
         db.page.update_many({}, {'$unset': {'txt_match.' + field: ''}})
     condition = {'txt_match.' + field: None}
-    print('[%s]%s pages to process' % (hp.get_date_time(), db.page.count_documents(condition)))
-    while db.page.count_documents(condition):
+    pages = list(db.page.find(condition, {'name': 1}))
+    print('[%s]%s pages to process' % (hp.get_date_time(), len(pages)))
+    while db.page.find_one(condition):
         pages = list(db.page.find(condition).sort('_id', 1).limit(size))
         for page in pages:
             if not Ph.get_txt(page, field):
