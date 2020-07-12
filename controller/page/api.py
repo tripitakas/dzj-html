@@ -371,12 +371,12 @@ class PageTxtDiffApi(PageHandler):
 
     @staticmethod
     def set_hints(diff_blocks, hints):
-        for h in hints:
-            line_segments = diff_blocks.get(h['block_no'], {}).get(h['line_no'])
+        for hint in hints:
+            line_segments = diff_blocks.get(hint['block_no'], {}).get(hint['line_no'])
             if not line_segments:
                 continue
             for s in line_segments:
-                if s['base'] == h['base'] and s['cmp1'] == h['cmp1']:
+                if s['base'] == hint['base'] and s['cmp1'] == hint['cmp1']:
                     s['selected'] = True
         return diff_blocks
 

@@ -6,7 +6,6 @@
 """
 import re
 from bson import json_util
-from controller import errors as e
 from controller import helper as h
 from controller.base import BaseHandler
 from controller.task.base import TaskHandler

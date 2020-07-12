@@ -13,11 +13,8 @@
 
 
 import os
-import re
 import sys
-import oss2
 import json
-import math
 import hashlib
 import pymongo
 from os import path
