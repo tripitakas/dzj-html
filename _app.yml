@@ -69,7 +69,7 @@ big_img:
 
 # 网盘
 pan:
-  name: nlc-dev
+  name: nlc
 
 # 邮件服务器
 email:
