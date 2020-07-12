@@ -134,10 +134,11 @@ class PageOrderApi(PageHandler):
             self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
         self.validate(self.data, [(v.not_empty, 'chars_col')])
         if not self.cmp_char_cid(page['chars'], self.data['chars_col']):
-            return self.send_error_response(e.cid_not_identical, message='检测到字框有增减，请刷新页面')
+            return self.send_error_response(e.cid_not_identical, message='检测到字框和切分校对时不同，请刷新页面')
         if len(self.data['chars_col']) != len(page['columns']):
-            return self.send_error_response(e.col_not_identical, message='提交的字序中列数有变化，请检查')
-        # 字序校对不记录日志，仅提供给任务所有者以及数据管理员修改
+            msg = '%s(字序列数) != %s(字框列数)，请检查。' % (len(self.data['chars_col']), len(page['columns']))
+            return self.send_error_response(e.col_not_identical, message=msg)
+        # 注：字序校对不记录日志，仅提供给任务所有者以及数据管理员修改
         chars = self.update_char_order(page['chars'], self.data['chars_col'])
         update = dict(chars=chars, chars_col=self.data['chars_col'])
         self.db.page.update_one({'_id': page['_id']}, {'$set': update})

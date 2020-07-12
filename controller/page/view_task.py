@@ -64,9 +64,8 @@ class PageTaskListHandler(PageHandler):
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            condition, params = self.get_task_search_condition(self.request.query, 'page')
-            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id',
-                                                      {'params': 0, 'result': 0})
+            cd, params = self.get_task_search_condition(self.request.query, 'page')
+            docs, pager, q, order = self.find_by_page(self, cd, self.search_fields, '-_id', {'params': 0, 'result': 0})
             self.render('page_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
                         format_value=self.format_value,
                         **kwargs)

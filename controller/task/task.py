@@ -78,11 +78,11 @@ class Task(Model):
         },
         'text_proof': {
             'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3], 'pre_tasks': ['cut_review'], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_review'], 'publishable': True,
         },
         'text_review': {
             'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['text_proof'], 'publishable': True,
+            'num': [1, 2, 3], 'pre_tasks': ['text_proof'], 'publishable': True,
         },
         'cluster_proof': {
             'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},

@@ -112,8 +112,8 @@ class AddPage(object):
             return
         if self.update or not page:
             meta = Ph.metadata()
-            meta['page_code'] = align_code(name)
             meta['name'] = name
+            meta['page_code'] = align_code(name)
             fields1 = ['width', 'height']
             meta.update({k: int(v) for k, v in info.get('imgsize', info).items() if v and k in fields1})
             meta['source'] = self.source if self.source else info.get('source')
@@ -125,10 +125,9 @@ class AddPage(object):
             meta.update({k: Ph.get_txt(meta, k).replace(' ', '') for k in fields3})
             Ph.update_page_cid(meta)
             if info.get('create_time'):
-                meta['create_time'] = datetime.now()
-                # meta['create_time'] = info['create_time']
-                # if isinstance(meta.get('create_time'), str):
-                #     meta['create_time'] = datetime.strptime(meta['create_time'], '%Y-%m-%d %H:%M:%S')
+                meta['create_time'] = info['create_time']
+                if isinstance(meta.get('create_time'), str):
+                    meta['create_time'] = datetime.strptime(meta['create_time'], '%Y-%m-%d %H:%M:%S')
             else:
                 meta['create_time'] = datetime.now()
 
@@ -183,7 +182,7 @@ class AddPage(object):
         return page_names
 
 
-def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
+def main(db=None, db_name='tripitaka_test', uri='localhost', json_path='', img_path='img', txt_path='txt',
          txt_field='', kind='', source='', check_id=False, reorder=False, reset=False,
          use_local_img=False, update=False, check_only=False):
     """

@@ -1,7 +1,7 @@
 /*
  * cut_adv.js
  *
- * Date: 2020-02-06
+ * Date: 2020-07-11
  */
 (function() {
   'use strict';
@@ -12,6 +12,7 @@
   var allHide = false;
 
   function isOverlap(r1, r2, tol) {
+    tol *= data.ratio;
     return r1.x + r1.width > r2.x + tol &&
       r2.x + r2.width > r1.x + tol &&
       r1.y + r1.height > r2.y + tol &&
