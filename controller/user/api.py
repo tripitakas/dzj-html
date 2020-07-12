@@ -142,8 +142,9 @@ class RegisterApi(BaseHandler):
                 rules.append((v.code_verify_timeout, self.db.verify, 'phone', 'phone_code'))
             self.validate(self.data, rules)
 
-            roles = self.prop(self.config, 'role.init') or ''
-            self.data['roles'] = '用户管理员' if not self.db.user.find_one() else roles  # 如果是第一个用户，则设置为用户管理员
+            roles = self.prop(self.config, 'role.init', '')
+            # 如果是第一个用户，则设置为系统管理员、用户管理员
+            self.data['roles'] = '系统管理员,用户管理员' if not self.db.user.find_one() else roles
             r = self.db.user.insert_one(dict(
                 name=self.data['name'], email=self.data.get('email'), phone=self.data.get('phone'),
                 gender=self.data.get('gender'), roles=self.data['roles'], img=self.data.get('img'),

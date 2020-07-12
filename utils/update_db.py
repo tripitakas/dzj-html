@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # python3 utils/update_db.py --uri=uri --func=init_variants
 
-import re
 import sys
 import pymongo
 from os import path
@@ -11,7 +10,6 @@ from pymongo.errors import PyMongoError
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from controller import helper as hp
 from controller.page.tool.variant import variants
 
 
