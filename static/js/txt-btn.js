@@ -37,12 +37,9 @@ $('#reduce-panel-font').on('click', function () {
 function previousDiff() {
   var $diff = $('.diff');
   var idx = $diff.index($('.current-diff'));
-  if (idx < 1)
-    return;
-  $diff.eq(idx - 1).click().dblclick();
-  if ($('.dialog-abs').offset().top < 55) {
-    $('#cmp-html').animate({scrollTop: $('.dialog-abs').offset().top - 50}, 300);
-    setTimeout(() => $diff.eq(idx - 1).click().dblclick(), 500);
+  if ($diff.eq(idx - 1).length) {
+    $diff.eq(idx - 1)[0].scrollIntoView(true);
+    $diff.eq(idx - 1).click().dblclick();
   }
 }
 
@@ -53,10 +50,9 @@ $.mapKey('tab', previousDiff);
 function nextDiff() {
   var $diff = $('.diff');
   var idx = $diff.index($('.current-diff'));
-  $diff.eq(idx + 1).click().dblclick();
-  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('#cmp-html').height()) {
-    $('.right #cmp-html').animate({scrollTop: $('.dialog-abs').offset().top + 50}, 300);
-    setTimeout(() => $diff.eq(idx + 1).click().dblclick(), 500);
+  if ($diff.eq(idx + 1).length) {
+    $diff.eq(idx + 1)[0].scrollIntoView(true);
+    $diff.eq(idx + 1).click().dblclick();
   }
 }
 

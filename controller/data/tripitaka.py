@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
-from bson import json_util
 from functools import cmp_to_key
 from controller import errors as e
 from controller.base import BaseHandler

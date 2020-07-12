@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
 import json
 from controller.model import Model
 from controller import helper as h
@@ -50,8 +49,8 @@ class Page(Model):
 
     @classmethod
     def metadata(cls):
-        return dict(name='', width='', height='', page_code='', sutra_code='', uni_sutra_code='',
-                    reel_code='', reel_page_no='', blocks=[], columns=[], chars=[],
+        return dict(name='', width='', height='', source='', layout='', page_code='', sutra_code='',
+                    uni_sutra_code='', reel_code='', reel_page_no='', blocks=[], columns=[], chars=[],
                     ocr='', ocr_col='', txt='')
 
     @classmethod

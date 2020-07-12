@@ -29,6 +29,8 @@ class ComLeft(UIModule):
             dict(name='任务大厅', icon='icon-task-lobby', id='task-lobby', sub_items=[
                 dict(name='切分校对', icon='icon-subitem', link='/task/lobby/cut_proof'),
                 dict(name='切分审定', icon='icon-subitem', link='/task/lobby/cut_review'),
+                dict(name='文字校对', icon='icon-subitem', link='/task/lobby/text_proof'),
+                dict(name='文字审定', icon='icon-subitem', link='/task/lobby/text_review'),
                 dict(name='聚类校对', icon='icon-subitem', link='/task/lobby/cluster_proof'),
                 dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/cluster_review'),
                 dict(name='生僻校对', icon='icon-subitem', link='/task/lobby/rare_proof'),
@@ -37,6 +39,8 @@ class ComLeft(UIModule):
             dict(name='我的任务', icon='icon-task-my', id='task-my', sub_items=[
                 dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
                 dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
+                dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof'),
+                dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review'),
                 dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof'),
                 dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review'),
                 dict(name='生僻校对', icon='icon-subitem', link='/task/my/rare_proof'),
@@ -79,35 +83,31 @@ class ComLeft(UIModule):
                 dict(name='任务大厅', icon='icon-task-lobby', id='task-lobby', sub_items=[
                     dict(name='切分校对', icon='icon-subitem', link='/task/lobby/cut_proof'),
                     dict(name='切分审定', icon='icon-subitem', link='/task/lobby/cut_review'),
-                    dict(name='聚类校对', icon='icon-subitem', link='/task/lobby/cluster_proof'),
-                    dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/cluster_review'),
-                    dict(name='生僻校对', icon='icon-subitem', link='/task/lobby/rare_proof'),
-                    dict(name='生僻审定', icon='icon-subitem', link='/task/lobby/rare_review'),
+                    dict(name='文字校对', icon='icon-subitem', link='/task/lobby/text_proof'),
+                    dict(name='文字审定', icon='icon-subitem', link='/task/lobby/text_review'),
                 ]),
                 dict(name='我的任务', icon='icon-task-my', id='task-my', sub_items=[
                     dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
                     dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
-                    dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof'),
-                    dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review'),
-                    dict(name='生僻校对', icon='icon-subitem', link='/task/my/rare_proof'),
-                    dict(name='生僻审定', icon='icon-subitem', link='/task/my/rare_review'),
+                    dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof'),
+                    dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review'),
                 ]),
-                dict(name='任务管理', icon='icon-task-admin', id='task-admin', sub_items=[
-                    dict(name='页任务', icon='icon-subitem', link='/page/task/list'),
-                    dict(name='字任务', icon='icon-subitem', link='/char/task/list'),
-                ]),
+                dict(name='任务管理', icon='icon-task-admin', id='task-admin', link='/page/task/list'),
                 dict(name='数据管理', icon='icon-data', id='data', sub_items=[
-                    dict(name='藏数据', icon='icon-subitem', link='/data/tripitaka'),
+                    dict(name='导图片', icon='icon-subitem', link='/data/image'),
+                    dict(name='部数据', icon='icon-subitem', link='/data/tripitaka'),
                     dict(name='册数据', icon='icon-subitem', link='/data/volume'),
-                    dict(name='经数据', icon='icon-subitem', link='/data/sutra'),
-                    dict(name='卷数据', icon='icon-subitem', link='/data/reel'),
                     dict(name='页数据', icon='icon-subitem', link='/page/list'),
-                    dict(name='字数据', icon='icon-subitem', link='/char/list'),
                     dict(name='异体字', icon='icon-subitem', link='/data/variant'),
                 ]),
                 dict(name='人员管理', icon='icon-users', id='user', sub_items=[
                     dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
                     dict(name='授权管理', icon='icon-subitem', link='/user/role'),
+                ]),
+                dict(name='系统管理', icon='icon-admin', id='sys', sub_items=[
+                    dict(name='脚本管理', icon='icon-subitem', link='/sys/script'),
+                    dict(name='脚本日志', icon='icon-subitem', link='/sys/oplog'),
+                    dict(name='操作日志', icon='icon-subitem', link='/sys/log'),
                 ]),
                 dict(name='相关工具', icon='icon-tool', id='tool', sub_items=[
                     dict(name='自动标点', icon='icon-subitem', link='/com/punctuate'),
@@ -199,15 +199,15 @@ class CharTxt(UIModule):
             return '%s/%s' % (Task.get_task_name(value[0]), value[1])
         return h.format_value(value, key, doc)
 
-    def render(self, char, show_base=False, txt_fields=None, readonly=None):
+    def render(self, char, show_base=False, txt_fields=None, readonly=None, submit_id=None):
         """ 单字校对区域"""
 
         txt_fields = txt_fields or ['txt', 'nor_txt']
         base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt', 'nor_txt',
                        'txt_type', 'box_level', 'box_point', 'txt_level', 'txt_point', 'remark']
         return self.render_string(
-            'com/_char_txt.html', char=char, txt_fields=txt_fields, show_base=show_base,
-            base_fields=base_fields, readonly=readonly, Char=Char, format_value=self.format_value,
+            'com/_char_txt.html', Char=Char, char=char, txt_fields=txt_fields, show_base=show_base,
+            submit_id=submit_id, base_fields=base_fields, readonly=readonly, format_value=self.format_value,
             to_date_str=lambda t, fmt='%Y-%m-%d %H:%M': h.get_date_time(fmt=fmt, date_time=t) if t else ''
         )
 
@@ -220,7 +220,7 @@ class PageTxt(UIModule):
         :param active, txts文本中，当前显示哪个文本
         :param cmp_data, 比对文本。如果比对文本不为空，则优先显示比对文本
         """
-        active = None if cmp_data else active if active else txts[0][1]
+        active = None if cmp_data else active if active else txts[0][1] if txts else None
         return self.render_string('com/_page_txt.html', txts=txts, cmp_data=cmp_data, active=active,
                                   txt2html=Ph.txt2html)
 

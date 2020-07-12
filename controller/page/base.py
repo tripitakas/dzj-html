@@ -22,6 +22,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
+        self.page_title = ''
 
     @classmethod
     def get_required_box_level(cls, char):
@@ -99,14 +100,15 @@ class PageHandler(TaskHandler, Page, Box):
         for b in page['blocks']:
             b['readonly'] = not self.can_write(b, page, task_type)
 
-    def pack_boxes(self, page, extract_sub_columns=None):
-        self.pop_fields(page['chars'], 'box_logs')
+    def pack_boxes(self, page, pack_chars=True, extract_sub_columns=False):
         self.pop_fields(page['blocks'], 'box_logs')
         if extract_sub_columns:
             for col in page['columns']:
                 if col.get('sub_columns'):
                     page['columns'].extend(col['sub_columns'])
         self.pop_fields(page['columns'], 'box_logs,sub_columns')
+        if pack_chars:
+            self.pop_fields(page['chars'], 'box_logs,txt_logs')
 
     @classmethod
     def filter_symbol(cls, txt):
@@ -147,10 +149,25 @@ class PageHandler(TaskHandler, Page, Box):
         cls.write_back_txt(page['chars'], txt2apply, field)
         return match, txt2apply
 
+    def merge_txt_logs(self, user_log, txt_logs):
+        """ 合并log至txt_logs中。如果用户已在txt_logs中，则更新用户已有的log；否则，新增一条log"""
+        is_new = True
+        txt_logs = txt_logs or []
+        user_log['updated_time'] = self.now()
+        for i, log in enumerate(txt_logs):
+            if log.get('user_id') == self.user_id:
+                log.update(user_log)
+                is_new = False
+        if is_new:
+            user_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
+            txt_logs.append(user_log)
+        return txt_logs
+
     def merge_box_logs(self, user_log, box_logs):
         """ 合并log至box_logs中。如果用户已在box_logs中，则更新用户已有的log；否则，新增一条log"""
         assert 'pos' in user_log
         is_new = True
+        box_logs = box_logs or []
         user_log['updated_time'] = self.now()
         for i, log in enumerate(box_logs):
             if log.get('user_id') == self.user_id:
@@ -236,9 +253,9 @@ class PageHandler(TaskHandler, Page, Box):
         if key == 'cmp_txt':
             return page.get('cmp_txt') or ''
         if key == 'ocr':
-            return cls.get_box_ocr(page.get('chars'), 'char')
+            return cls.get_box_ocr(page.get('chars'), 'char') or page.get('ocr')
         if key == 'ocr_col':
-            return cls.get_box_ocr(page.get('columns'), 'column')
+            return cls.get_box_ocr(page.get('columns'), 'column') or page.get('ocr_col')
 
     @classmethod
     def get_txts(cls, page, fields=None):
@@ -271,19 +288,26 @@ class PageHandler(TaskHandler, Page, Box):
         return txt.strip('|')
 
     @classmethod
-    def char2html(cls, chars):
-        def span(ch):
-            txt = ch.get('txt') or ch.get('ocr_txt')
-            txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if ch.get(k)))
+    def set_char_class(cls, chars):
+        for ch in chars or []:
+            txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if ch.get(k) not in [None, '■']))
             is_same = len(txts) == 1
             is_variant = v.is_variants(txts)
-            classes = 'char' if is_same else 'char is_variant' if is_variant else 'char diff'
+            classes = '' if is_same else 'is_variant' if is_variant else 'diff'
             if ch.get('txt') and ch.get('txt') != ch.get('ocr_txt'):
                 classes += ' changed'
+            ch['class'] = classes
+
+    @classmethod
+    def char2html(cls, chars):
+        def span(ch):
+            classes = 'char ' + ch['class'] if ch['class'] else 'char'
+            txt = ch.get('txt') if ch.get('txt') not in [None, '■'] else ch.get('ocr_txt') or '■'
             return '<span id="%s" class="%s">%s</span>' % (ch['cid'], classes, txt)
 
         if not chars:
             return ''
+        cls.set_char_class(chars)
         pre, html = chars[0], '<div class="blocks"><div class="block"><div class="line">'
         html += span(chars[0])
         for b in chars[1:]:
@@ -425,7 +449,7 @@ class PageHandler(TaskHandler, Page, Box):
     @classmethod
     def match_diff(cls, ocr_char, cmp1):
         """ 生成文字匹配的segment
-        :param ocr_char OCR字框文本
+        :param ocr_char OCR切分文本
         :param cmp1 列文本、比对文本(从cbeta选择得到)或校对结果
         针对异文的几种情况，处理如下：
         1. ocr_char为空，直接舍弃该segment

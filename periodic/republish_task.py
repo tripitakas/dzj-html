@@ -26,9 +26,7 @@ class RepublishTimeoutTasks(Worker):
         if tasks:
             cond = {'_id': {'$in': [t['_id'] for t in tasks]}}
             self.db.task.update_many(cond, {'$set': {'status': 'published'}})
-            self.db.task.update_many(cond, {'$unset': {
-                'picked_time': '', 'picked_by': '', 'picked_user_id': ''
-            }})
+            self.db.task.update_many(cond, {'$unset': {'picked_time': '', 'picked_by': '', 'picked_user_id': ''}})
             cond['steps.submitted'] = {'$exists': True}
             self.db.task.update_many(cond, {'$unset': {'steps.submitted': ''}})
             # 重置page表的tasks字段
@@ -37,7 +35,7 @@ class RepublishTimeoutTasks(Worker):
                     self.db.page.update_one({'name': t['doc_id']}, {'$set': {
                         'tasks.%s.%s' % (t.get('task_type'), t.get('num', 1)): Th.STATUS_PUBLISHED
                     }})
-        self.add_log('republish_task', [t['_id'] for t in tasks])
+            self.add_log('republish_task', [t['_id'] for t in tasks])
 
 
 def republish_timeout_tasks(db=None, uri='localhost', db_name='tripitaka', timeout_days=None,

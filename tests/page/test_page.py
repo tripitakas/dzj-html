@@ -169,7 +169,7 @@ class TestPage(APITestCase):
         # 测试以任务方式修改数据
         char['pos']['w'] += 1
         data = {'pos': char['pos'], 'task_type': 'cut_review'}
-        r = self.fetch('/api/char/box/' + name, body={'data': data})
+        r = self.fetch('/api/page/char/box/' + name, body={'data': data})
         self.assert_code(200, r)
         char1 = self._app.db.char.find_one({'name': name})
         self.assertEqual(char1['pos']['w'], char['pos']['w'])
@@ -178,18 +178,18 @@ class TestPage(APITestCase):
         self.assertIsNotNone(page1['chars'][0]['box_logs'])
         # 测试直接修改——积分不够，无法修改
         data1 = {'pos': char['pos']}
-        r = self.fetch('/api/char/box/' + name, body={'data': data1})
+        r = self.fetch('/api/page/char/box/' + name, body={'data': data1})
         self.assert_code(e.data_point_unqualified, r)
         # 测试以校对员身份登录，以任务方式修改数据——数据等级不够
         self.login(u.proof1[0], u.proof1[1])
         data = {'pos': char['pos'], 'task_type': 'cut_proof'}
-        r = self.fetch('/api/char/box/' + name, body={'data': data})
+        r = self.fetch('/api/page/char/box/' + name, body={'data': data})
         self.assert_code(e.data_level_unqualified, r)
         # 测试以专家身份登录，可以直接修改数据
         self.login(u.expert1[0], u.expert1[1])
         char['pos']['w'] += 2
         data = {'pos': char['pos']}
-        r = self.fetch('/api/char/box/' + name, body={'data': data})
+        r = self.fetch('/api/page/char/box/' + name, body={'data': data})
         char1 = self._app.db.char.find_one({'name': name})
         self.assertEqual(char1['pos']['w'], char['pos']['w'])
 

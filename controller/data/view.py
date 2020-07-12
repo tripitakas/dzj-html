@@ -6,7 +6,6 @@
 """
 import re
 from bson import json_util
-from controller import errors as e
 from controller import helper as h
 from controller.base import BaseHandler
 from controller.task.base import TaskHandler
@@ -146,7 +145,7 @@ class VariantListHandler(BaseHandler, Variant):
             kwargs['img_operations'] = ['config']
             condition, params = Variant.get_variant_search_condition(self.request.query)
             docs, pager, q, order = Variant.find_by_page(self, condition, default_order='_id')
-            self.render('variant_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
+            self.render('data_variant_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         format_value=self.format_value, **kwargs)
 
         except Exception as error:
