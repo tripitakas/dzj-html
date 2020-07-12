@@ -104,6 +104,11 @@ class ComLeft(UIModule):
                     dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
                     dict(name='授权管理', icon='icon-subitem', link='/user/role'),
                 ]),
+                dict(name='系统管理', icon='icon-admin', id='sys', sub_items=[
+                    dict(name='脚本管理', icon='icon-subitem', link='/sys/script'),
+                    dict(name='脚本日志', icon='icon-subitem', link='/sys/oplog'),
+                    dict(name='操作日志', icon='icon-subitem', link='/sys/log'),
+                ]),
                 dict(name='相关工具', icon='icon-tool', id='tool', sub_items=[
                     dict(name='自动标点', icon='icon-subitem', link='/com/punctuate'),
                 ]),
