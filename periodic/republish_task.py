@@ -23,19 +23,20 @@ class RepublishTimeoutTasks(Worker):
         timeout_days = hp.prop(hp.load_config(), 'task.task_timeout_days', 1) if not timeout_days else timeout_days
         from_time = datetime.now() - timedelta(days=int(timeout_days))
         tasks = list(self.db.task.find({'status': Th.STATUS_PICKED, 'picked_time': {'$lt': from_time}}))
-        cond = {'_id': {'$in': [t['_id'] for t in tasks]}}
-        self.db.task.update_many(cond, {'$set': {'status': 'published'}})
-        self.db.task.update_many(cond, {'$unset': {
-            'picked_time': '', 'picked_by': '', 'picked_user_id': ''
-        }})
-        cond['steps.submitted'] = {'$exists': True}
-        self.db.task.update_many(cond, {'$unset': {'steps.submitted': ''}})
-        # 重置page表的tasks字段
-        for t in tasks:
-            if t.get('collection') == 'page' and t.get('doc_id'):
-                self.db.page.update_one({'name': t['doc_id']}, {'$set': {
-                    'tasks.%s.%s' % (t.get('task_type'), t.get('num', 1)): Th.STATUS_PUBLISHED
-                }})
+        if tasks:
+            cond = {'_id': {'$in': [t['_id'] for t in tasks]}}
+            self.db.task.update_many(cond, {'$set': {'status': 'published'}})
+            self.db.task.update_many(cond, {'$unset': {
+                'picked_time': '', 'picked_by': '', 'picked_user_id': ''
+            }})
+            cond['steps.submitted'] = {'$exists': True}
+            self.db.task.update_many(cond, {'$unset': {'steps.submitted': ''}})
+            # 重置page表的tasks字段
+            for t in tasks:
+                if t.get('collection') == 'page' and t.get('doc_id'):
+                    self.db.page.update_one({'name': t['doc_id']}, {'$set': {
+                        'tasks.%s.%s' % (t.get('task_type'), t.get('num', 1)): Th.STATUS_PUBLISHED
+                    }})
         self.add_log('republish_task', [t['_id'] for t in tasks])
 
 

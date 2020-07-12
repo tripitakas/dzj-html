@@ -9,12 +9,17 @@ from controller.base import BaseHandler
 from controller.page.tool.esearch import find
 from controller.page.tool.variant import normalize
 
-try:
-    import punctuation
 
-    punc_str = punctuation.punc_str
-except Exception:
-    punc_str = lambda s: s
+def punc_str(orig_str):
+    import requests
+    import logging
+    try:
+        res = requests.get("http://localhost:10888/seg", params={'q': orig_str}, timeout=0.1)
+    except Exception as e:
+        logging.error(str(e))
+        return orig_str
+
+    return res.text
 
 
 class PunctuationApi(BaseHandler):
