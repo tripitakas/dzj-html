@@ -427,7 +427,7 @@
         }
         this.scrollToVisible(el);
         var box = el.getBBox() || {};
-        console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
+        console.log('current box:\t' + this.getCurrentCharID() + '#' + el.data('cid') + '\t' + xf(box.x) + ', ' + xf(box.y)
             + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }
       this.showHandles(state.edit, state.editHandle); // 当前框显示控制点
@@ -691,6 +691,8 @@
         if (!c) {
           c = JSON.parse(JSON.stringify(b));
           data.chars.push(c);
+        } else {
+          $.extend(c, b);
         }
         c.shape = data.paper.rect(b.x * s, b.y * s, b.w * s, b.h * s).initZoom()
             .setAttr({
