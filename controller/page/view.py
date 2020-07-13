@@ -375,10 +375,10 @@ class PageTxtHandler(PageHandler):
         if not page:
             self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
 
+        self.pack_boxes(page, pop_char_logs=False)
         self.prepare4view(self, page)
         chars = {c['name']: c for c in page['chars']}
         columns = {c['column_id']: c for c in page['columns']}
-        self.pack_boxes(page, pop_char_logs=False)
         img_url = self.get_web_img(page['name'])
         chars_col = self.get_chars_col(page['chars'])
         layout = self.get_query_argument('layout', '')
