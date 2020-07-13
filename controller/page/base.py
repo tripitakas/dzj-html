@@ -396,10 +396,13 @@ class PageHandler(TaskHandler, Page, Box):
     def write_back_txt(cls, chars, txt, field):
         """ 将txt回写到chars中。假定图文匹配"""
         txt = re.sub(r'[\|\n]+', '', txt)
-        if len(chars) != len(cls.filter_symbol(txt)):
+        char_txt = ''.join([c['ocr_txt'] for c in chars if c.get('ocr_txt')])
+        if len(char_txt) != len(cls.filter_symbol(txt)):
             return False
         j = 0
         for i, c in enumerate(chars):
+            if not c.get('ocr_txt'):
+                continue
             if txt[j] in ['Y', 'M', 'N']:
                 chars[i - 1]['txt_type'] = txt[j]
                 j += 1
