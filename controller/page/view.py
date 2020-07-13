@@ -354,28 +354,35 @@ class PageTxtHandler(PageHandler):
             return self.send_db_error(error)
 
     @staticmethod
-    def page_txt(self, page_name):
-        page = self.db.page.find_one({'name': page_name})
-        if not page:
-            self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
-
-        # 设置字框大小
+    def prepare4view(self, page):
+        """ 预处理以便前端展示"""
+        # 设置class属性
+        self.set_char_class(page['chars'])
+        # 设置name、txt以及ratio
         ch_a = sorted([c['w'] * c['h'] for c in page['chars']])
         ch_a = ch_a[:-2] if len(ch_a) > 4 else ch_a[:-1] if len(ch_a) > 3 else ch_a
         ch_a = ch_a[2:] if len(ch_a) > 4 else ch_a[:1] if len(ch_a) > 3 else ch_a
         nm_a = sum(ch_a) / len(ch_a)
         for ch in page['chars']:
-            ch['name'] = page_name + '_' + str(ch['cid'])
+            ch['name'] = page['name'] + '_' + str(ch['cid'])
+            ch['txt'] = ch.get('txt') or ch.get('ocr_txt') or '■'
             r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
             ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
 
+    @staticmethod
+    def page_txt(self, page_name):
+        page = self.db.page.find_one({'name': page_name})
+        if not page:
+            self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
+
+        self.prepare4view(self, page)
         chars = {c['name']: c for c in page['chars']}
         columns = {c['column_id']: c for c in page['columns']}
-        self.pack_boxes(page, pack_chars=False)
-        self.set_char_class(page['chars'])
+        self.pack_boxes(page, pop_char_logs=False)
         img_url = self.get_web_img(page['name'])
         chars_col = self.get_chars_col(page['chars'])
         layout = self.get_query_argument('layout', '')
         template = 'page_txt1.html' if layout == '1' else 'page_txt.html'
+
         self.render(template, page=page, chars=chars, columns=columns, chars_col=chars_col,
                     txt_types=CharHandler.txt_types, img_url=img_url, readonly=False)

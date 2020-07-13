@@ -15,9 +15,17 @@ class BoxOrder(object):
     def pop_fields(boxes, fields):
         assert type(fields) in [str, list]
         fields = fields.replace(' ', '').split(',') if isinstance(fields, str) else fields
-        for b in boxes:
+        for box in boxes:
             for field in fields:
-                b.pop(field, 0)
+                box.pop(field, 0)
+        return boxes
+
+    @staticmethod
+    def pick_fields(boxes, fields):
+        assert type(fields) in [str, list]
+        fields = fields.replace(' ', '').split(',') if isinstance(fields, str) else fields
+        for n, box in enumerate(boxes):
+            boxes[n] = {k: box[k] for k in fields if box.get(k)}
         return boxes
 
     @staticmethod
