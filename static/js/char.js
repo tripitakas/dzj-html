@@ -160,7 +160,7 @@ function updateColumnImg(ch) {
 $('#submit-box').on('click', function () {
   var name = $('.char-edit .current-name').val();
   var data = {'pos': getBox()['pos'], 'task_type': taskType};
-  postApi('/char/box/' + name, {data: data}, function (res) {
+  postApi('/page/char/box/' + name, {data: data}, function (res) {
     bsShow('成功！', '已保存成功', 'success', 1000);
     updateBoxLogs(res.box_logs);
     if (res.img_url) {  // 已更新字图
