@@ -12,7 +12,8 @@ handlers = [
     api.PageDeleteApi, api.PageUpsertApi, api.PageSourceApi,
     api.PageCmpTxtApi, api.PageFindCmpTxtApi, api.PageCmpTxtNeighborApi,
     api.PageBoxApi, api.PageOrderApi, api.PageCharBoxApi, api.PageCharTxtApi,
-    api.PageTxtMatchApi, api.PageTxtMatchDiffApi, api.PageStartGenCharsApi, api.PageStartCheckMatchApi,
+    api.PageTxtDiffApi, api.PageTxtMatchApi, api.PageTxtMatchDiffApi,
+    api.PageStartGenCharsApi, api.PageStartCheckMatchApi,
     at.PageTaskPublishApi, at.PageTaskCutApi, at.PageTaskTextApi,
     ao.FetchTasksApi, ao.SubmitTasksApi, ao.ConfirmFetchApi,
 ]
