@@ -85,6 +85,7 @@ class PageTaskStatHandler(PageHandler):
             counts = list(self.db.task.aggregate([
                 {'$match': self.get_task_search_condition(self.request.query, 'page')[0]},
                 {'$group': {'_id': '$%s' % kind, 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}},
             ]))
 
             trans = {}
