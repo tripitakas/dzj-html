@@ -97,7 +97,7 @@ class Page(Model):
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
-        for field in ['cut_proof', 'cut_review', 'ocr_box', 'ocr_txt']:
+        for field in ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'ocr_box', 'ocr_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
