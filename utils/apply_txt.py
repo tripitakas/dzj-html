@@ -42,12 +42,15 @@ def apply_txt(db, field, regen=None):
     size = 10
     if regen:
         db.page.update_many({}, {'$unset': {'txt_match.' + field: ''}})
-    condition = {'txt_match.' + field: None}
+    handled = []
+    condition = {'txt_match.' + field: None, 'name': {'$nin': handled}}
     print('[%s]%s pages to process' % (hp.get_date_time(), db.page.count_documents(condition)))
-    while db.page.count_documents(condition):
+    while db.page.find_one(condition):
         pages = list(db.page.find(condition).sort('_id', 1).limit(size))
         for page in pages:
+            handled.append(page['name'])
             if not Ph.get_txt(page, field):
+                print('[%s]processing %s: %s not exist' % (hp.get_date_time(), page['name'], field))
                 continue
             match, txt = Ph.apply_txt(page, field)
             update = {'chars': page['chars'], 'txt_match.' + field: {'status': match, 'value': txt}}

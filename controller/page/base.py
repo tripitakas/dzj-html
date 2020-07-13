@@ -100,15 +100,20 @@ class PageHandler(TaskHandler, Page, Box):
         for b in page['blocks']:
             b['readonly'] = not self.can_write(b, page, task_type)
 
-    def pack_boxes(self, page, pack_chars=True, extract_sub_columns=False):
-        self.pop_fields(page['blocks'], 'box_logs')
+    def pack_boxes(self, page, pop_char_logs=True, extract_sub_columns=False):
+        fields1 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'block_id']
+        fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
+        fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'column_id', 'char_id',
+                   'cc', 'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
+        self.pick_fields(page['blocks'], fields1)
         if extract_sub_columns:
             for col in page['columns']:
                 if col.get('sub_columns'):
                     page['columns'].extend(col['sub_columns'])
-        self.pop_fields(page['columns'], 'box_logs,sub_columns')
-        if pack_chars:
-            self.pop_fields(page['chars'], 'box_logs,txt_logs')
+        self.pick_fields(page['columns'], fields2)
+        if not pop_char_logs:
+            fields3 = fields3 + ['box_logs', 'txt_logs']
+        self.pick_fields(page['chars'], fields3)
 
     @classmethod
     def filter_symbol(cls, txt):
@@ -396,10 +401,13 @@ class PageHandler(TaskHandler, Page, Box):
     def write_back_txt(cls, chars, txt, field):
         """ 将txt回写到chars中。假定图文匹配"""
         txt = re.sub(r'[\|\n]+', '', txt)
-        if len(chars) != len(cls.filter_symbol(txt)):
+        char_txt = ''.join([c['ocr_txt'] for c in chars if c.get('ocr_txt')])
+        if len(char_txt) != len(cls.filter_symbol(txt)):
             return False
         j = 0
         for i, c in enumerate(chars):
+            if not c.get('ocr_txt'):
+                continue
             if txt[j] in ['Y', 'M', 'N']:
                 chars[i - 1]['txt_type'] = txt[j]
                 j += 1
