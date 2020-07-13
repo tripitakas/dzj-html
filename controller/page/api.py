@@ -101,10 +101,12 @@ class PageBoxApi(PageHandler):
         page = self.db.page.find_one({'name': page_name})
         if not page:
             self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
         page_updated, char_updated = self.get_box_update(self.data, page, task_type)
         self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})
+
         valid, message, box_type, out_boxes = self.check_box_cover(page)
         self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
         if page.get('has_gen_chars'):  # 更新char表和字图
@@ -112,6 +114,7 @@ class PageBoxApi(PageHandler):
             script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
             script = script % (h.BASE_DIR, self.username, 1)
             os.system(script)
+
         return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
 
 
