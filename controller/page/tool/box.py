@@ -168,6 +168,8 @@ class Box(BoxOrder):
         box_types = box_types or ['blocks', 'columns', 'chars']
         for box_type in box_types:
             boxes = page.get(box_type)
+            if not boxes:
+                continue
             max_cid = max([int(c.get('cid') or 0) for c in boxes])
             for b in boxes:
                 if not b.get('cid'):
