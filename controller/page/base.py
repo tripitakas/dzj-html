@@ -103,7 +103,7 @@ class PageHandler(TaskHandler, Page, Box):
     def pack_boxes(self, page, pop_char_logs=True, extract_sub_columns=False):
         fields1 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'block_id']
         fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
-        fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'column_id', 'char_id',
+        fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'char_id',
                    'cc', 'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
         self.pick_fields(page['blocks'], fields1)
         if extract_sub_columns:

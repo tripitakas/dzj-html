@@ -254,7 +254,7 @@ class PageBoxHandler(PageHandler):
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             self.set_box_access(page)
             sub_columns = self.get_query_argument('sub_columns', '')
-            self.pack_boxes(page, sub_columns == 'true')
+            self.pack_boxes(page, extract_sub_columns=sub_columns == 'true')
             img_url = self.get_web_img(page['name'], 'page')
             self.render('page_box.html', page=page, img_url=img_url, readonly=False)
 
@@ -354,8 +354,12 @@ class PageTxtHandler(PageHandler):
             return self.send_db_error(error)
 
     @staticmethod
-    def prepare4view(self, page):
-        """ 预处理以便前端展示"""
+    def page_txt(self, page_name):
+        page = self.db.page.find_one({'name': page_name})
+        if not page:
+            self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
+
+        self.pack_boxes(page, pop_char_logs=False)
         # 设置class属性
         self.set_char_class(page['chars'])
         # 设置name、txt以及ratio
@@ -369,14 +373,6 @@ class PageTxtHandler(PageHandler):
             r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
             ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
 
-    @staticmethod
-    def page_txt(self, page_name):
-        page = self.db.page.find_one({'name': page_name})
-        if not page:
-            self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
-
-        self.pack_boxes(page, pop_char_logs=False)
-        self.prepare4view(self, page)
         chars = {c['name']: c for c in page['chars']}
         columns = {c['column_id']: c for c in page['columns']}
         img_url = self.get_web_img(page['name'])
