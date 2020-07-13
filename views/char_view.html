@@ -138,7 +138,7 @@
     if ($(this).hasClass('disabled')) return;
     var box = $.cut.exportBoxes()[0];
     var data = {pos: {x: box.x, y: box.y, w: box.w, h: box.h}};
-    postApi('/char/box/{{char["name"]}}', {data: data}, function (res) {
+    postApi('/page/char/box/{{char["name"]}}', {data: data}, function (res) {
       location.reload();
     });
   });
