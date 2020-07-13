@@ -216,7 +216,7 @@
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   var taskType = '{{handler.task_type or ""}}';
-  var from = taskType ? '/task/lobby/' + taskType : decodeFrom();
+  var from = decodeFrom() ? decodeFrom() : '/task/lobby/' + taskType;
   var pageName = '{{page["name"]}}';
   var chars = decodeJSON("{{dumps(chars)}}");
   var txtTypes = decodeJSON('{{dumps(txt_types)}}');
