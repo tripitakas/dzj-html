@@ -15,7 +15,7 @@ class TestOcr(APITestCase):
 
     def test_ocr_task(self):
         """ 测试小欧的数据处理任务"""
-        for task_type in ['ocr_box', 'ocr_txt', 'upload_cloud']:
+        for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
             # 发布任务
             page_names = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
             r = self.publish_page_tasks(dict(page_names=page_names, task_type=task_type, pre_tasks=[]))
