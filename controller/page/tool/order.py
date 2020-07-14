@@ -297,8 +297,8 @@ class BoxOrder(object):
             return cols_chars
 
         def scan_and_order():
-            # 检查是否为b0c0或是窄列
-            if column_id == 'b0c0' or is_narrow_column(column_id):
+            # 检查是否为b0c0
+            if column_id == 'b0c0':
                 column_chars.sort(key=cmp_to_key(cls.cmp_up2down))
                 for i, c in enumerate(column_chars):
                     c['char_no'] = i + 1
@@ -448,3 +448,16 @@ class BoxOrder(object):
 
         cls.pop_fields(ret_chars, 'column_id,column_id2,hr_nbs,side,ratio')
         return ret_chars
+
+
+if __name__ == '__main__':
+    import pymongo
+
+    local_db = pymongo.MongoClient('mongodb://localhost')['tripitaka']
+    page = local_db.page.find_one({'name': 'ZH_2_2_4'})
+    chars1 = BoxOrder.calc_char_id(page['chars'], page['columns'])
+    for c in chars1:
+        # print('%s: %s' % (c['cid'], c['char_id']))
+        pass
+
+    print('finished.')

@@ -26,7 +26,7 @@ class ComLeft(UIModule):
         items = [
             dict(name='首页', icon='icon-home', link='/home'),
             dict(name='大藏经', icon='icon-tripitaka', link='/tripitaka/list'),
-            dict(name='任务大厅', icon='icon-task-lobby', id='task-lobby', sub_items=[
+            dict(name='任务大厅', icon='icon-task-lobby', sub_items=[
                 dict(name='切分校对', icon='icon-subitem', link='/task/lobby/cut_proof'),
                 dict(name='切分审定', icon='icon-subitem', link='/task/lobby/cut_review'),
                 dict(name='文字校对', icon='icon-subitem', link='/task/lobby/text_proof'),
@@ -36,7 +36,7 @@ class ComLeft(UIModule):
                 dict(name='生僻校对', icon='icon-subitem', link='/task/lobby/rare_proof'),
                 dict(name='生僻审定', icon='icon-subitem', link='/task/lobby/rare_review'),
             ]),
-            dict(name='我的任务', icon='icon-task-my', id='task-my', sub_items=[
+            dict(name='我的任务', icon='icon-task-my', sub_items=[
                 dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
                 dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
                 dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof'),
@@ -46,11 +46,11 @@ class ComLeft(UIModule):
                 dict(name='生僻校对', icon='icon-subitem', link='/task/my/rare_proof'),
                 dict(name='生僻审定', icon='icon-subitem', link='/task/my/rare_review'),
             ]),
-            dict(name='任务管理', icon='icon-task-admin', id='task-admin', sub_items=[
+            dict(name='任务管理', icon='icon-task-admin', sub_items=[
                 dict(name='页任务', icon='icon-subitem', link='/page/task/list'),
                 dict(name='字任务', icon='icon-subitem', link='/char/task/list'),
             ]),
-            dict(name='数据管理', icon='icon-data', id='data', sub_items=[
+            dict(name='数据管理', icon='icon-data', sub_items=[
                 dict(name='导图片', icon='icon-subitem', link='/data/image'),
                 dict(name='藏数据', icon='icon-subitem', link='/data/tripitaka'),
                 dict(name='册数据', icon='icon-subitem', link='/data/volume'),
@@ -65,12 +65,12 @@ class ComLeft(UIModule):
                 dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
                 dict(name='授权管理', icon='icon-subitem', link='/user/role'),
             ]),
-            dict(name='系统管理', icon='icon-admin', id='sys', sub_items=[
+            dict(name='系统管理', icon='icon-admin', sub_items=[
                 dict(name='脚本管理', icon='icon-subitem', link='/sys/script'),
                 dict(name='脚本日志', icon='icon-subitem', link='/sys/oplog'),
                 dict(name='操作日志', icon='icon-subitem', link='/sys/log'),
             ]),
-            dict(name='相关工具', icon='icon-tool', id='tool', sub_items=[
+            dict(name='相关工具', icon='icon-tool', sub_items=[
                 dict(name='自动标点', icon='icon-subitem', link='/com/punctuate'),
                 dict(name='全文检索', icon='icon-subitem', link='/com/search'),
             ]),
@@ -80,36 +80,36 @@ class ComLeft(UIModule):
             items = [
                 dict(name='首页', icon='icon-home', link='/home'),
                 dict(name='古籍库', icon='icon-tripitaka', link='/tripitaka/list'),
-                dict(name='任务大厅', icon='icon-task-lobby', id='task-lobby', sub_items=[
+                dict(name='任务大厅', icon='icon-task-lobby', sub_items=[
                     dict(name='切分校对', icon='icon-subitem', link='/task/lobby/cut_proof'),
                     dict(name='切分审定', icon='icon-subitem', link='/task/lobby/cut_review'),
                     dict(name='文字校对', icon='icon-subitem', link='/task/lobby/text_proof'),
                     dict(name='文字审定', icon='icon-subitem', link='/task/lobby/text_review'),
                 ]),
-                dict(name='我的任务', icon='icon-task-my', id='task-my', sub_items=[
+                dict(name='我的任务', icon='icon-task-my', sub_items=[
                     dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
                     dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
                     dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof'),
                     dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review'),
                 ]),
-                dict(name='任务管理', icon='icon-task-admin', id='task-admin', link='/page/task/list'),
-                dict(name='数据管理', icon='icon-data', id='data', sub_items=[
+                dict(name='任务管理', icon='icon-task-admin', link='/page/task/list'),
+                dict(name='数据管理', icon='icon-data', sub_items=[
                     dict(name='导图片', icon='icon-subitem', link='/data/image'),
                     dict(name='部数据', icon='icon-subitem', link='/data/tripitaka'),
                     dict(name='册数据', icon='icon-subitem', link='/data/volume'),
                     dict(name='页数据', icon='icon-subitem', link='/page/list'),
                     dict(name='异体字', icon='icon-subitem', link='/data/variant'),
                 ]),
-                dict(name='人员管理', icon='icon-users', id='user', sub_items=[
+                dict(name='人员管理', icon='icon-users', sub_items=[
                     dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
                     dict(name='授权管理', icon='icon-subitem', link='/user/role'),
                 ]),
-                dict(name='系统管理', icon='icon-admin', id='sys', sub_items=[
+                dict(name='系统管理', icon='icon-admin', sub_items=[
                     dict(name='脚本管理', icon='icon-subitem', link='/sys/script'),
                     dict(name='脚本日志', icon='icon-subitem', link='/sys/oplog'),
                     dict(name='操作日志', icon='icon-subitem', link='/sys/log'),
                 ]),
-                dict(name='相关工具', icon='icon-tool', id='tool', sub_items=[
+                dict(name='相关工具', icon='icon-tool', sub_items=[
                     dict(name='自动标点', icon='icon-subitem', link='/com/punctuate'),
                 ]),
                 dict(name='帮助中心', icon='icon-info', link='/help'),
@@ -124,11 +124,12 @@ class ComLeft(UIModule):
                 item['id'] = re.sub('[/_]', '-', item['link'][1:])
                 display_items.append(item)
             if item.get('sub_items'):
-                checked = lambda i: is_enabled(i.get('name')) and i.get('link') and can_access(i['link'])
-                sub_items = [i for i in item['sub_items'] if checked(i)]
+                sub_items = []
+                for sub in item['sub_items']:
+                    if is_enabled(sub.get('name')) and sub.get('link') and can_access(sub['link']):
+                        sub['id'] = re.sub('[/_]', '-', sub['link'][1:])
+                        sub_items.append(sub)
                 if sub_items:
-                    for _item in sub_items:
-                        _item['id'] = re.sub('[/_]', '-', _item['link'][1:])
                     item['sub_items'] = sub_items
                     display_items.append(item)
 
