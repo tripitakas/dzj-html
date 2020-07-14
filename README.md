@@ -1,4 +1,4 @@
-# 大藏经古籍数字化平台（生产版）
+# 大藏经古籍数字化平台
 
 [![Build Status](https://travis-ci.org/tripitakas/tripitaka-web.svg?branch=dev)](https://travis-ci.org/tripitakas/tripitaka-web)
 [![Coverage](https://codecov.io/gh/tripitakas/tripitaka-web/branch/dev/graph/badge.svg)](https://codecov.io/gh/tripitakas/tripitaka-web)
