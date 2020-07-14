@@ -87,6 +87,7 @@ class TestPage(APITestCase):
         self.assertEqual(len(page2['chars']), len(page3['chars']))
 
         # 2. 测试直接增删改
+        self.login(u.proof2[0], u.proof2[1])
         # 测试积分不够，无法修改数据
         page4 = self._app.db.page.find_one({'name': name})
         page4['chars'][1].update({'changed': True, 'w': page4['chars'][1]['w'] + 1})

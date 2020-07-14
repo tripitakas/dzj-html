@@ -100,16 +100,16 @@ class PageHandler(TaskHandler, Page, Box):
         for b in page['blocks']:
             b['readonly'] = not self.can_write(b, page, task_type)
 
-    def pack_boxes(self, page, pop_char_logs=True, extract_sub_columns=False):
-        fields1 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'block_id']
-        fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
-        fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'char_id',
-                   'cc', 'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
-        self.pick_fields(page['blocks'], fields1)
+    def pack_boxes(self, page, extract_sub_columns=False, pop_char_logs=True):
         if extract_sub_columns:
             for col in page['columns']:
                 if col.get('sub_columns'):
                     page['columns'].extend(col['sub_columns'])
+        fields1 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'block_id']
+        fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
+        fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'char_id', 'cc',
+                   'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
+        self.pick_fields(page['blocks'], fields1)
         self.pick_fields(page['columns'], fields2)
         if not pop_char_logs:
             fields3 = fields3 + ['box_logs', 'txt_logs']
@@ -248,7 +248,8 @@ class PageHandler(TaskHandler, Page, Box):
             chars_col = page['chars_col']
             if not self.cmp_char_cid(chars, page['chars_col']):
                 chars = self.calc_char_id(chars, columns)
-                chars_col = self.merge_chars_col(self.get_chars_col(chars), page['chars_col'])
+                algorithm_chars_col = self.get_chars_col(chars)
+                chars_col = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
             chars = self.update_char_order(chars, chars_col)
         else:
             # 算法排序
