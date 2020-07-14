@@ -294,9 +294,9 @@ class PageHandler(TaskHandler, Page, Box):
         pre = boxes[0]
         txt = get_txt(pre)
         for b in boxes[1:]:
-            if pre.get('block_no') and b.get('block_no') and pre['block_no'] != b['block_no']:
+            if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
                 txt += '||'
-            elif pre.get('column_no') and b.get('column_no') and pre['column_no'] != b['column_no']:
+            elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
                 txt += '|'
             txt += get_txt(b)
             pre = b
@@ -326,9 +326,9 @@ class PageHandler(TaskHandler, Page, Box):
         pre, html = chars[0], '<div class="blocks"><div class="block"><div class="line">'
         html += span(chars[0])
         for b in chars[1:]:
-            if pre.get('block_no') and b.get('block_no') and pre['block_no'] != b['block_no']:
+            if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
                 html += '</div></div><div class="block"><div class="line">'
-            elif pre.get('column_no') and b.get('column_no') and pre['column_no'] != b['column_no']:
+            elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
                 html += '</div><div class="line">'
             html += span(b)
             pre = b
@@ -376,10 +376,10 @@ class PageHandler(TaskHandler, Page, Box):
         if chars:
             pre, num = chars[0], 1
             for c in chars[1:]:
-                if pre.get('block_no') and c.get('block_no') and pre['block_no'] != c['block_no']:  # 换栏
+                if pre.get('block_no') and c.get('block_no') and int(pre['block_no']) != int(c['block_no']):  # 换栏
                     column_char_num.append(num)
                     num = 1
-                elif pre.get('column_no') and c.get('column_no') and pre['column_no'] != c['column_no']:  # 换行
+                elif pre.get('column_no') and c.get('column_no') and int(pre['column_no']) != int(c['column_no']):  # 换行
                     column_char_num.append(num)
                     num = 1
                 else:

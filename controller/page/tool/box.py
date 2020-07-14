@@ -85,7 +85,7 @@ class Box(BoxOrder):
         ret = []
         for c in columns:
             c_chars = [ch for ch in chars if
-                       str(ch['block_no']) == str(c['block_no']) and str(ch['column_no']) == str(c['column_no'])]
+                       int(ch['block_no']) == int(c['block_no']) and int(ch['column_no']) == int(c['column_no'])]
             if c_chars:
                 c.update(cls.get_outer_range(c_chars))
                 ret.append(c)
@@ -148,8 +148,8 @@ class Box(BoxOrder):
             block_no, column_no = column_id[1:].split('c')
             for char_no, cid in enumerate(col_cid):
                 c = [c for c in col_chars if c['cid'] == cid][0]
-                c['block_no'] = block_no
-                c['column_no'] = column_no
+                c['block_no'] = int(block_no)
+                c['column_no'] = int(column_no)
                 c['char_no'] = char_no + 1
                 c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
         return sorted(chars, key=itemgetter('block_no', 'column_no', 'char_no'))

@@ -373,12 +373,11 @@ class PageTxtHandler(PageHandler):
             r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
             ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
 
-        chars = {c['name']: c for c in page['chars']}
-        columns = {c['column_id']: c for c in page['columns']}
         img_url = self.get_web_img(page['name'])
         chars_col = self.get_chars_col(page['chars'])
+        chars = {c['name']: c for c in page['chars']}
+        columns = {c['column_id']: c for c in page['columns']}
         layout = self.get_query_argument('layout', '')
         template = 'page_txt1.html' if layout == '1' else 'page_txt.html'
-
         self.render(template, page=page, chars=chars, columns=columns, chars_col=chars_col,
                     txt_types=CharHandler.txt_types, img_url=img_url, readonly=False)
