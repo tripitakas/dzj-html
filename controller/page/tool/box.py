@@ -73,7 +73,7 @@ class Box(BoxOrder):
         """ 根据字框调整栏框边界，去掉没有字框的栏框"""
         ret = []
         for b in blocks:
-            b_chars = [c for c in chars if c['block_no'] == b['block_no']]
+            b_chars = [c for c in chars if str(c['block_no']) == str(b['block_no'])]
             if b_chars:
                 b.update(cls.get_outer_range(b_chars))
                 ret.append(b)
@@ -84,7 +84,8 @@ class Box(BoxOrder):
         """ 根据字框调整列框边界，去掉没有字框的列框"""
         ret = []
         for c in columns:
-            c_chars = [ch for ch in chars if ch['block_no'] == c['block_no'] and ch['column_no'] == c['column_no']]
+            c_chars = [ch for ch in chars if
+                       str(ch['block_no']) == str(c['block_no']) and str(ch['column_no']) == str(c['column_no'])]
             if c_chars:
                 c.update(cls.get_outer_range(c_chars))
                 ret.append(c)
@@ -144,9 +145,11 @@ class Box(BoxOrder):
                 continue
             cnt = Counter(['b%sc%s' % (c['block_no'], c['column_no']) for c in col_chars])
             column_id = cnt.most_common(1)[0][0]
+            block_no, column_no = column_id[1:].split('c')
             for char_no, cid in enumerate(col_cid):
                 c = [c for c in col_chars if c['cid'] == cid][0]
-                c['column_no'] = int(column_id[3:])
+                c['block_no'] = block_no
+                c['column_no'] = column_no
                 c['char_no'] = char_no + 1
                 c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
         return sorted(chars, key=itemgetter('block_no', 'column_no', 'char_no'))
