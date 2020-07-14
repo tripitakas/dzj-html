@@ -29,11 +29,18 @@ class PageListHandler(PageHandler):
         {'id': 'remark_txt', 'name': '文本备注'},
         {'id': 'op_text', 'name': '文本匹配'},
     ]
-    info_fields = [
-        'name', 'source', 'box_ready', 'layout', 'remark_box', 'op_text'
-    ]
-    hide_fields = [
-        'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'box_ready',
+    info_fields = ['name', 'source', 'box_ready', 'layout', 'remark_box', 'op_text']
+    hide_fields = ['uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'box_ready', ]
+    operations = [
+        {'operation': 'bat-delete', 'label': '批量删除'},
+        {'operation': 'btn-duplicate', 'label': '查找重复'},
+        {'operation': 'bat-source', 'label': '更新分类'},
+        {'operation': 'bat-gen-chars', 'label': '生成字表'},
+        {'operation': 'btn-check-match', 'label': '检查图文匹配'},
+        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+        {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
+            {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, False).items()
+        ]},
     ]
     actions = [
         {'action': 'btn-box', 'label': '字框'},
@@ -60,38 +67,24 @@ class PageListHandler(PageHandler):
     match_fields = {'cmp_txt': '比对文本', 'ocr_col': 'OCR列文', 'txt': '校对文本'}
     match_statuses = {'': '', None: '无', True: '匹配', False: '不匹配'}
 
-    def get_operations(self):
-        operations = [
-            {'operation': 'bat-delete', 'label': '批量删除'},
-            {'operation': 'btn-duplicate', 'label': '查找重复'},
-            {'operation': 'bat-source', 'label': '更新分类'},
-            {'operation': 'bat-gen-chars', 'label': '生成字表'},
-            {'operation': 'btn-check-match', 'label': '检查图文匹配'},
-            {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-            {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-                {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, False).items()
-            ]},
-        ]
+    def get_template_kwargs(self, fields=None):
+        kwargs = super().get_template_kwargs()
         if self.prop(self.config, 'site.skin') == 'nlc':
-            operations = [o for o in operations if o.get('label') not in ['生成字表', '检查图文匹配']]
+            kwargs['operations'] = [o for o in kwargs['operations'] if o.get('label') not in ['生成字表', '检查图文匹配']]
         if '系统管理员' in self.current_user['roles']:
-            operations[-1]['groups'] = [
+            kwargs['operations'][-1]['groups'] = [
                 {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, True).items()
             ]
-        return operations
+        return kwargs
 
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""
 
         def format_txt(field, show_none=True):
-            txt = self.get_txt(doc, field)
-            st = {True: '√', False: '×'}.get(self.prop(doc, 'txt_match.%s.status' % field)) or ''
-            if txt:
-                return '<a title="%s">%s%s</a>' % (field, self.match_fields.get(field), st)
-            elif show_none:
-                return '<a title="%s">%s%s(无)</a>' % (field, self.match_fields.get(field), st)
-            else:
-                return ''
+            s = {True: '√', False: '×', None: ''}.get(self.prop(doc, 'txt_match.%s.status' % field))
+            if self.get_txt(doc, field):
+                return '<a title="%s">%s%s</a>' % (field, self.match_fields.get(field), s)
+            return '<a title="%s">%s%s(无)</a>' % (field, self.match_fields.get(field), s) if show_none else ''
 
         if key == 'tasks' and value:
             ret = ''
@@ -119,7 +112,6 @@ class PageListHandler(PageHandler):
         """ 页数据管理"""
         try:
             kwargs = self.get_template_kwargs()
-            kwargs['operations'] = self.get_operations()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']

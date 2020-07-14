@@ -113,9 +113,7 @@ class VariantListHandler(BaseHandler, Variant):
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
     ]
-    info_fields = [
-        'uid', 'txt', 'img_name', 'normal_txt', 'remark',
-    ]
+    info_fields = ['uid', 'txt', 'img_name', 'normal_txt', 'remark']
     operations = [
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},

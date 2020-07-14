@@ -5,7 +5,7 @@
     </div>
     <ul class="main-menu" id="side-menu">
       {% for item in display_items %}
-      <li class="menu-item {{'has-sub' if item.get('sub_items') else ''}}" id="{{item['id']}}">
+      <li class="menu-item {{'has-sub' if item.get('sub_items') else ''}}" id="{{item.get('id') or ''}}">
         <div class="menu-title">
           <i class='{{item["icon"]}}'></i>
           <span><a href="{{item.get('link', '#')}}">{{item['name']}}</a></span>

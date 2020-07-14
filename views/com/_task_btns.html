@@ -14,7 +14,12 @@
 
 {% if handler.mode == 'browse' %}
 <div class="btn-txt btn-line"></div>
+{% if '任务管理员' in handler.current_user['roles'] %}
 <div id="task-remark" class="btn-txt icon-edit" data-toggle="tooltip" data-placement="bottom" title="备注任务"></div>
+{% end %}
+{% set picked_by = handler.task.get('picked_by', '') %}
+{% set info = '任务状态：%s%s' % (handler.get_status_name(handler.task.get('status')), '<br/>领取人：%s' % picked_by if picked_by else '') %}
+<div class="btn-txt icon-info" data-html="true" data-toggle="tooltip" data-placement="bottom" title="{{info}}"></div>
 <div id="task-prev" class="btn-txt icon-backward" data-toggle="tooltip" data-placement="bottom" title="前一个任务"></div>
 <div id="task-next" class="btn-txt icon-forward" data-toggle="tooltip" data-placement="bottom" title="后一个任务"></div>
 {% end %}

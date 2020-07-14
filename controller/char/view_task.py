@@ -54,6 +54,14 @@ class CharTaskListHandler(CharHandler):
     hide_fields = ['_id', 'params', 'return_reason', 'create_time', 'updated_time', 'publish_by']
     update_fields = []
 
+    def get_template_kwargs(self, fields=None):
+        kwargs = super().get_template_kwargs()
+        readonly = '任务管理员' not in self.current_user['roles']
+        if readonly:
+            kwargs['actions'] = [{'action': 'btn-nav', 'label': '浏览'}]
+            kwargs['operations'] = [{'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'}]
+        return kwargs
+
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""
         if key == 'txt_kind' and value:

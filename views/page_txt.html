@@ -215,9 +215,9 @@
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   var pageName = '{{page["name"]}}';
-  var chars = decodeJSON("{{chars}}");
-  var charsCol = decodeJSON('{{chars_col}}');
+  var chars = decodeJSON('{{dumps(chars)}}');
   var txtTypes = decodeJSON('{{txt_types}}');
+  var taskMode = '{{handler.mode or ""}}';
   var taskType = '{{handler.task_type or ""}}';
   var from = decodeFrom() ? decodeFrom() : '/task/lobby/' + taskType;
 
@@ -235,7 +235,7 @@
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.switchCurrentBox(null);
-  $.cut.addCharOrderLinks(charsCol, true);
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
 
   $.cut.state.canHitBox = function (el) {
     if ($('#toggle-char').hasClass('active') && el.data('class') === 'char') return true;
@@ -265,11 +265,12 @@
     if ($(this).hasClass('disabled')) return;
     var name = $('.char-edit .current-name').val();
     var cid = name.split('_').pop();
+
     var data = {
-      task_type: taskType || '',
       txt: $('.proof .txt').val() || '',
       nor_txt: $('.proof .nor-txt').val() || '',
       txt_type: $('.txt-types :checked').val() || '',
+      task_type: ['do', 'update'].indexOf(taskMode) > -1 ? taskType : '',
       remark: $('.proof .remark').val() || '',
     };
     postApi('/page/char/txt/' + name, {data: data}, function (res) {
