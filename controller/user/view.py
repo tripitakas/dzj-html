@@ -36,13 +36,6 @@ class UserProfileHandler(BaseHandler):
 class UsersAdminHandler(BaseHandler, User):
     URL = '/user/admin'
 
-    search_tips = '请搜索用户名、手机和邮箱'
-    img_operations = ['config']
-    operations = [
-        {'operation': 'btn-add', 'label': '新增用户'},
-        {'operation': 'bat-remove', 'label': '批量删除'},
-    ]
-
     def get(self):
         """ 用户管理页面 """
         try:
@@ -57,9 +50,11 @@ class UsersAdminHandler(BaseHandler, User):
 class UserRolesHandler(BaseHandler, User):
     URL = '/user/role'
 
-    operations = []
-    img_operations = []
-    search_tips = '请搜索用户名'
+    def get_template_kwargs(self, fields=None):
+        kwargs = super().get_template_kwargs(fields)
+        kwargs['operations'] = []
+        kwargs['img_operations'] = []
+        return kwargs
 
     def get(self):
         """ 角色管理页面 """

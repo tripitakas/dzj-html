@@ -127,6 +127,17 @@ def get_url_param(key, url_query):
     return trans.get(r) if r in trans else r
 
 
+def set_url_param(url_query, key, value):
+    if '%s=' % key in url_query:
+        url_query = re.sub(r'%s=\d+&' % key, '%s=' % key + value + '&', url_query)
+        url_query = re.sub(r'%s=\d+$' % key, '%s=' % key + value, url_query)
+        return url_query
+    elif '?' in url_query:
+        return url_query + '&page=' + value
+    else:
+        return url_query + '?page=' + value
+
+
 def get_date_time(fmt=None, date_time=None, diff_seconds=None):
     time = date_time if date_time else datetime.now()
     if isinstance(time, str):

@@ -39,6 +39,7 @@ class User(Model):
         {'operation': 'btn-add', 'label': '新增用户'},
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
+    img_operations = ['config']
     actions = [  # 列表单条记录包含哪些操作
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},

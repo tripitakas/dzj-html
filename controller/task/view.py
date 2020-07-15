@@ -44,7 +44,7 @@ class TaskMyHandler(TaskHandler):
     update_fields = []
 
     @classmethod
-    def set_kwargs(cls, collection):
+    def set_template_kwargs(cls, collection):
         if collection == 'page':
             cls.search_tips = '请搜索页编码'
             cls.search_fields = ['doc_id']
@@ -64,14 +64,14 @@ class TaskMyHandler(TaskHandler):
     def format_value(self, value, key=None, doc=None):
         """ 格式化task表的字段输出"""
         if key == 'txt_kind' and len(value) > 5:
-            value = value[:5] + '...'
+            return value[:5] + '...'
         return super().format_value(value, key, doc)
 
     def get(self, task_type):
         """ 我的任务"""
         try:
             collection = self.prop(self.task_types, task_type + '.data.collection')
-            self.set_kwargs(collection)
+            self.set_template_kwargs(collection)
             kwargs = self.get_template_kwargs()
             status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
             condition = {'task_type': task_type, 'status': status, 'picked_user_id': self.user_id}

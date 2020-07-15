@@ -197,7 +197,7 @@
             </tr>
             <tr>
               <td>方向键</td>
-              <td>列图模式下，用方向键↑→↓←，切换当前字框</td>
+              <td>用方向键↑→↓←，切换当前字框</td>
             </tr>
           </table>
         </div>
@@ -294,13 +294,15 @@
   // 方向键移动
   $.mapKey('left', function () {
     if (!$('.current-char').length) return $('.line .char:first').click();
-    $('.current-char').prev().click();
+    if ($('.current-char').prev().length) return $('.current-char').prev().click();
+    $('.current-line').prev().find('.char').eq(-1).click();
   });
 
   // 方向键移动
   $.mapKey('right', function () {
     if (!$('.current-char').length) return $('.line .char:first').click();
-    $('.current-char').next().click();
+    if ($('.current-char').next().length) return $('.current-char').next().click();
+    $('.current-line').next().find('.char').eq(0).click();
   });
 
   // 方向键移动
