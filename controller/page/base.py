@@ -268,9 +268,9 @@ class PageHandler(TaskHandler, Page, Box):
         if key == 'cmp_txt':
             return page.get('cmp_txt') or ''
         if key == 'ocr':
-            return cls.get_box_ocr(page.get('chars'), 'char') or page.get('ocr')
+            return cls.get_char_txt(page.get('chars'), 'char') or page.get('ocr')
         if key == 'ocr_col':
-            return cls.get_box_ocr(page.get('columns'), 'column') or page.get('ocr_col')
+            return cls.get_column_txt(page.get('columns'), 'column') or page.get('ocr_col')
 
     @classmethod
     def get_txts(cls, page, fields=None):
@@ -279,20 +279,42 @@ class PageHandler(TaskHandler, Page, Box):
         return [t for t in txts if t[0]]
 
     @classmethod
-    def get_box_ocr(cls, boxes, box_type='char'):
-        """ 获取chars或columns里的ocr文本"""
+    def get_column_txt(cls, page, field='ocr_txt'):
+        """ 获取columns的文本"""
 
         def get_txt(box):
-            if box_type == 'char':
-                return box.get('alternatives') and box['alternatives'][0] or box.get('ocr_txt') or ''
-            elif box.get('sub_columns') and len(box['sub_columns']) > 1 and box['sub_columns'][1].get('ocr_txt'):
-                return ''.join([c.get('ocr_txt') or '' for c in box['sub_columns']])
-            return box.get('ocr_txt') or ''
+            if box.get('sub_columns') and len(box['sub_columns']) > 1 and box['sub_columns'][1].get(field):
+                return ''.join([c.get(field) or '' for c in box['sub_columns']])
+            return box.get(field) or ''
 
+        boxes = page.get('columns')
         if not boxes:
             return ''
-        pre = boxes[0]
-        txt = get_txt(pre)
+        pre, txt = boxes[0], get_txt(boxes[0])
+        for b in boxes[1:]:
+            if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
+                txt += '||'
+            elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
+                txt += '|'
+            txt += get_txt(b)
+            pre = b
+        return txt.strip('|')
+
+    @classmethod
+    def get_char_txt(cls, page, field='ocr_txt'):
+        """ 获取chars的文本"""
+
+        def get_txt(box):
+            if field == 'adapt':
+                return box.get('txt') or box.get('ocr_txt') or box.get('ocr_col') or ''
+            if field == 'ocr_txt':
+                return box['alternatives'][0] if box.get('alternatives') else box.get('ocr_txt', '')
+            return box.get(field) or ''
+
+        boxes = page.get('chars')
+        if not boxes:
+            return ''
+        pre, txt = boxes[0], get_txt(boxes[0])
         for b in boxes[1:]:
             if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
                 txt += '||'
@@ -356,6 +378,8 @@ class PageHandler(TaskHandler, Page, Box):
     @classmethod
     def txt2html(cls, txt):
         """ 把文本转换为html，文本以空行或者||为分栏"""
+        if not txt:
+            return
         if re.match('<[a-z]+.*>.*</[a-z]+>', txt):
             return txt
         txt = '|'.join(txt) if isinstance(txt, list) else txt
