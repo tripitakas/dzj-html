@@ -413,6 +413,16 @@
     });
   });
 
+  // 方向键移动
+  $.mapKey('left', function () {
+    $('.char-item.current').prev().find('.char-img').click();
+  });
+
+  // 方向键移动
+  $.mapKey('right', function () {
+    $('.char-item.current').next().find('.char-img').click();
+  });
+
 </script>
 </body>
 </html>
