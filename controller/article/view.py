@@ -4,20 +4,19 @@
 @time: 2019/11/17
 """
 import re
-from controller import errors
+from controller import errors as e
 from controller.base import BaseHandler
 from controller.article.article import Article
 
 
-class ArticleAdminHandler(BaseHandler):
+class ArticleAdminHandler(BaseHandler, Article):
     URL = '/article/admin'
 
     def get(self):
         """ 文章管理"""
         try:
-            model = Article
-            docs, pager, q, order = model.find_by_page(self)
-            kwargs = model.get_template_kwargs()
+            kwargs = self.get_template_kwargs()
+            docs, pager, q, order = self.find_by_page(self)
             self.render('article_admin.html', docs=docs, pager=pager, order=order, q=q, **kwargs)
 
         except Exception as error:
@@ -32,7 +31,7 @@ class ArticleUpsertHandler(BaseHandler):
         try:
             article = article_id and self.db.article.find_one({'article_id': article_id}) or {}
             if article_id and not article:
-                return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
+                return self.send_error_response(e.no_object, message='文章%s不存在' % article_id)
             self.render('article_edit.html', article=article, article_id=article_id or '')
         except Exception as error:
             return self.send_db_error(error)
@@ -46,15 +45,23 @@ class ArticleViewHandler(BaseHandler):
         try:
             article = self.db.article.find_one({'article_id': article_id})
             if not article:
-                return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
+                return self.send_error_response(e.no_object, message='文章%s不存在' % article_id)
             self.render('article_view.html', article=article, article_id=article_id)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class ArticleListHandler(BaseHandler):
+class ArticleListHandler(BaseHandler, Article):
     URL = '/(help|announce)'
+
+    @classmethod
+    def set_template_kwargs(cls, category):
+        cls.search_tips = ''
+        cls.search_fields = []
+        cls.operations = []
+        cls.img_operations = []
+        cls.page_title = '帮助中心' if category == 'help' else '通知中心'
 
     def get(self, category):
         """ 帮助、通知中心"""
@@ -67,14 +74,10 @@ class ArticleListHandler(BaseHandler):
             return content
 
         try:
-            model = Article
-            kwargs = model.get_template_kwargs()
-            kwargs['search_tips'] = ''
-            kwargs['operations'] = []
-            kwargs['img_operations'] = []
-            kwargs['page_title'] = '帮助中心' if category == 'help' else '通知中心'
+            self.set_template_kwargs(category)
+            kwargs = self.get_template_kwargs()
             condition = {'category': '帮助' if category == 'help' else '通知', 'active': '是'}
-            docs, pager, q, order = model.find_by_page(self, condition, default_order='-create_time')
+            docs, pager, q, order = self.find_by_page(self, condition, default_order='-create_time')
             self.render('article_list.html', docs=docs, pager=pager, order=order, q=q, pack=pack_content,
                         **kwargs)
 
