@@ -268,9 +268,9 @@ class PageHandler(TaskHandler, Page, Box):
         if key == 'cmp_txt':
             return page.get('cmp_txt') or ''
         if key == 'ocr':
-            return cls.get_char_txt(page.get('chars'), 'char') or page.get('ocr')
+            return cls.get_char_txt(page) or page.get('ocr')
         if key == 'ocr_col':
-            return cls.get_column_txt(page.get('columns'), 'column') or page.get('ocr_col')
+            return cls.get_column_txt(page) or page.get('ocr_col')
 
     @classmethod
     def get_txts(cls, page, fields=None):
