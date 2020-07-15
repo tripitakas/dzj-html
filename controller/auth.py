@@ -200,6 +200,22 @@ role_route_maps = {
             '/api/data/@metadata/upload': ['POST'],
         }
     },
+    '切分浏览员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/page/task/list': ['GET'],
+            '/task/browse/(cut_proof|cut_review)/@task_id': ['GET'],
+        }
+    },
+    '聚类浏览员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/char/task/list': ['GET'],
+            '/task/browse/@cluster_task/@task_id': ['GET'],
+        }
+    },
     '任务管理员': {
         'is_assignable': True,
         'roles': ['工作人员'],
@@ -214,7 +230,6 @@ role_route_maps = {
             '/api/task/publish/import': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
             '/api/task/(assign|delete|batch|remark)': ['POST'],
-            '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
             '/sys/oplog': ['GET'],
             '/sys/oplog/@oid': ['GET'],
             '/sys/oplog/latest': ['GET'],

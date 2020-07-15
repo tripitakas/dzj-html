@@ -155,7 +155,7 @@ def update_page_ocr(db):
     pages = list(db.page.find({}, {'name': 1, 'chars': 1}))
     for p in pages:
         print('processing page %s' % p['name'])
-        ocr = Ph.get_box_ocr(p['chars'], 'char')
+        ocr = Ph.get_char_txt(p['chars'])
         db.page.update_one({'_id': p['_id']}, {'$set': {'ocr': ocr}})
 
 

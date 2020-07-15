@@ -16,7 +16,7 @@ class Log(Model):
     ]
     primary = '_id'
 
-    search_tips = '请搜索类型'
+    search_tips = '请搜索类型、创建人和备注'
     search_fields = ['op_type', 'username', 'remark']
     op_types = {
         'gen_chars': '生成字表',

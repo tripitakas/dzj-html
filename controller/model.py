@@ -24,7 +24,10 @@ from bson.objectid import ObjectId
 class Model(object):
     """ 数据库参数"""
     collection = ''  # 数据库表名
-    fields = []  # 数据库字段定义
+    fields = [  # 数据库字段定义
+        {'id': 'id1', 'name': 'name1', 'type': 'str', 'input_type': 'text'},
+        {'id': 'id2', 'name': 'name2', 'type': 'int', 'input_type': 'radio', 'options': []},
+    ]
     primary = ''  # 主键
     rules = []  # 校验规则
 
@@ -51,6 +54,14 @@ class Model(object):
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '修改时间'},
     ]
+
+    @classmethod
+    def get_template_kwargs(cls, fields=None):
+        fields = fields if fields else [
+            'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
+            'info_fields', 'operations', 'img_operations', 'actions', 'update_fields'
+        ]
+        return {f: getattr(cls, f) for f in fields}
 
     @staticmethod
     def prop(obj, key, default=None):
@@ -94,14 +105,6 @@ class Model(object):
                 return f['id']
 
     @classmethod
-    def get_template_kwargs(cls, fields=None):
-        fields = fields if fields else [
-            'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
-            'info_fields', 'operations', 'img_operations', 'actions', 'update_fields'
-        ]
-        return {f: getattr(cls, f) for f in fields}
-
-    @classmethod
     def pack_doc(cls, doc, self=None):
         d = {f['id']: doc.get(f['id']) for f in cls.fields if cls.prop(doc, f['id'])}
         if doc.get('_id'):
@@ -110,6 +113,7 @@ class Model(object):
 
     @classmethod
     def reset_order(cls, order):
+        """ 重置order排序"""
         return order
 
     @classmethod
@@ -120,15 +124,14 @@ class Model(object):
         search_fields = search_fields or cls.search_fields
         if q and search_fields:
             condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in search_fields]
+        query = self.db[cls.collection].find(condition)
         if projection:
             query = self.db[cls.collection].find(condition, projection)
-        else:
-            query = self.db[cls.collection].find(condition)
-
         order = self.get_query_argument('order', default_order)
         if order:
             o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             query.sort(cls.reset_order(o), asc)
+
         if condition:
             doc_count = self.db[cls.collection].count_documents(condition)
         else:

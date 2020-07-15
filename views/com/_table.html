@@ -4,7 +4,6 @@
   <tr>
     <th><input id="check-all" type="checkbox"/></th>
     {% for f in table_fields %}
-    {% set fid = f['id'] %}
     {% if f.get('filter') %}
     <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
       <span class="btn-group">
@@ -20,8 +19,8 @@
     </th>
     {% else %}
     <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
-      <span class="sort {{'active' if order in [fid, '-'+fid] else ''}}" title="{{fid}}">
-      {% raw f['name'] %}<span class="icon-triangle-{{'up' if order == fid else 'down'}}"></span>
+      <span class="sort {{'active' if order in [f['id'], '-'+f['id']] else ''}}" title="{{f['id']}}">
+      {% raw f['name'] %}<span class="icon-triangle-{{'up' if order == f['id'] else 'down'}}"></span>
       </span>
     </th>
     {% end %}
@@ -31,6 +30,7 @@
     {% end %}
   </tr>
   </thead>
+
   <tbody>
   {% for d in docs %}
   <tr id="{{d['_id']}}">
@@ -51,4 +51,5 @@
   </tr>
   {% end %}
   </tbody>
+
 </table>
