@@ -76,20 +76,18 @@ class DataImportImageHandler(TaskHandler):
 class DataListHandler(BaseHandler):
     URL = '/data/(tripitaka|sutra|reel|volume)'
 
-    img_operations = ['config']
-    operations = [
-        {'operation': 'btn-add', 'label': '新增记录'},
-        {'operation': 'bat-remove', 'label': '批量删除'},
-        {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
-        {'operation': 'download-template', 'label': '下载模板', 'url': '/static/template/%s-sample.csv'},
-    ]
-
     def get(self, metadata):
         """ 数据管理"""
         try:
             model = eval(metadata.capitalize())
             kwargs = model.get_template_kwargs()
-            kwargs['operations'][-1]['url'] = kwargs['operations'][-1]['url'] % metadata
+            kwargs['img_operations'] = ['config']
+            kwargs['operations'] = [
+                {'operation': 'btn-add', 'label': '新增记录'},
+                {'operation': 'bat-remove', 'label': '批量删除'},
+                {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
+                {'operation': 'download-template', 'label': '下载模板', 'url': '/static/template/%s-sample.csv' % metadata},
+            ]
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']

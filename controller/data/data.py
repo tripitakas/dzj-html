@@ -89,7 +89,7 @@ class Reel(Model):
 
     page_title = '卷数据管理'
     search_tips = '请搜索统一经编码、经编码、经名、卷编码和起始册'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'start_volume']
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'reel_code', 'start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
