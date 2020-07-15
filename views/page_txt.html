@@ -197,7 +197,7 @@
             </tr>
             <tr>
               <td>方向键</td>
-              <td>列图模式下，用方向键↑→↓←，切换当前字框</td>
+              <td>用方向键↑→↓←，切换当前字框</td>
             </tr>
           </table>
         </div>
@@ -209,17 +209,43 @@
 {% include com/_base_js.html %}
 {% include com/_base_cut.html %}
 {% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_base_task.html %} {% end %}
-<script src="{{static_url('js/cut/cut_adv.js')}}"></script>
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script src="{{static_url('js/char.js')}}"></script>
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
+  var pageName = '{{page["name"]}}';
+  var chars = decodeJSON('{{dumps(chars)}}');
+  var txtTypes = decodeJSON('{{txt_types}}');
+  var taskMode = '{{handler.mode or ""}}';
   var taskType = '{{handler.task_type or ""}}';
   var from = decodeFrom() ? decodeFrom() : '/task/lobby/' + taskType;
-  var pageName = '{{page["name"]}}';
-  var chars = decodeJSON("{{dumps(chars)}}");
-  var txtTypes = decodeJSON('{{dumps(txt_types)}}');
+
+  $.cut.create({
+    readonly: true,
+    holder: 'holder',
+    scrollContainer: '#left-region',
+    image: '{{img_url}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    blocks: '{{page["blocks"]}}',
+    columns: '{{page["columns"]}}',
+    chars: '{{handler.pop_fields(page["chars"], "box_logs,txt_logs")}}',
+  });
+  $.cut.bindKeys();
+  $.cut.bindCharOrderKeys();
+  $.cut.switchCurrentBox(null);
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+
+  $.cut.state.canHitBox = function (el) {
+    if ($('#toggle-char').hasClass('active') && el.data('class') === 'char') return true;
+    if ($('#toggle-block').hasClass('active') && el.data('class') === 'block') return true;
+    if ($('#toggle-column').hasClass('active') && el.data('class') === 'column') return true;
+  };
+
+  // 初始化设置
+  $.cut.setLink(false);
+  $.cut.toggleBox(false);
 
   // 切换文本
   $('.char').on('click', function () {
@@ -239,11 +265,12 @@
     if ($(this).hasClass('disabled')) return;
     var name = $('.char-edit .current-name').val();
     var cid = name.split('_').pop();
+
     var data = {
-      task_type: taskType || '',
       txt: $('.proof .txt').val() || '',
       nor_txt: $('.proof .nor-txt').val() || '',
       txt_type: $('.txt-types :checked').val() || '',
+      task_type: ['do', 'update'].indexOf(taskMode) > -1 ? taskType : '',
       remark: $('.proof .remark').val() || '',
     };
     postApi('/page/char/txt/' + name, {data: data}, function (res) {
@@ -259,41 +286,44 @@
     });
   });
 
+  // 进入列图模式
   $('#toggle-layout1').on('click', function () {
     location.href = setQueryString('layout', 1);
   });
 
-</script>
-
-<script>
-  $.cut.create({
-    readonly: true,
-    holder: 'holder',
-    scrollContainer: '#left-region',
-    image: '{{img_url}}',
-    width: '{{page["width"]}}',
-    height: '{{page["height"]}}',
-    blocks: '{{page["blocks"]}}',
-    columns: '{{page["columns"]}}',
-    chars: '{{handler.pop_fields(page["chars"], "box_logs,txt_logs")}}',
+  // 方向键移动
+  $.mapKey('left', function () {
+    if (!$('.current-char').length) return $('.line .char:first').click();
+    if ($('.current-char').prev().length) return $('.current-char').prev().click();
+    $('.current-line').prev().find('.char').eq(-1).click();
   });
-  $.cut.bindKeys();
-  $.cut.bindCharOrderKeys();
-  $.cut.switchCurrentBox(null);
-  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
 
-  $.cut.state.canHitBox = function (el) {
-    if ($('#toggle-char').hasClass('active') && el.data('class') === 'char')
-      return true;
-    if ($('#toggle-column').hasClass('active') && el.data('class') === 'column')
-      return true;
-    if ($('#toggle-block').hasClass('active') && el.data('class') === 'block')
-      return true;
-  };
+  // 方向键移动
+  $.mapKey('right', function () {
+    if (!$('.current-char').length) return $('.line .char:first').click();
+    if ($('.current-char').next().length) return $('.current-char').next().click();
+    $('.current-line').next().find('.char').eq(0).click();
+  });
 
-  // 初始化设置
-  $.cut.setLink(false);
-  $.cut.toggleBox(false);
+  // 方向键移动
+  $.mapKey('up', function () {
+    if (!$('.current-char').length) return $('.line .char:first').click();
+    if (!$('.current-line').prev()) return;
+    var idx = $($('.current-line .char')).index($('.current-char'));
+    var len = $('.current-line').prev().find('.char').length;
+    if (idx > len - 1) idx = len - 1;
+    $('.current-line').prev().find('.char').eq(idx).click();
+  });
+
+  // 方向键移动
+  $.mapKey('down', function () {
+    if (!$('.current-char').length) return $('.line .char:first').click();
+    if (!$('.current-line').next()) return;
+    var idx = $($('.current-line .char')).index($('.current-char'));
+    var len = $('.current-line').next().find('.char').length;
+    if (idx > len - 1) idx = len - 1;
+    $('.current-line').next().find('.char').eq(idx).click();
+  });
 
 </script>
 </body>

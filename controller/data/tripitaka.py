@@ -50,7 +50,7 @@ class TptkViewHandler(PageHandler):
             chars_col, txts = [], []
             if page:
                 chars_col = self.get_chars_col(page['chars'])
-                txts = [(self.prop(page, 'txt'), 'txt', '审定文本')]
+                txts = [(self.get_char_txt(page, 'adapt'), 'txt', '校对文本')]
                 self.pack_boxes(page)
 
             # 获取当前册信息

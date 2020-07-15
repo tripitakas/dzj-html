@@ -106,13 +106,11 @@
       </div>
     </div>
   </div>
-  {% block custom-modal %}
-  {% end %}
+  {% block custom-modal %}{% end %}
 </div>
 
 {% include _base_js.html %}
 <script src="{{static_url('js/com-table.js')}}"></script>
-{% block custom-js %} {% end %}
-
+{% block custom-js %}{% end %}
 </body>
 </html>

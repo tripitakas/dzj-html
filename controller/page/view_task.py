@@ -19,7 +19,7 @@ class PageTaskListHandler(PageHandler):
         {'id': 'doc_id', 'name': '页编码'},
         {'id': 'char_count', 'name': '单字数量'},
         {'id': 'batch', 'name': '批次号'},
-        {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page')},
+        {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page', publishable=True)},
         {'id': 'num', 'name': '校次'},
         {'id': 'status', 'name': '状态', 'filter': PageHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': PageHandler.priorities},
@@ -55,6 +55,21 @@ class PageTaskListHandler(PageHandler):
     ]
     hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
     update_fields = []
+
+    def get_template_kwargs(self, fields=None):
+        kwargs = super().get_template_kwargs()
+        readonly = '任务管理员' not in self.current_user['roles']
+        if readonly:
+            kwargs['actions'] = [{'action': 'btn-nav', 'label': '浏览'}]
+            kwargs['operations'] = [{'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'}]
+        return kwargs
+
+    def get_task_search_condition(self, request_query, collection=None):
+        condition, params = super().get_task_search_condition(request_query, collection)
+        readonly = '任务管理员' not in self.current_user['roles']
+        if readonly:
+            condition['task_type'] = {'$in': ['cut_proof', 'cut_review']}
+        return condition, params
 
     def get(self):
         """ 任务管理-页任务管理"""
