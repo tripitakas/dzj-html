@@ -243,22 +243,17 @@ class PageHandler(TaskHandler, Page, Box):
         # 切分框重新排序
         blocks = self.calc_block_id(blocks)
         columns = self.calc_column_id(columns, blocks)
-        if page.get('chars_col'):
-            # 合并用户字序
-            chars_col = page['chars_col']
+        chars = self.calc_char_id(chars, columns)
+        if page.get('chars_col'):  # 合并用户字序
             if not self.cmp_char_cid(chars, page['chars_col']):
-                chars = self.calc_char_id(chars, columns)
                 algorithm_chars_col = self.get_chars_col(chars)
-                chars_col = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
-            chars = self.update_char_order(chars, chars_col)
-        else:
-            # 算法排序
-            chars = self.calc_char_id(chars, columns)
+                page['chars_col'] = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
+            chars = self.update_char_order(chars, page['chars_col'])
         # 根据字框调整列框和栏框的边界
         if post_data.get('auto_adjust'):
             blocks = self.adjust_blocks(blocks, chars)
             columns = self.adjust_columns(columns, chars)
-        page_updated = dict(chars=chars, blocks=blocks, columns=columns)
+        page_updated = dict(chars=chars, blocks=blocks, columns=columns, chars_col=page['chars_col'])
         return page_updated, char_updated
 
     @classmethod
