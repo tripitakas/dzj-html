@@ -379,8 +379,8 @@ class PageHandler(TaskHandler, Page, Box):
     def txt2html(cls, txt):
         """ 把文本转换为html，文本以空行或者||为分栏"""
         if not txt:
-            return
-        if re.match('<[a-z]+.*>.*</[a-z]+>', txt):
+            return ''
+        if isinstance(txt, str) and re.match('<[a-z]+.*>.*</[a-z]+>', txt):
             return txt
         txt = '|'.join(txt) if isinstance(txt, list) else txt
         assert isinstance(txt, str)
