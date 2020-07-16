@@ -230,9 +230,9 @@ class PageHandler(TaskHandler, Page, Box):
     def get_box_update(self, post_data, page, task_type=None):
         """ 获取切分校对的提交"""
         # 预处理
-        self.pop_fields(page['chars'], 'readonly,class')
-        self.pop_fields(page['blocks'], 'readonly,class,char_id,char_no')
-        self.pop_fields(page['columns'], 'readonly,class,char_id,char_no')
+        self.pop_fields(post_data['chars'], 'readonly,class')
+        self.pop_fields(post_data['blocks'], 'readonly,class,char_id,char_no')
+        self.pop_fields(post_data['columns'], 'readonly,class,char_id,char_no')
         self.update_page_cid(post_data)
         # 合并用户提交和已有数据
         self.merge_post_boxes(post_data['blocks'], 'blocks', page, task_type)
