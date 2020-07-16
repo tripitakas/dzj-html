@@ -98,7 +98,6 @@ class BaseHandler(CorsMixin, RequestHandler):
             user_roles = '普通用户'
             if self.current_user.get('roles'):
                 user_roles = get_all_roles(self.current_user['roles'])
-        print(can_access(user_roles, req_path, method), req_path, user_roles)
         return can_access(user_roles, req_path, method)
 
     def get_current_user(self):

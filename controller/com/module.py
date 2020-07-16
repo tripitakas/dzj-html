@@ -133,7 +133,6 @@ class ComLeft(UIModule):
                 if sub_items:
                     item['sub_items'] = sub_items
                     display_items.append(item)
-        print([i for i in display_items if i.get('name') == '任务大厅'])
         return self.render_string('com/_left.html', display_items=display_items, active_id=active_id)
 
 
