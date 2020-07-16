@@ -230,9 +230,9 @@ class PageHandler(TaskHandler, Page, Box):
     def get_box_update(self, post_data, page, task_type=None):
         """ 获取切分校对的提交"""
         # 预处理
-        self.pop_fields(page['chars'], 'readonly,class')
-        self.pop_fields(page['blocks'], 'readonly,class,char_id,char_no')
-        self.pop_fields(page['columns'], 'readonly,class,char_id,char_no')
+        self.pop_fields(post_data['chars'], 'readonly,class')
+        self.pop_fields(post_data['blocks'], 'readonly,class,char_id,char_no')
+        self.pop_fields(post_data['columns'], 'readonly,class,char_id,char_no')
         self.update_page_cid(post_data)
         # 合并用户提交和已有数据
         self.merge_post_boxes(post_data['blocks'], 'blocks', page, task_type)
@@ -245,9 +245,8 @@ class PageHandler(TaskHandler, Page, Box):
         columns = self.calc_column_id(columns, blocks)
         chars = self.calc_char_id(chars, columns)
         if page.get('chars_col'):  # 合并用户字序
-            if not self.cmp_char_cid(chars, page['chars_col']):
-                algorithm_chars_col = self.get_chars_col(chars)
-                page['chars_col'] = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
+            algorithm_chars_col = self.get_chars_col(chars)
+            page['chars_col'] = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
             chars = self.update_char_order(chars, page['chars_col'])
         # 根据字框调整列框和栏框的边界
         if post_data.get('auto_adjust'):
