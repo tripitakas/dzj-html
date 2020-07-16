@@ -185,7 +185,8 @@ class CharTaskClusterHandler(CharHandler):
                 v_txts = list(self.db.variant.find({'uid': {'$in': v_txts}}, {'uid': 1, 'img_name': 1}))
                 v_txts = {'Y%s' % t['uid']: t['img_name'] for t in v_txts}
             # 设置当前字种及相关的异体字
-            cur_txt, variants = self.get_query_argument('txt', 0), []
+            cur_txt, variants = self.get_query_argument('txt', ''), []
+            cur_txt = cur_txt if cur_txt and cur_txt in txts else ''
             if cur_txt:
                 cond.update({'txt': cur_txt})
                 variants = list(self.db.variant.find({'$or': [{'txt': cur_txt}, {'normal_txt': cur_txt}]}))
