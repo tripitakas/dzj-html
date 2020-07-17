@@ -64,7 +64,7 @@ function updateCharTxtPanel(ch) {
   updateBaseInfo(ch);
 
   // 更新当前参数
-  $('#search-variant').val(ch.ocr_txt || ch.txt);
+  $('#search-variant').val(ch.txt || ch.ocr_txt);
   $('.char-edit .current-name').val(ch.name || ch.page_name + '_' + ch.cid);
   $('.m-footer .char-name').text(ch.name);
   $('.m-footer .page-name').text(ch.page_name);
