@@ -220,7 +220,7 @@ class PageHandler(TaskHandler, Page, Box):
                 continue
             update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
             my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
-            pb.update({'box_level': user_level, 'box_logs': [my_log], 'new': True})
+            pb.update({'ocr_txt': '■', 'box_level': user_level, 'box_logs': [my_log], 'new': True})
             can_add.append(pb)
             added.append({'cid': pb['cid'], 'pos': {'x': pb['x'], 'y': pb['y'], 'w': pb['w'], 'h': pb['h']}})
         boxes.extend(can_add)
