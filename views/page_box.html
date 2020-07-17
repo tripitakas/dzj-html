@@ -249,7 +249,7 @@
   function showHighLightCount() {
     $('.hl-box > button').each(function (i, btn) {
       var type = btn.getAttribute('id').replace(/^.*-/, '');
-      var boxes = $.cut.highlightBoxes(type, true);
+      var boxes = $.cut.highlightBoxes(type, true, true);
       $(btn).find('.s-count').text(boxes.length);
     });
   }
