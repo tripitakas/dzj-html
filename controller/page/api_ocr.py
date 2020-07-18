@@ -20,13 +20,14 @@ class FetchTasksApi(TaskHandler):
         def get_tasks():
             doc_ids = [t['doc_id'] for t in tasks]
             pages = self.db.page.find({'name': {'$in': doc_ids}})
-            pages = {p['name']: {k: p.get(k) for k in ['layout', 'blocks', 'columns', 'chars']} for p in pages}
+            fields = ['layout', 'width', 'height', 'blocks', 'columns', 'chars']
+            pages = {p['name']: {k: p.get(k) for k in fields} for p in pages}
             if data_task == 'ocr_box':
                 # 把layout参数传过去
                 for t in tasks:
                     t['params'] = dict(layout=self.prop(pages, '%s.layout' % t['doc_id']))
             if data_task == 'ocr_text':
-                # 把layout/blocks/columns/chars等参数传过去
+                # 把layout/width/height/blocks/columns/chars等参数传过去
                 for t in tasks:
                     t['params'] = pages.get(t['doc_id'])
 
