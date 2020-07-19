@@ -100,7 +100,8 @@ class PageHandler(TaskHandler, Page, Box):
         for b in page['blocks']:
             b['readonly'] = not self.can_write(b, page, task_type)
 
-    def pack_boxes(self, page, extract_sub_columns=False, pop_char_logs=True):
+    @classmethod
+    def pack_boxes(cls, page, extract_sub_columns=False, pop_char_logs=True):
         if extract_sub_columns:
             for col in page['columns']:
                 if col.get('sub_columns'):
@@ -109,11 +110,11 @@ class PageHandler(TaskHandler, Page, Box):
         fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
         fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'char_id', 'cc',
                    'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
-        self.pick_fields(page['blocks'], fields1)
-        self.pick_fields(page['columns'], fields2)
+        cls.pick_fields(page['blocks'], fields1)
+        cls.pick_fields(page['columns'], fields2)
         if not pop_char_logs:
             fields3 = fields3 + ['box_logs', 'txt_logs']
-        self.pick_fields(page['chars'], fields3)
+        cls.pick_fields(page['chars'], fields3)
 
     @classmethod
     def filter_symbol(cls, txt):
