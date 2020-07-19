@@ -9,6 +9,7 @@ from bson.objectid import ObjectId
 from controller import errors as e
 from controller import validate as v
 from controller.task.base import TaskHandler
+from controller.page.base import PageHandler
 
 
 class FetchTasksApi(TaskHandler):
@@ -29,7 +30,7 @@ class FetchTasksApi(TaskHandler):
             if data_task == 'ocr_text':
                 # 把layout/width/height/blocks/columns/chars等参数传过去
                 for t in tasks:
-                    t['params'] = pages.get(t['doc_id'])
+                    t['params'] = PageHandler.pack_boxes(pages.get(t['doc_id']))
 
             return [dict(task_id=str(t['_id']), priority=t.get('priority'), page_name=t.get('doc_id'),
                          params=t.get('params')) for t in tasks]
