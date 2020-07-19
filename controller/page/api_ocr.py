@@ -41,14 +41,15 @@ class FetchTasksApi(TaskHandler):
             tasks = list(self.db.task.find(condition).limit(size))
             if not tasks:
                 self.send_data_response(dict(tasks=[]))
-            condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
+            tasks2send = get_tasks()
+            condition.update({'_id': {'$in': [ObjectId(t['task_id']) for t in tasks2send]}})
             r = self.db.task.update_many(condition, {'$set': dict(
                 status=self.STATUS_FETCHED, picked_time=self.now(), updated_time=self.now(),
                 picked_user_id=self.user_id, picked_by=self.username
             )})
             if r.matched_count:
                 logging.info('%d %s tasks fetched' % (r.matched_count, data_task))
-                self.send_data_response(dict(tasks=get_tasks()))
+                self.send_data_response(dict(tasks=tasks2send))
 
         except self.DbError as error:
             return self.send_db_error(error)
