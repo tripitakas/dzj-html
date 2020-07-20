@@ -158,10 +158,16 @@ class SubmitTasksApi(TaskHandler):
         page = self.db.page.find_one({'name': task.get('page_name')})
         if not page:
             return e.no_object
+        if self.prop(task, 'result.status') == self.STATUS_FAILED or self.prop(task, 'result.error'):
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'result': task.get('result'), 'message': task.get('message'),
+                'status': self.STATUS_FAILED,
+            }})
+            return e.task_failed
+
         update = self.get_page_meta(task, page)
         update.update({'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED})
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
-
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),
@@ -171,6 +177,12 @@ class SubmitTasksApi(TaskHandler):
         page = self.db.page.find_one({'name': task.get('page_name')})
         if not page:
             return e.no_object
+        if self.prop(task, 'result.status') == self.STATUS_FAILED or self.prop(task, 'result.error'):
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'result': task.get('result'), 'message': task.get('message'),
+                'status': self.STATUS_FAILED,
+            }})
+            return e.task_failed
         box_changed = self.is_box_changed(task.get('result'), page)
         if box_changed:
             return e.box_not_identical[0], '(%s)切分信息不一致' % box_changed
@@ -187,6 +199,12 @@ class SubmitTasksApi(TaskHandler):
         page = self.db.page.find_one({'name': task.get('page_name')})
         if not page:
             return e.no_object
+        if self.prop(task, 'result.status') == self.STATUS_FAILED or self.prop(task, 'result.error'):
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'result': task.get('result'), 'message': task.get('message'),
+                'status': self.STATUS_FAILED,
+            }})
+            return e.task_failed
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
             'img_cloud_path': self.prop(task, 'result.img_cloud_path'),
             'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED
@@ -198,6 +216,12 @@ class SubmitTasksApi(TaskHandler):
 
     def submit_import_image(self, task):
         """ 提交import_image任务"""
+        if self.prop(task, 'result.status') == self.STATUS_FAILED or self.prop(task, 'result.error'):
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'result': task.get('result'), 'message': task.get('message'),
+                'status': self.STATUS_FAILED,
+            }})
+            return e.task_failed
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),
