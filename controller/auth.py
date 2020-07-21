@@ -197,6 +197,7 @@ role_route_maps = {
             '/api/task/pick/@ocr_task': ['POST'],
             '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
             '/api/task/submit/@ocr_task': ['POST'],
+            '/api/data/page/upload': ['POST'],
             '/api/data/@metadata/upload': ['POST'],
         }
     },

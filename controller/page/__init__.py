@@ -9,7 +9,7 @@ views = [
 ]
 
 handlers = [
-    api.PageDeleteApi, api.PageUpsertApi, api.PageSourceApi,
+    api.PageDeleteApi, api.PageUpsertApi, api.PageUploadApi, api.PageSourceApi,
     api.PageCmpTxtApi, api.PageFindCmpTxtApi, api.PageCmpTxtNeighborApi,
     api.PageBoxApi, api.PageOrderApi, api.PageCharBoxApi, api.PageCharTxtApi,
     api.PageTxtDiffApi, api.PageTxtMatchApi, api.PageTxtMatchDiffApi,

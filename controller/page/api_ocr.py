@@ -9,6 +9,7 @@ from bson.objectid import ObjectId
 from controller import errors as e
 from controller import validate as v
 from controller.task.base import TaskHandler
+from controller.page.base import PageHandler
 
 
 class FetchTasksApi(TaskHandler):
@@ -20,15 +21,16 @@ class FetchTasksApi(TaskHandler):
         def get_tasks():
             doc_ids = [t['doc_id'] for t in tasks]
             pages = self.db.page.find({'name': {'$in': doc_ids}})
-            pages = {p['name']: {k: p.get(k) for k in ['layout', 'blocks', 'columns', 'chars']} for p in pages}
+            fields = ['layout', 'width', 'height', 'blocks', 'columns', 'chars']
+            pages = {p['name']: {k: p.get(k) for k in fields} for p in pages}
             if data_task == 'ocr_box':
                 # 把layout参数传过去
                 for t in tasks:
                     t['params'] = dict(layout=self.prop(pages, '%s.layout' % t['doc_id']))
             if data_task == 'ocr_text':
-                # 把layout/blocks/columns/chars等参数传过去
+                # 把layout/width/height/blocks/columns/chars等参数传过去
                 for t in tasks:
-                    t['params'] = pages.get(t['doc_id'])
+                    t['params'] = PageHandler.pack_boxes(pages.get(t['doc_id']))
 
             return [dict(task_id=str(t['_id']), priority=t.get('priority'), page_name=t.get('doc_id'),
                          params=t.get('params')) for t in tasks]
@@ -39,14 +41,15 @@ class FetchTasksApi(TaskHandler):
             tasks = list(self.db.task.find(condition).limit(size))
             if not tasks:
                 self.send_data_response(dict(tasks=[]))
-            condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
+            tasks2send = get_tasks()
+            condition.update({'_id': {'$in': [ObjectId(t['task_id']) for t in tasks2send]}})
             r = self.db.task.update_many(condition, {'$set': dict(
                 status=self.STATUS_FETCHED, picked_time=self.now(), updated_time=self.now(),
                 picked_user_id=self.user_id, picked_by=self.username
             )})
             if r.matched_count:
                 logging.info('%d %s tasks fetched' % (r.matched_count, data_task))
-                self.send_data_response(dict(tasks=get_tasks()))
+                self.send_data_response(dict(tasks=tasks2send))
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -80,7 +83,7 @@ class ConfirmFetchApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class SubmitTasksApi(TaskHandler):
+class SubmitTasksApi(PageHandler):
     URL = '/api/task/submit/@ocr_task'
 
     def post(self, task_type):
@@ -123,42 +126,22 @@ class SubmitTasksApi(TaskHandler):
         except self.DbError as error:
             return self.send_db_error(error)
 
-    @staticmethod
-    def get_page_meta(task, page):
-        result = task.get('result')
-        width = result.get('width') or page.get('width')
-        height = result.get('height') or page.get('height')
-        layout = result.get('layout') or page.get('layout')
-        chars = result.get('chars') or page.get('chars')
-        blocks = result.get('blocks') or page.get('blocks')
-        columns = result.get('columns') or page.get('columns')
-        return {
-            'width': width, 'height': height, 'layout': layout,
-            'chars': chars, 'blocks': blocks, 'columns': columns,
-        }
-
-    @staticmethod
-    def is_box_changed(page_a, page_b, ignore_none=True):
-        """ 检查两个页面的切分信息是否发生了修改"""
-        for field in ['blocks', 'columns', 'chars']:
-            a, b = page_a.get(field), page_b.get(field)
-            if ignore_none and (not a or not b):
-                continue
-            if len(a) != len(b):
-                return field + '.len'
-            for i in range(len(a)):
-                for j in ['x', 'y', 'w', 'h']:
-                    if abs(a[i][j] - b[i][j]) > 0.1 and (field != 'blocks' or len(a) > 1):
-                        return '%s[%d] %s %f != %f' % (field, i, j, a[i][j], b[i][j])
-
     def submit_ocr_box(self, task):
         page = self.db.page.find_one({'name': task.get('page_name')})
         if not page:
             return e.no_object
-        update = self.get_page_meta(task, page)
-        update.update({'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED})
-        self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
+        if self.prop(task, 'result.status') == self.STATUS_FAILED or self.prop(task, 'result.error'):
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'result': task.get('result'), 'message': task.get('message'),
+                'status': self.STATUS_FAILED,
+            }})
+            return e.task_failed
 
+        update = {k: self.prop(page, k) or self.prop(task, 'result.' + k) for k in ['width', 'height', 'layout']}
+        update.update({k: self.prop(task, 'result.' + k) for k in ['blocks', 'columns', 'chars']})
+        update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
+        self.apply_txt(update, 'ocr_col')
+        self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),
@@ -168,13 +151,34 @@ class SubmitTasksApi(TaskHandler):
         page = self.db.page.find_one({'name': task.get('page_name')})
         if not page:
             return e.no_object
-        box_changed = self.is_box_changed(task.get('result'), page)
-        if box_changed:
-            return e.box_not_identical[0], '(%s)切分信息不一致' % box_changed
-        update = self.get_page_meta(task, page)
-        update.update({'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED})
-        self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
-
+        if self.prop(task, 'result.status') == self.STATUS_FAILED or self.prop(task, 'result.error'):
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'result': task.get('result'), 'message': task.get('message'),
+                'status': self.STATUS_FAILED,
+            }})
+            return e.task_failed
+        # 更新列框文本
+        self.update_box_cid(self.prop(task, 'result.columns'))
+        columns1 = {c['cid']: c for c in self.prop(task, 'result.columns')}
+        for c in page['columns']:
+            oc = columns1.get(c['cid'])
+            if not oc:
+                return e.box_not_identical[0], '列框（cid：%s）缺失' % c['cid']
+            c.update({k: oc.get(k) or c.get(k) for k in ['lc', 'ocr_txt']})
+        # 更新字框文本
+        self.update_box_cid(self.prop(task, 'result.chars'))
+        chars1 = {c['cid']: c for c in self.prop(task, 'result.chars')}
+        for c in page['chars']:
+            oc = chars1.get(c['cid'])
+            if not oc:
+                return e.box_not_identical[0], '字框（cid：%s）缺失' % c['cid']
+            c.update({k: oc.get(k) or c.get(k) for k in ['cc', 'alternatives', 'ocr_txt', 'txt']})
+        # 将列文本适配至字框
+        self.apply_txt(page, 'ocr_col')
+        self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
+            'chars': page['chars'], 'columns': page['columns'],
+            'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED,
+        }})
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),
@@ -184,6 +188,12 @@ class SubmitTasksApi(TaskHandler):
         page = self.db.page.find_one({'name': task.get('page_name')})
         if not page:
             return e.no_object
+        if self.prop(task, 'result.status') == self.STATUS_FAILED or self.prop(task, 'result.error'):
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'result': task.get('result'), 'message': task.get('message'),
+                'status': self.STATUS_FAILED,
+            }})
+            return e.task_failed
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
             'img_cloud_path': self.prop(task, 'result.img_cloud_path'),
             'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED
@@ -195,6 +205,12 @@ class SubmitTasksApi(TaskHandler):
 
     def submit_import_image(self, task):
         """ 提交import_image任务"""
+        if self.prop(task, 'result.status') == self.STATUS_FAILED or self.prop(task, 'result.error'):
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'result': task.get('result'), 'message': task.get('message'),
+                'status': self.STATUS_FAILED,
+            }})
+            return e.task_failed
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),

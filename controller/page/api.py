@@ -6,8 +6,8 @@ import os
 import json
 import random
 from bson.objectid import ObjectId
-from tornado.escape import native_str, url_escape
 from elasticsearch.exceptions import ConnectionTimeout
+from tornado.escape import native_str, url_escape, to_basestring
 from .page import Page
 from .tool.diff import Diff
 from .base import PageHandler
@@ -19,6 +19,29 @@ from controller.base import BaseHandler
 from controller.char.base import CharHandler
 from utils.gen_chars import gen_chars
 from utils.extract_img import extract_img
+
+
+class PageUploadApi(BaseHandler):
+    URL = '/api/data/page/upload'
+
+    def post(self):
+        """ 批量上传，供小欧调用"""
+        try:
+            source = self.data.get('source')
+            layout = self.data.get('layout')
+            upload_file = self.request.files.get('json')
+            page_names = json.loads(to_basestring(upload_file[0]['body']))
+            page_names = [name.split('.')[0] for name in page_names]
+            existed = list(self.db.page.find({'name': {'$in': page_names}}, {'name': 1}))
+            if existed:
+                existed = [p['name'] for p in existed]
+                page_names = [name for name in page_names if name not in existed]
+            pages = [dict(name=n, source=source, layout=layout) for n in page_names]
+            self.db.page.insert_many(pages)
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
 
 
 class PageUpsertApi(PageHandler):
@@ -158,7 +181,8 @@ class PageCharBoxApi(PageHandler):
             rules = [(v.not_empty, 'pos')]
             self.validate(self.data, rules)
             page_name, cid = '_'.join(char_name.split('_')[:-1]), int(char_name.split('_')[-1])
-            page = self.db.page.find_one({'name': page_name, 'chars.cid': cid}, {'name': 1, 'tasks': 1, 'chars.$': 1})
+            page = self.db.page.find_one({'name': page_name, 'chars.cid': cid},
+                                         {'name': 1, 'tasks': 1, 'chars.$': 1})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             # 检查数据等级和积分
