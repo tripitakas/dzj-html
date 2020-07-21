@@ -255,7 +255,7 @@ class PageHandler(TaskHandler, Page, Box):
         if post_data.get('auto_adjust'):
             blocks = self.adjust_blocks(blocks, chars)
             columns = self.adjust_columns(columns, chars)
-        page_updated = dict(chars=chars, blocks=blocks, columns=columns, chars_col=page['chars_col'])
+        page_updated = dict(chars=chars, blocks=blocks, columns=columns, chars_col=page.get('chars_col') or [])
         return page_updated, char_updated
 
     @classmethod
@@ -303,10 +303,10 @@ class PageHandler(TaskHandler, Page, Box):
 
         def get_txt(box):
             if field == 'adapt':
-                return box.get('txt') or box.get('ocr_txt') or box.get('ocr_col') or ''
+                return box.get('txt') or box.get('ocr_txt') or box.get('ocr_col')
             if field == 'ocr_txt':
-                return box['alternatives'][0] if box.get('alternatives') else box.get('ocr_txt', '')
-            return box.get(field) or ''
+                return box['alternatives'][0] if box.get('alternatives') else box.get('ocr_txt')
+            return box.get(field)
 
         boxes = page.get('chars')
         if not boxes:
@@ -317,7 +317,7 @@ class PageHandler(TaskHandler, Page, Box):
                 txt += '||'
             elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
                 txt += '|'
-            txt += get_txt(b)
+            txt += get_txt(b) or ''
             pre = b
         return txt.strip('|')
 

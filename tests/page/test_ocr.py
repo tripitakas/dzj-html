@@ -38,23 +38,13 @@ class TestOcr(APITestCase):
             r = self.fetch('/api/task/submit/' + task_type, body={'data': {'tasks': tasks}})
             self.assert_code(200, r, msg=task_type)
 
-            # 测试ocr_text任务不可以修改坐标信息
+            # 测试ocr_text任务不可以缺失字框
             if task_type == 'ocr_text':
-                tasks[0]['result']['columns'][0]['h'] += 1
+                tasks[0]['result']['chars'].pop()
                 r = self.fetch('/api/task/submit/' + task_type, body={'data': {'tasks': tasks}})
                 self.assert_code(200, r, msg=task_type)
                 d = self.parse_response(r)['data']['tasks']
                 self.assertEqual('failed', d[0]['status'])
-
-                # 单栏允许改动坐标，因为OCR底层识别为整页框
-                tasks[0]['result']['columns'][0]['h'] -= 1
-                tasks[0]['result']['blocks'][0]['h'] += 1
-                r = self.fetch('/api/task/submit/' + task_type, body={'data': {'tasks': tasks}})
-                d = self.parse_response(r)['data']['tasks']
-                if len(tasks[0]['result']['blocks']) == 1:
-                    self.assertEqual('success', d[0]['status'])
-                else:
-                    self.assertEqual('failed', d[0]['status'])
 
     def _test_import_image(self):
         """ 测试发布导入图片任务"""
