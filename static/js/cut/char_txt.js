@@ -22,6 +22,7 @@ Array.min = Array.min || function(array) {
   var pixelToPoint_ = '1e5-60,71.7-54,56-42,48-36,34.7-26,32-24,29.3-22,24-18,21.3-16,20-15,18.7-14,16-12,14-10.5,12-9,10-7.5,8.7-6.5,7.3-5.5,6.7-5'
     .split(',').map(s => [parseFloat(s.split('-')[0]), parseFloat(s.split('-')[1])]);
   var pixelToPoint = px => {
+    px = px - 2;
     for (let i = 0; i < pixelToPoint_.length; i++) {
       if (i > 0 && px < pixelToPoint_[i - 1][0] && px >= pixelToPoint_[i][0]) {
         return pixelToPoint_[i - 1][1];
