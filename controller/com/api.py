@@ -15,7 +15,7 @@ def punc_str(orig_str, host, port):
     import requests
     import logging
     try:
-        res = requests.get("http://%s:%s/seg" % (host, port), params={'q': orig_str}, timeout=0.1)
+        res = requests.get("http://%s:%s/seg" % (host, port), params={'q': orig_str}, timeout=3.1)
     except Exception as e:
         logging.error(str(e))
         return orig_str

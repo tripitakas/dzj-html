@@ -22,7 +22,7 @@ from tornado.escape import to_basestring
 from tornado.httpclient import AsyncHTTPClient
 from controller import errors as e
 from controller import validate as v
-from controller.auth import get_route_roles, can_access
+from controller.auth import get_route_roles, can_access, get_all_roles
 from controller.helper import get_date_time, prop, md5_encode, BASE_DIR
 
 
@@ -93,8 +93,12 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
-        role = '访客' if not self.current_user else self.current_user.get('roles') or '普通用户'
-        return can_access(role, req_path, method)
+        user_roles = '访客'
+        if self.current_user:
+            user_roles = '普通用户'
+            if self.current_user.get('roles'):
+                user_roles = get_all_roles(self.current_user['roles'])
+        return can_access(user_roles, req_path, method)
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:

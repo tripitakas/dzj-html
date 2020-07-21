@@ -100,7 +100,8 @@ class PageHandler(TaskHandler, Page, Box):
         for b in page['blocks']:
             b['readonly'] = not self.can_write(b, page, task_type)
 
-    def pack_boxes(self, page, extract_sub_columns=False, pop_char_logs=True):
+    @classmethod
+    def pack_boxes(cls, page, extract_sub_columns=False, pop_char_logs=True):
         if extract_sub_columns:
             for col in page['columns']:
                 if col.get('sub_columns'):
@@ -109,11 +110,11 @@ class PageHandler(TaskHandler, Page, Box):
         fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
         fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'char_id', 'cc',
                    'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
-        self.pick_fields(page['blocks'], fields1)
-        self.pick_fields(page['columns'], fields2)
+        cls.pick_fields(page['blocks'], fields1)
+        cls.pick_fields(page['columns'], fields2)
         if not pop_char_logs:
             fields3 = fields3 + ['box_logs', 'txt_logs']
-        self.pick_fields(page['chars'], fields3)
+        cls.pick_fields(page['chars'], fields3)
 
     @classmethod
     def filter_symbol(cls, txt):
@@ -131,6 +132,8 @@ class PageHandler(TaskHandler, Page, Box):
         """
         if cls.prop(page, 'txt_match.' + field) in [True, False]:
             return page['txt_match'][field]
+        if not cls.get_txt(page, field):
+            return False, ''
         match = True
         diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field))[0]
         for s in diff_segments:
@@ -220,7 +223,7 @@ class PageHandler(TaskHandler, Page, Box):
                 continue
             update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
             my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
-            pb.update({'box_level': user_level, 'box_logs': [my_log], 'new': True})
+            pb.update({'ocr_txt': '■', 'box_level': user_level, 'box_logs': [my_log], 'new': True})
             can_add.append(pb)
             added.append({'cid': pb['cid'], 'pos': {'x': pb['x'], 'y': pb['y'], 'w': pb['w'], 'h': pb['h']}})
         boxes.extend(can_add)
@@ -230,9 +233,9 @@ class PageHandler(TaskHandler, Page, Box):
     def get_box_update(self, post_data, page, task_type=None):
         """ 获取切分校对的提交"""
         # 预处理
-        self.pop_fields(page['chars'], 'readonly,class')
-        self.pop_fields(page['blocks'], 'readonly,class,char_id,char_no')
-        self.pop_fields(page['columns'], 'readonly,class,char_id,char_no')
+        self.pop_fields(post_data['chars'], 'readonly,class')
+        self.pop_fields(post_data['blocks'], 'readonly,class,char_id,char_no')
+        self.pop_fields(post_data['columns'], 'readonly,class,char_id,char_no')
         self.update_page_cid(post_data)
         # 合并用户提交和已有数据
         self.merge_post_boxes(post_data['blocks'], 'blocks', page, task_type)
@@ -243,22 +246,16 @@ class PageHandler(TaskHandler, Page, Box):
         # 切分框重新排序
         blocks = self.calc_block_id(blocks)
         columns = self.calc_column_id(columns, blocks)
-        if page.get('chars_col'):
-            # 合并用户字序
-            chars_col = page['chars_col']
-            if not self.cmp_char_cid(chars, page['chars_col']):
-                chars = self.calc_char_id(chars, columns)
-                algorithm_chars_col = self.get_chars_col(chars)
-                chars_col = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
-            chars = self.update_char_order(chars, chars_col)
-        else:
-            # 算法排序
-            chars = self.calc_char_id(chars, columns)
+        chars = self.calc_char_id(chars, columns)
+        if page.get('chars_col'):  # 合并用户字序
+            algorithm_chars_col = self.get_chars_col(chars)
+            page['chars_col'] = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
+            chars = self.update_char_order(chars, page['chars_col'])
         # 根据字框调整列框和栏框的边界
         if post_data.get('auto_adjust'):
             blocks = self.adjust_blocks(blocks, chars)
             columns = self.adjust_columns(columns, chars)
-        page_updated = dict(chars=chars, blocks=blocks, columns=columns)
+        page_updated = dict(chars=chars, blocks=blocks, columns=columns, chars_col=page.get('chars_col') or [])
         return page_updated, char_updated
 
     @classmethod
@@ -306,10 +303,10 @@ class PageHandler(TaskHandler, Page, Box):
 
         def get_txt(box):
             if field == 'adapt':
-                return box.get('txt') or box.get('ocr_txt') or box.get('ocr_col') or ''
+                return box.get('txt') or box.get('ocr_txt') or box.get('ocr_col')
             if field == 'ocr_txt':
-                return box['alternatives'][0] if box.get('alternatives') else box.get('ocr_txt', '')
-            return box.get(field) or ''
+                return box['alternatives'][0] if box.get('alternatives') else box.get('ocr_txt')
+            return box.get(field)
 
         boxes = page.get('chars')
         if not boxes:
@@ -320,7 +317,7 @@ class PageHandler(TaskHandler, Page, Box):
                 txt += '||'
             elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
                 txt += '|'
-            txt += get_txt(b)
+            txt += get_txt(b) or ''
             pre = b
         return txt.strip('|')
 
