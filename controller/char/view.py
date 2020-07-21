@@ -144,7 +144,8 @@ class CharViewHandler(CharHandler):
             if page:
                 c = page['chars'][0]
                 c['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
-                for f in Char.fields:
+                for field in Char.fields:
+                    f = field['id']
                     if not char.get(f) and c.get(f):
                         char[f] = c[f]
             char['txt_level'] = char.get('txt_level') or 1
