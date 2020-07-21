@@ -39,7 +39,7 @@ class DataUpsertApi(BaseHandler):
 
 
 class DataUploadApi(BaseHandler):
-    URL = ['/api/data/@metadata/upload', '/api/data/(page)/upload']
+    URL = '/api/data/@metadata/upload'
 
     def save_error(self, collection, errs):
         data_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'data')
@@ -55,7 +55,7 @@ class DataUploadApi(BaseHandler):
         """ 批量上传 """
         assert collection in ['tripitaka', 'volume', 'sutra', 'reel', 'page']
         model = eval(collection.capitalize())
-        upload_file = self.request.files.get('csv') or self.request.files.get('json')
+        upload_file = self.request.files.get('csv')
         content = to_basestring(upload_file[0]['body'])
         with StringIO(content) as fn:
             update = False if collection == 'tripitaka' else True
