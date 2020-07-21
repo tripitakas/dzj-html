@@ -31,6 +31,7 @@ class PageUploadApi(BaseHandler):
             layout = self.data.get('layout')
             upload_file = self.request.files.get('json')
             page_names = json.loads(to_basestring(upload_file[0]['body']))
+            page_names = [name.split('.')[0] for name in page_names]
             existed = list(self.db.page.find({'name': {'$in': page_names}}, {'name': 1}))
             if existed:
                 existed = [p['name'] for p in existed]
