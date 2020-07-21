@@ -39,7 +39,7 @@ class DataUpsertApi(BaseHandler):
 
 
 class DataUploadApi(BaseHandler):
-    URL = '/api/data/@metadata/upload'
+    URL = ['/api/data/@metadata/upload', '/api/data/page/upload']
 
     def save_error(self, collection, errs):
         data_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'data')
