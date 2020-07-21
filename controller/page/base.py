@@ -132,6 +132,8 @@ class PageHandler(TaskHandler, Page, Box):
         """
         if cls.prop(page, 'txt_match.' + field) in [True, False]:
             return page['txt_match'][field]
+        if not cls.get_txt(page, field):
+            return False, ''
         match = True
         diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field))[0]
         for s in diff_segments:
