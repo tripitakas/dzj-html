@@ -1,7 +1,7 @@
 /*
  * char_txt.js
  * 分列显示的单字校对页面
- * Date: 2020-07-17
+ * Date: 2020-07-21
  * global $
  */
 
@@ -194,7 +194,7 @@ Array.min = Array.min || function(array) {
         height: size.height,
         chars: size.boxes,
         widthFull: true,
-        minRatio: 0.4
+        maxRatio: true
       });
       createImageText();
     },
