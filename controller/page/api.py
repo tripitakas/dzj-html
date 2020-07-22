@@ -24,6 +24,9 @@ from utils.extract_img import extract_img
 class PageUploadApi(BaseHandler):
     URL = '/api/data/page/upload'
 
+    def check_xsrf_cookie(self):
+        return True
+
     def post(self):
         """ 批量上传，供小欧调用"""
         try:

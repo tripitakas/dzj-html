@@ -15,6 +15,9 @@ from controller.page.base import PageHandler
 class FetchTasksApi(TaskHandler):
     URL = '/api/task/fetch_many/@ocr_task'
 
+    def check_xsrf_cookie(self):
+        return True
+
     def post(self, data_task):
         """ 批量领取小欧任务"""
 
@@ -58,6 +61,9 @@ class FetchTasksApi(TaskHandler):
 class ConfirmFetchApi(TaskHandler):
     URL = '/api/task/confirm_fetch/@ocr_task'
 
+    def check_xsrf_cookie(self):
+        return True
+
     def post(self, data_task):
         """ 确认批量领取任务成功"""
 
@@ -85,6 +91,9 @@ class ConfirmFetchApi(TaskHandler):
 
 class SubmitTasksApi(PageHandler):
     URL = '/api/task/submit/@ocr_task'
+
+    def check_xsrf_cookie(self):
+        return True
 
     def post(self, task_type):
         """ 批量提交数据任务。提交参数为tasks，格式如下：

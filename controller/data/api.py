@@ -41,6 +41,9 @@ class DataUpsertApi(BaseHandler):
 class DataUploadApi(BaseHandler):
     URL = '/api/data/@metadata/upload'
 
+    def check_xsrf_cookie(self):
+        return True
+
     def save_error(self, collection, errs):
         data_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'data')
         if not path.exists(data_path):
