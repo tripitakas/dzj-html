@@ -60,11 +60,11 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查是否访客可以访问
         if can_access('访客', p, m):
             return
-        # 检查是否小欧账号
+        # 检查是否直接登录
         if not self.current_user:
-            xiaoo_id = self.prop(self.config, 'xiaoo.login_id')
-            if xiaoo_id and xiaoo_id == self.data.get('login_id'):
-                self.xiaoo_login(xiaoo_id, self.data.get('password'))
+            login_ids = self.prop(self.config, 'direct_login_id')
+            if login_ids and self.data.get('login_id') in login_ids:
+                self.direct_login(self.data.get('login_id'), self.data.get('password'))
         # 检查用户是否已登录
         login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
@@ -95,14 +95,14 @@ class BaseHandler(CorsMixin, RequestHandler):
             message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
             return self.send_error_response(e.unauthorized, message=message)
 
-    def xiaoo_login(self, login_id, password):
+    def direct_login(self, login_id, password):
+        """ 直接登录，然后访问网站api"""
         # 检查是否多次登录失败
-        time1 = self.now() + timedelta(seconds=-1800)
-        times = self.db.log.count_documents({'type': 'login-fail', 'content': login_id, 'create_time': {'$gt': time1}})
-        if times >= 20:
-            return self.send_error_response(e.unauthorized, message='登录失败，请半小时后重试，或者申请重置密码')
+        if self.db.log.count_documents({'type': 'login-fail', 'content': login_id}) >= 12:
+            self.db.user.update_one({'email': login_id}, {'$set': {'disabled': True}})
+            return self.send_error_response(e.unauthorized, message='登录失败超过12次，账号被禁用，请联系管理员。')
 
-        user = self.db.user.find_one({'$or': [{'email': login_id}, {'phone': login_id}]})
+        user = self.db.user.find_one({'email': login_id, 'disabled': {'$ne': True}})
         if not user:
             return self.send_error_response(e.no_user)
         if gen_id(password) != user.get('password'):
@@ -110,8 +110,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error_response(e.incorrect_password)
 
         # 清除登录失败记录
-        time2 = self.now() + timedelta(seconds=-3600)
-        self.db.log.delete_many({'type': 'login_fail', 'create_time': {'$gt': time2}, 'content': login_id})
+        self.db.log.delete_many({'type': 'login_fail', 'content': login_id})
 
         user['roles'] = user.get('roles', '')
         user['login_md5'] = gen_id(user['roles'])

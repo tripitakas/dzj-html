@@ -17,8 +17,8 @@ class TestOcr(APITestCase):
 
     def test_xiaoo_access(self):
         """ 测试小欧访问TW平台"""
-        xiaoo_id = hp.prop(self._app.config, 'xiaoo.login_id')
-        if not xiaoo_id:
+        login_ids = hp.prop(self._app.config, 'direct_login_id')
+        if not login_ids:
             return
         # 管理员发布任务
         task_type = 'ocr_box'
@@ -26,10 +26,10 @@ class TestOcr(APITestCase):
         r = self.publish_page_tasks(dict(page_names=page_names, task_type=task_type, pre_tasks=[]))
         self.assert_code(200, r)
         # 创建小欧账号
-        self.add_users_by_admin([dict(email=xiaoo_id, name='小欧', password='xiaoo@123')], 'OCR加工员,单元测试用户')
+        self.add_users_by_admin([dict(email=login_ids[0], name='小欧', password='xiaoo@123')], 'OCR加工员,单元测试用户')
         self.logout()
         # 测试小欧领取任务
-        login_info = dict(login_id=xiaoo_id, password='xiaoo@123')
+        login_info = dict(login_id=login_ids[0], password='xiaoo@123')
         r = self.fetch('/api/task/fetch_many/' + task_type, body={'data': {'size': 3, **login_info}})
         self.assert_code(200, r, msg=task_type)
 

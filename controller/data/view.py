@@ -62,11 +62,10 @@ class DataImportImageHandler(TaskHandler):
             if priority:
                 condition.update({'priority': int(priority)})
             # 查询数据
-            pan_name = self.prop(self.config, 'xiaoo.pan_name')
             docs, pager, q, order = self.find_by_page(self, condition, default_order='-publish_time')
             self.render(
                 'data_image_import.html', docs=docs, pager=pager, order=order, q=q,
-                pan_name=pan_name, format_value=self.format_value, **kwargs,
+                format_value=self.format_value, **kwargs,
             )
 
         except Exception as error:

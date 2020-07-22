@@ -25,6 +25,10 @@ esearch:
   host: 127.0.0.1
   port: 9200
 
+# 直接访问
+direct_login_id:
+  - xiaoo@triptakas.net
+
 # 标点服务
 punctuate:
   host: localhost
@@ -66,11 +70,6 @@ big_img:
   use_internal:
   key_id:
   key_secret:
-
-# 小欧配置
-xiaoo:
-  pan_name: dev
-  login_id: xiaoo@triptakas.net
 
 # 邮件服务器
 email:
