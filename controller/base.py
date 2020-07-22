@@ -10,8 +10,8 @@ import traceback
 from os import path
 from bson import json_util
 from bson.errors import BSONError
-from datetime import datetime
 from pymongo.errors import PyMongoError
+from datetime import datetime, timedelta
 from tornado import gen
 from tornado.web import Finish
 from tornado_cors import CorsMixin
@@ -23,7 +23,7 @@ from tornado.httpclient import AsyncHTTPClient
 from controller import errors as e
 from controller import validate as v
 from controller.auth import get_route_roles, can_access, get_all_roles
-from controller.helper import get_date_time, prop, md5_encode, BASE_DIR
+from controller.helper import get_date_time, prop, md5_encode, gen_id, BASE_DIR
 
 
 class BaseHandler(CorsMixin, RequestHandler):
@@ -60,10 +60,16 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查是否访客可以访问
         if can_access('访客', p, m):
             return
+        # 检查是否小欧账号
+        if not self.current_user:
+            xiaoo_id = self.prop(self.config, 'xiaoo.login_id')
+            if xiaoo_id and xiaoo_id == self.data.get('login_id'):
+                self.xiaoo_login(xiaoo_id, self.data.get('password'))
         # 检查用户是否已登录
         login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
             return self.send_error_response(e.need_login) if self.is_api else self.redirect(login_url)
+        self.user_id, self.username = self.current_user.get('_id'), self.current_user.get('name')
         # 检查数据库中是否有该用户
         try:
             cond = [{f: self.current_user[f]} for f in ['email', 'phone'] if self.current_user.get(f)]
@@ -72,8 +78,6 @@ class BaseHandler(CorsMixin, RequestHandler):
                 return self.send_error_response(e.no_user) if self.is_api else self.redirect(login_url)
         except self.MongoError as error:
             return self.send_db_error(error)
-        # 设置参数
-        self.user_id, self.username = self.current_user.get('_id'), self.current_user.get('name')
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -90,6 +94,30 @@ class BaseHandler(CorsMixin, RequestHandler):
         else:
             message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
             return self.send_error_response(e.unauthorized, message=message)
+
+    def xiaoo_login(self, login_id, password):
+        # 检查是否多次登录失败
+        time1 = self.now() + timedelta(seconds=-1800)
+        times = self.db.log.count_documents({'type': 'login-fail', 'content': login_id, 'create_time': {'$gt': time1}})
+        if times >= 20:
+            return self.send_error_response(e.unauthorized, message='登录失败，请半小时后重试，或者申请重置密码')
+
+        user = self.db.user.find_one({'$or': [{'email': login_id}, {'phone': login_id}]})
+        if not user:
+            return self.send_error_response(e.no_user)
+        if gen_id(password) != user.get('password'):
+            self.add_log('login_fail', content=login_id)
+            return self.send_error_response(e.incorrect_password)
+
+        # 清除登录失败记录
+        time2 = self.now() + timedelta(seconds=-3600)
+        self.db.log.delete_many({'type': 'login_fail', 'create_time': {'$gt': time2}, 'content': login_id})
+
+        user['roles'] = user.get('roles', '')
+        user['login_md5'] = gen_id(user['roles'])
+        self.current_user = user
+        self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
+        self.add_log('login_ok', target_id=user['_id'], content='%s,%s,%s' % (user['name'], login_id, user['roles']))
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""

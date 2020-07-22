@@ -36,7 +36,7 @@ class LoginApi(BaseHandler):
 
             # 检查是否多次登录失败
             gap = self.now() + timedelta(seconds=-1800)
-            login_fail = {'type': 'login-fail', 'create_time': {'$gt': gap}, 'context': self.data.get('login_id')}
+            login_fail = {'type': 'login-fail', 'create_time': {'$gt': gap}, 'content': self.data.get('login_id')}
             times = self.db.log.count_documents(login_fail)
             if times >= 20:
                 return self.send_error_response(e.unauthorized, message='登录失败，请半小时后重试，或者申请重置密码')
@@ -63,38 +63,29 @@ class LoginApi(BaseHandler):
             users = list(self.db.user.find({'name': login_id}))
             if not users:
                 logging.info('login_no_user, ' + login_id)
-                if report_error and send_response:
-                    return self.send_error_response(e.no_user)
-                return
+                return report_error and send_response and self.send_error_response(e.no_user)
             elif len(users) > 1:
                 logging.info('login_username_duplicated, ' + login_id)
-                if report_error and send_response:
-                    return self.send_error_response(e.username_duplicated, message='用户名重复，请用手机或邮箱登录')
-                return
-            else:
-                user = users[0]
+                return report_error and send_response and self.send_error_response(e.username_duplicated)
+            user = users[0]
         if helper.gen_id(password) not in [user['password'], user.get('new_pwd')]:
-            logging.info('login_failed, ' + login_id)
-            if report_error and send_response:
-                return self.send_error_response(e.incorrect_password)
-            return
-
+            logging.info('login_fail, ' + login_id)
+            self.add_log('login_fail', content=login_id)
+            return report_error and send_response and self.send_error_response(e.incorrect_password)
         if helper.gen_id(password) == user.get('new_pwd'):
             self.db.user.update_one({'_id': user['_id']}, {'$set': {'password': user['new_pwd'], 'new_pwd': None}})
 
         # 清除登录失败记录
-        ResetUserPasswordApi.remove_login_fails(self, login_id)
+        time_gap = self.now() + timedelta(seconds=-3600)
+        self.db.log.delete_many({'type': 'login_failed', 'create_time': {'$gt': time_gap}, 'content': login_id})
 
         user['roles'] = user.get('roles', '')
         user['login_md5'] = helper.gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
+        self.add_log('login_ok', target_id=user['_id'], content='%s,%s,%s' % (user['name'], login_id, user['roles']))
 
-        content = '%s,%s,%s' % (user['name'], login_id, user['roles'])
-        self.add_log('login_ok', target_id=user['_id'], content=content)
-
-        if send_response:
-            self.send_data_response(user)
+        send_response and self.send_data_response(user)
         return user
 
     @staticmethod
@@ -451,7 +442,7 @@ class ResetUserPasswordApi(BaseHandler):
     @staticmethod
     def remove_login_fails(self, context):
         time_gap = self.now() + timedelta(seconds=-3600)
-        self.db.log.delete_many({'type': 'login_fail', 'create_time': {'$gt': time_gap}, 'context': context})
+        self.db.log.delete_many({'type': 'login_fail', 'create_time': {'$gt': time_gap}, 'content': context})
 
 
 class DeleteUserApi(BaseHandler):

@@ -62,7 +62,7 @@ class DataImportImageHandler(TaskHandler):
             if priority:
                 condition.update({'priority': int(priority)})
             # 查询数据
-            pan_name = self.prop(self.config, 'pan.name')
+            pan_name = self.prop(self.config, 'xiaoo.pan_name')
             docs, pager, q, order = self.find_by_page(self, condition, default_order='-publish_time')
             self.render(
                 'data_image_import.html', docs=docs, pager=pager, order=order, q=q,

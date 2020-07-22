@@ -67,9 +67,10 @@ big_img:
   key_id:
   key_secret:
 
-# 网盘
-pan:
-  name: dev
+# 小欧配置
+xiaoo:
+  pan_name: dev
+  login_id: xiaoo@triptakas.net
 
 # 邮件服务器
 email:
