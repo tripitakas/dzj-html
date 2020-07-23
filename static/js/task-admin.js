@@ -55,11 +55,12 @@ $('.sty-table .action .btn-republish').click(function () {
     });
   });
 });
+// 删除任务
 $('.sty-table .action .btn-delete').click(function () {
   var node = $(this).parent().parent();
-  var regex = /(published|pending|returned)/i;
+  var regex = /(published|fetched|pending|returned)/i;
   if (!node.find('.status').attr('title').match(regex)) {
-    return showWarning('状态有误', '只能删除已发布未领取、等待前置任务、已退回的任务！');
+    return showWarning('状态有误', '只能删除已发布未领取、已获取、等待前置任务及已退回的任务！');
   }
   var id = node.attr('id');
   var data = getData(id);

@@ -143,9 +143,11 @@ class CharViewHandler(CharHandler):
             page = self.db.page.find_one({'name': char['page_name'], 'chars.cid': char['cid']}, projection)
             if page:
                 c = page['chars'][0]
-                char.update(c)
-                if not char.get('pos'):
-                    char['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
+                c['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
+                for field in Char.fields:
+                    f = field['id']
+                    if not char.get(f) and c.get(f):
+                        char[f] = c[f]
             char['txt_level'] = char.get('txt_level') or 1
             char['box_level'] = char.get('box_level') or 1
             char['txt_point'] = self.get_required_type_and_point(char)

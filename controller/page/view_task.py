@@ -19,7 +19,7 @@ class PageTaskListHandler(PageHandler):
         {'id': 'doc_id', 'name': '页编码'},
         {'id': 'char_count', 'name': '单字数量'},
         {'id': 'batch', 'name': '批次号'},
-        {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page', publishable=True)},
+        {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page', True, True)},
         {'id': 'num', 'name': '校次'},
         {'id': 'status', 'name': '状态', 'filter': PageHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': PageHandler.priorities},

@@ -128,14 +128,15 @@ def get_url_param(key, url_query):
 
 
 def set_url_param(url_query, key, value):
-    if '%s=' % key in url_query:
-        url_query = re.sub(r'%s=\d+&' % key, '%s=' % key + value + '&', url_query)
-        url_query = re.sub(r'%s=\d+$' % key, '%s=' % key + value, url_query)
+    param = '%s=' % key
+    if param in url_query:
+        url_query = re.sub(r'%s=\d+&' % key, param + value + '&', url_query)
+        url_query = re.sub(r'%s=\d+$' % key, param + value, url_query)
         return url_query
     elif '?' in url_query:
-        return url_query + '&page=' + value
+        return url_query + '&' + param + value
     else:
-        return url_query + '?page=' + value
+        return url_query + '?' + param + value
 
 
 def get_date_time(fmt=None, date_time=None, diff_seconds=None):

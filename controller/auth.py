@@ -197,6 +197,7 @@ role_route_maps = {
             '/api/task/pick/@ocr_task': ['POST'],
             '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
             '/api/task/submit/@ocr_task': ['POST'],
+            '/api/data/page/upload': ['POST'],
             '/api/data/@metadata/upload': ['POST'],
         }
     },
@@ -245,8 +246,8 @@ role_route_maps = {
             '/api/publish/import_image': ['POST'],
             '/data/@metadata': ['GET'],
             '/api/data/@metadata': ['POST'],
-            '/api/variant/delete': ['POST'],
             '/api/data/@metadata/delete': ['POST'],
+            '/api/variant/(delete|merge)': ['POST'],
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
             '/api/page': ['POST'],
