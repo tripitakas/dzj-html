@@ -114,6 +114,7 @@ class VariantListHandler(BaseHandler, Variant):
     info_fields = ['uid', 'txt', 'img_name', 'normal_txt', 'remark']
     operations = [
         {'operation': 'btn-add', 'label': '新增记录'},
+        {'operation': 'btn-merge', 'label': '合并字图'},
         {'operation': 'bat-remove', 'label': '批量删除'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
     ]
