@@ -344,6 +344,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         return not disabled_mods or mod not in disabled_mods
 
     def get_web_img(self, img_name, img_type='page'):
+        if not img_name:
+            return ''
         inner_path = '/'.join(img_name.split('_')[:-1])
         if self.get_config('web_img.with_hash'):
             img_name += '_' + md5_encode(img_name, self.get_config('web_img.salt'))
