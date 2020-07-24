@@ -343,7 +343,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
 
-    def get_web_img(self, img_name, img_type='page'):
+    def get_web_img(self, img_name, img_type='page', use_my_cloud=False):
         if not img_name:
             return ''
         inner_path = '/'.join(img_name.split('_')[:-1])
@@ -358,8 +358,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             img_url = '/{0}/{1}'.format(local_path.strip('/'), relative_url)
             if path.exists(path.join(BASE_DIR, img_url[1:])):
                 return img_url
-        # 从我的云盘获取图片
-        if my_cloud and img_type in (self.get_config('web_img.cloud_type') or ''):
+        # 从我的云盘获取图片。如果use_my_cloud为True，则返回我的云盘路径而不使用共享云盘
+        if my_cloud and (img_type in (self.get_config('web_img.cloud_type') or '') or use_my_cloud):
             return path.join(my_cloud.replace('-internal', ''), relative_url)
         # 从共享盘获取图片
         if shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
