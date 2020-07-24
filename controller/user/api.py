@@ -481,9 +481,11 @@ class UserUpsertApi(BaseHandler):
                     self.data['password'] = user['password']
                 elif self.data['password'] != user['password']:
                     self.data['password'] = helper.gen_id(self.data['password'])
+                self.data.update({'updated_time': self.now()})
                 rules.append((v.not_existed, self.db.user, ObjectId(self.data['_id']), 'phone', 'email'))
             else:
                 self.data['password'] = helper.gen_id(self.data['password'])
+                self.data.update({'create_time': self.now()})
                 rules.append((v.not_existed, self.db.user, 'phone', 'email'))
             r = User.save_one(self.db, 'user', self.data, rules)
             if r.get('status') == 'success':

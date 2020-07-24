@@ -48,7 +48,7 @@ class TptkViewHandler(PageHandler):
             img_url = self.get_web_img(page_name)
             page = self.db.page.find_one({'name': page_name}) or {}
             chars_col, txts = [], []
-            if page:
+            if page and page.get('chars'):
                 chars_col = self.get_chars_col(page['chars'])
                 txts = [(self.get_char_txt(page, 'adapt'), 'txt', '校对文本')]
                 self.pack_boxes(page)

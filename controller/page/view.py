@@ -186,6 +186,8 @@ class PageViewHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            if not page.get('chars'):
+                return self.send_error_response(e.no_object, message='页面%s没有字框数据，无法查看' % page_name)
             txts = self.get_txts(page)
             txt_fields = [t[1] for t in txts]
             txt_dict = {t[1]: t for t in txts}
