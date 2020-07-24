@@ -129,7 +129,7 @@ class PageBoxApi(PageHandler):
 
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
-        page_updated, char_updated = self.get_box_update(self.data, page, task_type)
+        page_updated = self.get_box_update(self.data, page, task_type)
         self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})
 
         valid, message, box_type, out_boxes = self.check_box_cover(page)

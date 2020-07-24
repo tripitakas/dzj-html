@@ -246,7 +246,6 @@ class PageBoxHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            self.update_page_cid(page)
             sub_columns = self.get_query_argument('sub_columns', '')
             self.pack_boxes(page, extract_sub_columns=sub_columns == 'true')
             self.set_box_access(page)
@@ -266,7 +265,6 @@ class PageOrderHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            self.update_page_cid(page)
             img_url = self.get_page_img(page)
             reorder = self.get_query_argument('reorder', '')
             if reorder:
