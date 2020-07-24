@@ -157,7 +157,7 @@ class PageTaskCutHandler(PageHandler):
             self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
 
         self.pack_boxes(page)
-        img_url = self.get_web_img(page['name'], 'page')
+        img_url = self.get_page_img(page)
         if self.steps['current'] == 'order':
             reorder = self.get_query_argument('reorder', '')
             if reorder:

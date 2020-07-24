@@ -36,8 +36,10 @@ class PageUploadApi(BaseHandler):
             if existed:
                 existed = [p['name'] for p in existed]
                 page_names = [name for name in page_names if name not in existed]
-            pages = [dict(name=n, source=source, layout=layout) for n in page_names]
-            self.db.page.insert_many(pages)
+            if page_names:
+                pages = [dict(name=n, source=source, layout=layout) for n in page_names]
+                self.db.page.insert_many(pages)
+            self.add_log('upload_page', content='%s pages, %s' % (len(page_names or []), page_names or ''))
             self.send_data_response()
 
         except self.DbError as error:
@@ -127,7 +129,7 @@ class PageBoxApi(PageHandler):
 
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
-        page_updated, char_updated = self.get_box_update(self.data, page, task_type)
+        page_updated = self.get_box_update(self.data, page, task_type)
         self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})
 
         valid, message, box_type, out_boxes = self.check_box_cover(page)

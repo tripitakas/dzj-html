@@ -143,14 +143,16 @@ class CharViewHandler(CharHandler):
             page = self.db.page.find_one({'name': char['page_name'], 'chars.cid': char['cid']}, projection)
             if page:
                 c = page['chars'][0]
-                char.update(c)
-                if not char.get('pos'):
-                    char['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
+                c['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
+                for field in Char.fields:
+                    f = field['id']
+                    if not char.get(f) and c.get(f):
+                        char[f] = c[f]
             char['txt_level'] = char.get('txt_level') or 1
             char['box_level'] = char.get('box_level') or 1
             char['txt_point'] = self.get_required_type_and_point(char)
             char['box_point'] = PageHandler.get_required_type_and_point(page)
-            img_url = self.get_web_img(page['name'], 'page')
+            img_url = self.get_web_img(page['name'], 'page', page.get('img_cloud_path'))
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
             chars = {char['name']: char}

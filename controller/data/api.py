@@ -132,6 +132,33 @@ class VariantDeleteApi(BaseHandler):
             return self.send_db_error(error)
 
 
+class VariantMergeApi(BaseHandler):
+    URL = '/api/variant/merge'
+
+    def post(self):
+        """ 合并图片异体字"""
+        try:
+            rules = [(v.not_empty, 'img_names', 'main')]
+            self.validate(self.data, rules)
+            img_names, main = self.data['img_names'], self.data['main']
+            assert main in img_names
+            names2merge = [name for name in img_names if name != main]
+            variants = list(self.db.variant.find({'img_name': {'$in': img_names}}))
+            if not names2merge or not variants:
+                return self.send_error_response(e.no_object, message='没有找到待合并的异体字字图')
+
+            # 更新字数据
+            maps = {t['img_name']: 'Y%s' % t['uid'] for t in variants}
+            self.db.char.update_many({'txt': {'$in': [maps[n] for n in names2merge]}}, {'$set': {'txt': maps[main]}})
+            # 删除异体字图
+            self.db.variant.delete_many({'img_name': {'$in': names2merge}})
+            self.send_data_response()
+            self.add_log('merge_variant', target_name=names2merge, content='merge to ' + self.data['main'])
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'
 

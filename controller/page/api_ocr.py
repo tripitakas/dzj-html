@@ -141,6 +141,7 @@ class SubmitTasksApi(PageHandler):
         update.update({k: self.prop(task, 'result.' + k) for k in ['blocks', 'columns', 'chars']})
         update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
         self.apply_txt(update, 'ocr_col')
+        self.update_page_cid(update)
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
