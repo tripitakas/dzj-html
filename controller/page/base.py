@@ -91,6 +91,12 @@ class PageHandler(TaskHandler, Page, Box):
     def can_write(self, box, page, task_type=None):
         return self.check_box_level_and_point(self, box, page, task_type, False) is True
 
+    def get_page_img(self, page):
+        page_name, use_my_cloud = page, False
+        if isinstance(page, dict):
+            page_name, use_my_cloud = page.get('name'), page.get('img_cloud_path')
+        return self.get_web_img(page_name, 'page', use_my_cloud)
+
     def set_box_access(self, page, task_type=None):
         """ 设置切分框的读写权限"""
         for b in page['chars']:

@@ -161,7 +161,7 @@ class PageBrowseHandler(PageHandler):
             txts = self.get_txts(page)
             txt_fields = [t[1] for t in txts]
             txt_dict = {t[1]: t for t in txts}
-            img_url = self.get_web_img(page['name'])
+            img_url = self.get_page_img(page)
             chars_col = self.get_chars_col(page['chars'])
             info = {f['id']: self.prop(page, f['id'], '') for f in edit_fields}
             btn_config = json_util.loads(self.get_secure_cookie('page_browse_btn') or '{}')
@@ -192,7 +192,7 @@ class PageViewHandler(PageHandler):
             txt_fields = [t[1] for t in txts]
             txt_dict = {t[1]: t for t in txts}
             cid = self.get_query_argument('cid', '')
-            img_url = self.get_web_img(page['name'])
+            img_url = self.get_page_img(page)
             chars_col = self.get_chars_col(page['chars'])
             txt_off = self.get_query_argument('txt', None) == 'off'
             self.pack_boxes(page)
@@ -249,7 +249,7 @@ class PageBoxHandler(PageHandler):
             sub_columns = self.get_query_argument('sub_columns', '')
             self.pack_boxes(page, extract_sub_columns=sub_columns == 'true')
             self.set_box_access(page)
-            img_url = self.get_web_img(page['name'], 'page')
+            img_url = self.get_page_img(page)
             self.render('page_box.html', page=page, img_url=img_url, readonly=False)
 
         except Exception as error:
@@ -265,7 +265,7 @@ class PageOrderHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            img_url = self.get_web_img(page['name'], 'page')
+            img_url = self.get_page_img(page)
             reorder = self.get_query_argument('reorder', '')
             if reorder:
                 page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
@@ -304,7 +304,7 @@ class PageTxtMatchHandler(PageHandler):
             txts = [(cmp_txt, field, field_name), (char_txt, 'ocr', '字框OCR')]
             txt_dict = {t[1]: t for t in txts}
             cmp_data = self.match_diff(char_txt, cmp_txt)
-            img_url = self.get_web_img(page['name'], 'page')
+            img_url = self.get_page_img(page)
             txt_match = self.prop(page, 'txt_match.' + field)
             self.pack_boxes(page)
             self.render(
@@ -327,7 +327,7 @@ class PageFindCmpHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             self.pack_boxes(page)
-            img_url = self.get_web_img(page['name'], 'page')
+            img_url = self.get_page_img(page)
             self.render('page_find_cmp.html', page=page, img_url=img_url, readonly=True, ocr=self.get_txt(page, 'ocr'),
                         cmp_txt=self.get_txt(page, 'cmp_txt'), )
 
@@ -367,7 +367,7 @@ class PageTxtHandler(PageHandler):
             r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
             ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
 
-        img_url = self.get_web_img(page['name'])
+        img_url = self.get_page_img(page)
         chars_col = self.get_chars_col(page['chars'])
         chars = {c['name']: c for c in page['chars']}
         columns = {c['column_id']: c for c in page['columns']}

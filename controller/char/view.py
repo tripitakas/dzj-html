@@ -152,7 +152,7 @@ class CharViewHandler(CharHandler):
             char['box_level'] = char.get('box_level') or 1
             char['txt_point'] = self.get_required_type_and_point(char)
             char['box_point'] = PageHandler.get_required_type_and_point(page)
-            img_url = self.get_web_img(page['name'], 'page')
+            img_url = self.get_web_img(page['name'], 'page', page.get('img_cloud_path'))
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
             chars = {char['name']: char}
