@@ -64,7 +64,7 @@ class PageListHandler(PageHandler):
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
     }
-    match_fields = {'cmp_txt': '比对文本', 'ocr_col': 'OCR列文', 'txt': '校对文本'}
+    match_fields = {'': '', 'cmp_txt': '比对文本', 'ocr_col': 'OCR列文', 'txt': '校对文本'}
     match_statuses = {'': '', None: '无', True: '匹配', False: '不匹配'}
 
     def get_template_kwargs(self, fields=None):
@@ -120,11 +120,11 @@ class PageListHandler(PageHandler):
                 condition, params = self.get_duplicate_condition()
             else:
                 condition, params = Page.get_page_search_condition(self.request.query)
-            # fields = ['chars', 'columns', 'blocks', 'cmp_txt', 'ocr', 'ocr_col', 'txt']
+            page_tasks = {'': '', **PageHandler.task_names('page', True, True)}
             docs, pager, q, order = Page.find_by_page(self, condition, default_order='name')
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        task_statuses=self.task_statuses, match_statuses=self.match_statuses,
-                        format_value=self.format_value, **kwargs)
+                        page_tasks=page_tasks, task_statuses=self.task_statuses, match_fields=self.match_fields,
+                        match_statuses=self.match_statuses, format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
