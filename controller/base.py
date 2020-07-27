@@ -63,7 +63,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查是否直接登录
         if not self.current_user:
             login_ids = self.prop(self.config, 'direct_login_id')
-            print(self.data.get('login_id'), login_ids)
+            logging.info('%s: %s' % (self.data.get('login_id'), login_ids))
             if login_ids and self.data.get('login_id') in login_ids:
                 self.direct_login(self.data.get('login_id'), self.data.get('password'))
         # 检查用户是否已登录
