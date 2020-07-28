@@ -106,7 +106,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         user = self.db.user.find_one({'email': login_id, 'disabled': {'$ne': True}})
         if not user:
-            return self.send_error_response(e.no_user)
+            return self.send_error_response(e.no_user, message=e.no_user + ' (%s)' % login_id)
         if gen_id(password) != user.get('password'):
             self.add_log('login_fail', content=login_id)
             return self.send_error_response(e.incorrect_password)
