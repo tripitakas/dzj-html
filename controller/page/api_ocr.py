@@ -105,8 +105,6 @@ class SubmitTasksApi(PageHandler):
                     r = e.task_not_existed
                 elif rt['task_type'] != lt['task_type']:
                     r = e.task_type_error
-                elif lt['picked_user_id'] != self.user_id:
-                    r = e.task_has_been_picked
                 elif self.prop(rt, 'page_name') and self.prop(rt, 'page_name') != lt.get('doc_id'):
                     r = e.doc_id_not_equal
                 elif self.prop(rt, 'result.status') == 'failed' or self.prop(rt, 'result.error'):  # 小欧任务失败
