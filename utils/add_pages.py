@@ -171,7 +171,7 @@ class AddPage(object):
             if name != fn[:-5]:
                 sys.stderr.write('filename not equal to name in json %s \n' % pathname)
                 continue
-            if not info['chars']:
+            if not info.get('chars'):
                 sys.stderr.write('%s no chars\n' % name)
                 continue
             try:
