@@ -117,7 +117,7 @@ class RepublishTaskApi(TaskHandler):
                 'status': self.STATUS_PUBLISHED, 'result': {}
             }})
             self.db.task.update_one({'_id': self.task['_id']}, {'$unset': {k: '' for k in [
-                'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason'
+                'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason', 'message'
             ]}})
             self.update_page_status(self.STATUS_PUBLISHED)
             self.add_log('republish_task', self.task['_id'], None,
