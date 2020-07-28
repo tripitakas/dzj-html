@@ -169,7 +169,7 @@ class AssignTasksApi(TaskHandler):
             self.validate(self.data, rules)
             user = self.db.user.find_one({'_id': ObjectId(self.data['user_id'])})
             if not user:
-                return self.send_error_response(e.no_user)
+                return self.send_error_response(e.no_user, message=e.no_user + ' (%s)' % self.data['user_id'])
             type_count = len(set(t[1] for t in self.data['tasks']))
             if type_count > 1:
                 return self.send_error_response(e.task_type_error, message='一次只能指派一种任务类型')
