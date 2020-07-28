@@ -116,11 +116,11 @@ class PageHandler(TaskHandler, Page, Box):
         fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
         fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'char_id', 'cc',
                    'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
-        cls.pick_fields(page['blocks'], fields1)
-        cls.pick_fields(page['columns'], fields2)
+        page.get('blocks') and cls.pick_fields(page['blocks'], fields1)
+        page.get('columns') and cls.pick_fields(page['columns'], fields2)
         if not pop_char_logs:
             fields3 = fields3 + ['box_logs', 'txt_logs']
-        cls.pick_fields(page['chars'], fields3)
+        page.get('chars') and cls.pick_fields(page['chars'], fields3)
 
     @classmethod
     def filter_symbol(cls, txt):
