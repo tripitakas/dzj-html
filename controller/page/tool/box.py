@@ -173,7 +173,7 @@ class Box(BoxOrder):
             boxes = page.get(box_type)
             if not boxes:
                 continue
-            max_cid = max([int(c.get('cid') or 0) for c in boxes])
+            max_cid = max([int(c.get('cid') or 0) for c in boxes]) if boxes else 0
             for b in boxes:
                 if not b.get('cid'):
                     b['cid'] = max_cid + 1
