@@ -6,10 +6,10 @@
 
 import re
 import sys
-import json
 import shutil
 import pymongo
 from glob2 import glob
+from bson import json_util
 from tornado.util import PY3
 from datetime import datetime
 from os import path, makedirs, walk
@@ -39,7 +39,7 @@ class AddPage(object):
             return
         try:
             with open(filename, encoding='UTF-8') if PY3 else open(filename) as f:
-                return json.load(f)
+                return json_util.loads(f.read())
         except Exception as e:
             sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
 
