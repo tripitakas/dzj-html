@@ -18,7 +18,7 @@ url_placeholder = {
     'task_id': r'[a-z0-9]{24}',
     'doc_id': r'[a-zA-Z]{2}_[_0-9]+',
     'char_name': r'[a-zA-Z]{2}_[_0-9]+',
-    'page_name': r'[a-zA-Z]{2}_[_0-9]+',
+    'page_name': r'[a-zA-Z]{2}_[_fb0-9]+',
     'tripitaka_code': r'[a-zA-Z]{2}',
     'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
     'metadata': r'tripitaka|sutra|volume|reel|variant',
