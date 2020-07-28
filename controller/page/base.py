@@ -311,7 +311,7 @@ class PageHandler(TaskHandler, Page, Box):
         boxes = page.get('chars')
         if not boxes:
             return ''
-        pre, txt = boxes[0], get_txt(boxes[0])
+        pre, txt = boxes[0], get_txt(boxes[0]) or ''
         for b in boxes[1:]:
             if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
                 txt += '||'
