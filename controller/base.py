@@ -118,7 +118,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         user['login_md5'] = gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
-        self.add_log('login_ok', target_id=user['_id'], content='%s,%s,%s' % (user['name'], login_id, user['roles']))
+        self.add_log('direct_login_ok', target_id=user['_id'], content='%s,%s,%s' % (user['name'], login_id, user['roles']))
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
