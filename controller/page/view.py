@@ -147,12 +147,13 @@ class PageBrowseHandler(PageHandler):
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             condition = self.get_page_search_condition(self.request.query)[0]
+            page_code = page.get('page_code', '')
             to = self.get_query_argument('to', '')
             if to == 'next':
-                condition['page_code'] = {'$gt': page['page_code']}
+                condition['page_code'] = {'$gt': page_code}
                 page = self.db.page.find_one(condition, sort=[('page_code', 1)])
             elif to == 'prev':
-                condition['page_code'] = {'$lt': page['page_code']}
+                condition['page_code'] = {'$lt': page_code}
                 page = self.db.page.find_one(condition, sort=[('page_code', -1)])
             if not page:
                 message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')

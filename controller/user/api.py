@@ -64,7 +64,7 @@ class LoginApi(BaseHandler):
             if not users:
                 logging.info('login_no_user, ' + login_id)
                 return report_error and send_response and self.send_error_response(
-                    e.no_user, message=e.no_user + ' (%s)' % login_id)
+                    e.no_user, message=e.no_user[1] + ' (%s)' % login_id)
             elif len(users) > 1:
                 logging.info('login_username_duplicated, ' + login_id)
                 return report_error and send_response and self.send_error_response(e.username_duplicated)
@@ -176,7 +176,7 @@ class ForgetPasswordApi(BaseHandler):
         phone_or_email = self.data['phone_or_email']
         user = self.db.user.find_one({'$or': [{'email': phone_or_email}, {'phone': phone_or_email}]})
         if not user:
-            return self.send_error_response(e.no_user, message=e.no_user + ' (%s)' % phone_or_email)
+            return self.send_error_response(e.no_user, message=e.no_user[1] + ' (%s)' % phone_or_email)
         if user['name'] != self.data['name']:
             return self.send_error_response(e.no_user, message='用户名不匹配')
 
