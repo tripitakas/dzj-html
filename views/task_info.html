@@ -84,7 +84,7 @@
             <div class="block-head">输出结果</div>
             {% for k, v in task['result'].items() %}
             {% if k not in ['blocks', 'columns', 'chars'] %}
-            <div class="info">
+            <div class="info{{' long' if type(v) in [list, dict] else ''}}">
               <label class="label">{{k}}</label>
               <span class="value">{% raw handler.format_value(v, k) %}</span>
             </div>
