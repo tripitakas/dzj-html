@@ -187,22 +187,19 @@ Array.min = Array.min || function (array) {
       data.cs = new ColNodes(p.image, p.width, p.height);
       data.boxOpacity = 0.2;
 
-      self.create(p);
-      setTimeout(function () {
-        var size = data.cs.initLayout(data);
-        self.create({
-          readonly: true,
-          scrollContainer: p.scrollContainer,
-          holder: p.holder,
-          name: p.name,
-          width: size.width,
-          height: size.height,
-          chars: size.boxes,
-          widthFull: true,
-          maxRatio: true
-        });
-        createImageText();
-      }, 50);
+      var size = data.cs.initLayout(data);
+      self.create({
+        readonly: true,
+        scrollContainer: p.scrollContainer,
+        holder: p.holder,
+        name: p.name,
+        width: size.width,
+        height: size.height,
+        chars: size.boxes,
+        widthFull: true,
+        maxRatio: true
+      });
+      createImageText();
     },
 
     applyTxt: function (txt) {
