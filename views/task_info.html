@@ -60,19 +60,19 @@
             <div class="block-head">输入参数</div>
             {% if isinstance(task['params'], dict) %}
             {% for k, v in task.get('params').items() %}
-            <div class="info long">
+            <div class="info{{' long' if type(v) in [list, dict] else ''}}">
               <label class="label">{{k}}</label>
               <span class="value">{% raw handler.format_value(v, k) %}</span>
             </div>
             {% end %}
             {% elif isinstance(task['params'], list) %}
-            <div class="info long">
+            <div class="info{{' long' if type(v) in [list, dict] else ''}}">
               {% for p in task['params'] %}
               <span class="value">{{p}}</span>
               {% end %}
             </div>
             {% else %}
-            <div class="info long">
+            <div class="info{{' long' if type(v) in [list, dict] else ''}}">
               <label class="label">　</label>
               <span class="value">{{task['params']}}}</span>
             </div>
