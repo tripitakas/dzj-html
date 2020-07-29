@@ -234,16 +234,11 @@ Array.min = Array.min || function (array) {
   });
 
   function createImageText() {
-    data._createImageText = (data._createImageText || 0) + 1;
-    setTimeout(function () {
-      if (--data._createImageText === 0) {
-        data.cs.nodes.forEach(function (c) {
-          c.createText();
-          c.ensureTextInBox();
-          c.createImage(data.cs.image, data.cs.width, data.cs.height);
-        });
-      }
-    }, 10);
+    data.cs.nodes.forEach(function (c) {
+      c.createText();
+      c.ensureTextInBox();
+      c.createImage(data.cs.image, data.cs.width, data.cs.height);
+    });
   }
 
   $.cut.onBoxChanged(function (info, box, reason) {
