@@ -66,7 +66,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             if login_ids and self.data['login_id'] in login_ids:
                 self.direct_login(self.data.get('login_id'), self.data.get('password'))
             else:
-                return self.send_error_response(e.no_object, message='direct login id error')
+                return self.send_error_response(e.no_user, message='login id not in config')
         # 检查用户是否已登录
         login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
