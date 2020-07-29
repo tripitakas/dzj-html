@@ -101,7 +101,7 @@ def format_value(value, key=None, doc=None):
     if isinstance(value, datetime):
         return get_date_time('%Y-%m-%d %H:%M', value)
     if isinstance(value, list):
-        return '<br/>'.join([str(v) for v in value])
+        return ','.join([str(v) for v in value])
     if isinstance(value, dict):
         return '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
     return value
