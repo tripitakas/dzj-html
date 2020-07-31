@@ -42,7 +42,7 @@ class FetchTasksApi(TaskHandler):
             if not tasks:
                 self.send_data_response(dict(tasks=[]))
             tasks2send = get_tasks()
-            print(tasks2send)
+            logging.info(tasks2send)
             condition.update({'_id': {'$in': [ObjectId(t['task_id']) for t in tasks2send]}})
             r = self.db.task.update_many(condition, {'$set': dict(
                 status=self.STATUS_FETCHED, picked_time=self.now(), updated_time=self.now(),
