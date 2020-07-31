@@ -6,7 +6,6 @@ import os
 import json
 import random
 from bson.objectid import ObjectId
-from elasticsearch.exceptions import ConnectionTimeout
 from tornado.escape import native_str, url_escape, to_basestring
 from .page import Page
 from .tool.diff import Diff
@@ -317,7 +316,7 @@ class PageFindCmpTxtApi(PageHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
-        except ConnectionTimeout as error:
+        except Exception as error:
             return self.send_db_error(error)
 
 
