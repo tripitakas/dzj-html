@@ -157,27 +157,22 @@ class Box(BoxOrder):
     @staticmethod
     def update_box_cid(boxes):
         updated = False
-        max_cid = max([int(c.get('cid') or 0) for c in boxes])
-        for b in boxes:
-            if not b.get('cid'):
-                b['cid'] = max_cid + 1
-                max_cid += 1
-                updated = True
+        if boxes:
+            max_cid = max([int(c.get('cid') or 0) for c in boxes])
+            for b in boxes:
+                if not b.get('cid'):
+                    b['cid'] = max_cid + 1
+                    max_cid += 1
+                    updated = True
         return updated
 
-    @staticmethod
-    def update_page_cid(page, box_types=None):
+    @classmethod
+    def update_page_cid(cls, page, box_types=None):
         updated = False
         box_types = box_types or ['blocks', 'columns', 'chars']
         for box_type in box_types:
-            boxes = page.get(box_type)
-            if boxes:
-                max_cid = max([int(c.get('cid') or 0) for c in boxes])
-                for b in boxes:
-                    if not b.get('cid'):
-                        b['cid'] = max_cid + 1
-                        max_cid += 1
-                        updated = True
+            r = cls.update_box_cid(page.get(box_type))
+            updated = updated or r
         return updated
 
     @staticmethod
