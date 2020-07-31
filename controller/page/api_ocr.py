@@ -32,7 +32,6 @@ class FetchTasksApi(TaskHandler):
                 for t in tasks:
                     PageHandler.pack_boxes(pages.get(t['doc_id']))
                     t['params'] = pages.get(t['doc_id'])
-
             return [dict(task_id=str(t['_id']), priority=t.get('priority'), page_name=t.get('doc_id'),
                          params=t.get('params')) for t in tasks]
 
@@ -43,7 +42,7 @@ class FetchTasksApi(TaskHandler):
             if not tasks:
                 self.send_data_response(dict(tasks=[]))
             tasks2send = get_tasks()
-            logging.info(tasks2send)
+            # logging.info(tasks2send)
             condition.update({'_id': {'$in': [ObjectId(t['task_id']) for t in tasks2send]}})
             r = self.db.task.update_many(condition, {'$set': dict(
                 status=self.STATUS_FETCHED, picked_time=self.now(), updated_time=self.now(),
@@ -109,9 +108,9 @@ class SubmitTasksApi(PageHandler):
                     r = e.task_type_error
                 elif self.prop(rt, 'page_name') and self.prop(rt, 'page_name') != lt.get('doc_id'):
                     r = e.doc_id_not_equal
-                elif self.prop(rt, 'result.status') == 'failed' or self.prop(rt, 'result.error'):  # 小欧任务失败
+                elif self.prop(rt, 'result.status') == 'failed':  # 小欧任务失败
                     self.db.task.update_one({'_id': lt['_id']}, {'$set': {
-                        'status': 'failed', 'result': rt.get('result'),
+                        'status': 'failed', 'result': rt.get('result')
                     }})
                     r = True
                 elif task_type == 'ocr_box':
