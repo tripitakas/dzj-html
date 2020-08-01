@@ -37,14 +37,15 @@ class FetchTasksApi(TaskHandler):
 
         try:
             size = int(self.data.get('size') or 1)
-            condition = {'task_type': data_task, 'status': self.STATUS_PUBLISHED}
-            tasks = list(self.db.task.find(condition).limit(size))
+            tasks = list(self.db.task.find({'task_type': data_task, 'status': self.STATUS_PUBLISHED}).limit(size))
             if not tasks:
-                self.send_data_response(dict(tasks=[]))
+                tasks = list(self.db.task.find({'task_type': data_task, 'status': self.STATUS_FETCHED}).limit(size))
+                if not tasks:
+                    self.send_data_response(dict(tasks=[]))
             tasks2send = get_tasks()
             # logging.info(tasks2send)
-            condition.update({'_id': {'$in': [ObjectId(t['task_id']) for t in tasks2send]}})
-            r = self.db.task.update_many(condition, {'$set': dict(
+            cond = {'_id': {'$in': [ObjectId(t['task_id']) for t in tasks2send]}}
+            r = self.db.task.update_many(cond, {'$set': dict(
                 status=self.STATUS_FETCHED, picked_time=self.now(), updated_time=self.now(),
                 picked_user_id=self.user_id, picked_by=self.username
             )})
