@@ -62,11 +62,10 @@ class DataImportImageHandler(TaskHandler):
             if priority:
                 condition.update({'priority': int(priority)})
             # 查询数据
-            pan_name = self.prop(self.config, 'pan.name')
             docs, pager, q, order = self.find_by_page(self, condition, default_order='-publish_time')
             self.render(
                 'data_image_import.html', docs=docs, pager=pager, order=order, q=q,
-                pan_name=pan_name, format_value=self.format_value, **kwargs,
+                format_value=self.format_value, **kwargs,
             )
 
         except Exception as error:
@@ -115,6 +114,7 @@ class VariantListHandler(BaseHandler, Variant):
     info_fields = ['uid', 'txt', 'img_name', 'normal_txt', 'remark']
     operations = [
         {'operation': 'btn-add', 'label': '新增记录'},
+        {'operation': 'btn-merge', 'label': '合并字图'},
         {'operation': 'bat-remove', 'label': '批量删除'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
     ]

@@ -37,7 +37,8 @@ def export_page(db_name='tripitaka', uri='localhost', out_dir=None, source='', p
                     p[task['task_type']] = Ph.html2txt(prop(task, 'result.txt_html', ''))
 
                 p['_id'] = str(p['_id'])
-                p['create_time'] = p['create_time'].strftime('%Y-%m-%d %H:%M:%S')
+                if p.get('create_time'):
+                    p['create_time'] = p['create_time'].strftime('%Y-%m-%d %H:%M:%S')
                 with open(path.join(out_dir, '%s.json' % str(p['name'])), 'w') as f:
                     for k, v in list(p.items()):
                         if not v or k in ['lock', 'level', 'tasks']:

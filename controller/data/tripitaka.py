@@ -45,10 +45,10 @@ class TptkViewHandler(PageHandler):
             page_name = self.pad_name(page_name, level)
             name_slice = page_name.split('_')
             cur_page = int(name_slice[-1])
-            img_url = self.get_web_img(page_name)
             page = self.db.page.find_one({'name': page_name}) or {}
+            img_url = self.get_web_img(page_name, use_my_cloud=page.get('img_cloud_path'))
             chars_col, txts = [], []
-            if page:
+            if page and page.get('chars'):
                 chars_col = self.get_chars_col(page['chars'])
                 txts = [(self.get_char_txt(page, 'adapt'), 'txt', '校对文本')]
                 self.pack_boxes(page)

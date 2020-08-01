@@ -5,6 +5,7 @@
 @time: 2018/6/23
 """
 from controller import auth
+from controller import helper as h
 from controller.user.user import User
 from controller.base import BaseHandler
 
@@ -36,12 +37,39 @@ class UserProfileHandler(BaseHandler):
 class UsersAdminHandler(BaseHandler, User):
     URL = '/user/admin'
 
+    page_title = '用户管理'
+    search_tips = '请搜索用户名、手机和邮箱'
+    search_fields = ['name', 'email', 'phone']
+    table_fields = [dict(id=f['id'], name=f['name']) for f in User.fields if f['id'] not in ['password']]
+    info_fields = ['name', 'gender', 'email', 'phone', 'password']
+    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'), options=f.get('options'))
+                     for f in User.fields if f['id'] not in ['img', 'create_time', 'updated_time']]
+    operations = [  # 列表包含哪些批量操作
+        {'operation': 'btn-add', 'label': '新增用户'},
+        {'operation': 'bat-remove', 'label': '批量删除'},
+    ]
+    img_operations = ['config']
+    actions = [  # 列表单条记录包含哪些操作
+        {'action': 'btn-update', 'label': '更新'},
+        {'action': 'btn-remove', 'label': '删除'},
+        {'action': 'btn-reset-pwd', 'label': '重置密码'},
+    ]
+
+    @staticmethod
+    def format_value(value, key=None, doc=None):
+        """ 格式化page表的字段输出"""
+        if key == 'img':
+            ava = 'imgs/ava%s.png' % ({'男': 1, '女': 2}.get(doc.get('gender')) or 3)
+            return '<img src="/static/%s" class="thumb-md img-circle" />' % (value or ava)
+        return h.format_value(value, key, doc)
+
     def get(self):
         """ 用户管理页面 """
         try:
             kwargs = self.get_template_kwargs()
             docs, pager, q, order = self.find_by_page(self)
-            self.render('user_list.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
+            self.render('user_list.html', docs=docs, pager=pager, q=q, order=order,
+                        format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)

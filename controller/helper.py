@@ -101,7 +101,7 @@ def format_value(value, key=None, doc=None):
     if isinstance(value, datetime):
         return get_date_time('%Y-%m-%d %H:%M', value)
     if isinstance(value, list):
-        return '<br/>'.join([str(v) for v in value])
+        return ','.join([str(v) for v in value])
     if isinstance(value, dict):
         return '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
     return value
@@ -128,14 +128,15 @@ def get_url_param(key, url_query):
 
 
 def set_url_param(url_query, key, value):
-    if '%s=' % key in url_query:
-        url_query = re.sub(r'%s=\d+&' % key, '%s=' % key + value + '&', url_query)
-        url_query = re.sub(r'%s=\d+$' % key, '%s=' % key + value, url_query)
+    param = '%s=' % key
+    if param in url_query:
+        url_query = re.sub(r'%s=\d+&' % key, param + value + '&', url_query)
+        url_query = re.sub(r'%s=\d+$' % key, param + value, url_query)
         return url_query
     elif '?' in url_query:
-        return url_query + '&page=' + value
+        return url_query + '&' + param + value
     else:
-        return url_query + '?page=' + value
+        return url_query + '?' + param + value
 
 
 def get_date_time(fmt=None, date_time=None, diff_seconds=None):
@@ -158,7 +159,7 @@ def my_framer():
     if f is not None:
         until = [s[1] for s in inspect.stack() if re.search(r'controller/(view|api)', s[1])]
         if until:
-            while f.f_code.co_filename != until[0]:
+            while f is not None and f.f_code.co_filename != until[0]:
                 f0 = f
                 f = f.f_back
             return f0

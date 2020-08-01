@@ -43,6 +43,7 @@ class Task(Model):
         {'id': 'finished_time', 'name': '完成时间'},
         {'id': 'is_sample', 'name': '示例任务'},
         {'id': 'remark', 'name': '备注'},
+        {'id': 'message', 'name': '日志'},
     ]
 
     # 任务类型定义

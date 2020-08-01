@@ -122,8 +122,7 @@ class PageTaskResumeHandler(PageHandler):
     URL = '/page/task/resume/@page_name'
 
     order = [
-        'upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
-        'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'
+        'upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof', 'text_review',
     ]
     display_fields = [
         'doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
@@ -157,7 +156,7 @@ class PageTaskCutHandler(PageHandler):
             self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
 
         self.pack_boxes(page)
-        img_url = self.get_web_img(page['name'], 'page')
+        img_url = self.get_page_img(page)
         if self.steps['current'] == 'order':
             reorder = self.get_query_argument('reorder', '')
             if reorder:
