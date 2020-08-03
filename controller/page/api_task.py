@@ -87,15 +87,16 @@ class PageTaskPublishApi(PageHandler):
             if pre_tasks:
                 pre_tasks = [pre_tasks] if isinstance(pre_tasks, str) else pre_tasks
                 db_pre_tasks = list(self.db.task.find(
-                    {'collection': 'page', 'doc_id': {'$in': list(page_names)}, 'task_type': {'$in': pre_tasks}},
+                    {'doc_id': {'$in': list(page_names)}, 'task_type': {'$in': pre_tasks}},
                     {'task_type': 1, 'num': 1, 'status': 1, 'doc_id': 1}
                 ))
-                # 前置任务未发布、未完成的情况，发布为PENDING
+                # 前置任务未发布、未完成（有一个未完成，即未完成）的情况，发布为PENDING
                 un_published = set(page_names) - set(t['doc_id'] for t in db_pre_tasks)
                 un_finished = set(t['doc_id'] for t in db_pre_tasks if t['status'] != self.STATUS_FINISHED)
-                self.create_tasks(set(un_finished | un_published), self.STATUS_PENDING, {t: None for t in pre_tasks})
                 log['pending'] = set(un_finished | un_published)
-                # 前置任务未完成的情况，发布为PENDING
+                if log['pending']:
+                    self.create_tasks(log['pending'], self.STATUS_PENDING, {t: None for t in pre_tasks})
+                # 其它为前置任务全部已完成的情况，发布为PUBLISHED
                 page_names = set(page_names) - log['pending']
                 if page_names:
                     self.create_tasks(page_names, self.STATUS_PUBLISHED, {t: self.STATUS_FINISHED for t in pre_tasks})
