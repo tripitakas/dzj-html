@@ -4,6 +4,7 @@
 @desc: 任务基础表
 @time: 2019/10/16
 """
+import re
 from datetime import datetime
 from bson.objectid import ObjectId
 from controller.model import Model
@@ -199,7 +200,8 @@ class Task(Model):
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field: {'$regex': value, '$options': '$i'}})
+                m = re.match(r'["\'](.*)["\']', value)
+                condition.update({field: m.group(1) if m else {'$regex': value, '$options': '$i'}})
         picked_user_id = h.get_url_param('picked_user_id', request_query)
         if picked_user_id:
             params['picked_user_id'] = picked_user_id
