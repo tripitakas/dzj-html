@@ -86,7 +86,7 @@
             <div class="col-sm-10">
               <select class="form-control task_type">
                 <option value=""></option>
-                {% for k, name in handler.task_names('page').items() %}
+                {% for k, name in handler.task_names('page', True, True).items() %}
                 {% if params.get('task_type') and params.get('task_type') == k %}
                 <option value="{{k}}" selected="selected">{{name}}</option>
                 {% else %}
@@ -204,6 +204,14 @@
   /*---公共设置---*/
   $.fn.modal.Constructor.prototype.enforceFocus = function () {
   };
+
+  $('.btn-dashboard').on('click', function () {
+    var date = new Date();
+    var day = date.getDay() || 7;
+    date.setDate(date.getDate() - day + 1);
+    date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    location.href = '/page/task/dashboard?start=' + date.format("yyyy-MM-dd hh:mm:ss");
+  });
 
   /*---综合检索---*/
   var $searchModal = $("#searchModal");

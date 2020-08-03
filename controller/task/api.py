@@ -117,7 +117,7 @@ class RepublishTaskApi(TaskHandler):
                 'status': self.STATUS_PUBLISHED, 'result': {}
             }})
             self.db.task.update_one({'_id': self.task['_id']}, {'$unset': {k: '' for k in [
-                'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason'
+                'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason', 'message'
             ]}})
             self.update_page_status(self.STATUS_PUBLISHED)
             self.add_log('republish_task', self.task['_id'], None,
@@ -169,7 +169,7 @@ class AssignTasksApi(TaskHandler):
             self.validate(self.data, rules)
             user = self.db.user.find_one({'_id': ObjectId(self.data['user_id'])})
             if not user:
-                return self.send_error_response(e.no_user)
+                return self.send_error_response(e.no_user, message=e.no_user[1] + ' (%s)' % self.data['user_id'])
             type_count = len(set(t[1] for t in self.data['tasks']))
             if type_count > 1:
                 return self.send_error_response(e.task_type_error, message='一次只能指派一种任务类型')

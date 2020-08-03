@@ -61,10 +61,12 @@ class BaseHandler(CorsMixin, RequestHandler):
         if can_access('访客', p, m):
             return
         # 检查是否直接登录
-        if not self.current_user:
+        if not self.current_user and self.data.get('login_id'):
             login_ids = self.prop(self.config, 'direct_login_id')
-            if login_ids and self.data.get('login_id') in login_ids:
+            if login_ids and self.data['login_id'] in login_ids:
                 self.direct_login(self.data.get('login_id'), self.data.get('password'))
+            else:
+                return self.send_error_response(e.no_user, message='login id not in config')
         # 检查用户是否已登录
         login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
@@ -104,7 +106,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         user = self.db.user.find_one({'email': login_id, 'disabled': {'$ne': True}})
         if not user:
-            return self.send_error_response(e.no_user)
+            return self.send_error_response(e.no_user, message=e.no_user[1] + ' (%s)' % login_id)
         if gen_id(password) != user.get('password'):
             self.add_log('login_fail', content=login_id)
             return self.send_error_response(e.incorrect_password)
@@ -116,7 +118,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         user['login_md5'] = gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
-        self.add_log('login_ok', target_id=user['_id'], content='%s,%s,%s' % (user['name'], login_id, user['roles']))
+        self.add_log('direct_login_ok', target_id=user['_id'], content='%s,%s,%s' % (user['name'], login_id, user['roles']))
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
