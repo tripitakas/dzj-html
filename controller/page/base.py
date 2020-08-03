@@ -91,6 +91,12 @@ class PageHandler(TaskHandler, Page, Box):
     def can_write(self, box, page, task_type=None):
         return self.check_box_level_and_point(self, box, page, task_type, False) is True
 
+    def get_page_img(self, page):
+        page_name, use_my_cloud = page, False
+        if isinstance(page, dict):
+            page_name, use_my_cloud = page.get('name'), page.get('img_cloud_path')
+        return self.get_web_img(page_name, 'page', use_my_cloud)
+
     def set_box_access(self, page, task_type=None):
         """ 设置切分框的读写权限"""
         for b in page['chars']:
@@ -110,11 +116,11 @@ class PageHandler(TaskHandler, Page, Box):
         fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
         fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'char_id', 'cc',
                    'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
-        cls.pick_fields(page['blocks'], fields1)
-        cls.pick_fields(page['columns'], fields2)
+        page.get('blocks') and cls.pick_fields(page['blocks'], fields1)
+        page.get('columns') and cls.pick_fields(page['columns'], fields2)
         if not pop_char_logs:
             fields3 = fields3 + ['box_logs', 'txt_logs']
-        cls.pick_fields(page['chars'], fields3)
+        page.get('chars') and cls.pick_fields(page['chars'], fields3)
 
     @classmethod
     def filter_symbol(cls, txt):
@@ -193,16 +199,13 @@ class PageHandler(TaskHandler, Page, Box):
         page_cids = [b['cid'] for b in page[box_type] if b.get('cid')]
         post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
         # 检查删除
-        to_delete = [b for b in page[box_type] if not b.get('cid') or b['cid'] not in post_cids]
-        deleted = [b['cid'] for b in to_delete if self.can_write(b, page, task_type)]
-        # cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
-        boxes = [b for b in page[box_type] if not b.get('cid') or b['cid'] not in deleted]  # 删除可删除的字框，保留其它字框
+        to_delete = [b for b in page[box_type] if b.get('cid') not in post_cids]
+        can_delete = [b.get('cid') for b in to_delete if self.can_write(b, page, task_type)]
+        boxes = [b for b in page[box_type] if b.get('cid') not in can_delete]  # 删除可删除的字框，保留其它字框
         # 检查修改
         change_cids = [b['cid'] for b in post_boxes if b.get('changed') is True]
         to_change = [b for b in boxes if b['cid'] in change_cids]
         can_change = [b for b in to_change if self.can_write(b, page, task_type)]
-        # cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_change]
-        changed = []
         for b in can_change:
             pb = post_box_dict.get(b['cid'])
             if self.is_box_pos_equal(b, pb):
@@ -212,11 +215,9 @@ class PageHandler(TaskHandler, Page, Box):
             old_logs = b.get('box_logs') or [{k: b.get(k) for k in ['x', 'y', 'w', 'h']}]
             box_logs = self.merge_box_logs({'pos': pos}, old_logs)
             b.update({**pos, 'box_level': user_level, 'box_logs': box_logs})
-            changed.append({'cid': b['cid'], 'pos': {'x': b['x'], 'y': b['y'], 'w': b['w'], 'h': b['h']}})
         # 检查新增
         to_add = [b for b in post_boxes if b.get('added') is True]
         can_add = []
-        added = []
         for pb in to_add:
             pb.pop('added', 0)
             if pb['cid'] in page_cids or pb.get('changed'):
@@ -225,22 +226,21 @@ class PageHandler(TaskHandler, Page, Box):
             my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
             pb.update({'ocr_txt': '■', 'box_level': user_level, 'box_logs': [my_log], 'new': True})
             can_add.append(pb)
-            added.append({'cid': pb['cid'], 'pos': {'x': pb['x'], 'y': pb['y'], 'w': pb['w'], 'h': pb['h']}})
         boxes.extend(can_add)
         page[box_type] = boxes
-        return dict(deleted=deleted, changed=changed, added=added)
 
     def get_box_update(self, post_data, page, task_type=None):
         """ 获取切分校对的提交"""
         # 预处理
+        self.update_page_cid(page)
+        self.update_page_cid(post_data)
         self.pop_fields(post_data['chars'], 'readonly,class')
         self.pop_fields(post_data['blocks'], 'readonly,class,char_id,char_no')
         self.pop_fields(post_data['columns'], 'readonly,class,char_id,char_no')
-        self.update_page_cid(post_data)
         # 合并用户提交和已有数据
         self.merge_post_boxes(post_data['blocks'], 'blocks', page, task_type)
         self.merge_post_boxes(post_data['columns'], 'columns', page, task_type)
-        char_updated = self.merge_post_boxes(post_data['chars'], 'chars', page, task_type)
+        self.merge_post_boxes(post_data['chars'], 'chars', page, task_type)
         # 过滤页面外的切分框
         blocks, columns, chars = self.filter_box(page, page['width'], page['height'])
         # 切分框重新排序
@@ -256,7 +256,7 @@ class PageHandler(TaskHandler, Page, Box):
             blocks = self.adjust_blocks(blocks, chars)
             columns = self.adjust_columns(columns, chars)
         page_updated = dict(chars=chars, blocks=blocks, columns=columns, chars_col=page.get('chars_col') or [])
-        return page_updated, char_updated
+        return page_updated
 
     @classmethod
     def get_txt(cls, page, key):
@@ -311,7 +311,7 @@ class PageHandler(TaskHandler, Page, Box):
         boxes = page.get('chars')
         if not boxes:
             return ''
-        pre, txt = boxes[0], get_txt(boxes[0])
+        pre, txt = boxes[0], get_txt(boxes[0]) or ''
         for b in boxes[1:]:
             if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
                 txt += '||'

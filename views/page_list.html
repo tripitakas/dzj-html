@@ -126,11 +126,11 @@
             <div class="col-sm-10">
               <input type="text" class="form-control remark_txt" value="{{params.get('remark_txt') or ''}}" placeholder="请输入文字备注">
             </div>
-            <h4 class="col-sm-2 control-label">切分校对任务</h4>
+            <h4 class="col-sm-2 control-label">任务类型</h4>
             <div class="col-sm-10">
-              <select class="form-control cut_proof">
-                {% for k,v in task_statuses.items() %}
-                {% if params.get('cut_proof', '') == k %}
+              <select class="form-control task_type">
+                {% for k,v in page_tasks.items() %}
+                {% if params.get('task_type', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -138,11 +138,11 @@
                 {% end %}
               </select>
             </div>
-            <h4 class="col-sm-2 control-label">切分审定任务</h4>
+            <h4 class="col-sm-2 control-label">任务状态</h4>
             <div class="col-sm-10">
-              <select class="form-control cut_review">
+              <select class="form-control task_status">
                 {% for k,v in task_statuses.items() %}
-                {% if params.get('cut_review', '') == k %}
+                {% if params.get('task_status', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -150,11 +150,11 @@
                 {% end %}
               </select>
             </div>
-            <h4 class="col-sm-2 control-label">文字校对任务</h4>
+            <h4 class="col-sm-2 control-label">匹配字段</h4>
             <div class="col-sm-10">
-              <select class="form-control text_proof">
-                {% for k,v in task_statuses.items() %}
-                {% if params.get('text_proof', '') == k %}
+              <select class="form-control match_field">
+                {% for k,v in match_fields.items() %}
+                {% if params.get('match_field', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -162,71 +162,11 @@
                 {% end %}
               </select>
             </div>
-            <h4 class="col-sm-2 control-label">文字审定任务</h4>
+            <h4 class="col-sm-2 control-label">匹配状态</h4>
             <div class="col-sm-10">
-              <select class="form-control text_review">
-                {% for k,v in task_statuses.items() %}
-                {% if params.get('text_review', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-            <h4 class="col-sm-2 control-label">OCR切分任务</h4>
-            <div class="col-sm-10">
-              <select class="form-control ocr_box">
-                {% for k,v in task_statuses.items() %}
-                {% if params.get('ocr_box', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-            <h4 class="col-sm-2 control-label">OCR文字任务</h4>
-            <div class="col-sm-10">
-              <select class="form-control ocr_txt">
-                {% for k,v in task_statuses.items() %}
-                {% if params.get('ocr_txt', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-            <h4 class="col-sm-2 control-label">OCR列文匹配</h4>
-            <div class="col-sm-10">
-              <select class="form-control m_ocr_col">
+              <select class="form-control match_status">
                 {% for k,v in match_statuses.items() %}
-                {% if params.get('m_ocr_col', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-            <h4 class="col-sm-2 control-label">比对文本匹配</h4>
-            <div class="col-sm-10">
-              <select class="form-control m_cmp_txt">
-                {% for k,v in match_statuses.items() %}
-                {% if params.get('m_cmp_txt', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-            <h4 class="col-sm-2 control-label">校对文本匹配</h4>
-            <div class="col-sm-10">
-              <select class="form-control m_txt">
-                {% for k,v in match_statuses.items() %}
-                {% if params.get('m_txt', '') == k %}
+                {% if params.get('match_status', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -427,7 +367,6 @@
     });
   });
 
-
   // 检查图文匹配
   $('.operation .btn-check-match').on('click', function () {
     $('#checkModal').modal();
@@ -489,7 +428,7 @@
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
   var inputFields = ['name', 'source', 'txt', 'remark_box', 'remark_txt'];
-  var selectFields = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'ocr_box', 'ocr_txt', 'm_cmp_txt', 'm_ocr_col', 'm_txt'];
+  var selectFields = ['task_type', 'task_status', 'match_field', 'match_status'];
   $searchModal.find('.modal-confirm').on('click', function () {
     var search = '';
     inputFields.forEach(function (field) {

@@ -152,7 +152,7 @@
           <div class="content-right {{'' if page_text else 'hide'}}" id="right-region">
             <div class="page-text sutra-text">
               {% import re %}
-              {% for n, txt in enumerate(re.split(r'[\n|]', page_text)) %}
+              {% for n, txt in enumerate(re.split(r'[\n|]', page_text or '')) %}
               <div>
                 <span class="num">{{n+1}}</span>
                 <span class="txt">{{txt}}</span></div>

@@ -44,7 +44,6 @@ class Application(web.Application):
             self, handlers,
             debug=options.debug,
             login_url='/user/login',
-            compiled_template_cache=False,
             static_path=path.join(BASE_DIR, 'static'),
             template_path=path.join(BASE_DIR, 'views'),
             cookie_secret=self.config['cookie_secret'],

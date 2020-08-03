@@ -61,10 +61,12 @@ class BaseHandler(CorsMixin, RequestHandler):
         if can_access('访客', p, m):
             return
         # 检查是否直接登录
-        if not self.current_user:
+        if not self.current_user and self.data.get('login_id'):
             login_ids = self.prop(self.config, 'direct_login_id')
-            if login_ids and self.data.get('login_id') in login_ids:
+            if login_ids and self.data['login_id'] in login_ids:
                 self.direct_login(self.data.get('login_id'), self.data.get('password'))
+            else:
+                return self.send_error_response(e.no_user, message='login id not in config')
         # 检查用户是否已登录
         login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
@@ -104,7 +106,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         user = self.db.user.find_one({'email': login_id, 'disabled': {'$ne': True}})
         if not user:
-            return self.send_error_response(e.no_user)
+            return self.send_error_response(e.no_user, message=e.no_user[1] + ' (%s)' % login_id)
         if gen_id(password) != user.get('password'):
             self.add_log('login_fail', content=login_id)
             return self.send_error_response(e.incorrect_password)
@@ -116,7 +118,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         user['login_md5'] = gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
-        self.add_log('login_ok', target_id=user['_id'], content='%s,%s,%s' % (user['name'], login_id, user['roles']))
+        self.add_log('direct_login_ok', target_id=user['_id'], content='%s,%s,%s' % (user['name'], login_id, user['roles']))
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
@@ -343,7 +345,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
 
-    def get_web_img(self, img_name, img_type='page'):
+    def get_web_img(self, img_name, img_type='page', use_my_cloud=False):
         if not img_name:
             return ''
         inner_path = '/'.join(img_name.split('_')[:-1])
@@ -358,8 +360,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             img_url = '/{0}/{1}'.format(local_path.strip('/'), relative_url)
             if path.exists(path.join(BASE_DIR, img_url[1:])):
                 return img_url
-        # 从我的云盘获取图片
-        if my_cloud and img_type in (self.get_config('web_img.cloud_type') or ''):
+        # 从我的云盘获取图片。如果use_my_cloud为True，则返回我的云盘路径而不使用共享云盘
+        if my_cloud and (img_type in (self.get_config('web_img.cloud_type') or '') or use_my_cloud):
             return path.join(my_cloud.replace('-internal', ''), relative_url)
         # 从共享盘获取图片
         if shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):

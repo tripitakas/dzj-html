@@ -123,7 +123,7 @@
       <div id="left-region" class="m-left bd">
         <img class="pic-nav" id="pic-left" src="{{static_url('imgs/icon_left.png')}}"/>
         <img class="pic-nav" id="pic-right" src="{{static_url('imgs/icon_right.png')}}"/>
-        {% if page %}
+        {% if page and page.get('chars') %}
         <div id="holder"></div>
         {% else %}
         <div class="page-img"><img src="{{img_url}}" alt="图片不存在"/></div>
@@ -209,7 +209,7 @@
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script src="{{static_url('js/page-txt.js')}}"></script>
-{% if page %}
+{% if page and page.get('chars') %}
 <script>
   // 公共参数
   $.cut.create({

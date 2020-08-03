@@ -17,6 +17,22 @@
     .txt_html .block {
       padding: 0;
     }
+
+    .columns .value, .chars .value {
+      width: 100%;
+      overflow: auto;
+      max-height: 400px;
+      word-break: keep-all;
+    }
+
+    .long .value div {
+      white-space: nowrap;
+    }
+
+    .info.long {
+      display: block !important;
+    }
+
   </style>
 </head>
 
@@ -44,19 +60,19 @@
             <div class="block-head">输入参数</div>
             {% if isinstance(task['params'], dict) %}
             {% for k, v in task.get('params').items() %}
-            <div class="info long">
+            <div class="info{{' long' if type(v) in [list, dict] else ''}}">
               <label class="label">{{k}}</label>
               <span class="value">{% raw handler.format_value(v, k) %}</span>
             </div>
             {% end %}
             {% elif isinstance(task['params'], list) %}
-            <div class="info long">
+            <div class="info{{' long' if type(v) in [list, dict] else ''}}">
               {% for p in task['params'] %}
               <span class="value">{{p}}</span>
               {% end %}
             </div>
             {% else %}
-            <div class="info long">
+            <div class="info{{' long' if type(v) in [list, dict] else ''}}">
               <label class="label">　</label>
               <span class="value">{{task['params']}}}</span>
             </div>
@@ -66,12 +82,28 @@
           {% if task.get('result') %}
           <div class="block result">
             <div class="block-head">输出结果</div>
-            {% for k, v in task.get('result').items() %}
-            <div class="info long">
+            {% for k, v in task['result'].items() %}
+            {% if k not in ['blocks', 'columns', 'chars'] %}
+            <div class="info{{' long' if type(v) in [list, dict] else ''}}">
               <label class="label">{{k}}</label>
-              <span class="value {{k}}">{% raw handler.format_value(v, k) %}</span>
+              <span class="value">{% raw handler.format_value(v, k) %}</span>
             </div>
             {% end %}
+            {% end %}
+            <!--其它信息-->
+            {% for k, v in task['result'].items() %}
+            {% if k in ['blocks', 'columns', 'chars'] and v %}
+            <div class="info long {{k}}">
+              <label class="label">{{k}}</label>
+              <div class="value">
+                {% for item in v %}
+                <div>{% raw item %}</div>
+                {% end %}
+              </div>
+            </div>
+            {% end %}
+            {% end %}
+            <!--切分信息-->
           </div>
           {% end %}
         </div>

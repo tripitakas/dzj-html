@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import json
 from controller.model import Model
 from controller import helper as h
@@ -91,20 +92,28 @@ class Page(Model):
         condition, params = dict(), dict()
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:
-            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
+            m = re.match(r'["\'](.*)["\']', q)
+            condition['$or'] = [{k: m.group(1) if m else {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
         for field in ['name', 'source', 'txt', 'remark_box', 'remark_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field: {'$regex': value, '$options': '$i'}})
-        for field in ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'ocr_box', 'ocr_txt']:
-            value = h.get_url_param(field, request_query)
-            if value:
-                params[field] = value
-                condition.update({'tasks.%s.1' % field: None if value == 'un_published' else value})
-        for field in ['m_cmp_txt', 'm_ocr_col', 'm_txt']:
-            value = h.get_url_param(field, request_query)
-            if field in request_query:
-                params[field] = value
-                condition.update({'txt_match.%s.status' % field.replace('m_', ''): value})
+                m = re.match(r'["\'](.*)["\']', value)
+                condition.update({field: m.group(1) if m else {'$regex': value, '$options': '$i'}})
+        task_type = h.get_url_param('task_type', request_query)
+        if task_type:
+            params['task_type'] = task_type
+        task_status = h.get_url_param('task_status', request_query)
+        if task_status:
+            params['task_status'] = task_status
+        if task_type and task_status:
+            condition.update({'tasks.%s.1' % task_type: None if task_status == 'un_published' else task_status})
+        match_field = h.get_url_param('match_field', request_query)
+        if match_field:
+            params['match_field'] = match_field
+        match_status = h.get_url_param('match_status', request_query)
+        if match_status not in [None, '']:
+            params['match_status'] = match_status
+        if match_field and match_status not in [None, '']:
+            condition.update({'txt_match.%s.status' % match_field: match_status})
         return condition, params

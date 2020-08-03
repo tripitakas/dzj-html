@@ -5,7 +5,6 @@ import re
 import sys
 from os import path
 from tornado.options import options
-from elasticsearch import Elasticsearch
 
 BASE_DIR = path.dirname(path.dirname(path.dirname(path.dirname(__file__))))
 sys.path.append(BASE_DIR)
@@ -25,6 +24,7 @@ def get_hosts():
 
 def find(q, index='cb4ocr-ik'):
     """ 从ES中寻找与q最匹配的document """
+    from elasticsearch import Elasticsearch
     if not q:
         return []
 

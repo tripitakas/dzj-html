@@ -5,11 +5,11 @@
  * global $
  */
 
-Array.max = Array.max || function(array) {
+Array.max = Array.max || function (array) {
   return Math.max.apply(Math, array);
 };
 
-Array.min = Array.min || function(array) {
+Array.min = Array.min || function (array) {
   return Math.min.apply(Math, array);
 };
 
@@ -20,7 +20,7 @@ Array.min = Array.min || function(array) {
   var state = $.cut.state;
 
   var pixelToPoint_ = '1e5-60,71.7-54,56-42,48-36,34.7-26,32-24,29.3-22,24-18,21.3-16,20-15,18.7-14,16-12,14-10.5,12-9,10-7.5,8.7-6.5,7.3-5.5,6.7-5'
-    .split(',').map(s => [parseFloat(s.split('-')[0]), parseFloat(s.split('-')[1])]);
+      .split(',').map(s => [parseFloat(s.split('-')[0]), parseFloat(s.split('-')[1])]);
   var pixelToPoint = px => {
     px = px - 2;
     for (let i = 0; i < pixelToPoint_.length; i++) {
@@ -42,14 +42,14 @@ Array.min = Array.min || function(array) {
   }
 
   ColNode.prototype = {
-    getId: function() {
+    getId: function () {
       return this.column.column_id;
     },
 
     // 得到偏移后的字框
-    pickChars: function(arr) {
+    pickChars: function (arr) {
       var self = this, left = this.left + this.column.w + 4;
-      this.chars.forEach(function(c) {
+      this.chars.forEach(function (c) {
         c._box = {
           'class': 'char',
           x: c.x - self.column.x + left,
@@ -62,18 +62,18 @@ Array.min = Array.min || function(array) {
         arr.push(c._box);
       });
       arr.push({
-          'class': 'column', _col: self, fillOpacity: 0.1,
-          x: self.left, y: self.top,
-          w: self.column.w, h: self.column.h,
-          block_no: self.column.block_no, column_no: self.column.column_no,
-          column_id: self.column.column_id
-        });
+        'class': 'column', _col: self, fillOpacity: 0.1,
+        x: self.left, y: self.top,
+        w: self.column.w, h: self.column.h,
+        block_no: self.column.block_no, column_no: self.column.column_no,
+        column_id: self.column.column_id
+      });
     },
 
     // 在字框内显示单字文字
-    createText: function() {
+    createText: function () {
       var ratio = data.ratioInitial * data.ratio;
-      this.chars.forEach(function(c) {
+      this.chars.forEach(function (c) {
         if (c._text) {
           c._text.remove();
           c._text = null;
@@ -89,33 +89,34 @@ Array.min = Array.min || function(array) {
     },
 
     // 限制文字的字体大小，使其不要超过框
-    ensureTextInBox: function() {
-      this.chars.forEach(function(c) {
+    ensureTextInBox: function () {
+      this.chars.forEach(function (c) {
         if (c._text) {
-          c._text.attr({'font-size': Math.min(pixelToPoint(c.w), pixelToPoint(c.h * 1.5), 30) * c.ratio});
+          c._text.attr({'font-size': Math.min(pixelToPoint(Math.max(c.h, c.w) * 1.5), 30) * c.ratio});
+          // c._text.attr({'font-size': Math.min(pixelToPoint(c.w), pixelToPoint(c.h * 1.5), 30) * c.ratio});
         }
       });
     },
 
     // 创建列框图
-    createImage: function(url, width, height) {
+    createImage: function (url, width, height) {
       var c = this.column;
       var s = data.ratioInitial * data.ratio;
       if (this.img) {
         this.img.remove();
       }
       this.img = data.paper.image(url, (this.left - c.x) * s, (this.top - c.y) * s, width * s, height * s)
-        .attr({'clip-rect': (this.left * s) + ',' + (this.top * s) + ',' + (c.w * s) + ',' + (c.h * s)})
-        .data('id', this.getId())
-        .data('node', this)
-        .toBack();
+          .attr({'clip-rect': (this.left * s) + ',' + (this.top * s) + ',' + (c.w * s) + ',' + (c.h * s)})
+          .data('id', this.getId())
+          .data('node', this)
+          .toBack();
     },
 
     // 得到由每个字框组成的列文本
-    getText: function() {
-      return this.chars.sort(function(a, b) {
+    getText: function () {
+      return this.chars.sort(function (a, b) {
         return a.char_no - b.char_no;
-      }).map(function(c) {
+      }).map(function (c) {
         return c.txt;
       }).join('');
     }
@@ -131,26 +132,26 @@ Array.min = Array.min || function(array) {
 
   ColNodes.prototype = {
     // 根据列框编号查找列框单元
-    findColumnById: function(id) {
-      return this.nodes.filter(function(c) {
+    findColumnById: function (id) {
+      return this.nodes.filter(function (c) {
         return c.getId() === id;
       })[0];
     },
 
     initLayout: function (data) {
       var self = this, yb = 10, boxes = [];
-      var widths = data.blocks.map(function(block) {
-        var columns = data.columns.filter(function(column) {  // 该栏的所有列框，靠左的在前
+      var widths = data.blocks.map(function (block) {
+        var columns = data.columns.filter(function (column) {  // 该栏的所有列框，靠左的在前
           return column.block_no === block.block_no;
-        }).sort(function(a, b) {
+        }).sort(function (a, b) {
           return a.x - b.x;
         });
         var left = 10, top = yb, count = 0;
         var nodes = [];
 
         while (columns.length) {
-          columns.splice(Math.max(0, columns.length - 6), 6).forEach(function(column) {
-            var chars = data.orgChars.filter(function(char) {
+          columns.splice(Math.max(0, columns.length - 6), 6).forEach(function (column) {
+            var chars = data.orgChars.filter(function (char) {
               return char.block_no === block.block_no && char.column_no === column.column_no;
             });
             var node = new ColNode(column, chars, left, top);
@@ -166,7 +167,7 @@ Array.min = Array.min || function(array) {
         }
 
         yb += 20;
-        return Array.max(nodes.map(function(c) {
+        return Array.max(nodes.map(function (c) {
           return c.right;
         }));
       });
@@ -185,6 +186,7 @@ Array.min = Array.min || function(array) {
 
       data.cs = new ColNodes(p.image, p.width, p.height);
       data.boxOpacity = 0.2;
+
       var size = data.cs.initLayout(data);
       self.create({
         readonly: true,
@@ -200,7 +202,7 @@ Array.min = Array.min || function(array) {
       createImageText();
     },
 
-    applyTxt: function(txt) {
+    applyTxt: function (txt) {
       var c = this.findCharById(this.getCurrentCharID());
       if (txt && c && c.txt !== txt) {
         c._char.ch = c._char.txt = c.txt = txt;
@@ -213,10 +215,10 @@ Array.min = Array.min || function(array) {
       }
     },
 
-    exportBoxes: function() {
-      return data.orgChars.map(function(c) {
+    exportBoxes: function () {
+      return data.orgChars.map(function (c) {
         var r = {};
-        Object.keys(c).forEach(function(k) {
+        Object.keys(c).forEach(function (k) {
           if (k[0] != '_' && ['shape', 'ch'].indexOf(k) < 0) {
             r[k] = c[k];
           }
@@ -229,14 +231,14 @@ Array.min = Array.min || function(array) {
   });
 
   function createImageText() {
-    data.cs.nodes.forEach(function(c) {
+    data.cs.nodes.forEach(function (c) {
       c.createText();
       c.ensureTextInBox();
       c.createImage(data.cs.image, data.cs.width, data.cs.height);
     });
   }
 
-  $.cut.onBoxChanged(function(info, box, reason) {
+  $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'zoomed') {
       createImageText();
     }
