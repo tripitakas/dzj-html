@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>综合统计</title>
+  {% include com/_base_css.html %}
+  <link href="{{static_url('assets/flatpickr/flatpickr.min.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <![endif]-->
+  <style>
+    .select-time {
+      display: flex;
+    }
+  </style>
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    {% module ComLeft(active_id='#%s-task-list' % collection) %}
+    <div class="main-content">
+      {% module ComHead() %}
+      <div class="layout">
+        <div class="wrapper">
+          <div class="sty-list">
+            <div class="select-time fl">
+              <input type="text" class="form-control flatpickr start" data-enable-time=true data-enable-seconds=true
+                     value="{{start or ''}}" placeholder="请选择开始时间">
+              <span type="button" id="this-week" class="btn btn-default">本周</span>
+              <span type="button" id="this-month" class="btn btn-default">本月</span>
+              <span type="button" id="clear" class="btn btn-default">清空</span>
+              <span type="button" id="confirm" class="btn btn-primary" style="margin-left: 12px">确定</span>
+            </div>
+            <table class="sty-table">
+              <thead>
+              <tr>
+                <th></th>
+                {% for f in fields %}
+                <th><span>{{status_name(f)}}</span></th>
+                {% end %}
+              </tr>
+              </thead>
+              <tbody>
+              {% for item in items %}
+              <tr>
+                <td>{{item['task_type']}}</td>
+                {% for f in fields %}
+                <td>{{item.get(f) or ''}}</td>
+                {% end %}
+              </tr>
+              {% end %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include com/_base_js.html %}
+<script src="{{static_url('assets/flatpickr/flatpickr.js')}}"></script>
+<script src="{{static_url('assets/flatpickr/zh.js')}}"></script>
+<script>
+  /*---公共设置---*/
+  $.fn.modal.Constructor.prototype.enforceFocus = function () {
+  };
+
+  $(".select-time .start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+
+  $('#this-week').on('click', function () {
+    var date = new Date();
+    var day = date.getDay() || 7;
+    date.setDate(date.getDate() - day + 1);
+    date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    $(".select-time .start").val(date.format("yyyy-MM-dd hh:mm:ss"));
+  });
+
+  $('#this-month').on('click', function () {
+    var date = new Date();
+    date = new Date(date.getFullYear(), date.getMonth());
+    $(".select-time .start").val(date.format("yyyy-MM-dd hh:mm:ss"));
+  });
+
+  $('#clear').on('click', function () {
+    $(".select-time .start").val("");
+  });
+
+  $('#confirm').on('click', function () {
+    if ($(".select-time .start").val())
+      location.href = setQueryString('start', $(".select-time .start").val());
+    else
+      location.href = deleteQueryString('start');
+  });
+</script>
+</body>
+</html>

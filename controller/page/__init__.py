@@ -4,7 +4,7 @@ views = [
     view.PageListHandler, view.PageBrowseHandler, view.PageViewHandler, view.PageInfoHandler,
     view.PageBoxHandler, view.PageOrderHandler, view.PageTxtHandler,
     view.PageTxtMatchHandler, view.PageFindCmpHandler,
-    vt.PageTaskCutHandler, vt.PageTaskTextHandler,
+    vt.PageTaskCutHandler, vt.PageTaskTextHandler, vt.PageTaskDashBoardHandler,
     vt.PageTaskListHandler, vt.PageTaskStatHandler, vt.PageTaskResumeHandler,
 ]
 
