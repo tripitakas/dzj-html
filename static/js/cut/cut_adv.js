@@ -1,7 +1,7 @@
 /*
  * cut_adv.js
  *
- * Date: 2020-07-11
+ * Date: 2020-08-03
  */
 (function() {
   'use strict';
@@ -37,7 +37,7 @@
       if (kind === 'large' || kind === 'small') {
         sizes = chars.map(function(c) {
           var r = c.shape.getBBox();
-          return r && c.ch !== '一' && r.width * r.height;
+          return r && c.ch !== '一' && c.w * c.h;
         }).filter(function(c) {
           return c;
         });
@@ -57,33 +57,33 @@
           var degree = 0;
 
           if (kind === 'large') {
-            if (r.is_small !== undefined) {
-              degree = r.is_small ? 0 : 1;
+            if (c.is_small !== undefined) {
+              degree = c.is_small ? 0 : 1;
             } else {
-              degree = r.width * r.height / mean - 1;
+              degree = c.w * c.h / mean - 1;
             }
             if (degree < 0.5) {
               return;
             }
           }
           else if (kind === 'small') {
-            if (r.is_small !== undefined) {
-              degree = r.is_small ? 1 : 0;
+            if (c.is_small !== undefined) {
+              degree = c.is_small ? 1 : 0;
             } else {
-              degree = mean / (r.width * r.height) - 1;
+              degree = mean / (c.w * c.h) - 1;
             }
             if (degree < 0.5 || c.ch === '一') {
               return;
             }
           }
           else if (kind === 'narrow') {
-            degree = r.height / r.width - 1;
+            degree = c.h / c.w - 1;
             if (degree < 0.5) {
               return;
             }
           }
           else if (kind === 'flat') {
-            degree = r.width / r.height - 1;
+            degree = c.w / c.h - 1;
             if (degree < 0.5 || c.ch === '一') {
               return;
             }

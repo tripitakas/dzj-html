@@ -3,6 +3,7 @@
 
 import re
 from bson import json_util
+from datetime import datetime
 from controller import errors as e
 from controller.page.base import PageHandler
 from controller.page.view import PageTxtHandler
@@ -39,6 +40,7 @@ class PageTaskListHandler(PageHandler):
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
         {'operation': 'bat-batch', 'label': '更新批次'},
+        {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
             {'operation': 'picked_user_id', 'label': '按用户'},
@@ -113,6 +115,55 @@ class PageTaskStatHandler(PageHandler):
                 trans = self.task_statuses
             label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态')[kind]
             self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='page')
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class PageTaskDashBoardHandler(PageHandler):
+    URL = '/page/task/dashboard'
+
+    def get(self):
+        """ 综合统计"""
+        self.task_dashboard(self, 'page')
+
+    @staticmethod
+    def task_dashboard(self, collection):
+        def status_name(status):
+            status2ch = {'all': '总计', 'average': '日均', 'estimated_finish_days': '预计完成需要天数'}
+            return status2ch.get(status) or self.get_status_name(status)
+
+        try:
+            start, cond = self.get_query_argument('start', 0), {}
+            if start:
+                start = datetime.strptime(start, '%Y-%m-%d %H:%M:%S')
+                cond = {'publish_time': {'$gt': start}}
+            fields = [*list(self.task_statuses.keys()), 'all', 'average', 'estimated_finish_days']
+            task_names, items = self.task_names(collection, None, True), []
+            for task_type, name in task_names.items():
+                data = {'task_type': task_type, **{k: 0 for k in fields}}
+                counts = list(self.db.task.aggregate([
+                    {'$match': {'task_type': task_type, **cond}},
+                    {'$group': {'_id': '$status', 'count': {'$sum': 1}}},
+                    {'$sort': {'count': -1}},
+                ]))
+                for c in counts:
+                    data[c['_id']] = c['count']
+                data['all'] = self.db.task.count_documents({'task_type': task_type, **cond})
+                if data['finished']:
+                    this_start = start
+                    if not this_start:
+                        task1st = self.db.task.find_one(cond, sort=[('publish_time', 1)])
+                        this_start = task1st and task1st['publish_time']
+                    if this_start:
+                        data['average'] = round(data['finished'] / ((self.now() - this_start).days + 1), 2)
+                if data['average']:
+                    data['estimated_finish_days'] = round((data['published'] + data['picked']) / data['average'], 2)
+                if len([k for k, v in data.items() if v]) > 1:
+                    items.append(data)
+
+            self.render('task_dashboard.html', start=start, items=items, fields=fields, collection=collection,
+                        task_types=list(task_names.keys()), status_name=status_name)
 
         except Exception as error:
             return self.send_db_error(error)

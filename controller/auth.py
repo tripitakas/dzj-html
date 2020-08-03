@@ -225,7 +225,7 @@ role_route_maps = {
             '/task/info/@task_id': ['GET'],
             '/page/task/resume/@page_name': ['GET'],
             '/task/browse/@task_type/@task_id': ['GET'],
-            '/(page|char)/task/(list|statistic)': ['GET'],
+            '/(page|char)/task/(list|statistic|dashboard)': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/(page|char)/task/publish': ['POST'],
             '/api/task/publish/import': ['POST'],

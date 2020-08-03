@@ -3,9 +3,11 @@
 
 import re
 from bson import json_util
+from datetime import datetime
 from .char import Char
 from .base import CharHandler
 from controller import errors as e
+from controller.page.view_task import PageTaskDashBoardHandler
 
 
 class CharTaskListHandler(CharHandler):
@@ -38,6 +40,7 @@ class CharTaskListHandler(CharHandler):
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
         {'operation': 'bat-batch', 'label': '更新批次'},
+        {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
             {'operation': 'picked_user_id', 'label': '按用户'},
@@ -116,6 +119,14 @@ class CharTaskStatHandler(CharHandler):
 
         except Exception as error:
             return self.send_db_error(error)
+
+
+class CharTaskDashBoardHandler(CharHandler):
+    URL = '/char/task/dashboard'
+
+    def get(self):
+        """ 综合统计"""
+        PageTaskDashBoardHandler.task_dashboard(self, 'char')
 
 
 class CharTaskClusterHandler(CharHandler):
