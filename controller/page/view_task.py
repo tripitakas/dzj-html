@@ -141,7 +141,7 @@ class PageTaskDashBoardHandler(PageHandler):
             fields = [*list(self.task_statuses.keys()), 'all', 'average', 'estimated_finish_days']
             task_names, items = self.task_names(collection, None, True), []
             for task_type, name in task_names.items():
-                data = {'task_type': name, **{k: 0 for k in fields}}
+                data = {'task_type': task_type, **{k: 0 for k in fields}}
                 counts = list(self.db.task.aggregate([
                     {'$match': {'task_type': task_type, **cond}},
                     {'$group': {'_id': '$status', 'count': {'$sum': 1}}},

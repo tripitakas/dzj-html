@@ -13,6 +13,9 @@
     .select-time {
       display: flex;
     }
+    .sty-table td a {
+      font-size: 14px;
+    }
   </style>
 </head>
 
@@ -45,9 +48,14 @@
               <tbody>
               {% for item in items %}
               <tr>
-                <td>{{item['task_type']}}</td>
+                <td>{{handler.get_task_name(item['task_type'])}}</td>
                 {% for f in fields %}
-                <td>{{item.get(f) or ''}}</td>
+                {% if item.get(f) and f in handler.task_statuses %}
+                <td><a href="/{{collection}}/task/statistic?kind=picked_user_id&task_type={{item['task_type']}}&status={{f}}&publish_start={{start or ''}}">
+                  {{item[f]}}</a></td>
+                {% else %}
+                <td>{{item.get(f) or ""}}</td>
+                {% end %}
                 {% end %}
               </tr>
               {% end %}
