@@ -208,6 +208,35 @@ def trim_ocr_fields(db, name=None):
             print('ocr_x etc updated')
 
 
+def update_ocr_xy(db, name=None):
+    """ 针对切分框中x/y为空的情况，设置为0"""
+    size = 10
+    cond = {'name': {'$regex': name}} if name else {}
+    page_count = math.ceil(db.page.count_documents(cond) / size)
+    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    for i in range(page_count):
+        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for page in pages:
+            print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+            if not page.get('chars'):
+                print('no chars')
+                continue
+            cnt1 = len([c for c in page['columns'] if not c.get('x') or not c.get('y')])
+            cnt2 = len([c for c in page['chars'] if not c.get('x') or not c.get('y')])
+            if not (cnt1 + cnt2):
+                print('no need to update')
+                continue
+            for c in page['chars']:
+                c['x'] = c.get('x') or 0
+                c['y'] = c.get('y') or 0
+            for c in page['columns']:
+                c['x'] = c.get('x') or 0
+                c['y'] = c.get('y') or 0
+            db.page.update_one({'_id': page['_id']}, {'$set': {k: page[k] for k in ['columns', 'chars']}})
+            print('chars and columns x/y updated')
+
+
 def update_sub_columns_txt(db, json_path=''):
     """ 更新page表sub_columns的ocr_txt"""
     for root, dirs, files in walk(json_path):
