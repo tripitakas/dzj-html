@@ -19,7 +19,7 @@ from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
-def reorder_boxes(db, name=None, only_sub_columns=False):
+def reorder_boxes(db, name=None):
     """ 切分框(包括栏框、列框、字框)重新排序"""
     size = 10
     cond = {'name': {'$regex': name}} if name else {}
@@ -31,8 +31,35 @@ def reorder_boxes(db, name=None, only_sub_columns=False):
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             Ph.reorder_boxes(page=page)
-            fields = ['columns'] if only_sub_columns else ['blocks', 'columns', 'chars']
+            fields = ['blocks', 'columns', 'chars']
             db.page.update_one({'_id': page['_id']}, {'$set': {k: page.get(k) for k in fields}})
+
+
+def update_sub_columns(db, name=None):
+    """ 对于未设置sub_columns的情况，算法排序后，更新sub_columns"""
+    size = 10
+    cond = {'name': {'$regex': name}} if name else {}
+    page_count = math.ceil(db.page.count_documents(cond) / size)
+    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    for i in range(page_count):
+        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for page in pages:
+            print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+            if not page.get('columns'):
+                print('no columns')
+                continue
+            has_sub_columns = [c for c in page['columns'] if c.get('sub_columns')]
+            if has_sub_columns:
+                print('has sub columns')
+                continue
+            Ph.reorder_boxes(page=page)
+            new_sub_columns = [c for c in page['columns'] if c.get('sub_columns')]
+            if not new_sub_columns:
+                print('algorithm no sub columns')
+                continue
+            db.page.update_one({'_id': page['_id']}, {'$set': {'columns': page['columns']}})
+            print('sub columns updated')
 
 
 def check_box_cover(db):
@@ -51,7 +78,7 @@ def check_box_cover(db):
 
 
 def check_chars_col(db):
-    """ 检查字序是否准确"""
+    """ 检查用户字序和算法字序是否一致"""
 
     def cmp_chars_col(chars_cols1, chars_cols2):
         if len(chars_cols1) != len(chars_cols2):
@@ -94,8 +121,10 @@ def update_cid(db):
                 db.page.update_one({'_id': page['_id']}, {'$set': update})
 
 
-def update_order(db):
-    """ 更新切分框(包括栏框、列框、字框)的cid"""
+def update_order_and_cid(db):
+    """ 根据block_no/column_no/char_no等重新排序，按照顺序重新设置cid。
+        如果有用户字序，则用新的cid同步更新用户字序
+    """
 
     def cmp_char(a, b):
         for f in ['block_no', 'column_no', 'char_no']:
@@ -141,24 +170,6 @@ def update_order(db):
                 db.page.update_one({'_id': p['_id']}, {'$set': update})
 
 
-def trim_txt_blank(db):
-    """ 去除page['txt']字段中的空格"""
-    pages = list(db.page.find({'txt': {'$nin': ['', None]}}, {'txt': 1, 'name': 1}))
-    print('[%s]%s pages to process' % (hp.get_date_time(), len(pages)))
-    for page in pages:
-        print('[%s]processing %s' % (hp.get_date_time(), page['name']))
-        db.page.update_one({'_id': page['_id']}, {'$set': {'txt': re.sub(r'\s', '', page['txt'])}})
-
-
-def update_page_ocr(db):
-    """ 根据page['chars']更新page['ocr']"""
-    pages = list(db.page.find({}, {'name': 1, 'chars': 1}))
-    for p in pages:
-        print('processing page %s' % p['name'])
-        ocr = Ph.get_char_txt(p['chars'])
-        db.page.update_one({'_id': p['_id']}, {'$set': {'ocr': ocr}})
-
-
 def update_task_char_count(db):
     """ 更新页任务的char_count"""
     tasks = db.task.find({'char_count': None, 'collection': 'page'}, {'doc_id': 1})
@@ -171,34 +182,33 @@ def update_task_char_count(db):
                             {'$set': {'char_count': len(page['chars'])}})
 
 
-def update_char_column_cid(db, name=None):
-    """ 更新char表的column字段"""
+def trim_ocr_fields(db, name=None):
+    """ 去掉切分框中ocr_x,ocr_y,ocr_w,ocr_h等字段"""
+    size = 10
     cond = {'name': {'$regex': name}} if name else {}
-    pages = list(db.page.find(cond, {'name': 1, 'chars': 1, 'columns': 1}))
-    print('[%s]%s pages to process' % (hp.get_date_time(), len(pages)))
-    for page in pages:
-        print('[%s]processing %s' % (hp.get_date_time(), page['name']))
-        for co in page['columns']:
-            chars = [c for c in page['chars'] if c['block_no'] == co['block_no'] and c['column_no'] == co['column_no']]
-            char_names = ['%s_%s' % (page['name'], c['cid']) for c in chars]
-            db.char.update_many({'name': {'$in': char_names}}, {'$set': {
-                'column': {k: co[k] for k in ['cid', 'x', 'y', 'w', 'h']}
-            }})
+    page_count = math.ceil(db.page.count_documents(cond) / size)
+    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    for i in range(page_count):
+        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for page in pages:
+            print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+            if not page.get('chars'):
+                print('no chars')
+                continue
+            cnt1 = len([c for c in page['columns'] if c.get('ocr_x')])
+            cnt2 = len([c for c in page['chars'] if c.get('ocr_x')])
+            if not (cnt1 + cnt2):
+                print('no ocr_x etc')
+                continue
+            fields = 'ocr_x,ocr_y,ocr_w,ocr_h'
+            Ph.pop_fields(page['columns'], fields)
+            Ph.pop_fields(page['chars'], fields)
+            db.page.update_one({'_id': page['_id']}, {'$set': {k: page[k] for k in ['columns', 'chars']}})
+            print('ocr_x etc updated')
 
 
-def update_page_ocr_txt(db):
-    """ page表的ocr_txt"""
-    pages = list(db.page.find({}, {'chars': 1, 'name': 1}))
-    print('[%s]%s pages to process' % (hp.get_date_time(), len(pages)))
-    for page in pages:
-        print('[%s]processing %s' % (hp.get_date_time(), page['name']))
-        for ch in page.get('chars', []):
-            if ch.get('alternatives'):
-                ch['ocr_txt'] = ch['alternatives'][0]
-        db.page.update_one({'_id': page['_id']}, {'$set': {'chars': page['chars']}})
-
-
-def update_page_sub_columns_txt(db, json_path=''):
+def update_sub_columns_txt(db, json_path=''):
     """ 更新page表sub_columns的ocr_txt"""
     for root, dirs, files in walk(json_path):
         for fn in files:
@@ -217,20 +227,6 @@ def update_page_sub_columns_txt(db, json_path=''):
                             assert len(page_column['sub_columns']) == len(col['sub_columns'])
                             page_column['sub_columns'] = col['sub_columns']
                 db.page.update_one({'_id': page['_id']}, {'$set': {'columns': columns}})
-
-
-def update_char_ocr_txt(db):
-    """ char表的ocr_txt"""
-    size = 1000
-    page_count = math.ceil(db.char.count_documents({}) / size)
-    print('[%s]%s chars to process' % (hp.get_date_time(), page_count))
-    for i in range(page_count):
-        project = {'alternatives': 1, 'name': 1}
-        chars = list(db.char.find({}, project).sort('_id', 1).skip(i * size).limit(size))
-        print('[%s]processing %s' % (hp.get_date_time(), [ch['name'] for ch in chars]))
-        for ch in chars:
-            if ch.get('alternatives'):
-                db.char.update_one({'_id': ch['_id']}, {'$set': {'ocr_txt': ch['alternatives'][0]}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
