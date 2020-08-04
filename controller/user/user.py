@@ -28,3 +28,6 @@ class User(Model):
         (v.is_password, 'password'),
     ]
     primary = '_id'
+
+    search_tips = '请搜索用户名、手机和邮箱'
+    search_fields = ['name', 'email', 'phone']

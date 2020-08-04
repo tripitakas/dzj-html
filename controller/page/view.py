@@ -121,7 +121,7 @@ class PageListHandler(PageHandler):
             else:
                 condition, params = Page.get_page_search_condition(self.request.query)
             page_tasks = {'': '', **PageHandler.task_names('page', True, True)}
-            docs, pager, q, order = Page.find_by_page(self, condition, default_order='name')
+            docs, pager, q, order = Page.find_by_page(self, condition)
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         page_tasks=page_tasks, task_statuses=self.task_statuses, match_fields=self.match_fields,
                         match_statuses=self.match_statuses, format_value=self.format_value, **kwargs)

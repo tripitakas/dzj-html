@@ -38,8 +38,6 @@ class UsersAdminHandler(BaseHandler, User):
     URL = '/user/admin'
 
     page_title = '用户管理'
-    search_tips = '请搜索用户名、手机和邮箱'
-    search_fields = ['name', 'email', 'phone']
     table_fields = [dict(id=f['id'], name=f['name']) for f in User.fields if f['id'] not in ['password']]
     info_fields = ['name', 'gender', 'email', 'phone', 'password']
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'), options=f.get('options'))
@@ -80,8 +78,11 @@ class UserRolesHandler(BaseHandler, User):
 
     def get_template_kwargs(self, fields=None):
         kwargs = super().get_template_kwargs(fields)
-        kwargs['operations'] = []
-        kwargs['img_operations'] = []
+        kwargs.update({
+            'operations': [],
+            'img_operations': [],
+            'page_title': '授权管理',
+        })
         return kwargs
 
     def get(self):

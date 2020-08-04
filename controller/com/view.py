@@ -53,8 +53,9 @@ class HomeHandler(TaskHandler):
             return time_map[-1][1]
 
         def get_task_info(t):
+            name = t.get('doc_id') or t.get('txt_kind') or ''
             op = '领取了' if t['status'] == 'picked' else '完成了'
-            return '%s %s %s %s' % (t['picked_by'], op, self.get_task_name(t['task_type']), t.get('doc_id'))
+            return '%s %s %s %s' % (t['picked_by'], op, self.get_task_name(t['task_type']), name)
 
         try:
             # 今日访问次数
@@ -74,7 +75,8 @@ class HomeHandler(TaskHandler):
 
             # 最新动态
             status = [self.STATUS_PICKED, self.STATUS_FINISHED]
-            fields = ['task_type', 'doc_id', 'status', 'picked_time', 'finished_time', 'picked_by', 'picked_user_id']
+            fields = ['task_type', 'doc_id', 'txt_kind', 'status', 'picked_time', 'finished_time', 'picked_by',
+                      'picked_user_id']
             condition = {'task_type': {'$regex': '(cut_|text_|cluster_|rare_)'}, 'status': {'$in': status}}
             latest_tasks = list(self.db.task.find(condition, {k: 1 for k in fields}).sort('picked_time', -1).limit(10))
 
