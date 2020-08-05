@@ -442,15 +442,15 @@ class PageStartGenCharsApi(BaseHandler):
         try:
             rules = [(v.not_all_empty, 'page_names', 'search', 'all')]
             self.validate(self.data, rules)
-            script = 'nohup python3 %s/utils/gen_chars.py %s --username="%s" >> log/gen_chars.log 2>&1 &'
-            cond, count = '--condition={}', 0
+            script = "nohup python3 %s/utils/gen_chars.py %s --username='%s' >> log/gen_chars.log 2>&1 &"
+            cond, count = "--condition={}", 0
             if self.data.get('page_names'):
-                cond = '--page_names="' + ','.join(self.data['page_names']) + '"'
+                cond = "--page_names='" + ','.join(self.data['page_names']) + "'"
                 count = len(self.data['page_names'])
             elif self.data.get('search'):
                 cond = Page.get_page_search_condition(self.data['search'])[0] or {}
                 count = self.db.page.count_documents(cond)
-                cond = '--condition="' + json.dumps(cond) + '"'
+                cond = "--condition='" + json.dumps(cond) + "'"
             else:
                 count = self.db.page.count_documents({})
             if count:
