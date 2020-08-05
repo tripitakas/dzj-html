@@ -52,7 +52,6 @@ def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None,
     once_size = 300
     total_count = db.page.count_documents(condition)
     print('[%s]start gen chars, condition=%s, count=%s' % (hp.get_date_time(), condition, total_count))
-    log_id = Bh.add_op_log(db, 'gen_chars', 'ongoing', [], username)
     fields1 = ['name', 'source', 'columns', 'chars']
     fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
     for i in range(int(math.ceil(total_count / once_size))):
@@ -116,8 +115,7 @@ def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None,
                    deleted_char=[c['name'] for c in deleted], invalid_char=invalid_chars,
                    valid_pages=valid_pages, invalid_pages=invalid_pages,
                    create_time=datetime.now())
-        db.oplog.update_one({'_id': log_id}, {'$addToSet': {'content': log}})
-    db.oplog.update_one({'_id': log_id}, {'$set': {'status': 'finished'}})
+        Bh.add_op_log(db, 'gen_chars', 'finished', log, username)
 
 
 if __name__ == '__main__':

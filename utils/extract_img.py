@@ -223,7 +223,6 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
 
     once_size = 5000
     total_count = db.char.count_documents(condition)
-    log_id = Bh.add_op_log(db, 'extract_img', 'ongoing', [], username)
     print('[%s]%s chars to generate.' % (hp.get_date_time(), total_count))
     while db.char.count_documents({'img_need_updated': True}):
         chars = list(db.char.find(condition).limit(once_size))
@@ -231,8 +230,7 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
         if log.get('cut_char_success'):
             update = {'has_img': True, 'img_need_updated': False, 'img_time': hp.get_date_time('%m%d%H%M%S')}
             db.char.update_many({'name': {'$in': log['cut_char_success']}}, {'$set': update})
-        db.oplog.update_one({'_id': log_id}, {'$addToSet': {'content': log}})
-    db.oplog.update_one({'_id': log_id}, {'$set': {'status': 'finished'}})
+        Bh.add_op_log(db, 'extract_img', 'finished', log, username)
 
 
 if __name__ == '__main__':
