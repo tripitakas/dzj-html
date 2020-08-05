@@ -146,29 +146,22 @@ class Cut(object):
         inner_path = inner_path or '/'.join(page_name.split('_')[:-1])
         if self.get_cfg('big_img.with_hash'):
             page_name = self.get_hash_name(page_name, salt=self.get_cfg('big_img.salt'))
-        img_path = 'pages/{0}/{1}.jpg'.format(inner_path, page_name)
         local_path = self.get_cfg('big_img.local_path')
         if local_path:
             if local_path[0] != '/':
                 local_path = path.join(hp.BASE_DIR, local_path)
-            img_file = path.join(local_path, img_path)
+            img_file = path.join(local_path, inner_path, page_name + '.jpg')
             if not path.exists(img_file):
-                if path.exists(img_file.replace('pages/', '')):
-                    img_file = img_file.replace('pages/', '')
-                elif path.exists(path.join(local_path, page_name + '.jpg')):
-                    img_file = path.join(local_path, page_name + '.jpg')
-                else:
-                    alt_file = len(inner_path) > 2 and self.get_big_img(page_name, page_name[:2])
-                    if alt_file:
-                        img_file = alt_file
-                    else:
-                        raise OSError('%s not exist' % img_file)
+                img_file = path.join(local_path,  page_name + '.jpg')
+            if not path.exists(img_file):
+                raise OSError('%s not exist' % img_file)
             return img_file
         my_cloud = self.get_cfg('big_img.my_cloud')
         if not self.oss_big and my_cloud:
             key_id, key_secret = self.get_cfg('big_img.key_id'), self.get_cfg('big_img.key_secret')
             self.oss_big = Oss(my_cloud, key_id, key_secret, self.get_cfg('big_img.use_internal'))
         if self.oss_big and self.oss_big.is_readable():
+            img_path = '/pages/{0}/{1}.jpg'.format(inner_path, page_name)
             tmp_file = path.join(hp.BASE_DIR, 'temp', 'cut', img_path)
             if not path.exists(path.dirname(tmp_file)):
                 os.makedirs(path.dirname(tmp_file))
