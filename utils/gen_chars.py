@@ -36,8 +36,8 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                 return True
         return False
 
-    db = db or uri and pymongo.MongoClient(uri)[db_name] or \
-         hp.connect_db(hp.load_config()['database'], db_name=db_name)[0]
+    db = db or (uri and pymongo.MongoClient(uri)[db_name])
+    db = db or hp.connect_db(hp.load_config()['database'], db_name=db_name)[0]
     if reset:
         db.char.delete_many({})
 
