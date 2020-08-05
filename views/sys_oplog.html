@@ -94,6 +94,7 @@
 
 {% include com/_base_js.html %}
 <script>
+  var interval = 3;
   var status = "{{log.get('status') or ''}}";
   setInterval(function () {
     if (status === 'ongoing') {
@@ -104,7 +105,7 @@
         }
       });
     }
-  }, 1000);
+  }, ++interval * (1000));
 </script>
 </body>
 </html>
