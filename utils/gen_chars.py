@@ -36,8 +36,8 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                 return True
         return False
 
-    db = db or (uri and pymongo.MongoClient(uri)[db_name])
-    db = db or hp.connect_db(hp.load_config()['database'], db_name=db_name)[0]
+    cfg = hp.load_config()
+    db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
     if reset:
         db.char.delete_many({})
 
@@ -51,6 +51,7 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
 
     once_size = 300
     total_count = db.page.count_documents(condition)
+    print('[%s]start gen chars, condition=%s, count=%s' % (hp.get_date_time(), condition, total_count))
     log_id = Bh.add_op_log(db, 'gen_chars', 'ongoing', [], username)
     fields1 = ['name', 'source', 'columns', 'chars']
     fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']

@@ -205,11 +205,10 @@ class Cut(object):
 
 
 def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
-                regen=False, username=None, host=None):
+                regen=False, username=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
     cfg = hp.load_config()
-    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'], db_name=db_name, host=host)[
-        0]
+    db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
     cut = Cut(db, cfg, regen=regen)
 
     print('[%s]extract_img.py script started.' % hp.get_date_time())
