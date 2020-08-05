@@ -155,7 +155,7 @@
   $('#bat-gen-chars').on('click', function () {
     Swal2.fire({title: '请输入页数据的分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/page/start_gen_chars', {data: {search: '?source=' + result.value}}, (res) => {
+        postApi('/page/start_gen_chars', {data: {search: '?source="' + result.value + '"'}}, (res) => {
           Swal0.fire({
             type: 'success', title: '成功', html: `已启动脚本，将针对${res.count}个页面生成字数据。<br/>请稍后查看字数据管理页面。`,
             footer: '详情可以查看<a href="/sys/oplog/latest/gen_chars">日志</a>'
@@ -169,7 +169,7 @@
   $('#bat-gen-images').on('click', function () {
     Swal2.fire({title: '请输入字数据的分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/char/extract_img', {data: {type: 'search', search: '?source=' + result.value}}, (res) => {
+        postApi('/char/extract_img', {data: {type: 'search', search: '?source="' + result.value + '"'}}, (res) => {
           Swal0.fire({
             type: 'success', title: '成功', html: `已启动脚本，将针对${res.count}个字数据生成字图。<br/>请稍后查看字数据管理页面。`,
             footer: '详情可以查看<a href="/sys/oplog/latest/extract_img">日志</a>'
