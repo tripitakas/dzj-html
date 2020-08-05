@@ -321,16 +321,20 @@ class PageHandler(TaskHandler, Page, Box):
             pre = b
         return txt.strip('|')
 
+    @staticmethod
+    def is_valid_txt(txt):
+        return txt not in [None, '■', '']
+
     @classmethod
     def set_char_class(cls, chars):
         for ch in chars or []:
-            txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if ch.get(k) not in [None, '■']))
+            txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if cls.is_valid_txt(ch.get(k))))
             is_same = len(txts) == 1
             is_variant = v.is_variants(txts)
             classes = '' if is_same else 'is_variant' if is_variant else 'diff'
-            if ch.get('txt') and ch.get('txt') != ch.get('ocr_txt'):
+            if cls.is_valid_txt(ch.get('txt')) and ch.get('txt') != ch.get('ocr_txt'):
                 classes += ' changed'
-            ch['class'] = classes
+            ch['class'] = classes.strip(' ')
 
     @classmethod
     def char2html(cls, chars):
