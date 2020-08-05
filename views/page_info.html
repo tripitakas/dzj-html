@@ -78,7 +78,7 @@
             <div class="block-head">切分信息</div>
             {% for k, v in page_boxes.items() %}
             <div class="info long {{k}}">
-              <label class="label">{{Page.get_field_name(k)}}</label>
+              <label class="label">{{Page.get_field_name(k)}}({{len(v or [])}})</label>
               <div class="value">{% raw format_value(v, k) %}</div>
             </div>
             {% end %}
