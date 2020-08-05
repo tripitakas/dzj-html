@@ -67,7 +67,7 @@ def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None,
                 for c in p['chars']:
                     try:
                         char_names.append('%s_%s' % (p['name'], c['cid']))
-                        m = dict(page_name=p['name'], txt_level=0, img_need_updated=True)
+                        m = dict(page_name=p['name'], source=p.get('source'), txt_level=0, img_need_updated=True)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
