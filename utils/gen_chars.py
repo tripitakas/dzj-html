@@ -18,8 +18,8 @@ from controller import helper as hp
 from controller.base import BaseHandler as Bh
 
 
-def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
-              condition=None, page_names=None, username=None):
+def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None,
+              page_names=None, username=None):
     """ 从页数据中导出字数据"""
 
     def is_changed(a, b):
