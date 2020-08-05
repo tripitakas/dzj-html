@@ -39,10 +39,10 @@ class TptkViewHandler(PageHandler):
             tripitaka = self.db.tripitaka.find_one({'tripitaka_code': m.group(1)})
             if not tripitaka:
                 return self.send_error_response(e.no_object, message='藏经%s不存在' % m.group(1))
-            if len(page_name) == 2 and tripitaka.get('first_page'):
-                return self.redirect('/tptk/%s' % tripitaka.get('first_page'))
 
             # 获取当前页信息
+            if len(page_name) == 2 and tripitaka.get('first_page'):
+                page_name = tripitaka.get('first_page')
             assert tripitaka.get('store_pattern')
             level = len(tripitaka['store_pattern'].split('_'))
             page_name = self.pad_name(page_name, level)

@@ -135,8 +135,8 @@ class PageBoxApi(PageHandler):
         self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
         if page.get('has_gen_chars'):  # 更新char表和字图
             gen_chars(db=self.db, page_names=page_name, username=self.username)
-            script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
-            script = script % (h.BASE_DIR, self.username, 1)
+            script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img_%s.log 2>&1 &'
+            script = script % (h.BASE_DIR, self.username, 1, h.get_date_time(fmt='%Y%m%d%H%M%S'))
             os.system(script)
 
         return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
@@ -442,7 +442,7 @@ class PageStartGenCharsApi(BaseHandler):
         try:
             rules = [(v.not_all_empty, 'page_names', 'search', 'all')]
             self.validate(self.data, rules)
-            script = "nohup python3 %s/utils/gen_chars.py %s --username='%s' >> log/gen_chars.log 2>&1 &"
+            script = "nohup python3 %s/utils/gen_chars.py %s --username='%s' >> log/gen_chars_%s.log 2>&1 &"
             cond, count = "--condition={}", 0
             if self.data.get('page_names'):
                 cond = "--page_names='" + ','.join(self.data['page_names']) + "'"
@@ -454,7 +454,7 @@ class PageStartGenCharsApi(BaseHandler):
             else:
                 count = self.db.page.count_documents({})
             if count:
-                script = script % (h.BASE_DIR, cond, self.username)
+                script = script % (h.BASE_DIR, cond, self.username, h.get_date_time(fmt='%Y%m%d%H%M%S'))
                 print(script)
                 os.system(script)
                 self.send_data_response(count=count)
