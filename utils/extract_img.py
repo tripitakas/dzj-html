@@ -86,12 +86,10 @@ class Cut(object):
                 log['cut_char_failed'].extend([dict(id=c['name'], reason=reason) for c in chars_todo])
                 print(reason)
                 continue
+
             iw, ih = img_page.size
             pw, ph = int(page['width']), int(page['height'])
-            if iw != pw or ih != ph:
-                img_page = img_page.resize((pw, ph), Image.BICUBIC)
-                iw, ih = img_page.size
-            # 字框切图
+            # 字框切图，按照大图切图（转换page['chars']的坐标，适应于大图尺寸）
             for c in chars_todo:
                 oc = [ch for ch in page['chars'] if ch['cid'] == c['cid']]
                 if not oc:
@@ -101,7 +99,8 @@ class Cut(object):
                     if c.get('has_img') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
                         log['cut_char_existed'].append(c['name'])
                         continue
-                x, y, h, w = int(c['pos']['x']), int(c['pos']['y']), int(c['pos']['h']), int(c['pos']['w'])
+                x, w = round(c['pos']['x'] * iw / pw), round(c['pos']['w'] * iw / pw)
+                y, h = round(c['pos']['y'] * iw / pw), round(c['pos']['h'] * iw / pw)
                 try:
                     img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
                     img_c = self.resize_binary(img_c, 64, 64)
@@ -112,11 +111,13 @@ class Cut(object):
                     log['cut_char_failed'].append(dict(id=c['name'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
                     print(e)
 
-            # 列框切图
+            # 列框切图，按照page表中的width/height切图（转换大图，适应于page表的参数）
+            if iw != pw or ih != ph:
+                img_page = img_page.resize((pw, ph), Image.BICUBIC)
+                iw, ih = img_page.size
             columns_todo, columns_done = list(set((c['column'] or {}).get('cid', 0) for c in chars_done)), []
             print('%d %s: %d char images generated from %d chars, %d columns' % (
                 i + 1, page_name, len(chars_done), len(chars_todo), len(columns_todo)))
-
             for cid in columns_todo:
                 column = [c for c in page['columns'] if c['cid'] == cid]
                 if not column:
@@ -147,12 +148,15 @@ class Cut(object):
         if self.get_cfg('big_img.with_hash'):
             page_name = self.get_hash_name(page_name, salt=self.get_cfg('big_img.salt'))
         local_path = self.get_cfg('big_img.local_path')
+        img_path = '/pages/{0}/{1}.jpg'.format(inner_path, page_name)
         if local_path:
             if local_path[0] != '/':
                 local_path = path.join(hp.BASE_DIR, local_path)
-            img_file = path.join(local_path, inner_path, page_name + '.jpg')
+            img_file = path.join(local_path, img_path)
             if not path.exists(img_file):
-                img_file = path.join(local_path,  page_name + '.jpg')
+                img_file = path.join(local_path, inner_path, page_name + '.jpg')
+            if not path.exists(img_file):
+                img_file = path.join(local_path, page_name + '.jpg')
             if not path.exists(img_file):
                 raise OSError('%s not exist' % img_file)
             return img_file
@@ -161,7 +165,6 @@ class Cut(object):
             key_id, key_secret = self.get_cfg('big_img.key_id'), self.get_cfg('big_img.key_secret')
             self.oss_big = Oss(my_cloud, key_id, key_secret, self.get_cfg('big_img.use_internal'))
         if self.oss_big and self.oss_big.is_readable():
-            img_path = '/pages/{0}/{1}.jpg'.format(inner_path, page_name)
             tmp_file = path.join(hp.BASE_DIR, 'temp', 'cut', img_path)
             if not path.exists(path.dirname(tmp_file)):
                 os.makedirs(path.dirname(tmp_file))
