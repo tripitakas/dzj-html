@@ -455,7 +455,7 @@ class PageStartGenCharsApi(BaseHandler):
                 count = self.db.page.count_documents({})
             if count:
                 script = script % (h.BASE_DIR, cond, self.username)
-                # print(script)
+                print(script)
                 os.system(script)
                 self.send_data_response(count=count)
             else:
