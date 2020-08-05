@@ -44,14 +44,17 @@ class CharExtractImgApi(CharHandler):
                 condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
             else:
                 condition = self.get_char_search_condition(self.data['search'])[0]
+            count = self.db.char.count_documents(condition)
             self.db.char.update_many(condition, {'$set': {'img_need_updated': True}})
-
-            # 启动脚本，生成字图
-            script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
-            script = script % (h.BASE_DIR, self.username, int(self.data.get('regen') in ['是', True]))
-            print(script)
-            os.system(script)
-            self.send_data_response()
+            if count:
+                # 启动脚本，生成字图
+                script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
+                script = script % (h.BASE_DIR, self.username, int(self.data.get('regen') in ['是', True]))
+                print(script)
+                os.system(script)
+                self.send_data_response(count=count)
+            else:
+                self.send_error_response(e.no_object, message='找不到对应的字数据')
 
         except self.DbError as error:
             return self.send_db_error(error)
