@@ -423,10 +423,10 @@ class PageStartCheckMatchApi(BaseHandler):
             elif self.data.get('search'):
                 condition = Page.get_page_search_condition(self.data['search'])[0] or {}
                 condition = json.dumps(condition)
-            script = 'nohup python3 %s/utils/check_match.py --condition="%s" --fields="%s" --publish_task="%s" --username="%s" >> log/check_match.log 2>&1 &'
-            fields = ','.join(self.data['field'])
-            script = script % (h.BASE_DIR, condition, fields, self.data['publish_task'], self.username)
-            # print(script)
+            script = "nohup python3 %s/utils/check_match.py --condition='%s' --fields='%s' --publish_task=%s --username=%s >> log/check_match_%s.log 2>&1 &"
+            script = script % (h.BASE_DIR, condition, ','.join(self.data['field']), self.data['publish_task'],
+                               self.username, h.get_date_time(fmt='%Y%m%d%H%M%S'))
+            print(script)
             os.system(script)
             self.send_data_response()
 

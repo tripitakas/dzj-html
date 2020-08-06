@@ -12,6 +12,7 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
+from controller.base import BaseHandler as Bh
 from controller.page.base import PageHandler as Ph
 
 names1 = ['GL_1054_1_4', 'GL_78_9_18', 'JX_260_1_98', 'JX_260_1_239', 'YB_33_629', 'QL_26_175', 'YB_26_512',
@@ -391,10 +392,12 @@ def initial_run(db):
     publish_cut_proof_and_assign(db)
 
 
-def reset_user_data_and_tasks(db, user_no=None):
+def reset_user_data_and_tasks(db, user_no=None, admin_name=None):
     """ 重置体验数据、考核数据以及考核任务"""
     assert not user_no or user_no in range(1, 51)
     names = eval('names%s' % user_no) if user_no else None
+    log = dict(user_no=user_no)
+    _id = Bh.add_op_log(db, 'reset_exam', 'ongoing', log, admin_name)
     # 重置page数据
     reset_bak_page(db, names=names, data_type='exam')
     # 针对考核page设置噪音
@@ -403,10 +406,12 @@ def reset_user_data_and_tasks(db, user_no=None):
     reset_cut_proof(db, user_no)
     # 重置聚类校对
     reset_cluster_proof(db, user_no)
+    db.oplog.update_one({'_id': _id}, {'$set': {'status': 'finished'}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
-    db = pymongo.MongoClient(uri)[db_name]
+def main(db=None, db_name=None, uri=None, func='reset_user_data_and_tasks', **kwargs):
+    cfg = hp.load_config()
+    db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
     eval(func)(db, **kwargs)
 
 
