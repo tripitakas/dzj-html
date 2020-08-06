@@ -545,6 +545,7 @@
         isFile = true;
         break;
     }
+    $(this).text('进行中...');
     postApi('/page/task/publish', isFile ? formData : {data: data}, function (res) {
       Swal0.fire({
         type: 'success', title: '成功', html: res.message,

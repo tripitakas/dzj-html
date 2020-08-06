@@ -144,10 +144,19 @@
   });
 
   $resetExamUser.find('.modal-confirm').click(function () {
+    $(this).text('进行中...');
     var data = {'user_id': $resetExamUser.find(".select-user").val()};
     postApi('/sys/reset_exam_user', {'data': data}, function (res) {
-      showSuccess('成功', '重置成功');
-      $resetExamUser.modal('hide');
+      if (res.status === 'success') {
+        showSuccess('成功', '重置成功');
+        $resetExamUser.modal('hide');
+      } else if (res.status === 'script') {
+        Swal0.fire({
+          type: 'success', title: '成功', html: `已启动脚本，请稍后查看任务管理。`,
+          footer: '详情可以查看<a href="/sys/oplog/latest/reset_exam">日志</a>'
+        });
+        $resetExamUser.modal('hide');
+      }
     });
   });
 

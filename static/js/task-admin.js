@@ -96,6 +96,7 @@ $assignModal.find('.modal-confirm').click(function () {
     $assignModal.modal('hide');
     return showError('请选择任务');
   }
+  $(this).text('进行中...');
   var tasks = $.map($('table tbody :checked'), function (item) {
     var node = $(item).parent().parent();
     return [[node.attr('id'), node.find('.task_type').attr('title'), node.find('.doc_id').text()]];

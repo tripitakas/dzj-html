@@ -49,10 +49,10 @@ class CharExtractImgApi(CharHandler):
             if count:
                 # 启动脚本，生成字图
                 regen = int(self.data.get('regen') in ['是', True])
-                cmd = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img_%s.log 2>&1 &'
-                cmd = cmd % (h.BASE_DIR, self.username, regen, h.get_date_time(fmt='%Y%m%d%H%M%S'))
-                print(cmd)
-                os.system(cmd)
+                script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img_%s.log 2>&1 &'
+                script = script % (h.BASE_DIR, self.username, regen, h.get_date_time(fmt='%Y%m%d%H%M%S'))
+                print(script)
+                os.system(script)
                 self.send_data_response(count=count)
             else:
                 self.send_error_response(e.no_object, message='找不到对应的字数据')
