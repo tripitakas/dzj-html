@@ -4,6 +4,7 @@
 @time: 2019/12/08
 """
 import os
+import re
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller import helper as h
@@ -56,8 +57,8 @@ class SysUploadOssApi(BaseHandler):
                 self.send_error_response(r)
 
             # 启动脚本，生成字图
-            script = 'nohup python3 %s/utils/upload_oss.py --img_type=%s >> log/upload_oss.log 2>&1 &'
-            script = script % (h.BASE_DIR, img_type)
+            script = 'nohup python3 %s/utils/upload_oss.py --img_type=%s >> log/upload_oss_%s.log 2>&1 &'
+            script = script % (h.BASE_DIR, img_type, h.get_date_time(fmt='%Y%m%d%H%M%S'))
             # print(script)
             os.system(script)
             self.send_data_response()
@@ -77,12 +78,19 @@ class ResetExamUserApi(BaseHandler):
             if user_id:
                 user = self.db.user.find_one({'_id': ObjectId(user_id)})
                 if not user:
-                    self.send_error_response(e.no_object)
-                else:
-                    assert '考核账号' in user['name']
-                    user_no = int(user['name'].replace('考核账号', ''))
-            exam.reset_user_data_and_tasks(self.db, user_no)
-            self.send_data_response()
+                    return self.send_error_response(e.no_object)
+                r = re.findall(r'\d+', user['name'])
+                assert '考核' in user['name'] and r
+                user_no = int(r[0])
+            if user_no:
+                exam.reset_user_data_and_tasks(self.db, user_no)
+                self.send_data_response(dict(status='success'))
+            else:
+                script = 'nohup python3 %s/utils/update_exam_data.py >> log/update_exam_data_%s.log 2>&1 &'
+                script = script % (h.BASE_DIR, h.get_date_time(fmt='%Y%m%d%H%M%S'))
+                print(script)
+                os.system(script)
+                self.send_data_response(dict(status='script'))
 
         except self.DbError as error:
             return self.send_db_error(error)

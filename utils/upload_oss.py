@@ -37,22 +37,26 @@ def upload_oss(img_type='', only_check=False):
 
     # 批量上传
     assert img_type in ['char', 'column']
-    print(img_type)
     logging.info('[%s]upload_oss.py script started, img_type %s.' % (hp.get_date_time(), img_type))
+    total, images = 0, []
     try:
         img_root = path.join(BASE_DIR, 'static', 'img', img_type + 's')
         for root, dirs, files in os.walk(img_root):
             for fn in files:
                 if not fn.endswith('.jpg'):
                     continue
+                inner_path = [s for s in fn.split('_') if len(s) < 10]
+                oss_file = path.join(img_type + 's', *inner_path[:-1], fn)
                 file = path.join(root, fn)
-                inner_path = '/'.join([s for s in fn.split('_') if len(s) < 10][:-1])
-                oss_file = path.join(img_type + 's', inner_path, fn)
                 r = oss_web.upload_file(oss_file, file)
                 if r.status == 200:
                     os.remove(file)
-                logging.info(
-                    '[%s]%s, upload %s.' % (hp.get_date_time(), fn, 'success' if r.status == 200 else 'failed'))
+                    images.append(fn)
+                    total += 1
+                if len(images) % 5000 == 0:
+                    logging.info('[%s]upload images: %s' % (hp.get_date_time(), images))
+                    images = []
+        logging.info('[%s]upload %s images total' % (hp.get_date_time(), total))
     except Exception as e:
         logging.info('[%s] %s' % (e.__class__.__name__, str(e)))
 

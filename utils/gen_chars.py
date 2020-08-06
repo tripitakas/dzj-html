@@ -18,8 +18,8 @@ from controller import helper as hp
 from controller.base import BaseHandler as Bh
 
 
-def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
-              condition=None, page_names=None, username=None):
+def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None,
+              page_names=None, username=None):
     """ 从页数据中导出字数据"""
 
     def is_changed(a, b):
@@ -36,8 +36,8 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                 return True
         return False
 
-    db = db or uri and pymongo.MongoClient(uri)[db_name] or \
-         hp.connect_db(hp.load_config()['database'], db_name=db_name)[0]
+    cfg = hp.load_config()
+    db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
     if reset:
         db.char.delete_many({})
 
@@ -51,7 +51,7 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
 
     once_size = 300
     total_count = db.page.count_documents(condition)
-    log_id = Bh.add_op_log(db, 'gen_chars', 'ongoing', [], username)
+    print('[%s]start gen chars, condition=%s, count=%s' % (hp.get_date_time(), condition, total_count))
     fields1 = ['name', 'source', 'columns', 'chars']
     fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
     for i in range(int(math.ceil(total_count / once_size))):
@@ -66,7 +66,7 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                 for c in p['chars']:
                     try:
                         char_names.append('%s_%s' % (p['name'], c['cid']))
-                        m = dict(page_name=p['name'], txt_level=0, img_need_updated=True)
+                        m = dict(page_name=p['name'], source=p.get('source'), txt_level=0, img_need_updated=True)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
@@ -115,8 +115,7 @@ def gen_chars(db=None, db_name='tripitaka', uri=None, reset=False,
                    deleted_char=[c['name'] for c in deleted], invalid_char=invalid_chars,
                    valid_pages=valid_pages, invalid_pages=invalid_pages,
                    create_time=datetime.now())
-        db.oplog.update_one({'_id': log_id}, {'$addToSet': {'content': log}})
-    db.oplog.update_one({'_id': log_id}, {'$set': {'status': 'finished'}})
+        Bh.add_op_log(db, 'gen_chars', 'finished', log, username)
 
 
 if __name__ == '__main__':

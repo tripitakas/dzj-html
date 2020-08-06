@@ -49,7 +49,7 @@ class PageListHandler(PageHandler):
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-my-view', 'label': '查看'},
-        {'action': 'btn-update', 'label': '更新'},
+        {'action': 'btn-update', 'label': '更新', 'url': '/api/page'},
         {'action': 'btn-delete', 'label': '删除'},
     ]
     update_fields = [
