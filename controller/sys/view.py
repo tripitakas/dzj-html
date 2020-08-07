@@ -31,7 +31,7 @@ class SysLogListHandler(BaseHandler, Log):
 
     page_title = '操作日志'
     table_fields = [
-        {'id': 'op_type', 'name': '类型', 'filter': Log.op_types},
+        {'id': 'op_type', 'name': '类型'},
         {'id': 'target_id', 'name': '数据对象'},
         {'id': 'content', 'name': '内容'},
         {'id': 'remark', 'name': '备注'},
@@ -42,13 +42,19 @@ class SysLogListHandler(BaseHandler, Log):
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
     img_operations = []
-    info_fields = ['']
-    actions = []
+    info_fields = ['content']
+    update_fields = [{'id': 'content', 'name': '内容', 'input_type': 'textarea'}]
+    actions = [
+        {'action': 'btn-view', 'label': '查看'},
+    ]
 
     @classmethod
     def format_value(cls, value, key=None, doc=None):
         if key == 'op_type':
             return cls.get_type_name(value)
+        if key == 'content' and value:
+            value, size = str(value), 80
+            return '%s%s' % (value[:size], '...' if len(value) > size else '')
         return h.format_value(value, key, doc)
 
     def get(self):
