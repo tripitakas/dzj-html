@@ -34,7 +34,7 @@ class CharTaskPublishApi(CharHandler):
     def task_meta(self, task_type, params, cnt):
         batch = self.data['batch']
         num = int(self.data.get('num') or 1)
-        priority = self.data.get('priority') or 2
+        priority = int(self.data.get('priority') or 2)
         pre_tasks = self.data.get('pre_tasks') or []
         txt_kind = ''.join([p.get('ocr_txt') or '' for p in params])
         return dict(task_type=task_type, num=num, batch=batch, collection='char', id_name='name',
