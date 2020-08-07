@@ -157,7 +157,7 @@ class PageBrowseHandler(PageHandler):
                 condition['page_code'] = {'$lt': page_code}
                 page = self.db.page.find_one(condition, sort=[('page_code', -1)])
             if not page:
-                message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')
+                message = '已是第一页' if to == 'prev' else '已是最后一页'
                 return self.send_error_response(e.no_object, message=message)
 
             txts = self.get_txts(page)
