@@ -63,8 +63,11 @@ function setModal(modal, info, fields) {
           else
             $(obj).removeAttr('checked');
         });
-      } else
-        modal.find('.' + item.id).val(info[item.id]);
+      } else {
+        var value = info[item.id];
+        value = typeof value === 'object' ? JSON.stringify(value) : value;
+        modal.find('.' + item.id).val(value);
+      }
     }
   });
 }

@@ -254,7 +254,7 @@ role_route_maps = {
             '/page/(box|order|txt|txt_match|find_cmp)/@page_name': ['GET'],
             '/api/page/(delete|source|start_gen_chars|start_check_match)': ['POST'],
             '/api/page/(box|order|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
-            '/char/(list|browse|statistic)': ['GET'],
+            '/char/(list|browse|statistic|consistent)': ['GET'],
             '/api/char/(delete|source|extract_img)': ['POST'],
         }
     },
