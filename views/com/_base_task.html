@@ -37,6 +37,7 @@
     var remark = $('#remarkModal .remark').val().trim();
     remark && setStorage('taskRemark', remark);
     var isSample = $('#remarkModal .is_sample :checked').val() || '否';
+    $(this).text('进行中...');
     postApi('/task/remark', {data: {_id: taskId, remark: remark, is_sample: isSample}}, function () {
       showSuccess('成功', '已备注');
       navigate(getQueryString('to') || 'next');
@@ -124,6 +125,7 @@
     if (!reason.length) {
       return showError('失败', '尚未填写退回理由');
     }
+    $(this).text('进行中...');
     postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
       showSuccess('成功', '任务已退回成功。');
       goto('/task/lobby/' + taskType, 1000);
