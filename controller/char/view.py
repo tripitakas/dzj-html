@@ -227,7 +227,7 @@ class CharConsistentHandler(CharHandler):
                 page['page_count'] = p['page_count']
                 page['equal'] = page['char_count'] == p['page_count']
 
-            un_equal = {k: v for k, v in page_dict.items() if not v['equal']}
+            un_equal = {k: v for k, v in page_dict.items() if v.get('page_count') and not v.get('equal')}
 
             self.render('char_consistent.html', page_dict=un_equal)
 
