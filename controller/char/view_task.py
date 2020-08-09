@@ -184,7 +184,8 @@ class CharTaskClusterHandler(CharHandler):
             params = self.task['params']
             ocr_txts = [c['ocr_txt'] for c in params]
             user_level = self.get_user_txt_level(self, task_type)
-            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}, 'txt_level': {'$lte': user_level}}
+            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts} if len(ocr_txts) > 1 else ocr_txts[0],
+                    'txt_level': {'$lte': user_level}}
             # 统计任务相关字种
             counts = list(self.db.char.aggregate([
                 {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},

@@ -19,7 +19,7 @@ from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
-def update_char_column_cid(db, name=None):
+def update_column_cid(db, name=None):
     """ 更新char表的column字段"""
     cond = {'name': {'$regex': name}} if name else {}
     pages = list(db.page.find(cond, {'name': 1, 'chars': 1, 'columns': 1}))
@@ -34,7 +34,7 @@ def update_char_column_cid(db, name=None):
             }})
 
 
-def update_char_ocr_txt(db):
+def update_ocr_txt(db):
     """ char表的ocr_txt"""
     size = 1000
     page_count = math.ceil(db.char.count_documents({}) / size)
@@ -46,6 +46,22 @@ def update_char_ocr_txt(db):
         for ch in chars:
             if ch.get('alternatives'):
                 db.char.update_one({'_id': ch['_id']}, {'$set': {'ocr_txt': ch['alternatives'][0]}})
+
+
+def update_txt(db):
+    """ char表的txt"""
+    size = 1000
+    cond = {'source': '60华严'}
+    page_count = math.ceil(db.char.count_documents(cond) / size)
+    print('[%s]%s chars to process' % (hp.get_date_time(), page_count))
+    for i in range(page_count):
+        project = {'name': 1, 'txt': 1, 'alternatives': 1, 'ocr_txt': 1, 'ocr_col': 1, 'cc': 1}
+        chars = list(db.char.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        print('[%s]processing page %s/%s' % (hp.get_date_time(), i + 1, page_count))
+        for ch in chars:
+            if ch['txt'] != ch['ocr_txt'] and ch['ocr_txt'] not in ['', None, '■'] and (
+                    ch['ocr_txt'] == ch['ocr_col'] or ch['cc'] > 900):
+                db.char.update_one({'_id': ch['_id']}, {'$set': {'txt': ch['ocr_txt'], 'txt_bak': ch['txt']}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
