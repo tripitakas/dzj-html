@@ -17,7 +17,7 @@ from controller.page.tool.variant import normalize
 
 def get_hosts():
     config = load_config() or {}
-    hosts = [config.get('esearch') or {'host': '47.95.216.233', 'post': 9200}]
+    hosts = [config.get('esearch')]
     if hasattr(options, 'testing') and options.testing:
         hosts = [dict(host='dev.tripitakas.net')]
     return hosts
