@@ -18,14 +18,14 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
-from controller.page.tool.esearch import find_one
+from controller.page.tool.esearch import find_match
 from controller.page.base import PageHandler as Ph
 
 
 def find_cmp(db):
     """ 根据ocr文本，从cbeta库中寻找比对文本"""
     size = 10
-    condition = {'cmp_txt': {'$in': [None, '']}}
+    condition = {'cmp_txt': None}
     print('[%s]%s pages to process' % (hp.get_date_time(), db.page.count_documents(condition)))
     while db.page.count_documents(condition):
         pages = list(db.page.find(condition).sort('_id', 1).limit(size))
@@ -33,7 +33,7 @@ def find_cmp(db):
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             ocr = Ph.get_txt(page, 'ocr')
             ocr = re.sub(r'■+', '', ocr)
-            cmp_txt = find_one(ocr, only_match=True)[0]
+            cmp_txt = find_match(ocr)
             db.page.update_one({'_id': page['_id']}, {'$set': {'cmp_txt': cmp_txt}})
 
 
