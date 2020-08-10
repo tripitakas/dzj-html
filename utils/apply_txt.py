@@ -80,15 +80,20 @@ def migrate_txt_to_char(db, fields=None):
 
 def set_diff_symbol(db):
     """ 设置char表的diff标记"""
+
+    def is_valid(_txt):
+        return _txt not in [None, '', '■']
+
     size = 5000
     page_count = math.ceil(db.char.count_documents({}) / size)
     for i in range(page_count):
         print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
-        projection = {k: 1 for k in ['ocr_txt', 'ocr_col', 'cmp_txt', 'name']}
+        projection = {k: 1 for k in ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
         chars = list(db.char.find({}, projection).sort('_id', 1).skip(i * size).limit(size))
         diff, same = [], []
         for c in chars:
-            if len(set(c[k] for k in ['ocr_txt', 'ocr_col', 'cmp_txt'] if c.get(k) and c[k] != '■')) > 1:
+            txts = [c.get('alternatives') and c['alternatives'][0], c.get('ocr_col'), c.get('cmp_txt')]
+            if len(set(t for t in txts if is_valid(t))) > 1:
                 diff.append(c['_id'])
             else:
                 same.append(c['_id'])
@@ -96,7 +101,7 @@ def set_diff_symbol(db):
         db.char.update_many({'_id': {'$in': same}}, {'$set': {'diff': False}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='apply_txt', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
     print('finished.')
