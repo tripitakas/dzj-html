@@ -51,16 +51,21 @@ def update_ocr_txt(db, include_txt=True):
         print('[%s]processing %s' % (hp.get_date_time(), [ch['name'] for ch in chars]))
         for ch in chars:
             txts = [ch.get('alternatives') and ch['alternatives'][0], ch.get('ocr_col'), ch.get('cmp_txt')]
-            c = Counter([t for t in txts if is_valid(t)]).most_common(1)[0]
-            txt = ch.get('txt')
+            txts = [t for t in txts if is_valid(t)]
+            c = Counter(txts).most_common(1)[0]
+            ocr_txt, txt = txts and txts[0], ch.get('txt')
             if int(c[1]) > 1:
                 ocr_txt = c[0]
                 txt = ocr_txt
             elif ch['cc'] > 980:
                 ocr_txt = ch['alternatives'][0]
                 txt = ocr_txt
-            else:
-                ocr_txt = ch.get('cmp_txt') or ch.get('ocr_col')
+            elif is_valid(ch.get('cmp_txt')):
+                ocr_txt = ch['cmp_txt']
+                if not is_valid(txt):
+                    txt = ocr_txt
+            elif is_valid(ch.get('ocr_col')):
+                ocr_txt = ch['ocr_col']
                 if not is_valid(txt):
                     txt = ocr_txt
             update = {'ocr_txt': ocr_txt, 'txt': txt} if include_txt else {'ocr_txt': ocr_txt}
