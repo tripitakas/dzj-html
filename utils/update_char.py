@@ -82,10 +82,8 @@ def update_txt(db):
                 db.char.update_one({'_id': ch['_id']}, {'$set': {'txt': ch['ocr_txt'], 'txt_bak': ch['txt']}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='update_ocr_txt', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
-    uri_prod = 'mongodb://tripitaka-product:sm2019321-321.product@111.198.8.162:29019'
-    db = pymongo.MongoClient(uri_prod)['tripitaka-product']
     eval(func)(db, **kwargs)
 
 
