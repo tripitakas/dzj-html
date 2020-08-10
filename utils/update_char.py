@@ -9,6 +9,7 @@ import math
 import json
 import pymongo
 from os import path, walk
+from collections import Counter
 from operator import itemgetter
 from functools import cmp_to_key
 
@@ -34,18 +35,36 @@ def update_column_cid(db, name=None):
             }})
 
 
-def update_ocr_txt(db):
+def update_ocr_txt(db, include_txt=True):
     """ char表的ocr_txt"""
+
+    def is_valid(_txt):
+        return _txt not in [None, '', '■']
+
     size = 1000
-    page_count = math.ceil(db.char.count_documents({}) / size)
+    cond = {'source': '60华严'}
+    page_count = math.ceil(db.char.count_documents(cond) / size)
     print('[%s]%s chars to process' % (hp.get_date_time(), page_count))
     for i in range(page_count):
-        project = {'alternatives': 1, 'name': 1}
-        chars = list(db.char.find({}, project).sort('_id', 1).skip(i * size).limit(size))
+        fields = ['name', 'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt', 'cc']
+        chars = list(db.char.find(cond, {f: 1 for f in fields}).sort('_id', 1).skip(i * size).limit(size))
         print('[%s]processing %s' % (hp.get_date_time(), [ch['name'] for ch in chars]))
         for ch in chars:
-            if ch.get('alternatives'):
-                db.char.update_one({'_id': ch['_id']}, {'$set': {'ocr_txt': ch['alternatives'][0]}})
+            txts = [ch.get('alternatives') and ch['alternatives'][0], ch.get('ocr_col'), ch.get('cmp_txt')]
+            c = Counter([t for t in txts if is_valid(t)]).most_common(1)[0]
+            txt = ch.get('txt')
+            if int(c[1]) > 1:
+                ocr_txt = c[0]
+                txt = ocr_txt
+            elif ch['cc'] > 980:
+                ocr_txt = ch['alternatives'][0]
+                txt = ocr_txt
+            else:
+                ocr_txt = ch.get('cmp_txt') or ch.get('ocr_col')
+                if not is_valid(txt):
+                    txt = ocr_txt
+            update = {'ocr_txt': ocr_txt, 'txt': txt} if include_txt else {'ocr_txt': ocr_txt}
+            db.char.update_one({'_id': ch['_id']}, {'$set': update})
 
 
 def update_txt(db):
