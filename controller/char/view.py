@@ -30,10 +30,10 @@ class CharListHandler(CharHandler):
         {'id': 'txt_type', 'name': '文字类型'},
         {'id': 'txt', 'name': '原字'},
         {'id': 'nor_txt', 'name': '正字'},
-        {'id': 'ocr_txt', 'name': '字框OCR'},
+        {'id': 'ocr_txt', 'name': 'OCR文字'},
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'cmp_txt', 'name': '比对文字'},
-        {'id': 'alternatives', 'name': 'OCR候选'},
+        {'id': 'alternatives', 'name': '字框OCR'},
         {'id': 'diff', 'name': '是否不匹配'},
         {'id': 'txt_level', 'name': '文本等级'},
         {'id': 'txt_logs', 'name': '文本校对记录'},
@@ -41,10 +41,6 @@ class CharListHandler(CharHandler):
         {'id': 'remark', 'name': '备注'},
     ]
     operations = [
-        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/char/delete'},
-        {'operation': 'btn-duplicate', 'label': '查找重复'},
-        {'operation': 'bat-source', 'label': '更新分类'},
-        {'operation': 'bat-gen-img', 'label': '生成字图'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
@@ -56,13 +52,21 @@ class CharListHandler(CharHandler):
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in CharHandler.task_names('char', True).items()
         ]},
+        {'operation': 'btn-more', 'label': '更多操作', 'groups': [
+            {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/char/delete'},
+            {'operation': 'bat-source', 'label': '更新分类'},
+            {'operation': 'btn-duplicate', 'label': '查找重复'},
+            {'operation': 'bat-gen-img', 'label': '生成字图'},
+            {'operation': 'btn-check-consistent', 'label': '检查一致'},
+        ]},
     ]
     actions = [
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除', 'url': '/api/char/delete'},
     ]
-    hide_fields = ['page_name', 'cid', 'uid', 'data_level', 'txt_logs', 'sc', 'pos', 'column', 'proof_count']
+    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'data_level', 'cc', 'sc', 'pos', 'column', 'diff', 'txt_logs',
+                   'tasks', 'remark']
     info_fields = ['has_img', 'source', 'txt', 'nor_txt', 'txt_type', 'remark']
     update_fields = [
         {'id': 'txt_type', 'name': '类型', 'input_type': 'radio', 'options': Char.txt_types},
@@ -196,6 +200,36 @@ class CharBrowseHandler(CharHandler):
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
                 d['column']['img_url'] = self.get_web_img(column_name, 'column')
             self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order, chars=chars)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class CharConsistentHandler(CharHandler):
+    URL = '/char/consistent'
+
+    def get(self):
+        """ 检查字数据中某页的数据和页数据中字框的数量是否一致"""
+        try:
+
+            cond = self.get_char_search_condition(self.request.query)[0]
+            counts = list(self.db.char.aggregate([
+                {'$match': cond},
+                {'$group': {'_id': '$page_name', 'count': {'$sum': 1}}},
+            ]))
+            page_dict = {c['_id']: {'char_count': c['count']} for c in counts}
+            pages = list(self.db.page.aggregate([
+                {'$match': {'name': {'$in': list(page_dict.keys())}}},
+                {'$project': {'name': 1, 'page_count': {'$size': '$chars'}}}
+            ]))
+            for p in pages:
+                page = page_dict[p['name']]
+                page['page_count'] = p['page_count']
+                page['equal'] = page['char_count'] == p['page_count']
+
+            un_equal = {k: v for k, v in page_dict.items() if v.get('page_count') and not v.get('equal')}
+
+            self.render('char_consistent.html', page_dict=un_equal)
 
         except Exception as error:
             return self.send_db_error(error)

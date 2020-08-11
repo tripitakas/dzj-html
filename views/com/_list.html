@@ -32,7 +32,7 @@
                   <ul class="dropdown-menu" role="menu">
                     {% for so in o.get('groups') %}
                     {% if handler.is_mod_enabled(so.get('operation')) %}
-                    <li><a title="{{so.get('operation') or ''}}" href="javascript:void(0);">{{so.get('label')}}</a></li>
+                    <li><a class="{{so.get('operation') or ''}}" title="{{so.get('operation') or ''}}" href="javascript:void(0);">{{so.get('label')}}</a></li>
                     <li class="divider"></li>
                     {% end %}
                     {% end %}

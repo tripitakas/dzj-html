@@ -68,6 +68,7 @@ class ArticleListHandler(BaseHandler, Article):
 
         def pack_content(content):
             size = 200
+            content = content.replace('&nbsp;', '')
             content = re.sub(r'<.*?>', '', content)
             if len(content) > size:
                 content = content[:size] + '...'

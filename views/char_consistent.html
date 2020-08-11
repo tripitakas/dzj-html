@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <title>页字数据一致性检查</title>
+  {% include com/_base_css.html %}
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .size {
+      color: #B8906F;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    {% module ComLeft(active_id='#char-list') %}
+    <div class="main-content">
+      {% module ComHead() %}
+      <div class="layout">
+        <div class="wrapper">
+          <div class="sty-list">
+            <div class="operation">
+              <div class="size">共有{{len(page_dict)}}个页面</div>
+            </div>
+
+            <table class="sty-table">
+              <thead>
+              <tr>
+                <th><span>页码</span></th>
+                <th><span>页字框数</span></th>
+                <th><span>字数据量</span></th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for name, page in page_dict.items() %}
+              <tr>
+                <td>{{name}}</td>
+                <td>{{page['page_count']}}</td>
+                <td>{{page['char_count']}}</td>
+              </tr>
+              {% end %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include com/_base_js.html %}
+<script>
+</script>
+</body>
+</html>

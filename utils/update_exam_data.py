@@ -409,7 +409,7 @@ def reset_user_data_and_tasks(db, user_no=None, admin_name=None):
     db.oplog.update_one({'_id': _id}, {'$set': {'status': 'finished'}})
 
 
-def main(db=None, db_name=None, uri=None, func='reset_user_data_and_tasks', **kwargs):
+def main(db=None, db_name=None, uri=None, func='', **kwargs):
     cfg = hp.load_config()
     db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
     eval(func)(db, **kwargs)

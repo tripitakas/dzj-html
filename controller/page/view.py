@@ -30,16 +30,17 @@ class PageListHandler(PageHandler):
         {'id': 'op_text', 'name': '文本匹配'},
     ]
     info_fields = ['name', 'source', 'box_ready', 'layout', 'remark_box', 'op_text']
-    hide_fields = ['uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'box_ready', ]
+    hide_fields = ['uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'remark_box', 'remark_txt', 'op_text']
     operations = [
-        {'operation': 'bat-delete', 'label': '批量删除'},
-        {'operation': 'btn-duplicate', 'label': '查找重复'},
-        {'operation': 'bat-source', 'label': '更新分类'},
-        {'operation': 'bat-gen-chars', 'label': '生成字表'},
-        {'operation': 'btn-check-match', 'label': '检查图文匹配'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, False).items()
+        ]},
+        {'operation': 'btn-more', 'label': '更多操作', 'groups': [
+            {'operation': 'bat-delete', 'label': '批量删除'},
+            {'operation': 'bat-source', 'label': '更新分类'},
+            {'operation': 'btn-duplicate', 'label': '查找重复'},
+            {'operation': 'bat-gen-chars', 'label': '生成字数据'},
         ]},
     ]
     actions = [
@@ -72,7 +73,7 @@ class PageListHandler(PageHandler):
         if self.prop(self.config, 'site.skin') == 'nlc':
             kwargs['operations'] = [o for o in kwargs['operations'] if o.get('label') not in ['生成字表', '检查图文匹配']]
         if '系统管理员' in self.current_user['roles']:
-            kwargs['operations'][-1]['groups'] = [
+            kwargs['operations'][-2]['groups'] = [
                 {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, True).items()
             ]
         return kwargs
@@ -156,7 +157,7 @@ class PageBrowseHandler(PageHandler):
                 condition['page_code'] = {'$lt': page_code}
                 page = self.db.page.find_one(condition, sort=[('page_code', -1)])
             if not page:
-                message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')
+                message = '已是第一页' if to == 'prev' else '已是最后一页'
                 return self.send_error_response(e.no_object, message=message)
 
             txts = self.get_txts(page)

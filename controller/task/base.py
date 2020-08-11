@@ -60,7 +60,7 @@ class TaskHandler(BaseHandler, Task):
         condition.update({'_id': {'$gt' if to == 'prev' else '$lt': ObjectId(task_id)}})
         to_task = self.db.task.find_one(condition, sort=[('_id', 1 if to == 'prev' else -1)])
         if not to_task:
-            error = e.task_not_existed[0], '没有找到任务%s的%s任务' % (task_id, '前一个' if to == 'prev' else '后一个')
+            error = e.task_not_existed[0], '已是第一个任务' if to == 'prev' else '已是最后一个任务'
             return None, error
         elif task['task_type'] != to_task['task_type']:
             # 如果task和to_task任务类型不一致，则切换url

@@ -35,6 +35,10 @@ class Tripitaka(Model):
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
 
+    @classmethod
+    def get_must_fields(cls):
+        return ['tripitaka_code', 'name', 'store_pattern']
+
 
 class Sutra(Model):
     collection = 'sutra'

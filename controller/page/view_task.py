@@ -55,7 +55,7 @@ class PageTaskListHandler(PageHandler):
         {'action': 'btn-delete', 'label': '删除'},
         {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
     ]
-    hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
+    hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
     update_fields = []
 
     def get_template_kwargs(self, fields=None):
