@@ -18,14 +18,14 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
-from controller.page.tool.esearch import find_one
+from controller.page.tool.esearch import find_match
 from controller.page.base import PageHandler as Ph
 
 
 def find_cmp(db):
     """ 根据ocr文本，从cbeta库中寻找比对文本"""
     size = 10
-    condition = {'cmp_txt': {'$in': [None, '']}}
+    condition = {'cmp_txt': None}
     print('[%s]%s pages to process' % (hp.get_date_time(), db.page.count_documents(condition)))
     while db.page.count_documents(condition):
         pages = list(db.page.find(condition).sort('_id', 1).limit(size))
@@ -33,7 +33,7 @@ def find_cmp(db):
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             ocr = Ph.get_txt(page, 'ocr')
             ocr = re.sub(r'■+', '', ocr)
-            cmp_txt = find_one(ocr, only_match=True)[0]
+            cmp_txt = find_match(ocr)
             db.page.update_one({'_id': page['_id']}, {'$set': {'cmp_txt': cmp_txt}})
 
 
@@ -80,15 +80,21 @@ def migrate_txt_to_char(db, fields=None):
 
 def set_diff_symbol(db):
     """ 设置char表的diff标记"""
+
+    def is_valid(_txt):
+        return _txt not in [None, '', '■']
+
     size = 5000
-    page_count = math.ceil(db.char.count_documents({}) / size)
+    cond = {'source': '60华严'}
+    page_count = math.ceil(db.char.count_documents(cond) / size)
     for i in range(page_count):
         print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
-        projection = {k: 1 for k in ['ocr_txt', 'ocr_col', 'cmp_txt', 'name']}
-        chars = list(db.char.find({}, projection).sort('_id', 1).skip(i * size).limit(size))
+        projection = {k: 1 for k in ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
+        chars = list(db.char.find(cond, projection).sort('_id', 1).skip(i * size).limit(size))
         diff, same = [], []
         for c in chars:
-            if len(set(c[k] for k in ['ocr_txt', 'ocr_col', 'cmp_txt'] if c.get(k) and c[k] != '■')) > 1:
+            txts = [c.get('alternatives') and c['alternatives'][0], c.get('ocr_col'), c.get('cmp_txt')]
+            if len(set(t for t in txts if is_valid(t))) > 1:
                 diff.append(c['_id'])
             else:
                 same.append(c['_id'])
@@ -96,7 +102,7 @@ def set_diff_symbol(db):
         db.char.update_many({'_id': {'$in': same}}, {'$set': {'diff': False}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='apply_txt', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
     print('finished.')

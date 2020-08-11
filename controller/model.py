@@ -73,6 +73,10 @@ class Model(object):
         return v.validate(doc, rules)
 
     @classmethod
+    def get_must_fields(cls):
+        return [f['id'] for f in cls.fields]
+
+    @classmethod
     def get_fields(cls):
         return [f['id'] for f in cls.fields]
 
@@ -223,7 +227,7 @@ class Model(object):
         if not docs and file_stream:
             rows = list(csv.reader(file_stream))
             heads = [cls.get_field_by_name(r) for r in rows[0]]
-            need_fields = [cls.get_field_name(r) for r in cls.get_fields() if r not in heads]
+            need_fields = [cls.get_field_name(r) for r in cls.get_must_fields() if r not in heads]
             if need_fields:
                 message = '缺以下字段：%s' % ','.join(need_fields)
                 return dict(status='failed', code=e.field_error[0], message=message)
