@@ -85,11 +85,12 @@ def set_diff_symbol(db):
         return _txt not in [None, '', '■']
 
     size = 5000
-    page_count = math.ceil(db.char.count_documents({}) / size)
+    cond = {'source': '60华严'}
+    page_count = math.ceil(db.char.count_documents(cond) / size)
     for i in range(page_count):
         print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
         projection = {k: 1 for k in ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
-        chars = list(db.char.find({}, projection).sort('_id', 1).skip(i * size).limit(size))
+        chars = list(db.char.find(cond, projection).sort('_id', 1).skip(i * size).limit(size))
         diff, same = [], []
         for c in chars:
             txts = [c.get('alternatives') and c['alternatives'][0], c.get('ocr_col'), c.get('cmp_txt')]

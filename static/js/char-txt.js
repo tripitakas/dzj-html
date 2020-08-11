@@ -48,8 +48,8 @@ function updateCharTxtPanel(ch) {
   // 更新候选字列表
   var html1 = ch.ocr_col && ch.ocr_col !== '■' ? `<span class="txt-item ocr-col${ch.ocr_col === ch.txt ? ' active' : ''}">${ch.ocr_col}</span>` : '';
   html1 += ch.cmp_txt && ch.cmp_txt !== '■' ? `<span class="txt-item cmp-txt${ch.cmp_txt === ch.txt ? ' active' : ''}">${ch.cmp_txt}</span>` : '';
-  html1 += (ch.alternatives || '').split('').map(function (c) {
-    return `<span class="txt-item${c === ch.txt ? ' active' : ''}">${c}</span>`;
+  html1 += (ch.alternatives || '').split('').map(function (c, n) {
+    return `<span class="txt-item${n ? '' : ' ocr-char'}${c === ch.txt ? ' active' : ''}">${c}</span>`;
   }).join('');
   $('.txt-alternatives .body').html(html1);
   $('.txt-alternatives').toggleClass('hide', !html1.length);
