@@ -210,7 +210,7 @@
             <h4 class="item-title">针对哪些数据？</h4>
             <div class="range">
               <label class="radio-inline"><input type="radio" name="range" value="selected" checked>选中记录(<span class="selected-count">0</span>条)</label>
-              <label class="radio-inline"><input type="radio" name="range" value="searched">检索结果({{pager['doc_count']}}条)</label>
+              <label class="radio-inline hide"><input type="radio" name="range" value="searched">检索结果({{pager['doc_count']}}条)</label>
             </div>
           </div>
           <div class="form-group">
@@ -259,6 +259,14 @@
             <h4 class="control-label">选择校次</h4>
             <div class="value"></div>
           </div>
+          <div class="form-group priority">
+            <h4 class="control-label">选择优先级</h4>
+            <div class="value">
+              <label class="radio-inline"><input type="radio" name="priority" value="3">高</label>
+              <label class="radio-inline"><input type="radio" name="priority" value="2" checked>中</label>
+              <label class="radio-inline"><input type="radio" name="priority" value="1">低</label>
+            </div>
+          </div>
           <div class="form-group source">
             <h4 class="control-label">选择数据分类</h4>
             <input type="text" class="form-control value" placeholder="请输入分类"/>
@@ -293,17 +301,20 @@
     var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
     if (data.type === 'selected' && !ids.length) return showError('错误', '选中记录不允许为空。');
     if (data.type === 'searched' && !data.search) return showError('错误', '检索条件不允许为空。');
+    $(this).text('进行中...');
     postApi('/char/source', {data: data}, () => location.reload());
   });
 
   // 生成字图
   $('.operation .bat-gen-img').on('click', function () {
+    if (!$('table tbody :checked').length) return showWarning('提示', '请选择字图');
     $('#extractModal .selected-count').text($('table tbody :checked').length);
     $('#extractModal').modal();
   });
   $('#extractModal .modal-confirm').on('click', function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     var data = {_ids: ids, type: $('#extractModal .range :checked').val(), regen: $('.regen :checked').val(), search: location.search};
+    $(this).text('进行中...');
     postApi('/char/extract_img', {data: data}, (res) => {
       Swal0.fire({
         type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
@@ -326,6 +337,11 @@
   // 查看
   $('.btn-detail').on('click', function () {
     location.href = '/char/' + $(this).parent().parent().find('.name').text();
+  });
+
+  // 检查字页数量是否一致
+  $('.operation .btn-check-consistent').on('click', function () {
+    location.href = '/char/consistent' + location.search;
   });
 
 </script>
@@ -383,13 +399,15 @@
   });
 
   $('#publishModal .modal-confirm').on('click', function () {
+    $(this).text('进行中...');
     var num = $('#publishModal .num :checked').val();
     var batch = $('#publishModal .batch .value').val();
     var source = $('#publishModal .source .value').val();
+    var priority = $('#publishModal .priority :checked').val();
     var preTasks = $.map($('.pre_tasks :checked'), function (item) {
       return $(item).attr('title');
     });
-    var data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, source: source};
+    var data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, priority: priority, source: source};
     postApi('/char/task/publish', {data: data}, (res) => {
       var tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;
       Swal0.fire({title: '成功', html: tips, type: 'success', footer: '详情可以查看<a href="/sys/oplog/latest">日志</a>'});

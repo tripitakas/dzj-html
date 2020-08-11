@@ -4,6 +4,7 @@
 @time: 2019/12/08
 """
 import re
+import os
 import inspect
 from os import path
 from glob2 import glob
@@ -30,7 +31,7 @@ class SysLogListHandler(BaseHandler, Log):
 
     page_title = '操作日志'
     table_fields = [
-        {'id': 'op_type', 'name': '类型', 'filter': Log.op_types},
+        {'id': 'op_type', 'name': '类型'},
         {'id': 'target_id', 'name': '数据对象'},
         {'id': 'content', 'name': '内容'},
         {'id': 'remark', 'name': '备注'},
@@ -41,13 +42,19 @@ class SysLogListHandler(BaseHandler, Log):
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
     img_operations = []
-    info_fields = ['']
-    actions = []
+    info_fields = ['content']
+    update_fields = [{'id': 'content', 'name': '内容', 'input_type': 'textarea'}]
+    actions = [
+        {'action': 'btn-view', 'label': '查看'},
+    ]
 
     @classmethod
     def format_value(cls, value, key=None, doc=None):
         if key == 'op_type':
             return cls.get_type_name(value)
+        if key == 'content' and value:
+            value, size = str(value), 80
+            return '%s%s' % (value[:size], '...' if len(value) > size else '')
         return h.format_value(value, key, doc)
 
     def get(self):
@@ -78,15 +85,22 @@ class SysUploadOssHandler(BaseHandler, Log):
 
     def get(self):
         """ 上传图片至OSS"""
+        char_names, column_names = [], []
         img_root = path.join(h.BASE_DIR, 'static', 'img')
-        char_fn = glob(path.join(img_root, 'chars', '**', '*.jpg'))
-        char_count = len(char_fn)
-        char_names = [path.basename(fn) for fn in char_fn][:100]
-        column_fn = glob(path.join(img_root, 'columns', '**', '*.jpg'))
-        column_count = len(column_fn)
-        column_names = [path.basename(fn) for fn in column_fn][:100]
-        self.render('sys_upload_oss.html', char_count=char_count, char_names=char_names,
-                    column_count=column_count, column_names=column_names)
+        char_count = sum([len(x) for _, _, x in os.walk(path.join(img_root, 'chars'))])
+        column_count = sum([len(x) for _, _, x in os.walk(path.join(img_root, 'columns'))])
+        for root, dirs, files in os.walk(path.join(img_root, 'chars')):
+            if len(char_names) < 100:
+                char_names.extend([path.basename(fn) for fn in files if fn.endswith('.jpg')])
+            else:
+                break
+        for root, dirs, files in os.walk(path.join(img_root, 'columns')):
+            if len(column_names) < 100:
+                column_names.extend([path.basename(fn) for fn in files if fn.endswith('.jpg')])
+            else:
+                break
+        self.render('sys_upload_oss.html', char_count=char_count, char_names=char_names[:100],
+                    column_count=column_count, column_names=column_names[:100])
 
 
 class SysOplogListHandler(BaseHandler, Oplog):

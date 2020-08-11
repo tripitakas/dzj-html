@@ -268,9 +268,11 @@
         <h4 class="control-label">检查哪些字段</h4>
         <div class="field">
           {% for k, name in handler.match_fields.items() %}
+          {% if name %}
           <label class="checkbox-inline">
             <input type="checkbox" class="{{k}}" title="{{k}}" checked>{{name}}
           </label>
+          {% end %}
           {% end %}
         </div>
         <h4 class="control-label hide">不匹配时，是否自动发布任务？</h4>
@@ -372,6 +374,7 @@
     $('#checkModal').modal();
   });
   $('#checkModal .modal-confirm').on('click', function () {
+    $(this).text('进行中...');
     var field = $.map($('#checkModal .field :checked'), function (item) {
       return $(item).attr('title');
     });
@@ -545,6 +548,7 @@
         isFile = true;
         break;
     }
+    $(this).text('进行中...');
     postApi('/page/task/publish', isFile ? formData : {data: data}, function (res) {
       Swal0.fire({
         type: 'success', title: '成功', html: res.message,

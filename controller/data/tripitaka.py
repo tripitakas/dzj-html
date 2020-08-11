@@ -41,7 +41,10 @@ class TptkViewHandler(PageHandler):
                 return self.send_error_response(e.no_object, message='藏经%s不存在' % m.group(1))
 
             # 获取当前页信息
-            level = tripitaka.get('store_pattern') and len(tripitaka['store_pattern'].split('_'))
+            if len(page_name) == 2 and tripitaka.get('first_page'):
+                page_name = tripitaka.get('first_page')
+            assert tripitaka.get('store_pattern')
+            level = len(tripitaka['store_pattern'].split('_'))
             page_name = self.pad_name(page_name, level)
             name_slice = page_name.split('_')
             cur_page = int(name_slice[-1])

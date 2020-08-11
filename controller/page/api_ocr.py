@@ -172,7 +172,10 @@ class SubmitTasksApi(PageHandler):
             oc = chars1.get(c['cid'])
             if not oc:
                 return e.box_not_identical[0], '字框（cid：%s）缺失' % c['cid']
-            c.update({k: oc.get(k) or c.get(k) for k in ['cc', 'alternatives', 'ocr_txt', 'txt']})
+            c.update({k: oc.get(k) or c.get(k) for k in ['cc', 'alternatives', 'ocr_txt']})
+            # 如果用户未修改，则更新，否则不更新
+            if not c.get('txt') or c['txt'] == c['ocr_txt']:
+                c['txt'] = oc.get('ocr_txt')
         # 将列文本适配至字框
         self.apply_txt(page, 'ocr_col')
 

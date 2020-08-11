@@ -17,6 +17,7 @@ class Tripitaka(Model):
         {'id': 'name', 'name': '藏名'},
         {'id': 'short_name', 'name': '简称'},
         {'id': 'store_pattern', 'name': '存储模式'},
+        {'id': 'first_page', 'name': '第一页'},
         {'id': 'img_available', 'name': '图片是否就绪', 'input_type': 'radio', 'options': ['是', '否']},
         {'id': 'remark', 'name': '备注'}
     ]
@@ -30,8 +31,13 @@ class Tripitaka(Model):
     search_tips = '请搜索藏经名称和编码'
     search_fields = ['name', 'tripitaka_code']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
+    info_fields = [f['id'] for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
+
+    @classmethod
+    def get_must_fields(cls):
+        return ['tripitaka_code', 'name', 'store_pattern']
 
 
 class Sutra(Model):
@@ -61,6 +67,7 @@ class Sutra(Model):
     search_tips = '请搜索统一经编码、经编码、经名、起始册'
     search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
+    info_fields = [f['id'] for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
 
@@ -91,6 +98,7 @@ class Reel(Model):
     search_tips = '请搜索统一经编码、经编码、经名、卷编码和起始册'
     search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'reel_code', 'start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
+    info_fields = [f['id'] for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
 

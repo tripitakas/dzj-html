@@ -106,7 +106,7 @@
         </div>
         <div class="char-items">
           {% for d in docs %}
-          <div class="char-item proof{{len(d.get('txt_logs') or [])}}" id="{{d['name']}}" data-id="{{d['name']}}">
+          <div class="char-item proof{{len(d.get('txt_logs') or [])}}{{' diff' if d.get('diff') else ''}}" id="{{d['name']}}" data-id="{{d['name']}}">
             <div class="char-img">
               <img src="{{handler.get_char_img(d)}}"/>
             </div>
@@ -310,6 +310,7 @@
       $('.char-info, .cc').toggleClass('hide', showCharInfo.val() !== '是');
     }
     if (JSON.stringify(data) !== '{}') {
+      $(this).text('进行中...');
       postApi('/session/config', {data: data}, function () {
         location.reload();
       });
@@ -330,6 +331,7 @@
     } else if (!data.normal_txt.length) {
       return showWarning('提示', '请输入异体字所属正字');
     } else {
+      $(this).text('进行中...');
       postApi('/data/variant', {data: data}, function (res) {
         $("#variantModal").modal('hide');
         if (/[0-9a-zA-Z_]+/.test(data.txt)) {

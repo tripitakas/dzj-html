@@ -68,6 +68,10 @@
   border-bottom: 2px solid rgba(255, 0, 0, .4);
 }
 
+.ocr-char {
+  border-bottom: 2px solid rgba(0, 0, 255, 0.4);
+}
+
 .cmp-txt {
   border-bottom: 2px solid rgba(0, 255, 0, .4);
 }

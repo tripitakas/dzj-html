@@ -147,7 +147,7 @@ def is_phone(**kw):
     """ 检查是否为手机。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
-    regex = r'^1[34578]\d{9}$'
+    regex = r'^1[23456789]\d{9}$'
     # 值为空或空串时跳过而不检查
     if v and not re.match(regex, str(v)):
         return {k: e.invalid_phone}
