@@ -60,8 +60,6 @@ def update_ocr_txt(db, include_txt=True):
                 ocr_txt = ch['alternatives'][0]
             elif is_valid(ch.get('cmp_txt')):
                 ocr_txt = ch['cmp_txt']
-            elif is_valid(ch.get('ocr_col')):
-                ocr_txt = ch['ocr_col']
             update = {'ocr_txt': ocr_txt, 'txt': ocr_txt} if include_txt else {'ocr_txt': ocr_txt}
             db.char.update_one({'_id': ch['_id']}, {'$set': update})
 
