@@ -45,6 +45,7 @@ class Diff(object):
         if label and isinstance(label, dict):
             lbl.update(label)
 
+        base = base or ''
         if not cmp1 and not cmp2 and not cmp3:
             return Diff._diff_one(base), []
 
