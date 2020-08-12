@@ -206,6 +206,7 @@ class Task(Model):
         if picked_user_id:
             params['picked_user_id'] = picked_user_id
             condition.update({'picked_user_id': ObjectId(picked_user_id)})
+
         publish_start = h.get_url_param('publish_start', request_query)
         if publish_start:
             params['publish_start'] = publish_start
@@ -215,6 +216,7 @@ class Task(Model):
             params['publish_end'] = publish_end
             condition['publish_time'] = condition.get('publish_time') or {}
             condition['publish_time'].update({'$lt': datetime.strptime(publish_end, '%Y-%m-%d %H:%M:%S')})
+
         picked_start = h.get_url_param('picked_start', request_query)
         if picked_start:
             params['picked_start'] = picked_start
@@ -224,13 +226,24 @@ class Task(Model):
             params['picked_end'] = picked_end
             condition['picked_time'] = condition.get('picked_time') or {}
             condition['picked_time'].update({'$lt': datetime.strptime(picked_end, '%Y-%m-%d %H:%M:%S')})
+
         finished_start = h.get_url_param('finished_start', request_query)
         if finished_start:
             params['finished_start'] = finished_start
-            condition['picked_time'] = {'$gt': datetime.strptime(finished_start, '%Y-%m-%d %H:%M:%S')}
+            condition['finished_time'] = {'$gt': datetime.strptime(finished_start, '%Y-%m-%d %H:%M:%S')}
         finished_end = h.get_url_param('finished_end', request_query)
         if finished_end:
             params['finished_end'] = finished_end
             condition['finished_time'] = condition.get('finished_time') or {}
             condition['finished_time'].update({'$lt': datetime.strptime(finished_end, '%Y-%m-%d %H:%M:%S')})
+
+        updated_start = h.get_url_param('updated_start', request_query)
+        if updated_start:
+            params['updated_start'] = updated_start
+            condition['updated_time'] = {'$gt': datetime.strptime(updated_start, '%Y-%m-%d %H:%M:%S')}
+        updated_end = h.get_url_param('updated_end', request_query)
+        if updated_end:
+            params['updated_end'] = updated_end
+            condition['updated_time'] = condition.get('updated_time') or {}
+            condition['updated_time'].update({'$lt': datetime.strptime(updated_end, '%Y-%m-%d %H:%M:%S')})
         return condition, params

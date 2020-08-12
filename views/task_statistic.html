@@ -7,6 +7,13 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    .tips {
+      color: var(--Brown_Darker);
+      font-size: 14px;
+      font-style: italic;
+    }
+  </style>
 
 <body>
 <div class="app-main">
@@ -17,6 +24,7 @@
       <div class="layout">
         <div class="wrapper">
           <div class="sty-list">
+            <div class="tips">合计{{sum([c['count'] for c in counts])}}条任务</div>
             <table class="sty-table">
               <thead>
               <tr>
