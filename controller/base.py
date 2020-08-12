@@ -172,22 +172,19 @@ class BaseHandler(CorsMixin, RequestHandler):
             kwargs.update(dict(code=500, message=message))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
-    def get_request_data(self, default_value=None):
+    def get_request_data(self):
         """
         获取请求数据。
         客户端请求需在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
         """
-        try:
-            if 'data' not in self.request.body_arguments:
-                body = b'{"data":' in self.request.body and json_util.loads(to_basestring(self.request.body)).get('data')
-            else:
-                body = json_util.loads(to_basestring(self.get_body_argument('data')))
-            if not body:
-                body = dict(self.request.arguments)
-                for k, s in body.items():
-                    body[k] = to_basestring(s[0])
-        except ValueError:
-            body = default_value
+        if 'data' not in self.request.body_arguments:
+            body = b'{"data":' in self.request.body and json_util.loads(to_basestring(self.request.body)).get('data')
+        else:
+            body = json_util.loads(to_basestring(self.get_body_argument('data')))
+        if not body:
+            body = dict(self.request.arguments)
+            for k, s in body.items():
+                body[k] = to_basestring(s[0])
         return body or {}
 
     def send_data_response(self, data=None, **kwargs):
