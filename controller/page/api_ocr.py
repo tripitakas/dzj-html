@@ -141,7 +141,7 @@ class SubmitTasksApi(PageHandler):
         page = self.db.page.find_one({'name': task.get('page_name')})
         if not page:
             return e.no_object
-        update = {k: self.prop(page, k) or self.prop(task, 'result.' + k) for k in ['width', 'height', 'layout']}
+        update = {k: self.prop(task, 'result.' + k) or self.prop(page, k) for k in ['width', 'height', 'layout']}
         update.update({k: self.prop(task, 'result.' + k) for k in ['blocks', 'columns', 'chars']})
         update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
         self.apply_txt(update, 'ocr_col')
