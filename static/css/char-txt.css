@@ -52,6 +52,7 @@
   text-align: center;
   margin: 0 15px 5px 0;
   border: 1px solid #ccc;
+  font-family: Microsoft YaHei, SimSun, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
 }
 
 .txt-item.active {
