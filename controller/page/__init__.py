@@ -6,6 +6,7 @@ views = [
     view.PageTxtMatchHandler, view.PageFindCmpHandler,
     vt.PageTaskCutHandler, vt.PageTaskTextHandler, vt.PageTaskDashBoardHandler,
     vt.PageTaskListHandler, vt.PageTaskStatHandler, vt.PageTaskResumeHandler,
+    view.PageBlockHandler,
 ]
 
 handlers = [
@@ -16,4 +17,5 @@ handlers = [
     api.PageStartGenCharsApi, api.PageStartCheckMatchApi,
     at.PageTaskPublishApi, at.PageTaskCutApi, at.PageTaskTextApi,
     ao.FetchTasksApi, ao.SubmitTasksApi, ao.ConfirmFetchApi,
+    api.PageBlocksApi,
 ]

@@ -84,6 +84,8 @@ role_route_maps = {
             '/page/@page_name': ['GET'],
             '/page/box/@page_name': ['GET'],
             '/api/page/box/@page_name': ['POST'],
+            '/page/block/@page_name': ['GET'],
+            '/api/page/block/@page_name': ['POST'],
             '/api/page/txt_match/diff': ['POST'],
             '/api/page/find_cmp/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],

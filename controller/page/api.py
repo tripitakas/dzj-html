@@ -142,6 +142,25 @@ class PageBoxApi(PageHandler):
         return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
 
 
+class PageBlocksApi(PageHandler):
+    URL = ['/api/page/block/@page_name']
+
+    def post(self, page_name):
+        """ 提交栏框校对"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            rules = [(v.not_empty, 'blocks')]
+            self.validate(self.data, rules)
+            self.db.page.update_one({'_id': page['_id']}, {'$set': {'blocks': self.data['blocks']}})
+            self.send_data_response({'valid': True})
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class PageOrderApi(PageHandler):
     URL = ['/api/page/order/@page_name']
 
