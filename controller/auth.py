@@ -84,6 +84,8 @@ role_route_maps = {
             '/page/@page_name': ['GET'],
             '/page/box/@page_name': ['GET'],
             '/api/page/box/@page_name': ['POST'],
+            '/page/block/@page_name': ['GET'],
+            '/api/page/block/@page_name': ['POST'],
             '/api/page/txt_match/diff': ['POST'],
             '/api/page/find_cmp/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
@@ -206,6 +208,7 @@ role_route_maps = {
         'roles': ['工作人员'],
         'routes': {
             '/page/task/list': ['GET'],
+            '/api/user/list': ['POST'],
             '/task/browse/(cut_proof|cut_review)/@task_id': ['GET'],
         }
     },
@@ -214,6 +217,7 @@ role_route_maps = {
         'roles': ['工作人员'],
         'routes': {
             '/char/task/list': ['GET'],
+            '/api/user/list': ['POST'],
             '/task/browse/@cluster_task/@task_id': ['GET'],
         }
     },

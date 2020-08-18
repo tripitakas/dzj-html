@@ -38,6 +38,7 @@
         <div id="toggle-order" class="btn-txt icon-char-order{{' active' if btn_config.get('toggle-order') == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
         <div id="toggle-more" class="btn-txt icon-more" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
         <div class="btn-group more-group hide" id="more-group">
+          <button id="btn-block" type="button" class="btn btn-default btn-sm">修改栏框</button>
           <button id="btn-box" type="button" class="btn btn-default btn-sm">修改切分</button>
           <button id="btn-order" type="button" class="btn btn-default btn-sm">修改字序</button>
         </div>
@@ -160,6 +161,11 @@
     location = '/page/box/{{page["name"]}}?from=' + encodeFrom();
   });
 
+  // 修改栏框
+  $('#btn-block').on('click', function () {
+    location = '/page/block/{{page["name"]}}?from=' + encodeFrom();
+  });
+
   // 修改字序
   $('#btn-order').on('click', function () {
     location = '/page/order/{{page["name"]}}?from=' + encodeFrom();
@@ -171,7 +177,7 @@
     var buttons = ['image', 'right', 'blur', 'block', 'column', 'char', 'order'];
     buttons.forEach((b) => config['toggle-' + b] = $('.m-header #toggle-' + b).hasClass('active') ? 1 : -1);
     config['fields'] = $('#remarkModal :radio[name="fields"]:checked').val() || '';
-    if ($('.btn-show-txt.active').length){
+    if ($('.btn-show-txt.active').length) {
       config['sutra-txt'] = $('.btn-show-txt.active').attr('data-id').replace('text-', '');
     }
     return config;

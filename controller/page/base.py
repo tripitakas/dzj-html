@@ -99,11 +99,11 @@ class PageHandler(TaskHandler, Page, Box):
 
     def set_box_access(self, page, task_type=None):
         """ 设置切分框的读写权限"""
-        for b in page['chars']:
+        for b in page.get('chars') or []:
             b['readonly'] = not self.can_write(b, page, task_type)
-        for b in page['columns']:
+        for b in page.get('columns') or []:
             b['readonly'] = not self.can_write(b, page, task_type)
-        for b in page['blocks']:
+        for b in page.get('blocks') or []:
             b['readonly'] = not self.can_write(b, page, task_type)
 
     @classmethod
