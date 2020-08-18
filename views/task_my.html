@@ -35,7 +35,7 @@
   // 修改
   $('.action .my-task-update').click(function () {
     var data = getData($(this).parent().parent().attr('id'));
-    location.href = '/task/update/' + data.task_type + '/' + data._id + 'from=' + encodeFrom();
+    location.href = '/task/update/' + data.task_type + '/' + data._id + '?from=' + encodeFrom();
   });
 
 </script>
