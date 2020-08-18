@@ -208,6 +208,7 @@ role_route_maps = {
         'roles': ['工作人员'],
         'routes': {
             '/page/task/list': ['GET'],
+            '/api/user/list': ['POST'],
             '/task/browse/(cut_proof|cut_review)/@task_id': ['GET'],
         }
     },
@@ -216,6 +217,7 @@ role_route_maps = {
         'roles': ['工作人员'],
         'routes': {
             '/char/task/list': ['GET'],
+            '/api/user/list': ['POST'],
             '/task/browse/@cluster_task/@task_id': ['GET'],
         }
     },
