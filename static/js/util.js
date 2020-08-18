@@ -106,7 +106,7 @@ function setAnchor(anchor) {
 }
 
 function encodeFrom() {
-  // 将第一个?替换为&，然后删除to/page等参数
+  // 将第一个?替换为&
   var url = location.pathname + location.search.replace('?', '&');
   return url;
   // return deleteParam(url, 'to');
