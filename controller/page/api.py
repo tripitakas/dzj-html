@@ -6,6 +6,7 @@ import os
 import json
 import math
 import random
+import logging
 from bson.objectid import ObjectId
 from tornado.escape import native_str, url_escape, to_basestring
 from .page import Page
@@ -27,12 +28,12 @@ class PageUploadApi(BaseHandler):
     def post(self):
         """ 批量上传，供小欧调用"""
         try:
-            print('[%s]upload page start' % h.get_date_time())
             source = self.data.get('source')
             layout = self.data.get('layout')
             upload_file = self.request.files.get('json')
             page_names = json.loads(to_basestring(upload_file[0]['body']))
             page_names = [name.rsplit('.', 1)[0] for name in page_names]
+            logging.info('upload page start, %s pages total' % len(page_names))
 
             existed, size = [], 10000
             count = math.ceil(len(page_names) / size)
@@ -47,8 +48,6 @@ class PageUploadApi(BaseHandler):
                 self.db.page.insert_many(pages, ordered=False)
 
             self.add_log('upload_page', content='%s pages, %s' % (len(page_names or []), page_names or ''))
-            print('[%s]upload page end' % h.get_date_time())
-
             self.send_data_response()
 
         except self.DbError as error:
