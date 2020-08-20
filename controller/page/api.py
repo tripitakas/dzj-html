@@ -42,8 +42,10 @@ class PageUploadApi(BaseHandler):
                 existed.extend([p['name'] for p in pages])
 
             if existed:
+                logging.info('upload page, find %s pages existed' % len(existed))
                 page_names = [name for name in page_names if name not in existed]
             if page_names:
+                logging.info('upload page, %s valid pages to insert' % len(page_names))
                 pages = [dict(name=n, source=source, layout=layout) for n in page_names]
                 self.db.page.insert_many(pages, ordered=False)
 
