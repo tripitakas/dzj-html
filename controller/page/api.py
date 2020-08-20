@@ -44,7 +44,7 @@ class PageUploadApi(BaseHandler):
                 page_names = [name for name in page_names if name not in existed]
             if page_names:
                 pages = [dict(name=n, source=source, layout=layout) for n in page_names]
-                self.db.page.insert_many(pages)
+                self.db.page.insert_many(pages, ordered=False)
 
             self.add_log('upload_page', content='%s pages, %s' % (len(page_names or []), page_names or ''))
             print('[%s]upload page end' % h.get_date_time())
