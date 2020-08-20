@@ -27,6 +27,7 @@ class PageUploadApi(BaseHandler):
     def post(self):
         """ 批量上传，供小欧调用"""
         try:
+            print('[%s]upload page start' % h.get_date_time())
             source = self.data.get('source')
             layout = self.data.get('layout')
             upload_file = self.request.files.get('json')
@@ -46,6 +47,8 @@ class PageUploadApi(BaseHandler):
                 self.db.page.insert_many(pages)
 
             self.add_log('upload_page', content='%s pages, %s' % (len(page_names or []), page_names or ''))
+            print('[%s]upload page end' % h.get_date_time())
+
             self.send_data_response()
 
         except self.DbError as error:
