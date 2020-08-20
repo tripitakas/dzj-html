@@ -37,7 +37,7 @@ class PageUploadApi(BaseHandler):
             count = math.ceil(len(page_names) / size)
             for i in range(count):
                 pages = list(self.db.page.find({'name': {'$in': page_names[i * size: (i + 1) * size]}}, {'name': 1}))
-                existed.append([p['name'] for p in pages])
+                existed.extend([p['name'] for p in pages])
 
             if existed:
                 page_names = [name for name in page_names if name not in existed]
