@@ -125,7 +125,7 @@ $('.operation .bat-republish').click(function () {
     postApi('/task/republish', {data: {ids: ids}}, function (res) {
       var msg = `${res.published_count}条已重新发布`;
       if (ids.length - res.published_count)
-        msg += `，${ids.length - res.published_count}条未重新发布（非失败、完成或已提交）`;
+        msg += `，${ids.length - res.published_count}条未重新发布（非失败、退回、进行中）`;
       showConfirm("提示", msg, () => location.reload());
     }, function (err) {
       showError('重新发布失败', err.message);
