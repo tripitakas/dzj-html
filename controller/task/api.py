@@ -105,24 +105,34 @@ class UpdateTaskApi(TaskHandler):
 
 
 class RepublishTaskApi(TaskHandler):
-    URL = '/api/task/republish/@task_id'
+    URL = ['/api/task/republish', '/api/task/republish/@task_id']
 
-    def post(self, task_id):
+    def post(self, task_id=None):
         """ 重新发布任务"""
         try:
-            if self.task.get('status') not in [self.STATUS_PICKED, self.STATUS_FAILED]:
-                self.send_error_response(e.task_status_error, message='只能重新发布进行中或失败的任务')
-            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                'pre_tasks': {k: '' for k in self.prop(self.task, 'pre_tasks', [])},
-                'status': self.STATUS_PUBLISHED, 'result': {}
-            }})
-            self.db.task.update_one({'_id': self.task['_id']}, {'$unset': {k: '' for k in [
-                'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason', 'message'
-            ]}})
-            self.update_page_status(self.STATUS_PUBLISHED)
-            self.add_log('republish_task', self.task['_id'], None,
-                         dict(task_type=self.task['task_type'], doc_id=self.task.get('doc_id') or ''))
-            return self.send_data_response()
+            ids = [task_id] if task_id else self.data['ids']
+            if not ids:
+                return self.send_error_response(e.no_object, message='没有指定任务id参数')
+            tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(i) for i in ids]}}, {'status': 1}))
+            if not tasks:
+                return self.send_error_response(e.no_object, message='没有找到任务')
+            statuses = [self.STATUS_PICKED, self.STATUS_FAILED]
+            if task_id and tasks[0].get('status') not in statuses:
+                return self.send_error_response(e.task_status_error, message='只能重新发布已完成或失败的任务')
+            task_ids = [t['_id'] for t in tasks if t['status'] in statuses]
+            r = self.db.task.update_many({'_id': {'$in': task_ids}, 'status': {'$in': task_ids}},
+                                         {'$set': {'status': self.STATUS_PUBLISHED, 'result': {}},
+                                          '$unset': {k: '' for k in [
+                                              'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time',
+                                              'return_reason', 'message'
+                                          ]}})  # pre_tasks 不用再改变?
+
+            if task_id:
+                self.update_page_status(self.STATUS_PUBLISHED)
+            self.add_log('republish_task', target_id=tasks['_id'],
+                         content=dict(task_type=tasks['task_type'], doc_id=tasks.get('doc_id') or ''),
+                         remark='%d tasks' % r.modified_count)
+            return self.send_data_response(published_count=r.modified_count)
 
         except self.DbError as error:
             return self.send_db_error(error)
