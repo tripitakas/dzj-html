@@ -129,8 +129,8 @@ class RepublishTaskApi(TaskHandler):
 
             if task_id:
                 self.update_page_status(self.STATUS_PUBLISHED)
-            self.add_log('republish_task', target_id=tasks['_id'],
-                         content=dict(task_type=tasks['task_type'], doc_id=tasks.get('doc_id') or ''),
+            self.add_log('republish_task', target_id=tasks[0]['_id'],
+                         content=dict(task_type=tasks[0]['task_type'], doc_id=tasks[0].get('doc_id') or ''),
                          remark='%d tasks' % r.modified_count)
             return self.send_data_response(published_count=r.modified_count)
 
