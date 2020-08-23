@@ -113,7 +113,8 @@ class RepublishTaskApi(TaskHandler):
             ids = [task_id] if task_id else self.data['ids']
             if not ids:
                 return self.send_error_response(e.no_object, message='没有指定任务id参数')
-            tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(i) for i in ids]}}, {'status': 1}))
+            tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(i) for i in ids]}},
+                                           {'status': 1, 'task_type': 1, 'doc_id': 1}))
             if not tasks:
                 return self.send_error_response(e.no_object, message='没有找到任务')
             statuses = [self.STATUS_PICKED, self.STATUS_FAILED]
