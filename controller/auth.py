@@ -234,6 +234,7 @@ role_route_maps = {
             '/api/(page|char)/task/publish': ['POST'],
             '/api/task/publish/import': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
+            '/api/task/republish': ['POST'],
             '/api/task/(assign|delete|batch|remark)': ['POST'],
             '/sys/oplog': ['GET'],
             '/sys/oplog/@oid': ['GET'],
