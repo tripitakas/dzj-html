@@ -118,7 +118,7 @@ class RepublishTaskApi(TaskHandler):
             if not tasks:
                 return self.send_error_response(e.no_object, message='没有找到任务')
             statuses = [self.STATUS_PICKED, self.STATUS_FAILED, self.STATUS_RETURNED]
-            if task_id and tasks[0].get('status') not in statuses:
+            if not [t for t in tasks if t.get('status') in statuses]:
                 return self.send_error_response(e.task_status_error, message='只能重新发布进行中、退回或失败的任务')
             task_ids = [t['_id'] for t in tasks if t['status'] in statuses]
             r = self.db.task.update_many({'_id': {'$in': task_ids}, 'status': {'$in': task_ids}},

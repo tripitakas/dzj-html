@@ -121,7 +121,7 @@ $('.operation .bat-republish').click(function () {
     return $(item).parent().parent().attr('id').trim();
   });
   if (!ids.length) return showWarning('请选择', '当前没有选中任何记录。');
-  showConfirm("提示", "确定批量重新发布这 " + ids.length + " 个任务吗？", function () {
+  showConfirm("提示", "确定重新发布这 " + ids.length + " 个任务吗？", function () {
     postApi('/task/republish', {data: {ids: ids}}, function (res) {
       var msg = `${res.published_count}条已重新发布`;
       if (ids.length - res.published_count)
