@@ -226,10 +226,13 @@ class CharConsistentHandler(CharHandler):
                 page = page_dict[p['name']]
                 page['page_count'] = p['page_count']
                 page['equal'] = page['char_count'] == p['page_count']
+                page['info'] = '%s,%s,%s' % (p['name'], page['char_count'], p['page_count'])
 
+            un_exist = {k: v for k, v in page_dict.items() if not v.get('page_count')}
+            equal = {k: v for k, v in page_dict.items() if v.get('page_count') and v.get('equal')}
             un_equal = {k: v for k, v in page_dict.items() if v.get('page_count') and not v.get('equal')}
 
-            self.render('char_consistent.html', page_dict=un_equal)
+            self.render('char_consistent.html', un_equal=un_equal, equal=equal, un_exist=un_exist, count=len(page_dict))
 
         except Exception as error:
             return self.send_db_error(error)

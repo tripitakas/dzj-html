@@ -73,6 +73,7 @@
   text-align: center;
   margin: 0 18px 5px 0;
   border: 1px solid #ccc;
+  font-family: Microsoft YaHei, SimSun, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
 }
 
 .txt-kind:first-child, .variant:first-child {
@@ -129,7 +130,7 @@
 }
 
 .char-item.diff .txt {
-  color: rgba(255,0,0,0.8);
+  color: rgba(255, 0, 0, 0.8);
 }
 
 .char-item .char-img {

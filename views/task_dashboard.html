@@ -13,9 +13,21 @@
     .select-time {
       display: flex;
     }
+
     .sty-table td a {
       font-size: 14px;
     }
+
+    .tips {
+      clear: both;
+      color: var(--Brown_Darker);
+      display: block;
+      margin: 0 5px;
+      font-size: 14px;
+      font-style: italic;
+      padding-top: 15px;
+    }
+
   </style>
 </head>
 
@@ -31,31 +43,48 @@
             <div class="select-time fl">
               <input type="text" class="form-control flatpickr start" data-enable-time=true data-enable-seconds=true
                      value="{{start or ''}}" placeholder="请选择开始时间">
+              <span style="margin: 5px 5px">~</span>
+              <input type="text" class="form-control flatpickr end" data-enable-time=true data-enable-seconds=true
+                     value="{{end or ''}}" placeholder="请选择结束时间">
+              <span type="button" id="last-week" class="btn btn-default">上周</span>
               <span type="button" id="this-week" class="btn btn-default">本周</span>
               <span type="button" id="this-month" class="btn btn-default">本月</span>
               <span type="button" id="clear" class="btn btn-default">清空</span>
               <span type="button" id="confirm" class="btn btn-primary" style="margin-left: 12px">确定</span>
             </div>
+            <div class="tips">
+              本页面统计指定期限内的任务情况，包括：1）本期限发布、完成和退回的任务数量；2）总体任务情况，包括所有已完成、进行中和未完成（即已发布未领取）的任务情况。<br/>
+              根据本期限完成任务数量计算日均完成任务，进一步根据总体未完成的任务和本期限的日均完成任务统计预计完成需要天数。
+            </div>
             <table class="sty-table">
               <thead>
               <tr>
                 <th></th>
-                {% for f in fields %}
-                <th><span>{{status_name(f)}}</span></th>
+                {% for f in task_types %}
+                <th><span>{{handler.get_task_name(f)}}</span></th>
                 {% end %}
+                <th><span>合计</span></th>
               </tr>
               </thead>
               <tbody>
-              {% for item in items %}
+              {% for k, v in dataset.items() %}
               <tr>
-                <td>{{handler.get_task_name(item['task_type'])}}</td>
-                {% for f in fields %}
-                {% if item.get(f) and f in handler.task_statuses %}
-                <td><a href="/{{collection}}/task/statistic?kind=picked_user_id&task_type={{item['task_type']}}&status={{f}}&publish_start={{start or ''}}">
-                  {{item[f]}}</a></td>
-                {% else %}
-                <td>{{item.get(f) or ""}}</td>
-                {% end %}
+                {% set param = params.get(k) %}
+                <td>{{k}}</td>
+                {% for f in task_types + ['all'] %}
+                <td>
+                  {% if '日均' in k or '预计' in k %}
+                  {{v.get(f) or ''}}
+                  {% elif f == 'all' %}
+                  <a href="/{{collection}}/task/statistic?kind=picked_user_id&{{'&'.join(['%s=%s' %(k, v) for k,v in param.items()])}}">
+                    {{v.get('all') or ''}}
+                  </a>
+                  {% else %}
+                  <a href="/{{collection}}/task/statistic?kind=picked_user_id&task_type={{f}}&{{'&'.join(['%s=%s' %(k, v) for k,v in param.items()])}}">
+                    {{v.get(f) or ''}}
+                  </a>
+                  {% end %}
+                </td>
                 {% end %}
               </tr>
               {% end %}
@@ -77,6 +106,19 @@
   };
 
   $(".select-time .start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  $(".select-time .end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+
+  $('#last-week').on('click', function () {
+    var start = new Date();
+    var day = start.getDay() || 7;
+    start.setDate(start.getDate() - day - 7);
+    start = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    $(".select-time .start").val(start.format("yyyy-MM-dd hh:mm:ss"));
+    var end = new Date();
+    end.setDate(end.getDate() - day - 1);
+    end = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59);
+    $(".select-time .end").val(end.format("yyyy-MM-dd hh:mm:ss"));
+  });
 
   $('#this-week').on('click', function () {
     var date = new Date();
@@ -84,12 +126,14 @@
     date.setDate(date.getDate() - day + 1);
     date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     $(".select-time .start").val(date.format("yyyy-MM-dd hh:mm:ss"));
+    $(".select-time .end").val("");
   });
 
   $('#this-month').on('click', function () {
     var date = new Date();
     date = new Date(date.getFullYear(), date.getMonth());
     $(".select-time .start").val(date.format("yyyy-MM-dd hh:mm:ss"));
+    $(".select-time .end").val("");
   });
 
   $('#clear').on('click', function () {
@@ -97,10 +141,12 @@
   });
 
   $('#confirm').on('click', function () {
+    var search = '&';
     if ($(".select-time .start").val())
-      location.href = setQueryString('start', $(".select-time .start").val());
-    else
-      location.href = deleteQueryString('start');
+      search = 'start=' + $(".select-time .start").val() + '&';
+    if ($(".select-time .end").val())
+      search += 'end=' + $(".select-time .end").val();
+    location.href = location.pathname + '?' + search.replace(/^&|&$/gm, '');
   });
 </script>
 </body>

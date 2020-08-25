@@ -4,7 +4,9 @@
 import re
 import os
 import json
+import math
 import random
+import logging
 from bson.objectid import ObjectId
 from tornado.escape import native_str, url_escape, to_basestring
 from .page import Page
@@ -30,14 +32,24 @@ class PageUploadApi(BaseHandler):
             layout = self.data.get('layout')
             upload_file = self.request.files.get('json')
             page_names = json.loads(to_basestring(upload_file[0]['body']))
-            page_names = [name.split('.')[0] for name in page_names]
-            existed = list(self.db.page.find({'name': {'$in': page_names}}, {'name': 1}))
+            page_names = [name.rsplit('.', 1)[0] for name in page_names]
+            logging.info('upload page start, %s pages total' % len(page_names))
+
+            existed, size = [], 10000
+            count = math.ceil(len(page_names) / size)
+            for i in range(count):
+                pages = list(self.db.page.find({'name': {'$in': page_names[i * size: (i + 1) * size]}}, {'name': 1}))
+                existed.extend([p['name'] for p in pages])
+
             if existed:
-                existed = [p['name'] for p in existed]
-                page_names = [name for name in page_names if name not in existed]
+                logging.info('upload page, find %s pages existed' % len(existed))
+                page_names = list(set(page_names) - set(existed))
+                # page_names = [name for name in page_names if name not in existed]
             if page_names:
+                logging.info('upload page, %s valid pages to insert' % len(page_names))
                 pages = [dict(name=n, source=source, layout=layout) for n in page_names]
-                self.db.page.insert_many(pages)
+                self.db.page.insert_many(pages, ordered=False)
+
             self.add_log('upload_page', content='%s pages, %s' % (len(page_names or []), page_names or ''))
             self.send_data_response()
 
@@ -140,6 +152,25 @@ class PageBoxApi(PageHandler):
             os.system(script)
 
         return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
+
+
+class PageBlocksApi(PageHandler):
+    URL = ['/api/page/block/@page_name']
+
+    def post(self, page_name):
+        """ 提交栏框校对"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            rules = [(v.not_empty, 'blocks')]
+            self.validate(self.data, rules)
+            self.db.page.update_one({'_id': page['_id']}, {'$set': {'blocks': self.data['blocks']}})
+            self.send_data_response({'valid': True})
+
+        except self.DbError as error:
+            return self.send_db_error(error)
 
 
 class PageOrderApi(PageHandler):

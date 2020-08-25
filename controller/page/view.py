@@ -239,6 +239,22 @@ class PageInfoHandler(PageHandler):
             return self.send_db_error(error)
 
 
+class PageBlockHandler(PageHandler):
+    URL = '/page/block/@page_name'
+
+    def get(self, page_name):
+        """ 栏框校对页面"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            img_url = self.get_page_img(page)
+            self.render('page_box.html', page=page, img_url=img_url, readonly=False)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
 class PageBoxHandler(PageHandler):
     URL = '/page/box/@page_name'
 

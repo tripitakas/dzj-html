@@ -135,9 +135,9 @@
       data: function (params) {
         return {'q': params.term || '考核', 'page': params.page || 1};
       },
-      processResults: function (res) {
+      processResults: function (res, params) {
         var data = res.data;
-        data.results.splice(0, 0, {id: '', text: '所有考核账号'});
+        if (!params.page || params.page === 1) data.results.splice(0, 0, {id: '', text: '所有考核账号'});
         return data;
       }
     }

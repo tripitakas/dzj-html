@@ -36,7 +36,7 @@ class Tripitaka(Model):
                           options=f.get('options', [])) for f in fields]
 
     @classmethod
-    def get_must_fields(cls):
+    def get_need_fields(cls):
         return ['tripitaka_code', 'name', 'store_pattern']
 
 

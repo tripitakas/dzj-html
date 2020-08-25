@@ -106,9 +106,10 @@ function setAnchor(anchor) {
 }
 
 function encodeFrom() {
-  // 将第一个?替换为&，然后删除to/page等参数
+  // 将第一个?替换为&
   var url = location.pathname + location.search.replace('?', '&');
-  return deleteParam(url, 'to');
+  return url;
+  // return deleteParam(url, 'to');
 }
 
 function decodeFrom() {
@@ -119,7 +120,8 @@ function decodeFrom() {
     if (from.indexOf('?') === -1)
       from = from.replace('&', '?');
   }
-  return deleteParam(from, 'to');
+  return from;
+  // return deleteParam(from, 'to');
 }
 
 /* 时间相关*/

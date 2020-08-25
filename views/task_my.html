@@ -24,23 +24,18 @@
   // 查看
   $('.action .my-task-view').click(function () {
     var data = getData($(this).parent().parent().attr('id'));
-    location.href = '/task/' + data.task_type + '/' + data._id + '?from=' + location.pathname;
+    location.href = '/task/' + data.task_type + '/' + data._id + '?from=' + encodeFrom();
   });
   // 继续
   $('.action .my-task-do').click(function () {
     var data = getData($(this).parent().parent().attr('id'));
-    if (data.status === 'finished')
-      return showWarning('', '只能继续进行中的任务，已完成的任务，请用修改。');
+    if (data.status === 'finished') return showWarning('', '只能继续进行中的任务，已完成的任务，请用修改。');
     location.href = '/task/do/' + data.task_type + '/' + data._id;
   });
   // 修改
   $('.action .my-task-update').click(function () {
     var data = getData($(this).parent().parent().attr('id'));
-    var url = '/task/update/' + data.task_type + '/' + data._id;
-    // 文字校对更新时，设置默认步骤为校对
-    url += data.task_type.indexOf('text_proof') === -1 ? '?' : '?step=proof&';
-    location.href = url + 'from=' + location.pathname;
+    location.href = '/task/update/' + data.task_type + '/' + data._id + '?from=' + encodeFrom();
   });
-
 </script>
 {% end %}

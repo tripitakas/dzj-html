@@ -72,7 +72,7 @@
         <span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="如果两个字有多笔少划或者字形结构上的不同，则二者不是同一个字。"></span>
       </label>
       <div class="body">
-        {% if 'txt' in txt_fields %}<input class="form-control input-lg txt input-line" placeholder="请输入字框中的文字"/>{% end %}
+        {% if 'txt' in txt_fields %}<input class="form-control input-lg txt input-line wide-txt" placeholder="请输入字框中的文字"/>{% end %}
         <div class="txt-types">
           {% for k, v in Char.txt_types.items() %}
           <label class="radio-item radio-inline">
@@ -80,7 +80,7 @@
           </label>
           {% end %}
         </div>
-        {% if 'nor_txt' in txt_fields %}<input class="form-control input-lg nor-txt" placeholder="请录入正字"/>{% end %}
+        {% if 'nor_txt' in txt_fields %}<input class="form-control input-lg nor-txt wide-txt" placeholder="请录入正字"/>{% end %}
         <input class="form-control remark" placeholder="备注，如果有的话"/>
       </div>
       <div class="tail submit" style="margin-top: 5px">

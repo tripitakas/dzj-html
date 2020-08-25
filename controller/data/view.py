@@ -85,7 +85,7 @@ class DataListHandler(BaseHandler):
                 {'operation': 'btn-add', 'label': '新增记录'},
                 {'operation': 'bat-remove', 'label': '批量删除'},
                 {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
-                {'operation': 'download-template', 'label': '下载模板', 'url': '/static/template/%s-sample.csv' % metadata},
+                {'operation': 'download-template', 'label': '下载模板', 'href': '/static/template/%s-sample.csv' % metadata},
             ]
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')

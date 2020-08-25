@@ -39,6 +39,7 @@ class PageTaskListHandler(PageHandler):
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
+        {'operation': 'bat-republish', 'label': '批量重做'},
         {'operation': 'bat-batch', 'label': '更新批次'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
@@ -129,41 +130,100 @@ class PageTaskDashBoardHandler(PageHandler):
 
     @staticmethod
     def task_dashboard(self, collection):
-        def status_name(status):
-            status2ch = {'all': '总计', 'average': '日均', 'estimated_finish_days': '预计完成需要天数'}
-            return status2ch.get(status) or self.get_status_name(status)
+        def get_cond(field):
+            cnd = {}
+            start and cnd.update({'$gt': start})
+            end and cnd.update({'$lt': end})
+            return {field: cnd} if cnd else {}
+
+        def get_params(field):
+            cnd = {}
+            start and cnd.update({field.replace('_time', '_start'): start.strftime('%Y-%m-%d %H:%M:%S')})
+            end and cnd.update({field.replace('_time', '_end'): end.strftime('%Y-%m-%d %H:%M:%S')})
+            return cnd
 
         try:
-            start, cond = self.get_query_argument('start', 0), {}
+            start = self.get_query_argument('start', 0)
             if start:
                 start = datetime.strptime(start, '%Y-%m-%d %H:%M:%S')
-                cond = {'publish_time': {'$gt': start}}
-            fields = [*list(self.task_statuses.keys()), 'all', 'average', 'estimated_finish_days']
-            task_names, items = self.task_names(collection, None, True), []
-            for task_type, name in task_names.items():
-                data = {'task_type': task_type, **{k: 0 for k in fields}}
-                counts = list(self.db.task.aggregate([
-                    {'$match': {'task_type': task_type, **cond}},
-                    {'$group': {'_id': '$status', 'count': {'$sum': 1}}},
+            end = self.get_query_argument('end', 0)
+            if end:
+                end = datetime.strptime(end, '%Y-%m-%d %H:%M:%S')
+            task_types = [k for k, t in self.task_types.items() if self.prop(t, 'data.collection') == collection]
+            # 本阶段发布
+            this_publish = list(self.db.task.aggregate([
+                {'$match': {**get_cond('publish_time'), 'collection': collection}},
+                {'$group': {'_id': '$task_type', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}},
+            ]))
+            this_publish = {t['_id']: t['count'] for t in this_publish}
+            this_publish['all'] = sum([t for t in this_publish.values()])
+            # 本阶段完成
+            this_finish = list(self.db.task.aggregate([
+                {'$match': {**get_cond('finished_time'), 'collection': collection}},
+                {'$group': {'_id': '$task_type', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}},
+            ]))
+            this_finish = {t['_id']: t['count'] for t in this_finish}
+            this_finish['all'] = sum([t for t in this_finish.values()])
+            # 本阶段退回
+            this_return = list(self.db.task.aggregate([
+                {'$match': {**get_cond('updated_time'), 'status': self.STATUS_RETURNED, 'collection': collection}},
+                {'$group': {'_id': '$task_type', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}},
+            ]))
+            this_return = {t['_id']: t['count'] for t in this_return}
+            this_return['all'] = sum([t for t in this_return.values()])
+            # 所有完成
+            all_finish = {}
+            if start or end:
+                all_finish = list(self.db.task.aggregate([
+                    {'$match': {'status': self.STATUS_FINISHED, 'collection': collection}},
+                    {'$group': {'_id': '$task_type', 'count': {'$sum': 1}}},
                     {'$sort': {'count': -1}},
                 ]))
-                for c in counts:
-                    data[c['_id']] = c['count']
-                data['all'] = self.db.task.count_documents({'task_type': task_type, **cond})
-                if data['finished']:
-                    this_start = start
-                    if not this_start:
-                        task1st = self.db.task.find_one(cond, sort=[('publish_time', 1)])
-                        this_start = task1st and task1st['publish_time']
-                    if this_start:
-                        data['average'] = round(data['finished'] / ((self.now() - this_start).days + 1), 2)
-                if data['average']:
-                    data['estimated_finish_days'] = round((data['published'] + data['picked']) / data['average'], 2)
-                if len([k for k, v in data.items() if v]) > 1:
-                    items.append(data)
+                all_finish = {t['_id']: t['count'] for t in all_finish}
+                all_finish['all'] = sum([t for t in all_finish.values()])
+            # 所有进行中
+            all_pick = list(self.db.task.aggregate([
+                {'$match': {'status': self.STATUS_PICKED, 'collection': collection}},
+                {'$group': {'_id': '$task_type', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}},
+            ]))
+            all_pick = {t['_id']: t['count'] for t in all_pick}
+            all_pick['all'] = sum([t for t in all_pick.values()])
+            # 所有未完成
+            all_publish = list(self.db.task.aggregate([
+                {'$match': {'status': self.STATUS_PUBLISHED, 'collection': collection}},
+                {'$group': {'_id': '$task_type', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}},
+            ]))
+            all_publish = {t['_id']: t['count'] for t in all_publish}
+            all_publish['all'] = sum([t for t in all_publish.values()])
+            daily_finish, expected_finish = {}, {}
+            days = (((end or self.now()) - start).days + 1) if start else 0
+            if start:
+                # 日均完成
+                daily_finish = {t: round(this_finish.get(t, 0) / days, 1) for t in task_types}
+                daily_finish['all'] = round(sum([t for t in daily_finish.values()]), 1)
+                # 预计完成
+                expected_finish = {t: round(all_publish.get(t, 0) / daily_finish.get(t), 1) for t in task_types
+                                   if daily_finish.get(t)}
 
-            self.render('task_dashboard.html', start=start, items=items, fields=fields, collection=collection,
-                        task_types=list(task_names.keys()), status_name=status_name)
+            dataset = {'本期限发布': this_publish, '本期限完成': this_finish, '本期限退回': this_return,
+                       '所有已完成': all_finish, '所有进行中': all_pick, '所有未完成': all_publish,
+                       '日均(%s日)完成' % days: daily_finish, '预计还需几天完成': expected_finish}
+            dataset = {k: v for k, v in dataset.items() if v}
+            column_sum = {t: sum([d.get(t, 0) for d in dataset.values()]) for t in task_types}
+            task_types = [t for t, s in column_sum.items() if s]
+
+            params = {'本期限发布': get_params('publish_time'), '本期限完成': get_params('finished_time'),
+                      '本期限退回': {**get_params('updated_time'), 'status': self.STATUS_RETURNED},
+                      '所有已完成': {'status': self.STATUS_FINISHED}, '所有进行中': {'status': self.STATUS_PICKED},
+                      '所有未完成': {'status': self.STATUS_PUBLISHED}}
+
+            self.render('task_dashboard.html', task_types=task_types, start=start, end=end, days=days, params=params,
+                        dataset=dataset, collection=collection)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -197,7 +257,7 @@ class PageTaskResumeHandler(PageHandler):
 class PageTaskCutHandler(PageHandler):
     URL = ['/task/(cut_proof|cut_review)/@task_id',
            '/task/do/(cut_proof|cut_review)/@task_id',
-           '/task/browse/(cut_proof|cut_review)/@task_id',
+           '/task/browse/(cut_proof|cut_review|ocr_box|ocr_text)/@task_id',
            '/task/update/(cut_proof|cut_review)/@task_id']
 
     def get(self, task_type, task_id):
