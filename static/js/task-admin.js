@@ -115,3 +115,20 @@ $assignResultModal.find('.modal-confirm').click(function () {
   location.reload();
 });
 
+// 批量重做
+$('.operation .bat-republish').click(function () {
+  var ids = $.map($('table tbody :checked'), function (item) {
+    return $(item).parent().parent().attr('id').trim();
+  });
+  if (!ids.length) return showWarning('请选择', '当前没有选中任何记录。');
+  showConfirm("提示", "确定重新发布这 " + ids.length + " 个任务吗？", function () {
+    postApi('/task/republish', {data: {ids: ids}}, function (res) {
+      var msg = `${res.published_count}条已重新发布`;
+      if (ids.length - res.published_count)
+        msg += `，${ids.length - res.published_count}条未重新发布（非失败、退回、进行中）`;
+      showConfirm("提示", msg, () => location.reload());
+    }, function (err) {
+      showError('重新发布失败', err.message);
+    });
+  });
+});

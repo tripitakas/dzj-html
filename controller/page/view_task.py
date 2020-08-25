@@ -39,6 +39,7 @@ class PageTaskListHandler(PageHandler):
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
+        {'operation': 'bat-republish', 'label': '批量重做'},
         {'operation': 'bat-batch', 'label': '更新批次'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
@@ -256,7 +257,7 @@ class PageTaskResumeHandler(PageHandler):
 class PageTaskCutHandler(PageHandler):
     URL = ['/task/(cut_proof|cut_review)/@task_id',
            '/task/do/(cut_proof|cut_review)/@task_id',
-           '/task/browse/(cut_proof|cut_review)/@task_id',
+           '/task/browse/(cut_proof|cut_review|ocr_box|ocr_text)/@task_id',
            '/task/update/(cut_proof|cut_review)/@task_id']
 
     def get(self, task_type, task_id):
