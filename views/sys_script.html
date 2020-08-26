@@ -137,7 +137,7 @@
       },
       processResults: function (res, params) {
         var data = res.data;
-        if (!params.page || params.page === 1) data.results.splice(0, 0, {id: '', text: '所有考核账号'});
+        if (!params.page || params.page === 1) data.results.splice(0, 0, {id: 'all', text: '所有考核账号'});
         return data;
       }
     }
