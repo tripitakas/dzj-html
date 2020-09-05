@@ -304,6 +304,13 @@ role_route_maps = {
             '/api/sys/upload_oss/(char|column)': ['POST'],
         }
     },
+    '数据导出': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/api/data/page/export/@page_name': ['GET'],
+        }
+    },
 }
 
 
