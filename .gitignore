@@ -15,6 +15,7 @@ package-lock.json
 
 # PyCharm
 .idea/
+venv/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

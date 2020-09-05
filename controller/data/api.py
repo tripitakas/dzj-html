@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
 import os
 import csv
 from os import path
-from bson.objectid import ObjectId
 from utils.build_js import build_js
-from tornado.escape import to_basestring
 from controller import errors as e
 from controller import validate as v
 from controller.base import BaseHandler
 from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Reel, Sutra, Volume, Variant
+from controller.page.tool.box import Box
+
 
 try:
     from StringIO import StringIO
@@ -203,3 +202,41 @@ class PublishImportImageApi(TaskHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
+
+
+class PageExportApi(TaskHandler):
+    URL = '/api/data/page/export/@page_name'
+
+    def get(self, page_name):
+        """导出页面数据"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            data = {'blocks': [], 'name': page_name, 'width': page['width'], 'height': page['height']}
+            blocks, columns, chars = Box.reorder_boxes(page=page)
+            for b in blocks:
+                b = {'columns': [], 'block_no': b['block_no']}
+                data['blocks'].append(b)
+
+                for col in columns:
+                    if col['block_no'] != b['block_no']:
+                        continue
+                    chars_ = [c for c in chars if c['block_no'] == b['block_no'] and c['column_no'] == col['column_no']]
+                    column = {'column_no': col['column_no'],
+                              'txt': ''.join(c['txt'] for c in chars_),
+                              'chars': [{'txt': c['txt'], 'x': self.round_c(c['x']), 'y': self.round_c(c['y']),
+                                         'w': self.round_c(c['w']), 'h': self.round_c(c['h'])}
+                                        for c in chars_]}
+                    b['columns'].append(column)
+
+            self.add_log('export_page', page['_id'], page_name,
+                         '%s: %d chars, %d columns, %d blocks' % (page_name, len(chars), len(columns), len(blocks)))
+            self.send_data_response(data)
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+    @staticmethod
+    def round_c(x):
+        return round(x * 100) / 100
