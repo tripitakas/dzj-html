@@ -86,9 +86,9 @@ class ResetExamUserApi(BaseHandler):
                 exam.reset_user_data_and_tasks(self.db, user_no)
                 self.send_data_response(dict(status='success'))
             else:
-                script = 'nohup python3 %s/utils/update_exam_data.py >> log/update_exam_data_%s.log 2>&1 &'
+                script = 'nohup python3 %s/utils/update_exam_data.py --func=reset_user_data_and_tasks >> log/update_exam_data_%s.log 2>&1 &'
                 script = script % (h.BASE_DIR, h.get_date_time(fmt='%Y%m%d%H%M%S'))
-                # print(script)
+                print(script)
                 os.system(script)
                 self.send_data_response(dict(status='script'))
 
