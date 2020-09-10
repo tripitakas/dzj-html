@@ -24,13 +24,19 @@
 
   // 初始化设置
   $(document).ready(function () {
-    $("#remarkModal .remark").val(remark || getStorage('taskRemark'));
+    var remark1 = getStorage('taskRemark', '');
+    var options = $.map($('#remarkModal .options :radio'), (item) => $(item).val());
+    if (remark.length) {
+      $("#remarkModal .remark").val(remark);
+    } else if (remark1.length && options.indexOf(remark1) < 0) {
+      $("#remarkModal .options").append(`<input type="radio" name="options" value="${remark1}">${remark1}`);
+    }
     $('#remarkModal .is_sample :radio[value="' + isSample + '"]').prop('checked', true);
     $('#taskConfigModal .auto-pick :radio[value=' + getStorage('autoPick', '是') + ']').prop('checked', true);
   });
 
   // 备注任务
-  $('#remarkModal .options :radio').on('click', function () {
+  $(document).on('click', '#remarkModal .options :radio', function () {
     $('#remarkModal .remark').val($(this).val());
   });
   $('#remarkModal .modal-confirm').on('click', function () {
@@ -95,6 +101,7 @@
 
   // 跳转步骤
   var afterStepped = null;
+
   function navigate(to) {
     var jumpUrl = setQueryString('step', steps[to]);
     if (!readonly) {
