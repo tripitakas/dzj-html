@@ -234,6 +234,7 @@ role_route_maps = {
             '/api/(page|char)/task/publish': ['POST'],
             '/api/task/publish/import': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
+            '/api/task/republish': ['POST'],
             '/api/task/(assign|delete|batch|remark)': ['POST'],
             '/sys/oplog': ['GET'],
             '/sys/oplog/@oid': ['GET'],
@@ -301,6 +302,13 @@ role_route_maps = {
             '/api/sys/oplog/status/@oid': ['POST'],
             '/api/sys/(oplog|log)/delete': ['POST'],
             '/api/sys/upload_oss/(char|column)': ['POST'],
+        }
+    },
+    '数据导出': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/api/data/page/export/@page_name': ['GET'],
         }
     },
 }

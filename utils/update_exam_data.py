@@ -310,17 +310,26 @@ def reset_cut_proof(db, user_no=None):
     """ 重置考核任务-切分校对"""
     # 重置账号相关的所有任务为picked
     print('reset cut_proof')
-    cond = dict(task_type='cut_proof')
-    cond['picked_by'] = '考核%2d' % user_no if user_no else {'$regex': '考核'}
-    db.task.update_many(cond, {'$set': {'status': 'picked'}})
-    db.task.update_many(cond, {'$unset': {
-        'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
-    }})
-    # 重置page的tasks字段
-    tasks = list(db.task.find(cond, {'doc_id': 1}))
-    db.page.update_many({'name': {'$in': [t['doc_id'] for t in tasks]}}, {'$set': {'tasks.cut_proof.1': 'picked'}})
+    task_type = 'cut_proof'
+    for i in range(1, 51):
+        if not user_no or user_no == i:
+            print('processing user %s' % i)
+            # 指派任务
+            page_names = eval('names%s' % i)
+            cond = {'task_type': task_type, 'doc_id': {'$in': page_names}}
+            user = db.user.find_one({'email': 'exam%02d@tripitakas.net' % int(i)})
+            db.task.update_many(cond, {'$set': {
+                'status': 'picked', 'picked_user_id': user['_id'], 'picked_by': user['name'],
+                'picked_time': Ph.now(), 'updated_time': Ph.now(),
+            }})
+            db.task.update_many(cond, {'$unset': {
+                'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
+            }})
+            # 重置页数据的任务字段
+            db.page.update_many({'name': {'$in': page_names}}, {'$set': {'tasks.%s.%s' % (task_type, 1): 'picked'}})
 
     # 重置非系统指派的任务为published
+    cond = dict(task_type=task_type)
     page_names = eval('names%s' % int(user_no)) if user_no else get_exam_names()
     cond['doc_id'] = {'$nin': page_names}
     db.task.update_many(cond, {'$set': {'status': 'published'}})
@@ -356,13 +365,10 @@ def reset_cluster_proof(db, user_no=None):
     """ 重置考核任务-聚类校对"""
     # 重置账号相关的所有任务为picked
     print('reset cluster_proof')
-    cond = dict(task_type='cluster_proof')
-    cond['picked_by'] = '考核%2d' % user_no if user_no else {'$regex': '考核'}
-    db.task.update_many(cond, {'$set': {'status': 'picked'}})
-    db.task.update_many(cond, {'$unset': {
-        'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
-    }})
+    assign_cluster_proof(db, user_no)
+
     # 重置非系统指派的任务为published
+    cond = dict(task_type='cluster_proof')
     txt_kinds = eval('txt_kinds%s' % user_no) if user_no else get_exam_txt_kinds()
     cond['txt_kind'] = {'$nin': txt_kinds}
     db.task.update_many(cond, {'$set': {'status': 'published'}})

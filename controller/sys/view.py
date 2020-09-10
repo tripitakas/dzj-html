@@ -42,8 +42,11 @@ class SysLogListHandler(BaseHandler, Log):
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
     img_operations = []
-    info_fields = ['content']
-    update_fields = [{'id': 'content', 'name': '内容', 'input_type': 'textarea'}]
+    info_fields = ['target_id', 'content']
+    update_fields = [
+        {'id': 'content', 'name': '内容', 'input_type': 'textarea'},
+        {'id': 'target_id', 'name': '对象id', 'input_type': 'textarea'}
+    ]
     actions = [
         {'action': 'btn-view', 'label': '查看'},
     ]
@@ -55,6 +58,9 @@ class SysLogListHandler(BaseHandler, Log):
         if key == 'content' and value:
             value, size = str(value), 80
             return '%s%s' % (value[:size], '...' if len(value) > size else '')
+        if key == 'target_id' and value:
+            if isinstance(value, list) and len(value) > 10:
+                value = value[:10] + ['...']
         return h.format_value(value, key, doc)
 
     def get(self):
@@ -65,7 +71,7 @@ class SysLogListHandler(BaseHandler, Log):
             value = h.get_url_param(field, self.request.uri)
             value and condition.update({field: value})
         docs, pager, q, order = self.find_by_page(self, condition, default_order='-_id')
-        self.render('com/_list.html', docs=docs, pager=pager, q=q, order=order,
+        self.render('sys_log.html', docs=docs, pager=pager, q=q, order=order,
                     format_value=self.format_value, **kwargs)
 
 

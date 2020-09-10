@@ -855,7 +855,8 @@ body.widescreen {
   width: 20px;
 }
 
-.modal textarea {
+.modal-content textarea {
+  min-width: 500px;
   min-height: 100px;
 }
 
@@ -972,10 +973,6 @@ body.widescreen {
   to {
     transform: rotate(360deg);
   }
-}
-
-#remarkModal .modal-content {
-  width: 720px;
 }
 
 .m-footer .page-name {

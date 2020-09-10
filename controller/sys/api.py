@@ -75,7 +75,7 @@ class ResetExamUserApi(BaseHandler):
         try:
             user_no = None
             user_id = self.data['user_id']
-            if user_id:
+            if user_id != 'all':
                 user = self.db.user.find_one({'_id': ObjectId(user_id)})
                 if not user:
                     return self.send_error_response(e.no_object)
@@ -86,7 +86,7 @@ class ResetExamUserApi(BaseHandler):
                 exam.reset_user_data_and_tasks(self.db, user_no)
                 self.send_data_response(dict(status='success'))
             else:
-                script = 'nohup python3 %s/utils/update_exam_data.py >> log/update_exam_data_%s.log 2>&1 &'
+                script = 'nohup python3 %s/utils/update_exam_data.py --func=reset_user_data_and_tasks >> log/update_exam_data_%s.log 2>&1 &'
                 script = script % (h.BASE_DIR, h.get_date_time(fmt='%Y%m%d%H%M%S'))
                 print(script)
                 os.system(script)
