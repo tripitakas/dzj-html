@@ -5,6 +5,7 @@ import os
 import csv
 from os import path
 from utils.build_js import build_js
+from tornado.escape import to_basestring
 from controller import errors as e
 from controller import validate as v
 from controller.base import BaseHandler
