@@ -149,10 +149,16 @@
     // 设置备注
     var field = getStorage('pageRemarkField', '切分');
     $('#remarkModal .fields :radio[value="' + field + '"]').prop('checked', true);
-    var which = field === '切分' ? 'box' : 'text';
-    var remarks = decodeJSON('{{page.get("remark") or "{}"}}');
-    var remark = which in remarks ? remarks[which] : getStorage('pageRemark');
-    $("#remarkModal .remark").val(remark);
+    var remark_box = '{{page.get("remark_box") or ""}}';
+    var remark_txt = '{{page.get("remark_txt") or ""}}';
+    var remark = field === '切分' ? remark_box : remark_txt;
+    var remark1 = getStorage('pageRemark', '');
+    var options = $.map($('#remarkModal .options :radio'), (item) => $(item).val());
+    if (remark.length) {
+      $("#remarkModal .remark").val(remark);
+    } else if (remark1.length && options.indexOf(remark1) < 0) {
+      $("#remarkModal .options").append(`<input type="radio" name="options" value="${remark1}">${remark1}`);
+    }
     $('.m-footer .txt-info').html($('.btn-show-txt.active').text());
   });
 
@@ -227,7 +233,7 @@
 
   // 备注
   $('#btn-remark').on('click', () => $('#remarkModal').modal());
-  $("#remarkModal .options :radio").on('click', function () {
+  $(document).on('click', '#remarkModal .options :radio', function () {
     $('#remarkModal .remark').val($(this).val());
   });
   $('#remarkModal .modal-confirm').on('click', function () {
