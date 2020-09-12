@@ -72,6 +72,7 @@ def export_label_data(db):
     pages = list(db.page.find({'remark_box': '10000张切分标注'}, {k: 1 for k in fields}))
     layout2nums = {'上下一栏': (2, 2), '上下两栏': (2, 3), '上下三栏': (2, 4), '左右两栏': (2, 2)}
     for p in pages:
+        print('processing %s' % p['name'])
         p.pop('_id', 0)
         layout = p.pop('layout', 0)
         if layout and layout2nums.get(layout):
