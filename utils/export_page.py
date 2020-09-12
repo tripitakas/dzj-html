@@ -8,6 +8,8 @@ import pymongo
 from glob import glob
 from bson import json_util
 from wand.image import Image
+from wand.color import Color
+from wand.drawing import Drawing
 from os import path, makedirs
 
 BASE_DIR = path.dirname(path.dirname(__file__))
@@ -92,23 +94,41 @@ def export_label_data(db):
             json.dump(p, fn)
 
 
-def check_width_height(db):
+def export_page_with_box(db):
     invalid = []
+
     fields = ['name', 'width', 'height']
     pages = list(db.page.find({'remark_box': '10000张切分标注'}, {k: 1 for k in fields}))
-    for p in pages:
-        name = p['name']
+    for page in pages:
+        name = page['name']
         files = glob(path.join('/data/T/big', *name.split('_')[:-1], '%s.*' % name))
         if not files:
             print('can not find %s' % name)
-        with Image(filename=files[0]) as im:
-            if int(p['width']) != int(im.width):
-                print('%s: width %s != %s' % (name, p['width'], im.width))
-                invalid.append(name)
-                continue
-            if int(p['height']) != int(im.height):
-                print('%s: height %s != %s' % (name, p['height'], im.height))
-                invalid.append(name)
+        try:
+            with Image(filename=files[0]) as im:
+                r = im.width / page['width']
+                with Drawing() as draw:
+                    draw.stroke_color = Color('blue')
+                    draw.fill_color = Color('none')
+                    draw.stroke_width = 1
+                    for b in page['blocks']:
+                        draw.rectangle(b['x'] * r, b['y'] * r, width=b['w'] * r, height=b['h'] * r)
+                        draw(im)
+                    draw.stroke_color = Color('green')
+                    for c in page['columns']:
+                        draw.rectangle(c['x'] * r, c['y'] * r, width=c['w'] * r, height=c['h'] * r)
+                        draw(im)
+                    draw.stroke_color = Color('red')
+                    for c in page['chars']:
+                        draw.rectangle(c['x'] * r, c['y'] * r, width=c['w'] * r, height=c['h'] * r)
+                        draw(im)
+                    dst_file = path.join('/data/T/标注数据/10000张切分标注/vis', '%s.jpg' % name)
+                    im.compression_quality = 75
+                    im.save(filename=dst_file)
+        except Exception as e:
+            print('[%s] %s' % (e.__class__.__name__, str(e)))
+            invalid.append(name)
+
     print('%s invalid pages.\n%s' % (len(invalid), invalid))
 
 
