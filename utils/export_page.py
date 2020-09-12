@@ -101,6 +101,7 @@ def export_page_with_box(db):
     pages = list(db.page.find({'remark_box': '10000张切分标注'}, {k: 1 for k in fields}))
     for page in pages:
         name = page['name']
+        print('processing %s' % name)
         files = glob(path.join('/data/T/big', *name.split('_')[:-1], '%s.*' % name))
         if not files:
             print('can not find %s' % name)
