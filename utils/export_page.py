@@ -103,11 +103,11 @@ def check_width_height(db):
             print('can not find %s' % name)
         with Image(filename=files[0]) as im:
             if int(p['width']) != int(im.width):
-                print('width %s != %s' % (p['width'], im.width))
+                print('%s: width %s != %s' % (name, p['width'], im.width))
                 invalid.append(name)
                 continue
             if int(p['height']) != int(im.height):
-                print('height %s != %s' % (p['height'], im.height))
+                print('%s: height %s != %s' % (name, p['height'], im.height))
                 invalid.append(name)
     print('%s invalid pages.\n%s' % (len(invalid), invalid))
 
