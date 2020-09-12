@@ -96,8 +96,7 @@ def export_label_data(db):
 
 def export_page_with_box(db):
     invalid = []
-
-    fields = ['name', 'width', 'height']
+    fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
     pages = list(db.page.find({'remark_box': '10000张切分标注'}, {k: 1 for k in fields}))
     for page in pages:
         name = page['name']
