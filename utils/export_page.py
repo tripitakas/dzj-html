@@ -123,6 +123,7 @@ def export_page_with_box(db):
                         draw.rectangle(c['x'] * r, c['y'] * r, width=c['w'] * r, height=c['h'] * r)
                         draw(im)
                     dst_file = path.join('/data/T/标注数据/10000张切分标注/vis', '%s.jpg' % name)
+                    im.transform(resize='1200x')
                     im.compression_quality = 75
                     im.save(filename=dst_file)
         except Exception as e:
