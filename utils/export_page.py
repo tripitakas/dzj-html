@@ -138,12 +138,9 @@ def export_box_by_wand(db):
 
 
 def export_box_by_pillow(db):
-    # big_dir = '/data/T/big'
-    big_dir = '/Users/xiandu/Develop/tripitaka-web/static/img/pages/'
-    # dst_dir = '/data/T/标注数据/10000张切分标注/vis'
-    dst_dir = '/Users/xiandu/Document/00Inbox'
-    # cond = {'remark_box': '10000张切分标注'}
-    cond = {'name': 'JX_165_7_75'}
+    big_dir = '/data/T/big'
+    dst_dir = '/data/T/标注数据/10000张切分标注/vis'
+    cond = {'remark_box': '10000张切分标注'}
     invalid = []
     fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
     pages = list(db.page.find(cond, {k: 1 for k in fields}))
