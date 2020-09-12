@@ -7,9 +7,10 @@ import json
 import pymongo
 from glob import glob
 from bson import json_util
-from wand.image import Image
+from wand.image import Image as wImage
 from wand.color import Color
 from wand.drawing import Drawing
+from PIL import Image as Image, ImageDraw
 from os import path, makedirs
 
 BASE_DIR = path.dirname(path.dirname(__file__))
@@ -94,18 +95,21 @@ def export_label_data(db):
             json.dump(p, fn)
 
 
-def export_page_with_box(db):
+def export_box_by_wand(db):
+    big_dir = '/data/T/big'
+    dst_dir = '/data/T/标注数据/10000张切分标注/vis'
+    cond = {'remark_box': '10000张切分标注'}
     invalid = []
     fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
-    pages = list(db.page.find({'remark_box': '10000张切分标注'}, {k: 1 for k in fields}))
+    pages = list(db.page.find(cond, {k: 1 for k in fields}))
     for page in pages:
         name = page['name']
         print('processing %s' % name)
-        files = glob(path.join('/data/T/big', *name.split('_')[:-1], '%s.*' % name))
+        files = glob(path.join(big_dir, *name.split('_')[:-1], '%s.*' % name))
         if not files:
             print('can not find %s' % name)
         try:
-            with Image(filename=files[0]) as im:
+            with wImage(filename=files[0]) as im:
                 r = im.width / page['width']
                 with Drawing() as draw:
                     draw.stroke_color = Color('blue')
@@ -122,7 +126,7 @@ def export_page_with_box(db):
                     for c in page['chars']:
                         draw.rectangle(c['x'] * r, c['y'] * r, width=c['w'] * r, height=c['h'] * r)
                         draw(im)
-                    dst_file = path.join('/data/T/标注数据/10000张切分标注/vis', '%s.jpg' % name)
+                    dst_file = path.join(dst_dir, '%s.jpg' % name)
                     im.transform(resize='1200x')
                     im.compression_quality = 75
                     im.save(filename=dst_file)
@@ -133,7 +137,47 @@ def export_page_with_box(db):
     print('%s invalid pages.\n%s' % (len(invalid), invalid))
 
 
-def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+def export_box_by_pillow(db):
+    # big_dir = '/data/T/big'
+    big_dir = '/Users/xiandu/Develop/tripitaka-web/static/img/pages/'
+    # dst_dir = '/data/T/标注数据/10000张切分标注/vis'
+    dst_dir = '/Users/xiandu/Document/00Inbox'
+    # cond = {'remark_box': '10000张切分标注'}
+    cond = {'name': 'JX_165_7_75'}
+    invalid = []
+    fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
+    pages = list(db.page.find(cond, {k: 1 for k in fields}))
+    for page in pages:
+        name = page['name']
+        print('processing %s' % name)
+        files = glob(path.join(big_dir, *name.split('_')[:-1], '%s.*' % name))
+        if not files:
+            print('can not find %s' % name)
+
+        try:
+            im = Image.open(files[0]).convert('RGB')
+            w, h = im.size
+            r = w / page['width']
+            draw = ImageDraw.Draw(im)
+            for b in page['blocks']:
+                draw.rectangle(((b['x'] * r, b['y'] * r), ((b['x'] + b['w']) * r, (b['y'] + b['h']) * r)),
+                               outline="#0000FF")
+            for b in page['columns']:
+                draw.rectangle(((b['x'] * r, b['y'] * r), ((b['x'] + b['w']) * r, (b['y'] + b['h']) * r)),
+                               outline="#008800")
+            for b in page['chars']:
+                draw.rectangle(((b['x'] * r, b['y'] * r), ((b['x'] + b['w']) * r, (b['y'] + b['h']) * r)),
+                               outline="#FF0000")
+            im = im.resize((1200, int(1200 * h / w)), Image.ANTIALIAS)
+            im.save(path.join(dst_dir, '%s.jpg' % name))
+        except Exception as e:
+            print('[%s] %s' % (e.__class__.__name__, str(e)))
+            invalid.append(name)
+    if invalid:
+        print('%s invalid pages.\n%s' % (len(invalid), invalid))
+
+
+def main(db_name='tripitaka', uri='localhost', func='export_box_by_pillow', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
