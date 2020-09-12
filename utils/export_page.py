@@ -67,8 +67,36 @@ def export_phonetic(json_dir):
                 f.write('%s(%s)\t%s\n' % (page['name'], names[field], text))
 
 
+def export_label_data(db):
+    fields = ['name', 'width', 'height', 'layout', 'blocks', 'columns', 'chars']
+    pages = list(db.page.find({'remark_box': '10000张切分标注'}, {k: 1 for k in fields}))
+    layout2nums = {'上下一栏': (2, 2), '上下两栏': (2, 3), '上下三栏': (2, 4), '左右两栏': (2, 2)}
+    for p in pages:
+        p.pop('_id', 0)
+        layout = p.pop('layout', 0)
+        if layout and layout2nums.get(layout):
+            p['v_num'], p['h_num'] = layout2nums.get(layout)
+        blocks, columns, chars = p.get('blocks'), p.get('columns'), p.get('chars')
+        for i, b in enumerate(blocks):
+            keys = ['x', 'y', 'w', 'h', 'block_no']
+            blocks[i] = {k: b.get(k) for k in keys}
+        for i, b in enumerate(columns):
+            keys = ['x', 'y', 'w', 'h', 'block_no', 'column_no']
+            columns[i] = {k: b.get(k) for k in keys}
+        for i, b in enumerate(chars):
+            keys = ['x', 'y', 'w', 'h', 'block_no', 'column_no', 'char_no']
+            chars[i] = {k: b.get(k) for k in keys}
+        with open(path.join('/home/smjs/xiandu/10000-json', '%s.json' % p['name']), 'w') as fn:
+            json.dump(p, fn)
+
+
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+    db = pymongo.MongoClient(uri)[db_name]
+    eval(func)(db, **kwargs)
+
+
 if __name__ == '__main__':
     import fire
 
-    fire.Fire(export_page)
+    fire.Fire(main)
     print('finished!')
