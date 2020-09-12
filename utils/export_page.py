@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pymongo
-from os import path, makedirs
-from bson import json_util
-import sys
-from glob import glob
-import json
 import re
+import sys
+import json
+import pymongo
+from glob import glob
+from bson import json_util
+from wand.image import Image
+from os import path, makedirs
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -89,6 +90,26 @@ def export_label_data(db):
             chars[i] = {k: b.get(k) for k in keys}
         with open(path.join('/home/smjs/xiandu/10000-json', '%s.json' % p['name']), 'w') as fn:
             json.dump(p, fn)
+
+
+def check_width_height(db):
+    invalid = []
+    fields = ['name', 'width', 'height']
+    pages = list(db.page.find({'remark_box': '10000张切分标注'}, {k: 1 for k in fields}))
+    for p in pages:
+        name = p['name']
+        files = glob(path.join('/data/T/big', *name.split('_')[:-1], '%s.*' % name))
+        if not files:
+            print('can not find %s' % name)
+        with Image(filename=files[0]) as im:
+            if int(p['width']) != int(im.width):
+                print('width %s != %s' % (p['width'], im.width))
+                invalid.append(name)
+                continue
+            if int(p['height']) != int(im.height):
+                print('height %s != %s' % (p['height'], im.height))
+                invalid.append(name)
+    print('%s invalid pages.\n%s' % (len(invalid), invalid))
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
