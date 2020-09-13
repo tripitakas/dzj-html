@@ -60,6 +60,13 @@ class Cut(object):
             img = img.resize((w, h), Image.BICUBIC)
         return img
 
+    def has_img(self, img_name, img_type='char'):
+        assert img_type in ['char', 'column']
+        hsh = hp.md5_encode(img_name, self.cfg['web_img']['salt'])
+        img_root = path.join(BASE_DIR, 'static', 'img', '%ss' % img_type)
+        img_fn = path.join(img_root, img_name.split('_')[:-1], '%s_%s.jpg' % (img_name, hsh))
+        return path.exists(img_fn)
+
     def cut_img(self, chars):
         """ 切图，包括字图和列图"""
         # 去掉无效页面
@@ -95,10 +102,10 @@ class Cut(object):
                 if not oc:
                     log['cut_char_failed'].append(dict(id=c['name'], reason='origin cid not exist'))
                     continue
-                if c.get('has_img') and not self.kwargs.get('regen') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
-                    if c.get('has_img') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
-                        log['cut_char_existed'].append(c['name'])
-                        continue
+                regen = self.kwargs.get('regen')
+                if self.has_img(c['name']) and not regen and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
+                    log['cut_char_existed'].append(c['name'])
+                    continue
                 x, w = round(c['pos']['x'] * iw / pw), round(c['pos']['w'] * iw / pw)
                 y, h = round(c['pos']['y'] * iw / pw), round(c['pos']['h'] * iw / pw)
                 try:
@@ -110,20 +117,23 @@ class Cut(object):
                 except Exception as e:
                     log['cut_char_failed'].append(dict(id=c['name'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
                     print(e)
+            log['cut_char_success'].extend([c['name'] for c in chars_done])
+            print('[%s#%d]: %d chars to do, %d chars generated.' % (page_name, i + 1, len(chars_todo), len(chars_done)))
 
             # 列框切图，按照page表中的width/height切图（转换大图，适应于page表的参数）
             if iw != pw or ih != ph:
                 img_page = img_page.resize((pw, ph), Image.BICUBIC)
                 iw, ih = img_page.size
+            columns2check = list(set((c['column'] or {}).get('cid', 0) for c in chars_todo))
             columns_todo, columns_done = list(set((c['column'] or {}).get('cid', 0) for c in chars_done)), []
-            print('%d %s: %d char images generated from %d chars, %d columns' % (
-                i + 1, page_name, len(chars_done), len(chars_todo), len(columns_todo)))
-            for cid in columns_todo:
+            for cid in columns2check:
                 column = [c for c in page['columns'] if c['cid'] == cid]
                 if not column:
                     continue
+                img_name = '%s_%s' % (page_name, cid)
+                if self.has_img(img_name, 'column') and cid not in columns_todo:
+                    continue
                 c = column[0]
-                img_name = '%s_%s' % (page_name, c['cid'])
                 x, y, h, w = int(c['x']) - 1, int(c['y']) - 1, int(c['h']) + 1, int(c['w']) + 1
                 try:
                     img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
@@ -137,7 +147,8 @@ class Cut(object):
                 except Exception as e:
                     reason = '[%s] %s' % (e.__class__.__name__, str(e))
                     log['cut_column_failed'].append(dict(id=img_name, reason=reason))
-            log['cut_char_success'].extend([c['name'] for c in chars_done])
+            print('[%s#%d]: %d columns to do, %d columns generated.' % (
+                page_name, i + 1, len(columns_todo), len(columns_done)))
             log['cut_column_success'].extend(columns_done)
 
         return log
