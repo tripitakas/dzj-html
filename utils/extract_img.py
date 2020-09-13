@@ -148,8 +148,8 @@ class Cut(object):
                 except Exception as e:
                     reason = '[%s] %s' % (e.__class__.__name__, str(e))
                     log['cut_column_failed'].append(dict(id=img_name, reason=reason))
-            print('[%s#%d]: %d columns to do, %d columns generated.' % (
-                page_name, i + 1, len(columns_todo), len(columns_done)))
+            print('[%s#%d]: %d columns to check, %d columns to do, %d columns generated.' % (
+                page_name, i + 1, len(columns2check), len(columns_todo), len(columns_done)))
             log['cut_column_success'].extend(columns_done)
 
         return log
