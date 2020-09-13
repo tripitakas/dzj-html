@@ -80,6 +80,9 @@ def update_txt(db):
 
 
 def update_img_need_updated(db):
+    # 初始设置为True
+    db.char.update_many({}, {'$set': {'img_need_updated': True}})
+    # 获取已有的字图名
     names = []
     src_dir = path.join(BASE_DIR, 'static', 'img', 'chars')
     for root, dirs, files in os.walk(src_dir):
@@ -87,8 +90,13 @@ def update_img_need_updated(db):
             if not fn.startswith('.') and fn.endswith('.jpg'):
                 name = fn.rsplit('_', 1)[0]
                 names.append(name)
-    print('%s char images' % len(names))
-    db.char.update_many({'name': {'$nin': names}}, {'$set': {'img_need_updated': True}})
+    count = len(names)
+    print('%s char images found' % count)
+    once_size = 100000
+    for i in range(math.ceil(count / once_size)):
+        print('processing page %s' % i)
+        start = i * once_size
+        db.char.update_many({'name': {'$in': names[start:start + once_size]}}, {'$set': {'img_need_updated': False}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
