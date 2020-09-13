@@ -4,6 +4,7 @@
 # 更新数据库的char表
 
 import re
+import os
 import sys
 import math
 import json
@@ -76,6 +77,18 @@ def update_txt(db):
             if ch['txt'] != ch['ocr_txt'] and ch['ocr_txt'] not in ['', None, '■'] and (
                     ch['ocr_txt'] == ch['ocr_col'] or ch['cc'] > 900):
                 db.char.update_one({'_id': ch['_id']}, {'$set': {'txt': ch['ocr_txt'], 'txt_bak': ch['txt']}})
+
+
+def update_img_need_updated(db):
+    names = []
+    src_dir = path.join(BASE_DIR, 'static', 'img', 'chars')
+    for root, dirs, files in os.walk(src_dir):
+        for fn in files:
+            if not fn.startswith('.') and fn.endswith('.jpg'):
+                name = fn.rsplit('_', 1)[0]
+                names.append(name)
+    print('%s char images' % len(names))
+    db.char.update_many({'name': {'$nin': names}}, {'$set': {'img_need_updated': True}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
