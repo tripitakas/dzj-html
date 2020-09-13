@@ -65,6 +65,7 @@ class Cut(object):
         hsh = hp.md5_encode(img_name, self.cfg['web_img']['salt'])
         img_root = path.join(BASE_DIR, 'static', 'img', '%ss' % img_type)
         img_fn = path.join(img_root, *img_name.split('_')[:-1], '%s_%s.jpg' % (img_name, hsh))
+        print(img_fn)
         return path.exists(img_fn)
 
     def cut_img(self, chars):
@@ -102,8 +103,8 @@ class Cut(object):
                 if not oc:
                     log['cut_char_failed'].append(dict(id=c['name'], reason='origin cid not exist'))
                     continue
-                regen = self.kwargs.get('regen')
-                if self.has_img(c['name']) and not regen and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
+                regen = self.kwargs.get('regen') or False
+                if self.has_img(c['name'], 'char') and not regen and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
                     log['cut_char_existed'].append(c['name'])
                     continue
                 x, w = round(c['pos']['x'] * iw / pw), round(c['pos']['w'] * iw / pw)
@@ -217,7 +218,6 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
     cfg = hp.load_config()
     db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
     cut = Cut(db, cfg, regen=regen)
-
     print('[%s]extract_img.py script started.' % hp.get_date_time())
     if chars:
         print('[%s]%s chars to generate.' % (hp.get_date_time(), len(chars)))
