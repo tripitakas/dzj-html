@@ -243,9 +243,10 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
         chars = list(db.char.find({'name': {'$in': names[start: start + once_size]}}))
         # chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         log = cut.cut_img(chars)
-        if log.get('cut_char_success'):
+        _names = (log.get('cut_char_success') or []) + (log.get('cut_char_existed') or [])
+        if _names:
             update = {'has_img': True, 'img_need_updated': False, 'img_time': hp.get_date_time('%m%d%H%M%S')}
-            db.char.update_many({'name': {'$in': log['cut_char_success']}}, {'$set': update})
+            db.char.update_many({'name': {'$in': _names}}, {'$set': update})
         Bh.add_op_log(db, 'extract_img', 'finished', log, username)
 
 
