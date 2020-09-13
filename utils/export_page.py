@@ -76,6 +76,10 @@ def export_label_data(db):
     pages = list(db.page.find({'remark_box': '10000张切分标注'}, {k: 1 for k in fields}))
     layout2nums = {'上下一栏': (2, 2), '上下两栏': (2, 3), '上下三栏': (2, 4), '左右两栏': (2, 2)}
     for p in pages:
+        json_fn = path.join('/data/T/标注数据/10000张切分标注/json', '%s.json' % p['name'])
+        if path.exists(json_fn):
+            print('[%s]existed' % p['name'])
+            continue
         print('processing %s' % p['name'])
         p.pop('_id', 0)
         layout = p.pop('layout', 0)
@@ -91,7 +95,7 @@ def export_label_data(db):
         for i, b in enumerate(chars):
             keys = ['x', 'y', 'w', 'h', 'block_no', 'column_no', 'char_no']
             chars[i] = {k: b.get(k) for k in keys}
-        with open(path.join('/home/smjs/xiandu/10000-json', '%s.json' % p['name']), 'w') as fn:
+        with open(json_fn, 'w') as fn:
             json.dump(p, fn)
 
 
