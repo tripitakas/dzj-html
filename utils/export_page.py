@@ -143,17 +143,21 @@ def export_box_by_wand(db):
 
 def export_box_by_pillow(db):
     big_dir = '/data/T/big'
-    dst_dir = '/home/smjs/xiandu/10000张切分标注/vis'
+    dst_dir = '/data/T/标注数据/10000张切分标注/vis'
     cond = {'remark_box': '10000张切分标注'}
     invalid = []
     fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
     pages = list(db.page.find(cond, {k: 1 for k in fields}))
     for page in pages:
         name = page['name']
-        print('processing %s' % name)
         files = glob(path.join(big_dir, *name.split('_')[:-1], '%s.*' % name))
         if not files:
-            print('can not find %s' % name)
+            print('[%s]can not find image file' % name)
+            continue
+        vis_fn = path.join(dst_dir, '%s.jpg' % name)
+        if path.exists(vis_fn):
+            print('[%s]image file existed' % name)
+            continue
 
         try:
             im = Image.open(files[0]).convert('RGB')
@@ -170,7 +174,7 @@ def export_box_by_pillow(db):
                 draw.rectangle(((b['x'] * r, b['y'] * r), ((b['x'] + b['w']) * r, (b['y'] + b['h']) * r)),
                                outline="#FF0000")
             im = im.resize((1200, int(1200 * h / w)), Image.ANTIALIAS)
-            im.save(path.join(dst_dir, '%s.jpg' % name))
+            im.save(vis_fn)
         except Exception as e:
             print('[%s] %s' % (e.__class__.__name__, str(e)))
             invalid.append(name)
