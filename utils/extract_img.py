@@ -15,6 +15,7 @@
 import os
 import sys
 import json
+import math
 import hashlib
 import pymongo
 from os import path
@@ -105,7 +106,7 @@ class Cut(object):
                     log['cut_char_failed'].append(dict(id=c['name'], reason='origin cid not exist'))
                     continue
                 regen = self.kwargs.get('regen') or False
-                if self.has_img(c['name'], 'char') and not regen and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
+                if self.has_img(c['name'], 'char') and not regen and hp.cmp_obj(c['pos'], oc[0], ['x', 'y', 'w', 'h']):
                     log['cut_char_existed'].append(c['name'])
                     continue
                 x, w = round(c['pos']['x'] * iw / pw), round(c['pos']['w'] * iw / pw)
@@ -234,10 +235,15 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
     condition['img_need_updated'] = True
 
     once_size = 5000
-    total_count = db.char.count_documents(condition)
+    chars = list(db.char.find(condition, {'name': 1}))
+    names = [c['name'] for c in chars]
+    total_count = len(names)
+    # total_count = db.char.count_documents(condition)
     print('[%s]%s chars to generate.' % (hp.get_date_time(), total_count))
-    while db.char.count_documents({'img_need_updated': True}):
-        chars = list(db.char.find(condition).limit(once_size))
+    for i in range(math.ceil(total_count / once_size)):
+        start = i * once_size
+        chars = list(db.char.find({'name': {'$in': names[start: start + once_size]}}))
+        # chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         log = cut.cut_img(chars)
         if log.get('cut_char_success'):
             update = {'has_img': True, 'img_need_updated': False, 'img_time': hp.get_date_time('%m%d%H%M%S')}
