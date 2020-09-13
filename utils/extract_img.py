@@ -64,7 +64,7 @@ class Cut(object):
         assert img_type in ['char', 'column']
         hsh = hp.md5_encode(img_name, self.cfg['web_img']['salt'])
         img_root = path.join(BASE_DIR, 'static', 'img', '%ss' % img_type)
-        img_fn = path.join(img_root, img_name.split('_')[:-1], '%s_%s.jpg' % (img_name, hsh))
+        img_fn = path.join(img_root, *img_name.split('_')[:-1], '%s_%s.jpg' % (img_name, hsh))
         return path.exists(img_fn)
 
     def cut_img(self, chars):
