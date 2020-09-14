@@ -71,6 +71,9 @@ def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None,
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
                         m['ocr_txt'] = c.get('alternatives', '')[:1] or c.get('ocr_col') or ''
+                        # 如果cc大于0.99且OCR字框和比对文本相同，则设置不必校对
+                        if c.get('cc', 0) >= 0.99 and c.get('cmp_txt', 0) == c.get('alternatives', '')[:1]:
+                            m['un_required'] = True
                         m['txt'] = c.get('txt') or m['ocr_txt']
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         if 'column_no' not in c:
