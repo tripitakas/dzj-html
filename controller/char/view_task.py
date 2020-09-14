@@ -152,6 +152,10 @@ class CharTaskClusterHandler(CharHandler):
             un_equal = self.get_query_argument('diff', 0)
             if un_equal == 'true':
                 cond['diff'] = True
+            # 是否不必校对
+            un_required = self.get_query_argument('un_required', 0)
+            if un_required == 'true':
+                cond['un_required'] = True
             # 按置信度过滤
             cc = self.get_query_argument('cc', 0)
             if cc:
@@ -185,7 +189,7 @@ class CharTaskClusterHandler(CharHandler):
             ocr_txts = [c['ocr_txt'] for c in params]
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts} if len(ocr_txts) > 1 else ocr_txts[0],
-                    'txt_level': {'$lte': user_level}}
+                    'txt_level': {'$lte': user_level}, 'un_required': None}
             # 统计任务相关字种
             counts = list(self.db.char.aggregate([
                 {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},

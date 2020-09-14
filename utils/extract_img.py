@@ -148,8 +148,8 @@ class Cut(object):
                 except Exception as e:
                     reason = '[%s] %s' % (e.__class__.__name__, str(e))
                     log['cut_column_failed'].append(dict(id=img_name, reason=reason))
-            print('[%s#%d]: %d columns to do, %d columns generated.' % (
-                page_name, i + 1, len(columns_todo), len(columns_done)))
+            print('[%s#%d]: %d columns to check, %d columns to do, %d columns generated.' % (
+                page_name, i + 1, len(columns2check), len(columns_todo), len(columns_done)))
             log['cut_column_success'].extend(columns_done)
 
         return log
@@ -243,9 +243,10 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
         chars = list(db.char.find({'name': {'$in': names[start: start + once_size]}}))
         # chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         log = cut.cut_img(chars)
-        if log.get('cut_char_success'):
+        _names = (log.get('cut_char_success') or []) + (log.get('cut_char_existed') or [])
+        if _names:
             update = {'has_img': True, 'img_need_updated': False, 'img_time': hp.get_date_time('%m%d%H%M%S')}
-            db.char.update_many({'name': {'$in': log['cut_char_success']}}, {'$set': update})
+            db.char.update_many({'name': {'$in': _names}}, {'$set': update})
         Bh.add_op_log(db, 'extract_img', 'finished', log, username)
 
 

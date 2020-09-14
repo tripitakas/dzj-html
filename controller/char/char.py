@@ -18,6 +18,7 @@ class Char(Model):
         {'id': 'source', 'name': '分类'},
         {'id': 'has_img', 'name': '是否已有字图'},
         {'id': 'img_need_updated', 'name': '是否需要更新字图'},
+        {'id': 'un_required', 'name': '是否不必校对'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
         {'id': 'pos', 'name': '坐标'},
@@ -70,7 +71,7 @@ class Char(Model):
         if 'txt_type' in request_query and not h.get_url_param('txt_type', request_query):
             params['txt_type'] = ''
             condition.update({'txt_type': None})
-        for field in ['txt', 'ocr_txt', 'txt_type', 'diff']:
+        for field in ['txt', 'ocr_txt', 'txt_type', 'diff', 'un_required']:
             value = h.get_url_param(field, request_query)
             if value:
                 trans = {'True': True, 'False': False, 'None': None}

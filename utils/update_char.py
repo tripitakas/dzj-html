@@ -79,6 +79,24 @@ def update_txt(db):
                 db.char.update_one({'_id': ch['_id']}, {'$set': {'txt': ch['ocr_txt'], 'txt_bak': ch['txt']}})
 
 
+def update_un_required(db):
+    cond = {}
+    size = 100000
+    cnt = db.char.count_documents(cond)
+    page_count = math.ceil(cnt / size)
+    print('[%s]%s chars to process' % (hp.get_date_time(), cnt))
+    for i in range(page_count):
+        un_required = []
+        project = {'name': 1, 'cc': 1, 'alternatives': 1, 'cmp_txt': 1}
+        chars = list(db.char.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        print('[%s]processing page %s/%s' % (hp.get_date_time(), i + 1, page_count))
+        for ch in chars:
+            # 如果cc大于0.99且OCR字框和比对文本相同，则设置不必校对
+            if ch.get('cc', 0) >= 990 and ch.get('cmp_txt', 0) == ch.get('alternatives', '')[:1]:
+                un_required.append(ch['name'])
+        db.char.update_many({'name': {'$in': un_required}}, {'$set': {'un_required': True}})
+
+
 def update_img_need_updated(db):
     # 初始设置为True
     db.char.update_many({}, {'$set': {'img_need_updated': True}})
@@ -90,13 +108,12 @@ def update_img_need_updated(db):
             if not fn.startswith('.') and fn.endswith('.jpg'):
                 name = fn.rsplit('_', 1)[0]
                 names.append(name)
-    count = len(names)
-    print('%s char images found' % count)
-    once_size = 100000
-    for i in range(math.ceil(count / once_size)):
+    print('%s char images found' % len(names))
+    size = 100000
+    for i in range(math.ceil(len(names) / size)):
         print('processing page %s' % i)
-        start = i * once_size
-        db.char.update_many({'name': {'$in': names[start:start + once_size]}}, {'$set': {'img_need_updated': False}})
+        start = i * size
+        db.char.update_many({'name': {'$in': names[start:start + size]}}, {'$set': {'img_need_updated': False}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
