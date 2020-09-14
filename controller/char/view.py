@@ -35,6 +35,7 @@ class CharListHandler(CharHandler):
         {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': '字框OCR'},
         {'id': 'diff', 'name': '是否不匹配'},
+        {'id': 'un_required', 'name': '是否不必校对'},
         {'id': 'txt_level', 'name': '文本等级'},
         {'id': 'txt_logs', 'name': '文本校对记录'},
         {'id': 'tasks', 'name': '校对任务'},
@@ -100,7 +101,7 @@ class CharListHandler(CharHandler):
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'txt_type' and value:
             return self.txt_types.get(value, value)
-        if key == 'diff':
+        if key in ['diff', 'un_required']:
             return self.yes_no.get(value) or ''
         if key in ['cc', 'sc'] and value:
             return value / 1000
@@ -139,12 +140,12 @@ class CharViewHandler(CharHandler):
         """ 查看Char页面"""
         try:
             char = self.db.char.find_one({'name': char_name})
+            page_name, cid = char_name.rsplit('_', 1)
             if not char:
-                char = {'name': char_name, 'page_name': '_'.join(char_name.split('_')[:-1]),
-                        'cid': int(char_name.split('_')[-1]), 'error': True}
+                char = {'name': char_name, 'page_name': page_name, 'cid': int(cid), 'error': True}
                 # return self.send_error_response(e.no_object, message='没有找到数据%s' % char_name)
             projection = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
-            page = self.db.page.find_one({'name': char['page_name'], 'chars.cid': char['cid']}, projection)
+            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, projection) or {}
             if page:
                 c = page['chars'][0]
                 c['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
@@ -156,7 +157,7 @@ class CharViewHandler(CharHandler):
             char['box_level'] = char.get('box_level') or 1
             char['txt_point'] = self.get_required_type_and_point(char)
             char['box_point'] = PageHandler.get_required_type_and_point(page)
-            img_url = self.get_web_img(page['name'], 'page', page.get('img_cloud_path'))
+            img_url = self.get_web_img(page_name, 'page', page.get('img_cloud_path'))
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
             chars = {char['name']: char}

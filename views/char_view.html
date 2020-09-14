@@ -126,8 +126,8 @@
   $.cut.create({
     holder: 'holder',
     image: '{{img_url}}',
-    width: '{{page["width"]}}',
-    height: '{{page["height"]}}',
+    width: '{{page.get("width") or 0}}',
+    height: '{{page.get("height") or 0}}',
     chars: '{{[char["pos"]]}}',
     scrollContainer: '#left-region',
   });

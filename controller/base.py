@@ -118,7 +118,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         user['login_md5'] = gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
-        self.add_log('direct_login_ok', target_id=user['_id'], content='%s,%s,%s' % (user['name'], login_id, user['roles']))
+        self.add_log('direct_login_ok', target_id=user['_id'],
+                     content='%s,%s,%s' % (user['name'], login_id, user['roles']))
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
@@ -351,19 +352,19 @@ class BaseHandler(CorsMixin, RequestHandler):
         inner_path = '/'.join(img_name.split('_')[:-1])
         if self.get_config('web_img.with_hash'):
             img_name += '_' + md5_encode(img_name, self.get_config('web_img.salt'))
-        my_cloud = self.get_config('web_img.my_cloud')
-        shared_cloud = self.get_config('web_img.shared_cloud')
-        relative_url = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name)
         # 从本地获取图片
+        relative_url = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name)
         local_path = self.get_config('web_img.local_path')
         if local_path:
             img_url = '/{0}/{1}'.format(local_path.strip('/'), relative_url)
             if path.exists(path.join(BASE_DIR, img_url[1:])):
                 return img_url
         # 从我的云盘获取图片。如果use_my_cloud为True，则返回我的云盘路径而不使用共享云盘
+        my_cloud = self.get_config('web_img.my_cloud')
         if my_cloud and (img_type in (self.get_config('web_img.cloud_type') or '') or use_my_cloud):
             return path.join(my_cloud.replace('-internal', ''), relative_url)
         # 从共享盘获取图片
+        shared_cloud = self.get_config('web_img.shared_cloud')
         if shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
             return path.join(shared_cloud, relative_url)
 
