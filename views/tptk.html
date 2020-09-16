@@ -279,6 +279,32 @@
     $('.btn-page.next').click();
   });
 
+  // 快捷键缩放页面
+  var width = $('.page-img img').length ? $('.page-img img').width() : 0;
+  var height = $('.page-img img').length ? $('.page-img img').height() : 0;
+
+  function zoomImg(ratio) {
+    var pageImg = $('.page-img img');
+    if (pageImg.length) {
+      pageImg.width(width * ratio);
+      pageImg.height(height * ratio);
+    } else {
+      // 在cut_keys.js中已进行缩放
+      // $.cut.setRatio($.cut.data.ratio * ratio);
+    }
+  }
+
+  $.mapKey('1', () => zoomImg(1));
+  $.mapKey('2', () => zoomImg(2));
+  $.mapKey('3', () => zoomImg(3));
+  $.mapKey('4', () => zoomImg(4));
+  $.mapKey('5', () => zoomImg(5));
+  $.mapKey('6', () => zoomImg(0.6));
+  $.mapKey('7', () => zoomImg(0.7));
+  $.mapKey('8', () => zoomImg(0.8));
+  $.mapKey('9', () => zoomImg(0.9));
+
+
 </script>
 </body>
 </html>
