@@ -63,7 +63,7 @@ class TptkViewHandler(PageHandler):
                 cond = {'volume_code': {'$regex': '_'.join(name_slice[:-2]) + '_'}}
                 volume = self.db.volume.find_one(cond, sort=[('volume_no', 1)])
             nav = dict(first=1, cur=cur_page, next=cur_page + 1, last=1, prev=cur_page - 1 if cur_page - 1 > 1 else 1)
-            content_pages = volume.get('content_pages')
+            content_pages = volume and volume.get('content_pages')
             if content_pages:
                 content_pages.sort(key=cmp_to_key(cmp_page_code))
                 nav['last'] = int(content_pages[-1].split('_')[-1])

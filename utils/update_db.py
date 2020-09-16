@@ -18,7 +18,7 @@ def index_db(db):
     fields2index = {
         'user': ['name', 'email', 'phone'],
         'page': ['name', 'page_code', 'source', 'tasks'],
-        'char': ['name', 'source', 'uid', 'ocr_txt', 'txt', 'diff', 'cc', 'sc', 'txt_level', 'has_img'],
+        'char': ['name', 'source', 'uid', 'ocr_txt', 'txt', 'diff', 'un_required', 'cc', 'sc', 'txt_level', 'has_img'],
         'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
         'variant': ['txt', 'normal_txt'],
     }
