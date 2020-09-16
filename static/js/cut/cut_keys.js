@@ -123,10 +123,7 @@
       on('subtract', sub);
       on('-', sub);
 
-      // 5~9 页面缩放
-      on('5', function () {
-        self.setRatio(0.5);
-      });
+      // 6~9 页面缩放
       on('6', function () {
         self.setRatio(0.6);
       });
