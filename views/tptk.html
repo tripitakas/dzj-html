@@ -129,7 +129,7 @@
         <div class="page-img"><img src="{{img_url}}" alt="图片不存在"/></div>
         {% end %}
       </div>
-      <div id="right-region" class="m-right bd wide-txt {{'hide' if not page else ''}}">
+      <div id="right-region" class="m-right bd wide-txt {{'hide' if not txts else ''}}">
         {% if txts %}{% module PageTxt(txts) %}{% end %}
       </div>
     </div>
