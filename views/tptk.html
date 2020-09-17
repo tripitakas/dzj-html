@@ -114,9 +114,9 @@
         </div>
       </div>
       <div class="right">
-        <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?q={{volume_code}}">经目</a>
-        <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}?q={{volume_code}}">卷目</a>
-        <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}?q={{volume_code}}">册目</a>
+        <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}">经目</a>
+        <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}">卷目</a>
+        <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}">册目</a>
       </div>
     </div>
     <div class="m-body flex pfread">
@@ -129,7 +129,7 @@
         <div class="page-img"><img src="{{img_url}}" alt="图片不存在"/></div>
         {% end %}
       </div>
-      <div id="right-region" class="m-right bd wide-txt {{'hide' if not page else ''}}">
+      <div id="right-region" class="m-right bd wide-txt {{'hide' if not txts else ''}}">
         {% if txts %}{% module PageTxt(txts) %}{% end %}
       </div>
     </div>
@@ -278,6 +278,32 @@
   $('#pic-right').click(function () {
     $('.btn-page.next').click();
   });
+
+  // 快捷键缩放页面
+  var width = $('.page-img img').length ? $('.page-img img').width() : 0;
+  var height = $('.page-img img').length ? $('.page-img img').height() : 0;
+
+  function zoomImg(ratio) {
+    var pageImg = $('.page-img img');
+    if (pageImg.length) {
+      pageImg.width(width * ratio);
+      pageImg.height(height * ratio);
+    } else {
+      // 在cut_keys.js中已进行缩放
+      // $.cut.setRatio($.cut.data.ratio * ratio);
+    }
+  }
+
+  $.mapKey('1', () => zoomImg(1));
+  $.mapKey('2', () => zoomImg(2));
+  $.mapKey('3', () => zoomImg(3));
+  $.mapKey('4', () => zoomImg(4));
+  $.mapKey('5', () => zoomImg(5));
+  $.mapKey('6', () => zoomImg(0.6));
+  $.mapKey('7', () => zoomImg(0.7));
+  $.mapKey('8', () => zoomImg(0.8));
+  $.mapKey('9', () => zoomImg(0.9));
+
 
 </script>
 </body>

@@ -75,6 +75,14 @@ class DataImportImageHandler(TaskHandler):
 class DataListHandler(BaseHandler):
     URL = '/data/(tripitaka|sutra|reel|volume)'
 
+    @staticmethod
+    def format_value(value, key=None, doc=None):
+        if key in ['volume_code', 'start_volume', 'end_volume']:
+            return '<a href="/tptk/%s">%s</a>' % (value, value)
+        if key in ['start_page', 'end_page'] and value:
+            return '<a href="/tptk/%s_%s">%s</a>' % (doc.get(key.replace('page', 'volume')), value, value)
+        return h.format_value(value, key, doc)
+
     def get(self, metadata):
         """ 数据管理"""
         try:
@@ -85,13 +93,15 @@ class DataListHandler(BaseHandler):
                 {'operation': 'btn-add', 'label': '新增记录'},
                 {'operation': 'bat-remove', 'label': '批量删除'},
                 {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
-                {'operation': 'download-template', 'label': '下载模板', 'href': '/static/template/%s-sample.csv' % metadata},
+                {'operation': 'download-template', 'label': '下载模板',
+                 'href': '/static/template/%s-sample.csv' % metadata},
             ]
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             docs, pager, q, order = model.find_by_page(self)
-            self.render('data_list.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
+            self.render('data_list.html', docs=docs, pager=pager, q=q, order=order,
+                        format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)

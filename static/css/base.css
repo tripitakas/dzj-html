@@ -415,7 +415,6 @@ body.widescreen {
 .sty-table td a {
   color: #B8906F;
   cursor: pointer;
-  font-size: 12px;
   margin-left: 5px;
 }
 
@@ -856,7 +855,7 @@ body.widescreen {
 }
 
 .modal-content textarea {
-  min-width: 500px;
+  min-width: 450px;
   min-height: 100px;
 }
 
