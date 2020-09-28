@@ -24,7 +24,7 @@ from controller.page.base import PageHandler as Ph
 
 def export_page_txt(db, txt_field='adapt', dst_dir=''):
     size = 10000
-    cond = {'name': {'$regex': 'JS_100_200'}}
+    cond = {'name': {'$regex': 'JS_'}}
     page_count = math.ceil(db.page.count_documents(cond) / size)
     print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
     for i in range(page_count):
