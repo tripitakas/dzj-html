@@ -22,7 +22,7 @@ from controller.page.base import PageHandler as Ph
 
 
 def export_page_txt(db, txt_field='adapt', dst_dir=''):
-    cond = {'name': {'$regex': 'JS_100_200'}}
+    cond = {'name': {'$regex': 'JS'}}
     pages = list(db.page.find(cond, {'chars': 1, 'name': 1}))
     print('[%s]%s pages to process' % (hp.get_date_time(), len(pages)))
     for page in pages:
