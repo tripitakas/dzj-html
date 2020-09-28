@@ -4,6 +4,7 @@
 import re
 import sys
 import json
+import math
 import pymongo
 from glob import glob
 from bson import json_util
@@ -22,14 +23,18 @@ from controller.page.base import PageHandler as Ph
 
 
 def export_page_txt(db, txt_field='adapt', dst_dir=''):
-    cond = {'name': {'$regex': 'JS'}}
-    pages = list(db.page.find(cond, {'chars': 1, 'name': 1}))
-    print('[%s]%s pages to process' % (hp.get_date_time(), len(pages)))
-    for page in pages:
-        print('[%s]processing %s' % (hp.get_date_time(), page['name']))
-        txt = Ph.get_char_txt(page, txt_field)
-        with open(path.join(dst_dir, '%s.txt' % page['name']), 'w') as wf:
-            wf.writelines(txt.replace('|', '\n'))
+    size = 10000
+    cond = {'name': {'$regex': 'JS_100_200'}}
+    page_count = math.ceil(db.page.count_documents(cond) / size)
+    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    for i in range(page_count):
+        project = {'name': 1, 'chars': 1}
+        pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        for page in pages:
+            print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+            txt = Ph.get_char_txt(page, txt_field)
+            with open(path.join(dst_dir, '%s.txt' % page['name']), 'w') as wf:
+                wf.writelines(txt.replace('|', '\n'))
 
 
 def export_phonetic(json_dir):
