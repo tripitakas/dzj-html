@@ -224,6 +224,10 @@ class Model(object):
         :param file_stream 已打开的文件流。docs不为空时，将忽略这个字段。
         :return {status: 'success'/'failed', code: '',  message: '...', errors:[]}
         """
+
+        def is_valid(d):
+            return len([v for v in d.values() if v]) > 0
+
         # 从文件流中读取数据
         if not docs and file_stream:
             rows = list(csv.reader(file_stream))
@@ -232,7 +236,8 @@ class Model(object):
             if need_fields:
                 message = '缺以下字段：%s' % ','.join(need_fields)
                 return dict(status='failed', code=e.field_error[0], message=message)
-            docs = [{heads[i]: item for i, item in enumerate(row)} for row in rows[1:]]
+            docs = [{heads[i]: item for i, item in enumerate(row) if heads[i]} for row in rows[1:]]
+            docs = [d for d in docs if is_valid(d)]
         # 逐个校验数据
         valid_docs, valid_codes, error_codes = [], [], []
         for i, doc in enumerate(docs):
@@ -268,7 +273,7 @@ class Model(object):
             add_names = [str(doc.get(cls.primary)) for doc in valid_docs]
 
         error_tip = '：' + ','.join([i[0] for i in error_codes]) if error_codes else ''
-        message = '导入%s，总共%s条记录，插入%s条，%s条旧数据，更新%s条，%s条无效数据%s。' % (
+        message = '导入%s，总共%s条记录，插入%s条，%s条旧数据（更新%s条），%s条无效数据%s。' % (
             collection, len(docs), len(valid_docs), len(existed_docs),
             len(existed_docs) if update else 0,
             len(error_codes), error_tip)

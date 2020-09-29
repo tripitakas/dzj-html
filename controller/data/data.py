@@ -122,7 +122,7 @@ class Volume(Model):
         {'id': 'remark', 'name': '备注'},
     ]
     rules = [
-        (v.not_empty, 'volume_code', 'tripitaka_code', 'volume_no'),
+        (v.not_empty, 'volume_code'),
         (v.is_tripitaka, 'tripitaka_code'),
         (v.is_volume, 'volume_code'),
         (v.is_digit, 'volume_no'),
@@ -139,13 +139,22 @@ class Volume(Model):
                           options=f.get('options', [])) for f in fields]
 
     @classmethod
+    def get_need_fields(cls):
+        # 设置必须字段，新增数据或批量上传时使用
+        return ['volume_code']
+
+    @classmethod
     def pack_doc(cls, doc, self=None):
         doc = super().pack_doc(doc)
+        if not doc.get('tripitaka_code'):
+            doc['tripitaka_code'] = doc['volume_code'].split('_')[0]
+        if not doc.get('volume_no'):
+            doc['volume_no'] = doc['volume_code'].split('_')[-1]
         if doc.get('content_pages') and isinstance(doc['content_pages'], str):
             content_pages = re.sub(r'[\[\]\"\'\s]', '', doc['content_pages']).split(',')
             content_pages.sort(key=cmp_to_key(h.cmp_page_code))
             doc['content_pages'] = content_pages
-        doc['content_page_count'] = len(doc.get('content_pages') or [])
+        doc['content_page_count'] = doc.get('content_page_count') or len(doc.get('content_pages') or [])
         if doc.get('front_cover_pages') and isinstance(doc['front_cover_pages'], str):
             front_cover_pages = re.sub(r'[\[\]\"\'\s]', '', doc['front_cover_pages']).split(',')
             front_cover_pages.sort(key=cmp_to_key(h.cmp_page_code))

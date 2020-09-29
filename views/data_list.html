@@ -1,4 +1,11 @@
 {% extends "com/_list.html" %}
+{% block custom-css %}
+<style>
+  .swal2-container a {
+    color: var(--Brown_Darker);
+  }
+</style>
+{% end %}
 
 {% block custom-modal %}
 <div id="uploadModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
@@ -43,9 +50,9 @@
       var errors = res.data.errors;
       if (errors.length > 0) {
         var text = '<div class="message">' + res.message + '</div><br/><a href="' + res.url + '">下载上传结果</a>';
-        showTips('上传完成', text, true);
+        showConfirm('上传完成', text, () => location.reload());
       } else {
-        showTips('上传成功', res.message, true);
+        showConfirm('上传成功', res.message, () => location.reload());
       }
     }, function (err) {
       $('#progress').addClass('hide');
