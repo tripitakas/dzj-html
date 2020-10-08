@@ -855,7 +855,7 @@ body.widescreen {
 }
 
 .modal-content textarea {
-  min-width: 500px;
+  min-width: 450px;
   min-height: 100px;
 }
 

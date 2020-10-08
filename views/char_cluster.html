@@ -301,7 +301,7 @@
     var pageSize = $('#taskConfigModal .page-size').val();
     if (pageSize.length) {
       if (!/^\d+$/.test(pageSize)) {
-        return showWarning('提示', '每页条数中请输入数字');
+        return showTips('提示', '每页条数中请输入数字', 3000);
       } else {
         data['cluster_page_size'] = pageSize;
       }
@@ -329,9 +329,9 @@
   $('#variantModal .modal-confirm').on('click', function () {
     var data = {txt: $('#variantModal .txt').val(), normal_txt: $('#variantModal .normal-txt').val()};
     if (!data.txt.length) {
-      return showWarning('提示', '请输入异体字文字或字图编码');
+      return showTips('提示', '请输入异体字文字或字图编码', 5000);
     } else if (!data.normal_txt.length) {
-      return showWarning('提示', '请输入异体字所属正字');
+      return showTips('提示', '请输入异体字所属正字', 3000);
     } else {
       $(this).text('进行中...');
       postApi('/data/variant', {data: data}, function (res) {
@@ -360,7 +360,7 @@
   $('#bat-update-txt').on('click', function () {
     var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
     if (!names.length)
-      return showWarning('请选择', '当前没有选中任何记录。');
+      return showTips('请选择', '当前没有选中任何记录', 3000);
     Swal2.fire({title: '请输入文字', input: 'text', inputValue: $('.proof .txt').val(), showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
         var data = {names: names, txt: result.value, task_type: taskType};
@@ -382,7 +382,7 @@
   $('#bat-update-type').on('click', function () {
     var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
     if (!names.length)
-      return showWarning('请选择', '当前没有选中任何记录。');
+      return showTips('请选择', '当前没有选中任何记录', 3000);
     Swal2.fire({title: '请选择类型', input: 'radio', inputOptions: txtTypes, showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
         var data = {names: names, txt_type: result.value, task_type: taskType};
@@ -413,7 +413,7 @@
     postApi(location.pathname, {data: {char_names: charNames}}, function () {
       $('#progress').addClass('hide');
       $('.char-item .submitted').removeClass('hide');
-      showSuccess('成功', '页面已提交。');
+      showSuccess('成功', '页面已提交。', 2000);
     });
   });
 

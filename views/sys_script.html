@@ -148,7 +148,7 @@
     var data = {'user_id': $resetExamUser.find(".select-user").val()};
     postApi('/sys/reset_exam_user', {'data': data}, function (res) {
       if (res.status === 'success') {
-        showSuccess('成功', '重置成功');
+        showSuccess('成功', '重置成功', 2000);
         $resetExamUser.modal('hide');
       } else if (res.status === 'script') {
         Swal0.fire({

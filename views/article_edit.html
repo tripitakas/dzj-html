@@ -134,7 +134,7 @@
   // 提交
   $('#btn-submit').on('click', function () {
     if (!$('#article-id').val().length)
-      return showError('提示', '请填写文章标识', 2000);
+      return showTips('提示', '请填写文章标识', 3000);
     var data = {
       _id: _id, article_id: $('#article-id').val(), title: $('#article-title').val(),
       category: $('#article-category').val(), active: $('#article-active').val(),
@@ -149,7 +149,7 @@
   // 查看
   $('#btn-view').on('click', function () {
     if (!articleId)
-      return showError('提示', '请先保存文章');
+      return showTips('提示', '请先保存文章', 3000);
     else
       window.location = '/article/' + articleId;
   });

@@ -29,6 +29,6 @@ function error_callback(res) {
       pick("/task/pick/" + taskType);
     });
   } else {
-    showError('发生错误', res.message);
+    showError('发生错误', res.message, 5000);
   }
 }

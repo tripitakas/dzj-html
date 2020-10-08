@@ -251,7 +251,7 @@ role_route_maps = {
             '/api/publish/import_image': ['POST'],
             '/data/@metadata': ['GET'],
             '/api/data/@metadata': ['POST'],
-            '/api/data/@metadata/delete': ['POST'],
+            '/api/data/@metadata/(delete|upload)': ['POST'],
             '/api/variant/(delete|merge)': ['POST'],
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],

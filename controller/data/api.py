@@ -4,6 +4,7 @@
 import os
 import csv
 from os import path
+from bson.objectid import ObjectId
 from utils.build_js import build_js
 from tornado.escape import to_basestring
 from controller import errors as e
@@ -12,7 +13,6 @@ from controller.base import BaseHandler
 from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Reel, Sutra, Volume, Variant
 from controller.page.tool.box import Box
-
 
 try:
     from StringIO import StringIO
@@ -56,7 +56,10 @@ class DataUploadApi(BaseHandler):
         assert collection in ['tripitaka', 'volume', 'sutra', 'reel', 'page']
         model = eval(collection.capitalize())
         upload_file = self.request.files.get('csv')
-        content = to_basestring(upload_file[0]['body'])
+        try:
+            content = to_basestring(upload_file[0]['body'])
+        except UnicodeDecodeError:
+            content = upload_file[0]['body'].decode('gbk')
         with StringIO(content) as fn:
             update = False if collection == 'tripitaka' else True
             r = model.save_many(self.db, collection, file_stream=fn, update=update)

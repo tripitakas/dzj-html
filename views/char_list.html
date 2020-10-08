@@ -314,15 +314,15 @@
     var source = $('#sourceModal .source').val();
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
-    if (data.type === 'selected' && !ids.length) return showError('错误', '选中记录不允许为空。');
-    if (data.type === 'searched' && !data.search) return showError('错误', '检索条件不允许为空。');
+    if (data.type === 'selected' && !ids.length) return showTips('提示', '选中记录不允许为空。', 3000);
+    if (data.type === 'searched' && !data.search) return showTips('提示', '检索条件不允许为空。', 3000);
     $(this).text('进行中...');
     postApi('/char/source', {data: data}, () => location.reload());
   });
 
   // 生成字图
   $('.operation .bat-gen-img').on('click', function () {
-    if (!$('table tbody :checked').length) return showWarning('提示', '请选择字图');
+    if (!$('table tbody :checked').length) return showTips('提示', '请选择字图', 3000);
     $('#extractModal .selected-count').text($('table tbody :checked').length);
     $('#extractModal').modal();
   });
@@ -378,7 +378,7 @@
         search += '&' + field + '=' + $select.val();
     });
     if (!search.length)
-      return showWarning('请输入查询条件');
+      return showTips('提示', '请输入查询条件', 3000);
     location.href = location.pathname + '?' + search.substr(1);
   });
 

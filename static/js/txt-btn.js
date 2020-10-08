@@ -63,7 +63,7 @@ $.mapKey('shift+tab', nextDiff);
 $('#delete-line').on('click', function () {
   var $curSpan = $('.current-span');
   if (!$curSpan.length) {
-    return showError('提示', '请先点击一行文本，然后再删除。');
+    return showTips('提示', '请先点击一行文本，然后再删除。', 3000);
   }
   showConfirm('删除', '确定删除当前行吗？', function () {
     var $currentLine = $curSpan.parent(".line");

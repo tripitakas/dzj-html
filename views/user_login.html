@@ -87,7 +87,7 @@
     postApi('/user/login?next={{next}}', {data: data}, function (res) {
       window.location = res.redirect || '{{next}}';
     }, function (err) {
-      showError('登录失败', err.message);
+      showError('登录失败', err.message, 5000);
     });
   });
 
@@ -101,7 +101,7 @@
   $('#forget-pwd').on('click', function () {
     var loginId = $('#login_id').val();
     if (!/^1[3456789]\d{9}$/.test(loginId) && !/^.+@.+\..+$/.test(loginId)) {
-      return showError('错误', '请输入手机号或邮箱');
+      return showError('错误', '请输入手机号或邮箱', 3000);
     }
     $('#forgetModal #account').val(loginId);
     $('#forgetModal').modal('show');
@@ -110,9 +110,9 @@
   $('#forgetModal .btn-primary').click(function () {
     var data = {name: $('#forgetModal #name').val(), phone_or_email: $('#login_id').val()};
     postApi('/user/forget_pwd', {data: data}, function () {
-      showSuccess('新的密码已经发送，请查收。');
+      showSuccess('新的密码已经发送，请查收。', '', 2000);
     }, function (err) {
-      showWarning('提示', err.message);
+      showError('错误', err.message, 5000);
     });
   });
 </script>

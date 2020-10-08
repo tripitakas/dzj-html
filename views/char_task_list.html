@@ -254,7 +254,7 @@
       return '&' + k + '=' + v;
     }).join('');
     if (!search.length)
-      return showWarning('请输入查询条件');
+      return showTips('提示', '请输入查询条件', 3000);
     location.href = location.pathname + '?' + search.substr(1);
   });
   // 重置
