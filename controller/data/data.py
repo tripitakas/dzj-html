@@ -75,6 +75,15 @@ class Sutra(Model):
     def get_need_fields(cls):
         return ['sutra_code', 'sutra_name', 'start_volume', 'start_page', 'end_volume', 'end_page']
 
+    @classmethod
+    def pack_doc(cls, doc, self=None):
+        doc = super().pack_doc(doc)
+        if re.match(r'\d+', doc.get('start_volume', '').strip()):
+            doc['start_volume'] = '%s_%s' % (doc['sutra_code'][:2], doc['start_volume'].strip())
+        if re.match(r'\d+', doc.get('end_volume', '').strip()):
+            doc['end_volume'] = '%s_%s' % (doc['sutra_code'][:2], doc['end_volume'].strip())
+        return doc
+
 
 class Reel(Model):
     collection = 'reel'
