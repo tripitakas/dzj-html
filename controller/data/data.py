@@ -71,6 +71,10 @@ class Sutra(Model):
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                           options=f.get('options', [])) for f in fields]
 
+    @classmethod
+    def get_need_fields(cls):
+        return ['sutra_code', 'sutra_name', 'start_volume', 'start_page', 'end_volume', 'end_page']
+
 
 class Reel(Model):
     collection = 'reel'

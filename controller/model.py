@@ -108,6 +108,7 @@ class Model(object):
         for f in cls.fields:
             if f['name'] == name:
                 return f['id']
+        return name
 
     @classmethod
     def pack_doc(cls, doc, self=None):
@@ -236,7 +237,7 @@ class Model(object):
             if need_fields:
                 message = '以下字段缺失：%s' % ', '.join(need_fields)
                 return dict(status='failed', code=e.field_error[0], message=message)
-            over_fields = [r for r in heads if r not in cls.get_fields()]
+            over_fields = [r for r in heads if r and r not in cls.get_fields()]
             if over_fields:
                 message = '以下字段多余：%s' % ', '.join(over_fields)
                 return dict(status='failed', code=e.field_error[0], message=message)
@@ -277,7 +278,7 @@ class Model(object):
             add_names = [str(doc.get(cls.primary)) for doc in valid_docs]
 
         error_tip = '：' + ','.join([i[0] for i in error_codes]) if error_codes else ''
-        message = '导入%s，总共%s条记录，插入%s条，更新%s条（%s条旧数据），%s条无效数据%s。' % (
+        message = '导入%s，总共%s条记录，插入%s条新数据，更新%s条（%s条旧数据），%s条无效数据%s。' % (
             collection, len(docs), len(valid_docs),
             len(existed_docs) if update else 0, len(existed_docs),
             len(error_codes), error_tip)
