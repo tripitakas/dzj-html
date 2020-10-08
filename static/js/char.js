@@ -19,12 +19,12 @@ $('#btn-not-know').on('click', () => location.href = setQueryString('txt_type', 
 $('#btn-filter').on('click', function () {
   var start = $('#filter-start').val();
   if (start && start.match(/^(0\.\d+|0|1|1\.0)$/) === null)
-    return showWarning('提示', '起始值不符合要求');
+    return showTips('提示', '起始值不符合要求', 3000);
   var end = $('#filter-end').val();
   if (end && end.match(/^(0\.\d+|0|1|1\.0)$/) === null)
-    return showWarning('提示', '终止值不符合要求');
+    return showTips('提示', '终止值不符合要求', 3000);
   if (!start.length && !end.length)
-    return showWarning('提示', '请输入起始值或终止值');
+    return showTips('提示', '请输入起始值或终止值', 3000);
   if (start.length && !end.length) {
     location.href = setQueryString('cc', '>=' + start);
   } else if (end.length && !start.length) {

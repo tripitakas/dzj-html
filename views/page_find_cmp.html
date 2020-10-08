@@ -251,7 +251,7 @@
         $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
         $('#selectable').animate({scrollTop: $('#cmp').offset().top - 100}, 500);
       } else {
-        showWarning('提示', '没有更多内容');
+        showTips('提示', '没有更多内容', 3000);
       }
     });
   });
@@ -265,7 +265,7 @@
         $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
         $('#selectable').animate({scrollTop: $('#cmp').offset().bottom}, 500);
       } else {
-        showWarning('提示', '没有更多内容');
+        showTips('提示', '没有更多内容', 3000);
       }
     });
   });

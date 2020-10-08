@@ -122,10 +122,10 @@
     var importDir = active === 'wang-pan' ? $('#pan-dir').val().trim() : $('#manual-dir').val().trim();
     Object.assign(data, {task_type: 'import_image', import_dir: importDir, pan_name: panName});
     postApi('/publish/import_image', {data: data}, function () {
-      showSuccess('成功', '数据已提交。');
+      showSuccess('成功', '数据已提交。', 2000);
       refresh(1000);
     }, function (error) {
-      return showError('提交失败', error.message);
+      return showError('提交失败', error.message, 5000);
     });
   });
 
@@ -134,7 +134,7 @@
     var node = $(this).parent().parent();
     var regex = /(进行中|失败)/i;
     if (!node.find('.status').text().trim().match(regex)) {
-      return showWarning('状态有误', '只能重新发布进行中或已失败的任务！');
+      return showWarning('状态有误', '只能重新发布进行中或已失败的任务！', 5000);
     }
     showConfirm("确定重新发布吗？", "任务" + node.find('.doc_id').text().trim() + "将被重新发布！", function () {
       postApi('/task/republish/' + node.attr('id'), {data: {}}, function () {

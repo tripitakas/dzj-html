@@ -800,9 +800,9 @@
       var r = cs.checkLinks();
       if (prompt) {
         if (r) {
-          showSuccess('成功');
+          showSuccess('成功', 2000);
         } else {
-          showError('错误', '黄色字框的字序连线有误。');
+          showError('错误', '黄色字框的字序连线有误。', 5000);
         }
       }
     },

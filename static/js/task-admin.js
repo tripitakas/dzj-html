@@ -2,7 +2,7 @@
 $('.operation .bat-batch').click(function () {
   var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
   if (!ids.length)
-    return showWarning('请选择', '当前没有选中任何记录。');
+    return showTips('请选择', '当前没有选中任何记录', 3000);
   Swal2.fire({title: '请输入批次', input: 'text', showLoaderOnConfirm: true}).then((result) => {
     if (result.value) {
       postApi('/task/batch', {data: {_ids: ids, batch: result.value}}, () => location.reload());
@@ -47,7 +47,7 @@ $('.sty-table .action .btn-republish').click(function () {
   var node = $(this).parent().parent();
   var regex = /(picked|failed)/i;
   if (!node.find('.status').attr('title').match(regex)) {
-    return showWarning('状态有误', '只能重新发布进行中或已失败的任务！');
+    return showWarning('状态有误', '只能重新发布进行中或已失败的任务！', 5000);
   }
   showConfirm("确定重新发布吗？", "任务" + node.find('.doc_id').text().trim() + "将被重新发布！", function () {
     postApi('/task/republish/' + node.attr('id'), {data: {}}, function () {
@@ -60,17 +60,17 @@ $('.sty-table .action .btn-delete').click(function () {
   var node = $(this).parent().parent();
   var regex = /(published|fetched|pending|returned)/i;
   if (!node.find('.status').attr('title').match(regex)) {
-    return showWarning('状态有误', '只能删除已发布未领取、已获取、等待前置任务及已退回的任务！');
+    return showWarning('状态有误', '只能删除已发布未领取、已获取、等待前置任务及已退回的任务！', 5000);
   }
   var id = node.attr('id');
   var data = getData(id);
   var name = 'name' in data ? data.name : '';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
     postApi('/task/delete', {data: {_id: data._id}}, function (res) {
-      showSuccess('成功', '数据' + name + '已删除');
+      showSuccess('成功', '数据' + name + '已删除', 2000);
       refresh(1000);
     }, function (err) {
-      showError('删除失败', err.message);
+      showError('删除失败', err.message, 5000);
     });
   });
 });
@@ -94,7 +94,7 @@ $assignModal.find(".select-user").select2({
 $assignModal.find('.modal-confirm').click(function () {
   if (!$('.sty-table :checked').length) {
     $assignModal.modal('hide');
-    return showError('请选择任务');
+    return showTips('提示', '请选择任务', 3000);
   }
   $(this).text('进行中...');
   var tasks = $.map($('table tbody :checked'), function (item) {
@@ -120,7 +120,7 @@ $('.operation .bat-republish').click(function () {
   var ids = $.map($('table tbody :checked'), function (item) {
     return $(item).parent().parent().attr('id').trim();
   });
-  if (!ids.length) return showWarning('请选择', '当前没有选中任何记录。');
+  if (!ids.length) return showTips('请选择', '当前没有选中任何记录', 3000);
   showConfirm("提示", "确定重新发布这 " + ids.length + " 个任务吗？", function () {
     postApi('/task/republish', {data: {ids: ids}}, function (res) {
       var msg = `${res.published_count}条已重新发布`;
@@ -128,7 +128,7 @@ $('.operation .bat-republish').click(function () {
         msg += `，${ids.length - res.published_count}条未重新发布（非失败、退回、进行中）`;
       showConfirm("提示", msg, () => location.reload());
     }, function (err) {
-      showError('重新发布失败', err.message);
+      showError('重新发布失败', err.message, 5000);
     });
   });
 });

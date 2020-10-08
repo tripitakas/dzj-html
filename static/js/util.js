@@ -8,26 +8,25 @@ const Swal1 = Swal0.mixin({confirmButtonText: '确定', showConfirmButton: true}
 const Swal2 = Swal1.mixin({cancelButtonText: '取消', showCancelButton: true});
 
 function showError(title, text, timer) {
-  // 在页面提示
-  if ($('.ajax-error').length) {
+  if ($('.ajax-error').length) { // 在页面提示
     $('.ajax-error').text(text.replace(/[。！]$/, '')).show(200);
-    return setTimeout(() => $('.ajax-error').hide(), timer || 5000);
+    if (timer) setTimeout(() => $('.ajax-error').hide(), timer);
+  } else { // sweet alert
+    var type = /失败|错误/.test(title) && !/没有发生改变/.test(text) ? 'error' : 'warning';
+    Swal0.fire($.extend({title: title, html: text, type: type}, timer ? {timer: timer} : {}));
   }
-  // sweet alert
-  var type = /失败|错误/.test(title) && !/没有发生改变/.test(text) ? 'error' : 'warning';
-  Swal0.fire({title: title, html: text, type: type, timer: timer || 2000});
 }
 
 function showWarning(title, text, timer) {
-  Swal0.fire({title: title, html: text, type: 'warning', timer: timer || 2000});
+  Swal0.fire($.extend({title: title, html: text, type: 'warning'}, timer ? {timer: timer} : {}));
 }
 
 function showSuccess(title, text, timer) {
-  Swal0.fire({title: title, html: text, type: 'success', timer: timer || 2000});
+  Swal0.fire($.extend({title: title, html: text, type: 'success'}, timer ? {timer: timer} : {}));
 }
 
 function showTips(title, text, timer, reload) {
-  Swal0.fire({title: title, html: text, type: 'warning', timer: timer});
+  Swal0.fire($.extend({title: title, html: text, type: 'warning'}, timer ? {timer: timer} : {}));
   reload && setTimeout(() => location.reload(), 2000);
 }
 

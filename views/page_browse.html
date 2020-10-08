@@ -224,10 +224,10 @@
   $("#editModal .modal-confirm").on('click', function () {
     var data = getModal($editModal, fields);
     postApi('/page', {data: data}, function () {
-      showSuccess('成功', '数据已提交。');
+      showSuccess('成功', '数据已提交。', 2000);
       refresh(1000);
     }, function (error) {
-      showError('失败', error.message);
+      showError('失败', error.message, 5000);
     });
   });
 
@@ -239,17 +239,17 @@
   $('#remarkModal .modal-confirm').on('click', function () {
     var remark = $('#remarkModal .remark').val();
     if (!remark)
-      return showWarning('提示', '请输入备注内容');
+      return showTips('提示', '请输入备注内容', 3000);
     var field = $('#remarkModal .fields :checked').val();
     if (!field)
-      return showWarning('提示', '请选择备注字段');
+      return showTips('提示', '请选择备注字段', 3000);
     localStorage.setItem('pageRemark', remark);
     localStorage.setItem('pageRemarkField', field);
     var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}'};
     data[field === '切分' ? 'remark_box' : 'remark_txt'] = remark;
     $(this).text('进行中...');
     postApi('/page', {data: data}, function () {
-      showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
+      showSuccess('成功', '{{page["name"]}} ' + '备注成功。', 2000);
       go(getQueryString('to') || 'next');
     });
   });

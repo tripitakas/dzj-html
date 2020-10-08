@@ -35,11 +35,11 @@
   $("#uploadModal .modal-confirm").click(function () {
     var file = $('#upload')[0].files[0];
     if (typeof file === 'undefined') {
-      return showError('请选择文件');
+      return showTips('提示', '请选择文件', 3000);
     } else if (!/\.(csv|CSV)$/.test(file.name)) {
-      return showError('文件不是CSV类型');
+      return showTips('提示', '文件不是CSV类型', 3000);
     } else if (file.size > (10 * 1024 * 1024)) {
-      return showError('文件大小不能超过10M');
+      return showTips('提示', '文件大小不能超过10M', 3000);
     }
 
     $('#progress').removeClass('hide');
@@ -56,7 +56,7 @@
       }
     }, function (err) {
       $('#progress').addClass('hide');
-      showError('上传失败', err.message);
+      showError('上传失败', err.message, 5000);
     });
   });
 

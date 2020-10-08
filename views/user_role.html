@@ -130,14 +130,14 @@
     var name = $roleModal.find('#name').text();
     var data = {_id: $roleModal.find('#_id').text(), roles: roles};
     postApi('/user/role', {data: data}, function () {
-      showSuccess('修改成功', name + ' 的信息已修改。');
+      showSuccess('修改成功', name + ' 的信息已修改。', 2000);
       refresh(1000);
     }, function (err) {
       if (err.code === 1009) {
-        showSuccess('修改成功', '用户信息没有发生改变。');
+        showSuccess('修改成功', '用户信息没有发生改变。', 2000);
         $roleModal.modal('hide');
       } else
-        showError('修改失败', err.message);
+        showError('修改失败', err.message, 5000);
     });
   });
 

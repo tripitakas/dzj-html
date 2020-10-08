@@ -152,13 +152,13 @@
 <script>
   $('.register-btn > a').on("click", function () {
     if (!$('.register-agreement :checkbox').is(':checked')) {
-      showError('错误', '您需要阅读并勾选同意注册协议，才能进一步注册', 30000000);
+      showError('错误', '您需要阅读并勾选同意注册协议，才能进一步注册', 3000);
       return;
     }
     var password = $('#password').val();
     var confirm_psw = $('#confirm_psw').val();
     if (password !== confirm_psw) {
-      return showError('密码错误', '两次输入的密码不一致。');
+      return showError('密码错误', '两次输入的密码不一致。', 3000);
     }
     postApi('/user/register?next={{next}}', {
       data: {
@@ -173,7 +173,7 @@
     }, function (data) {
       window.location = data.redirect || '{{next}}';
     }, function (error) {
-      return showError('提交失败', error.message);
+      return showError('提交失败', error.message, 5000);
     });
   });
 
@@ -202,11 +202,11 @@
   $("#email-code-btn").on("click", function () {
     var email = $('#email').val().trim();
     if (email.length === 0) {
-      return showError('邮箱不能为空', '请输入注册邮箱');
+      return showError('邮箱不能为空', '请输入注册邮箱', 3000);
     }
     var mailReg = /^(\w-*\.*)+@(\w-?)+(\.\w{2,})+$/;
     if (!mailReg.test(email)) {
-      return showError('邮箱格式不正确', '邮箱格式不正确');
+      return showError('邮箱格式不正确', '邮箱格式不正确', 3000);
     }
     if ($(this).hasClass('sending')) {  // 判断是否已经发送
       return;
@@ -215,7 +215,7 @@
     $this.text("发送中...");
     postApi('/user/email_code', {'data': {email: email}}, function (res) {
       if (!res.status) {
-        return showError(code, error);
+        return showError(code, error, 5000);
       } else {
         $this.addClass('sending');      // 成功后显示已发送状态
         var time = 60;
@@ -235,11 +235,11 @@
   $("#phone-code-btn").on("click", function () {
     var phone = $('#phone').val().trim();
     if (phone.length === 0) {
-      return showError('手机号不能为空', '请输入手机号码');
+      return showError('手机号不能为空', '请输入手机号码', 3000);
     }
     var phoneReg = /^1[3-578]\d{9}$/;
     if (!phoneReg.test(phone)) {
-      return showError('手机号格式不正确', '手机号格式不正确');
+      return showError('手机号格式不正确', '手机号格式不正确', 3000);
     }
     if ($(this).hasClass('sending')) {  // 判断是否已经发送
       return;
@@ -248,7 +248,7 @@
     $this.text("发送中...");
     postApi('/user/phone_code', {'data': {phone: phone}}, function (res) {
       if (!res.status) {
-        return showError(code, error);
+        return showError(code, error, 5000);
       } else {
         $this.addClass('sending');      // 成功后显示已发送状态
         var time = 60;
