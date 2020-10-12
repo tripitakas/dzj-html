@@ -74,7 +74,7 @@ class Model(object):
 
     @classmethod
     def get_fields(cls):
-        return [f['id'] for f in cls.fields]
+        return [f['id'] for f in cls.fields + cls.com_fields]
 
     @classmethod
     def get_need_fields(cls):

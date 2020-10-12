@@ -347,6 +347,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
 
+    def get_img_suffix(self, tripitaka_code):
+        """ 获取藏经图片的后缀名"""
+        return self.prop(self.config, 'img_suffix.%s' % tripitaka_code) or 'jpg'
+
     def get_web_img(self, img_name, img_type='page', use_my_cloud=False):
         if not img_name:
             return ''
@@ -354,7 +358,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if self.get_config('web_img.with_hash'):
             img_name += '_' + md5_encode(img_name, self.get_config('web_img.salt'))
         # 从本地获取图片
-        relative_url = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name)
+        relative_url = '{0}s/{1}/{2}.{3}'.format(img_type, inner_path, img_name, self.get_img_suffix(img_name[:2]))
         local_path = self.get_config('web_img.local_path')
         if local_path:
             img_url = '/{0}/{1}'.format(local_path.strip('/'), relative_url)
