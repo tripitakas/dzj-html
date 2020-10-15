@@ -59,7 +59,7 @@
   $('#upload-columns').on('click', function () {
     showConfirm('提示', '您确定将所有列图上传OSS吗？', function () {
       postApi('/sys/upload_oss/column', {}, (res) => {
-        showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
+        showSuccess('成功', '已启动脚本，请稍后刷新页面查看。', 2000);
       });
     });
   });
@@ -67,7 +67,7 @@
   $('#upload-chars').on('click', function () {
     showConfirm('提示', '您确定将所有字图上传OSS吗？', function () {
       postApi('/sys/upload_oss/char', {}, (res) => {
-        showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
+        showSuccess('成功', '已启动脚本，请稍后刷新页面查看。', 2000);
       });
     });
   });

@@ -4,53 +4,40 @@
 import re
 import sys
 import json
+import math
 import pymongo
 from glob import glob
 from bson import json_util
+from os import path, makedirs
 from wand.image import Image as wImage
 from wand.color import Color
 from wand.drawing import Drawing
 from PIL import Image as Image, ImageDraw
-from os import path, makedirs
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller.base import prop
+from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
-def export_page(db_name='tripitaka', uri='localhost', out_dir=None, source='', phonetic=False, text_finished=False):
-    conn = pymongo.MongoClient(uri)
-    db = conn[db_name]
-    cond = {'source': {'$regex': str(source)}} if source else {}
-    if phonetic:
-        cond['$or'] = [{f: {'$regex': '音釋|音释'}} for f in ['ocr', 'ocr_col', 'text']]
-    out_dir = out_dir and str(out_dir) or source or 'pages'
-    for index in range(1000):
-        rows = list(db.page.find(cond).skip(index * 100).limit(100))
-        if rows:
-            if not path.exists(out_dir):
-                makedirs(out_dir)
-            print('export %d pages...' % len(rows))
-            for p in rows:
-                tasks = db.task.find({'doc_id': p['name'], 'task_type': {'$regex': '^text'}, 'status': 'finished'})
-                if text_finished and not tasks:
-                    continue
-                for task in tasks:
-                    p[task['task_type']] = Ph.html2txt(prop(task, 'result.txt_html', ''))
-
-                p['_id'] = str(p['_id'])
-                if p.get('create_time'):
-                    p['create_time'] = p['create_time'].strftime('%Y-%m-%d %H:%M:%S')
-                with open(path.join(out_dir, '%s.json' % str(p['name'])), 'w') as f:
-                    for k, v in list(p.items()):
-                        if not v or k in ['lock', 'level', 'tasks']:
-                            p.pop(k)
-                    f.write(json_util.dumps(p, ensure_ascii=False))
+def export_page_txt(db, txt_field='adapt', dst_dir=''):
+    size = 10000
+    cond = {'name': {'$regex': 'JS_'}, 'chars': {'$exists': True}}
+    total_cnt = db.page.count_documents(cond)
+    print('[%s]%s pages to process' % (hp.get_date_time(), total_cnt))
+    page_nums = math.ceil(total_cnt / size)
+    for i in range(page_nums):
+        project = {'name': 1, 'chars': 1}
+        pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        for page in pages:
+            print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+            txt = Ph.get_char_txt(page, txt_field)
+            with open(path.join(dst_dir, '%s.txt' % page['name']), 'w') as wf:
+                wf.writelines(txt.replace('|', '\n'))
 
 
-# python3 ~/export_page.py --out_dir=1200 --source=1200 --phonetic=1 --text_finished=1 --db_name=... --uri=mongodb://...
 def export_phonetic(json_dir):
     with open('phonetic.txt', 'w') as f:
         for json_file in sorted(glob(path.join(json_dir, '*.json'))):
@@ -182,7 +169,7 @@ def export_box_by_pillow(db):
         print('%s invalid pages.\n%s' % (len(invalid), invalid))
 
 
-def main(db_name='tripitaka', uri='localhost', func='export_box_by_pillow', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

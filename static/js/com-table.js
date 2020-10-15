@@ -174,10 +174,10 @@ $('.btn-update').click(function () {
 $("#updateModal .modal-confirm").click(function () {
   var data = getModal($modal, fields);
   postApi($modal.find('.update-url').val().trim(), {data: data}, function () {
-    showSuccess('成功', '数据已提交。');
+    showSuccess('成功', '数据已提交。', 2000);
     refresh(2000);
   }, function (error) {
-    showError('提交失败', error.message);
+    showError('提交失败', error.message, 5000);
   });
 });
 
@@ -190,13 +190,13 @@ $('.btn-remove').click(function () {
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_id: data._id}}, function (res) {
       if (res.count) {
-        showSuccess('成功', '数据' + name + '已删除');
+        showSuccess('成功', '数据' + name + '已删除', 2000);
         refresh(2000);
       } else {
-        showWarning('未删除', '数据未删除');
+        showError('失败', '数据未删除', 3000);
       }
     }, function (err) {
-      showError('删除失败', err.message);
+      showError('删除失败', err.message, 5000);
     });
   });
 });
@@ -207,18 +207,18 @@ $('.operation .bat-remove').click(function () {
     return $(item).parent().parent().attr('id');
   });
   if (!ids.length)
-    return showWarning('请选择', '当前没有选中任何记录。');
+    return showTips('提示', '当前没有选中任何记录', 3000);
   var url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_ids: ids}}, function (res) {
       if (res.count) {
-        showSuccess('成功', '选中' + ids.length + '条记录，已删除' + res.count + '条记录。');
+        showSuccess('成功', '选中' + ids.length + '条记录，已删除' + res.count + '条记录。', 2000);
         refresh(2000);
       } else {
-        showWarning('未删除', '删除0条数据');
+        showTips('提示', '删除0条数据', 3000);
       }
     }, function (err) {
-      showError('删除失败', err.message);
+      showError('删除失败', err.message, 5000);
     });
   });
 });

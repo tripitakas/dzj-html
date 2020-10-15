@@ -240,7 +240,7 @@
     postApi('/page/txt_match/{{page["name"]}}', {data: data}, function (res) {
       bsHide();
       if (res.data.status) {
-        showSuccess('成功', '图文匹配');
+        showSuccess('成功', '图文匹配', 2000);
       } else {
         $('.mis-match').removeClass('mis-match');
         $('#resModal .table tbody').html($.map(res.data.mis_match, function (item) {
@@ -263,7 +263,7 @@
     postApi('/page/txt_match/{{page["name"]}}', {data: getPostData()}, function (res) {
       bsHide();
       if (res.data.status) {
-        showSuccess('成功', '已保存');
+        showSuccess('成功', '已保存', 2000);
         location.reload();
       } else {
         $('.mis-match').removeClass('mis-match');
@@ -281,7 +281,7 @@
     if (res.data.status) {
       var autoPick = localStorage.getItem('autoPick') || '是';
       if (mode === 'do' && autoPick === '是') {
-        showSuccess('成功', '已成功提交！将自动领取下一个任务。');
+        showSuccess('成功', '已成功提交！将自动领取下一个任务。', 2000);
         pick('/task/pick/' + taskType);
       } else {
         window.leave();

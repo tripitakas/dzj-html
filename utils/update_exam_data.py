@@ -314,7 +314,7 @@ def reset_cut_proof(db, user_no=None):
     for i in range(1, 51):
         if not user_no or user_no == i:
             print('processing user %s' % i)
-            # 指派任务
+            # 重置该账号系统指派的任务
             page_names = eval('names%s' % i)
             cond = {'task_type': task_type, 'doc_id': {'$in': page_names}}
             user = db.user.find_one({'email': 'exam%02d@tripitakas.net' % int(i)})
@@ -325,24 +325,22 @@ def reset_cut_proof(db, user_no=None):
             db.task.update_many(cond, {'$unset': {
                 'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
             }})
-            # 重置页数据的任务字段
+            # 重置page的tasks字段
             db.page.update_many({'name': {'$in': page_names}}, {'$set': {'tasks.%s.%s' % (task_type, 1): 'picked'}})
-
-    # 重置非系统指派的任务为published
-    cond = dict(task_type=task_type)
-    page_names = eval('names%s' % int(user_no)) if user_no else get_exam_names()
-    cond['doc_id'] = {'$nin': page_names}
-    db.task.update_many(cond, {'$set': {'status': 'published'}})
-    db.task.update_many(cond, {'$unset': {
-        'picked_time': '', 'picked_by': '', 'picked_user_id': '',
-        'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
-    }})
-    # 重置page的tasks字段
-    tasks = db.task.find(cond, {'doc_id': 1})
-    db.page.update_many({'name': {'$in': [t['doc_id'] for t in tasks]}}, {'$set': {'tasks.cut_proof.1': 'published'}})
+            # 重置该账号非系统指派的任务
+            cond1 = {'task_type': task_type, 'doc_id': {'$nin': page_names}, 'picked_by': user['_id']}
+            db.task.update_many(cond1, {'$set': {'status': 'published'}})
+            db.task.update_many(cond1, {'$unset': {
+                'picked_time': '', 'picked_by': '', 'picked_user_id': '',
+                'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
+            }})
+            # 重置page的tasks字段
+            tasks = list(db.task.find(cond1, {'doc_id': 1}))
+            db.page.update_many({'name': {'$in': [t['doc_id'] for t in tasks]}},
+                                {'$set': {'tasks.cut_proof.1': 'published'}})
 
 
-def assign_cluster_proof(db, user_no=None):
+def assign_cluster_proof(db, user_no=None, reset=False):
     """ 指派聚类校对任务"""
     print('assign cluster_proof')
     task_type = 'cluster_proof'
@@ -359,31 +357,23 @@ def assign_cluster_proof(db, user_no=None):
             db.task.update_many(cond, {'$unset': {
                 'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
             }})
+            if reset:
+                cond1 = {'task_type': task_type, 'txt_kind': {'$nin': txt_kinds}, 'picked_by': user['_id']}
+                db.task.update_many(cond1, {'$set': {'status': 'published'}})
+                db.task.update_many(cond1, {'$unset': {
+                    'picked_time': '', 'picked_by': '', 'picked_user_id': '',
+                    'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
+                }})
+                # 重置char表的txt字段
+                for ocr_txt in txt_kinds:
+                    db.char.update_many({'ocr_txt': ocr_txt}, {'$set': {'txt': ocr_txt, 'txt_logs': [], 'tasks': {}}})
+                # 清空用户新增的异体字
+                db.variant.delete_many({'create_by': '考核%2d' % user_no})
 
 
 def reset_cluster_proof(db, user_no=None):
     """ 重置考核任务-聚类校对"""
-    # 重置账号相关的所有任务为picked
-    print('reset cluster_proof')
-    assign_cluster_proof(db, user_no)
-
-    # 重置非系统指派的任务为published
-    cond = dict(task_type='cluster_proof')
-    txt_kinds = eval('txt_kinds%s' % user_no) if user_no else get_exam_txt_kinds()
-    cond['txt_kind'] = {'$nin': txt_kinds}
-    db.task.update_many(cond, {'$set': {'status': 'published'}})
-    db.task.update_many(cond, {'$unset': {
-        'picked_time': '', 'picked_by': '', 'picked_user_id': '',
-        'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
-    }})
-    # 重置char表的txt字段
-    print('reset char ocr_txt')
-    for ocr_txt in txt_kinds:
-        print('processing txt_kind %s' % ocr_txt)
-        db.char.update_many({'ocr_txt': ocr_txt}, {'$set': {'txt': ocr_txt, 'txt_logs': [], 'tasks': {}}})
-    # 清空用户新增的异体字
-    print('delete variant added by users')
-    db.variant.delete_many({'create_by': '考核%2d' % user_no if user_no else {'$regex': '考核'}})
+    assign_cluster_proof(db, user_no, True)
 
 
 def initial_run(db):

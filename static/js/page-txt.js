@@ -390,13 +390,13 @@ $('.btn-show-txt').on('click', function () {
 $('#btn-cmp-txt').on('click', function () {
   var base = $('.cmp-menu .base-txt :checked').val();
   if (!base)
-    return showTips('提示', '请选择底本');
+    return showTips('提示', '请选择底本', 3000);
   var cmps = $.map($('.cmp-menu .cmp-txt :checked'), (item) => {
     if ($(item).val() && $(item).val() !== base)
       return $(item).val();
   });
   if (!cmps.length)
-    return showTips('提示', '请选择校本');
+    return showTips('提示', '请选择校本', 3000);
   var texts = [base].concat(cmps).map((field) => getText('#text-' + field));
   postApi('/page/txt/diff', {data: {texts: texts}}, function (res) {
     $('.cmp-txt .dropdown-menu').hide();
@@ -414,7 +414,7 @@ $('#btn-cmp-txt').on('click', function () {
 $('#save-doubt').on('click', function () {
   var txt = window.getSelection ? window.getSelection().toString() : '';
   if (!txt.length || !currentSpan[0]) {
-    return showError('请先选择存疑文字', '');
+    return showTips('提示', '请先选择存疑文字', 3000);
   }
   $('#doubtModal .doubt_input').val(txt);
   $('#doubtModal .doubt_reason').val('');
@@ -425,14 +425,14 @@ $('#save-doubt').on('click', function () {
 $('#doubtModal .modal-confirm').on('click', function () {
   var reason = $('#doubtModal .doubt_reason').val().trim();
   if (reason.length <= 0)
-    return showWarning('请填写存疑理由');
+    return showTips('提示', '请填写存疑理由', 3000);
   var txt = $('#doubtModal .doubt_input').val().trim();
   var $span = $('.current-span');
   var offset0 = parseInt($span.attr('offset') || 0);
   var offsetInLine = offsetInSpan + offset0;
   var lineId = $span.parent().attr('id');
   if (!lineId)
-    return showWarning('请先在文本区内选择文本');
+    return showTips('提示', '请先在文本区内选择文本', 3000);
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
@@ -558,9 +558,9 @@ function checkMismatch(report, fromApi) {
         return '<li><span class="head">' + ts[0] + ':</span><span>' + ts[1] + '</span><span>' + ts[2] + '</span></li>';
       }).join('');
       text = '<ul class="match-tips">' + text + '</ul>';
-      showTips("图文不匹配", text);
+      showTips("图文不匹配", text, 3000);
     } else {
-      showTips("成功", "图文匹配", 1000);
+      showTips("成功", "图文匹配", 3000);
     }
   }
 }

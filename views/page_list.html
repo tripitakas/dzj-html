@@ -308,7 +308,7 @@
   $('.operation .bat-source').on('click', function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     if (!ids.length)
-      return showWarning('请选择', '当前没有选中任何记录。');
+      return showTips('请选择', '当前没有选中任何记录', 3000);
     Swal2.fire({title: '请输入分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
         postApi('/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
@@ -320,8 +320,8 @@
   $('.operation .bat-gen-chars').on('click', function () {
     var pageNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.name').text().trim());
     if (!pageNames.length)
-      return showWarning('请选择', '当前没有选中任何记录。');
-    showConfirm('', `将对选中的${pageNames.length}条记录生成字表`, function () {
+      return showTips('请选择', '当前没有选中任何记录', 3000);
+    showConfirm('提示', `将对选中的${pageNames.length}条记录生成字表`, function () {
       postApi('/page/start_gen_chars', {data: {page_names: pageNames}}, (res) => {
         Swal0.fire({
           type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
@@ -337,13 +337,13 @@
     showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
       postApi('/api/page/delete', {data: {page_name: name}}, function (res) {
         if (res.deleted_count) {
-          showSuccess('成功', '数据已删除');
+          showSuccess('成功', '数据已删除', 2000);
           refresh(2000);
         }
         if (res.existed_count)
-          showError('失败', '数据有关联任务，不能删除');
+          showError('失败', '数据有关联任务，不能删除', 3000);
       }, function (err) {
-        showError('删除失败', err.message);
+        showError('删除失败', err.message, 5000);
       });
     });
   });
@@ -353,18 +353,18 @@
       return $(item).parent().parent().find('.name').text().trim();
     });
     if (!names.length)
-      return showWarning('请选择', '当前没有选中任何记录。');
+      return showTips('请选择', '当前没有选中任何记录', 3000);
     showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
       postApi('/api/page/delete', {data: {page_names: names}}, function (res) {
         var msg = `已删除${res.deleted_count}条数据。`;
         if (res.existed_count)
           msg += `${res.existed_count}条数据有关联任务，不能直接删除。`;
-        showSuccess('成功', msg);
+        showSuccess('成功', msg, 3000);
         if (res.deleted_count) {
           refresh(2000);
         }
       }, function (err) {
-        showError('删除失败', err.message);
+        showError('删除失败', err.message, 5000);
       });
     });
   });
@@ -445,7 +445,7 @@
         search += '&' + field + '=' + value;
     });
     if (!search.length)
-      return showWarning('请输入查询条件');
+      return showTips('提示', '请输入查询条件', 3000);
     location.href = location.pathname + '?' + search.substr(1);
   });
 
@@ -526,23 +526,23 @@
       case 'source-search':
         var searchParam = $publishModal.find('#search-param').val();
         if (!searchParam.length)
-          return showError('检索条件不允许为空');
+          return showTips('提示', '检索条件不允许为空', 3000);
         data['search'] = searchParam;
         break;
       case 'source-select':
         var pageNames = $('#page-names').val().trim();
         if (!pageNames.length)
-          return showError('请选择页码');
+          return showTips('提示', '请选择页码', 3000);
         data['page_names'] = pageNames.split(',');
         break;
       case 'source-file':
         var idsFile = $('#upload')[0].files[0];
         if (typeof idsFile === "undefined")
-          return showError('请选择文件');
+          return showTips('提示', '请选择文件', 3000);
         if (!/\.(csv|txt|json)$/.test(idsFile.name))
-          return showError('文件不是CSV或TXT类型');
+          return showTips('提示', '文件不是CSV或TXT类型', 3000);
         if (idsFile.size > (10 * 1024 * 1024))
-          return showError('文件大小不能超过10M');
+          return showTips('提示', '文件大小不能超过10M', 3000);
         formData.append('data', JSON.stringify(data));
         formData.append('names_file', idsFile);
         isFile = true;
