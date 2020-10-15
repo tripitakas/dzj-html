@@ -368,12 +368,7 @@ def assign_cluster_proof(db, user_no=None, reset=False):
                 for ocr_txt in txt_kinds:
                     db.char.update_many({'ocr_txt': ocr_txt}, {'$set': {'txt': ocr_txt, 'txt_logs': [], 'tasks': {}}})
                 # 清空用户新增的异体字
-                db.variant.delete_many({'create_by': '考核%2d' % user_no})
-
-
-def reset_cluster_proof(db, user_no=None):
-    """ 重置考核任务-聚类校对"""
-    assign_cluster_proof(db, user_no, True)
+                db.variant.delete_many({'create_by': '考核%2d' % i})
 
 
 def initial_run(db):
@@ -391,9 +386,9 @@ def initial_run(db):
 def reset_user_data_and_tasks(db, user_no=None, admin_name=None):
     """ 重置体验数据、考核数据以及考核任务"""
     assert not user_no or user_no in range(1, 51)
-    names = eval('names%s' % user_no) if user_no else None
     log = dict(user_no=user_no)
     _id = Bh.add_op_log(db, 'reset_exam', 'ongoing', log, admin_name)
+    names = eval('names%s' % user_no) if user_no else get_exam_names()
     # 重置page数据
     reset_bak_page(db, names=names, data_type='exam')
     # 针对考核page设置噪音
@@ -401,7 +396,7 @@ def reset_user_data_and_tasks(db, user_no=None, admin_name=None):
     # 重置切分校对
     reset_cut_proof(db, user_no)
     # 重置聚类校对
-    reset_cluster_proof(db, user_no)
+    assign_cluster_proof(db, user_no, True)
     db.oplog.update_one({'_id': _id}, {'$set': {'status': 'finished'}})
 
 
