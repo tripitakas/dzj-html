@@ -119,7 +119,7 @@ class PageTaskPublishApi(PageHandler):
         if not page_names:
             return
         task_type = self.data['task_type']
-        pages = list(self.db.page.find({'name': {'$in': list(page_names)}}))
+        pages = list(self.db.page.find({'name': {'$in': list(page_names)}}, {'name': 1, 'chars': 1}))
         if pages:
             if task_type == 'txt_match':
                 tasks, fields = [], self.data.get('fields') or ['ocr_col']
