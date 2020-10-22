@@ -195,7 +195,7 @@ class Task(Model):
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field: value})
+                condition.update({field: int(value) if field == 'priority' else value})
         for field in ['batch', 'doc_id', 'remark']:
             value = h.get_url_param(field, request_query)
             if value:
