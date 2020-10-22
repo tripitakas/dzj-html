@@ -122,7 +122,7 @@ class PageTaskPublishApi(PageHandler):
         # pages = list(self.db.page.find({'name': {'$in': list(page_names)}}, {'name': 1, 'chars': 1}))
         pages = list(self.db.page.aggregate([
             {'$match': {'name': {'$in': list(page_names)}}},
-            {'$project': {'name': 1, 'char_count': {'$size': '$chars'}}}
+            {'$project': {'name': 1, 'char_count': {'$size': 'chars'}}}
         ]))
         if pages:
             if task_type == 'txt_match':
