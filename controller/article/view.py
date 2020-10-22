@@ -16,7 +16,7 @@ class ArticleAdminHandler(BaseHandler, Article):
         """ 文章管理"""
         try:
             kwargs = self.get_template_kwargs()
-            docs, pager, q, order = self.find_by_page(self)
+            docs, pager, q, order = self.find_by_page(self, default_order='-create_time')
             self.render('article_admin.html', docs=docs, pager=pager, order=order, q=q, **kwargs)
 
         except Exception as error:
@@ -78,7 +78,7 @@ class ArticleListHandler(BaseHandler, Article):
             self.set_template_kwargs(category)
             kwargs = self.get_template_kwargs()
             condition = {'category': '帮助' if category == 'help' else '通知', 'active': '是'}
-            docs, pager, q, order = self.find_by_page(self, condition, default_order='-create_time')
+            docs, pager, q, order = self.find_by_page(self, condition, default_order='no')
             self.render('article_list.html', docs=docs, pager=pager, order=order, q=q, pack=pack_content,
                         **kwargs)
 

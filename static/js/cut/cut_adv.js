@@ -126,8 +126,8 @@
           return test ? [c.char_id, degree] : data.paper.rect(r.x, r.y, r.width, r.height)
             .initZoom().setAttr({
               stroke: 'transparent',
-              fill: kind === 'all' && allHide ? '#fff' : fillColor,
-              'fill-opacity': kind === 'all' && allHide ? 1 : alpha
+              fill: kind === 'all' ? '#fff' : fillColor,
+              'fill-opacity': kind === 'all' ? 1 : alpha
             })
             .data('highlight', c.char_id);
         }

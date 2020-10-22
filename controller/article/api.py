@@ -42,7 +42,7 @@ class ArticleUpsertApi(BaseHandler):
         """ 保存文章"""
         try:
             fields = ['title', 'article_id', 'category', 'active', 'content'] + ['_id'] if mode == 'update' else []
-            rules = [(v.not_empty, *fields), (v.is_article, 'article_id')]
+            rules = [(v.not_empty, *fields), (v.is_article, 'article_id'), (v.is_digit, 'no')]
             self.validate(self.data, rules)
 
             article_id = self.data['article_id'].strip()
@@ -50,6 +50,8 @@ class ArticleUpsertApi(BaseHandler):
             info = dict(title=self.data['title'].strip(), article_id=article_id, category=self.data['category'].strip(),
                         active=self.data['active'].strip(), content=self.data['content'].strip(), images=images,
                         updated_time=self.now(), updated_by=self.username)
+            if self.data.get('no'):
+                info['no'] = int(self.data['no'])
 
             if mode == 'update':
                 _id = ObjectId(self.data['_id'])

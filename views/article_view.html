@@ -14,9 +14,9 @@
     }
 
     .article {
-      width: 960px;
       height: 100%;
-      margin: auto;
+      margin-left: 260px;
+      margin-right: 60px;
       padding-top: 40px;
       font-size: 16px;
       font-weight: normal;
@@ -32,20 +32,7 @@
       font-size: 1.5em;
       text-align: center;
       font-weight: normal;
-      margin: 5px 0 10px;
-    }
-
-    .back {
-      top: 5px;
-      left: 5px;
-      position: fixed;
-    }
-
-    .logo-con img {
-      width: 118px;
-      margin-top: 5px;
-      margin-left: 20px;
-      cursor: pointer;
+      margin: 5px 0 20px;
     }
 
     h1, h2, h3, h4, h5 {
@@ -76,26 +63,20 @@
 
 <body>
 <div class="app-main">
-  <div class="back">
-    <span class="btn-txt icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
-  </div>
-  <div class="article">
-    <div class="title">{{article['title']}}</div>
-    <div class="content"> {% raw article['content'] %}</div>
+  <div class="main">
+    {% module ComLeft() %}
+    <div class="article">
+      <div class="title">{{article['title']}}</div>
+      <div class="content"> {% raw article['content'] %}</div>
+    </div>
   </div>
 </div>
 
 {% include com/_base_js.html %}
 <script>
-  var category = '{{article["category"]}}';
-
   function leave() {
-    if (category === '通知')
-      window.location = '/announce';
-    else
-      window.location = '/help';
+    window.location = '{{article["category"]}}' === '通知' ? '/announce' : '/help';
   }
 </script>
-
 </body>
 </html>
