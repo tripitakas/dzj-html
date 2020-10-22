@@ -31,8 +31,6 @@ class ComLeft(UIModule):
                 dict(name='文字审定', icon='icon-subitem', link='/task/lobby/text_review'),
                 dict(name='聚类校对', icon='icon-subitem', link='/task/lobby/cluster_proof'),
                 dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/cluster_review'),
-                dict(name='生僻校对', icon='icon-subitem', link='/task/lobby/rare_proof'),
-                dict(name='生僻审定', icon='icon-subitem', link='/task/lobby/rare_review'),
             ]),
             dict(name='我的任务', icon='icon-task-my', sub_items=[
                 dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
@@ -41,8 +39,6 @@ class ComLeft(UIModule):
                 dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review'),
                 dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof'),
                 dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review'),
-                dict(name='生僻校对', icon='icon-subitem', link='/task/my/rare_proof'),
-                dict(name='生僻审定', icon='icon-subitem', link='/task/my/rare_review'),
             ]),
             dict(name='任务管理', icon='icon-task-admin', sub_items=[
                 dict(name='页任务', icon='icon-subitem', link='/page/task/list'),
