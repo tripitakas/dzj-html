@@ -59,7 +59,8 @@ class CharTaskPublishApi(CharHandler):
         ]))
 
         # 去除已发布的任务
-        rare_type = task_type.replace('cluster', 'rare')
+        rare_type = task_type  # 生僻校对的任务类型同聚类校对
+        # rare_type = task_type.replace('cluster', 'rare')
         cond = {'task_type': {'$in': [task_type, rare_type]}, 'num': num, 'params.source': source}
         published = list(self.db.task.find(cond))
         if published:

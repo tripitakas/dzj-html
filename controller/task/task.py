@@ -68,11 +68,11 @@ class Task(Model):
         },
         'ocr_box': {
             'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': True, 'is_sys_task': True,
+            'num': [1, 2, 3], 'publishable': True, 'is_sys_task': True,
         },
         'ocr_text': {
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': True, 'is_sys_task': True,
+            'num': [1, 2, 3], 'publishable': True, 'is_sys_task': True,
         },
         'txt_match': {
             'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
@@ -94,14 +94,14 @@ class Task(Model):
             'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
             'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': True,
         },
-        'rare_proof': {
-            'name': '生僻校对', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3, 4, 5, 6], 'publishable': False,
-        },
-        'rare_review': {
-            'name': '生僻审定', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': False,
-        },
+        # 'rare_proof': {
+        #     'name': '生僻校对', 'data': {'collection': 'char', 'id': 'name'},
+        #     'num': [1, 2, 3, 4, 5, 6], 'publishable': False,
+        # },
+        # 'rare_review': {
+        #     'name': '生僻审定', 'data': {'collection': 'char', 'id': 'name'},
+        #     'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': False,
+        # },
     }
 
     # 任务状态表

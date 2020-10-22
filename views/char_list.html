@@ -291,7 +291,8 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        <button type="button" class="btn btn-default waves-effect waves-light modal-refresh">刷新</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">发布</button>
       </div>
     </div>
   </div>
@@ -412,9 +413,14 @@
       return `<label class="radio-inline"><input type="radio" name="num" value="${item}" ${item === 1 ? "checked" : ""}>${item}</label>`;
     }).join(''));
   });
+  // 刷新
+  $('#publishModal .modal-refresh').on('click', function () {
+    location.reload();
+  });
 
   $('#publishModal .modal-confirm').on('click', function () {
-    $(this).text('进行中...');
+    var $this = $(this);
+    $this.text('进行中...');
     var num = $('#publishModal .num :checked').val();
     var batch = $('#publishModal .batch .value').val();
     var source = $('#publishModal .source .value').val();
@@ -424,6 +430,7 @@
     });
     var data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, priority: priority, source: source};
     postApi('/char/task/publish', {data: data}, (res) => {
+      $this.text('发布');
       var tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;
       Swal0.fire({title: '成功', html: tips, type: 'success', footer: '详情可以查看<a href="/sys/oplog/latest">日志</a>'});
     });
