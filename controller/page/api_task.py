@@ -119,7 +119,11 @@ class PageTaskPublishApi(PageHandler):
         if not page_names:
             return
         task_type = self.data['task_type']
-        pages = list(self.db.page.find({'name': {'$in': list(page_names)}}, {'name': 1, 'chars': 1}))
+        # pages = list(self.db.page.find({'name': {'$in': list(page_names)}}, {'name': 1, 'chars': 1}))
+        pages = list(self.db.page.aggregate([
+            {'$match': {'name': {'$in': list(page_names)}}},
+            {'$project': {'name': 1, 'char_count': {'$size': '$chars'}}}
+        ]))
         if pages:
             if task_type == 'txt_match':
                 tasks, fields = [], self.data.get('fields') or ['ocr_col']
@@ -127,13 +131,13 @@ class PageTaskPublishApi(PageHandler):
                     for field in fields:
                         # field对应的文本存在且不匹配时才发布任务
                         if self.prop(page, 'txt_match.' + field) is not True and self.get_txt(page, field):
-                            tasks.append(get_task(page['name'], len(page.get('chars') or []), dict(field=field)))
+                            tasks.append(get_task(page['name'], page['char_count'], dict(field=field)))
                 if tasks:
                     self.db.task.insert_many(tasks, ordered=False)
                 update = {'tasks.%s.%s' % (task_type, f): status for f in fields}
                 self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
             else:
-                tasks = [get_task(page['name'], len(page.get('chars') or [])) for page in pages]
+                tasks = [get_task(page['name'], page['char_count']) for page in pages]
                 self.db.task.insert_many(tasks, ordered=False)
                 update = {'tasks.%s.%s' % (task_type, self.data.get('num') or 1): status}
                 self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
