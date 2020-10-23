@@ -216,6 +216,8 @@ class Variant(Model):
             if doc.get('img_name'):  # 如果是图片，则进行编码
                 v_max = self.db.variant.find_one({'uid': {'$ne': None}}, sort=[('uid', -1)])
                 doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
+                if self.db.char.find_one({'txt': 'Y%s' % doc['uid']}):
+                    return self.send_error_response(errors.variant_exist, message='编号已错乱，请联系管理员！')
             doc['create_by'] = self.username
             doc['create_time'] = datetime.now()
             doc['create_user_id'] = self.user_id
