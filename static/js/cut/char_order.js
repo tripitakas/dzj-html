@@ -245,7 +245,7 @@
           'stroke-dasharray': '.',
           'stroke-width': (a.x < b.x ? 3 : 2) / data.ratioInitial
         })
-        .data('up', 1);
+            .data('up', 1);
       }
       if (zoomed && !remove) {
         line.animate({'stroke-width': 6 * data.ratio}, 500, 'elastic');
@@ -800,7 +800,7 @@
       var r = cs.checkLinks();
       if (prompt) {
         if (r) {
-          showSuccess('成功', 2000);
+          showSuccess('成功', '', 2000);
         } else {
           showError('错误', '黄色字框的字序连线有误。', 5000);
         }
