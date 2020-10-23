@@ -8,11 +8,16 @@ from controller.model import Model
 class Article(Model):
     collection = 'article'
     fields = [
+        {'id': 'no', 'name': '序号'},
         {'id': 'title', 'name': '标题'},
         {'id': 'article_id', 'name': '标识'},
         {'id': 'category', 'name': '分类'},
         {'id': 'active', 'name': '是否发布'},
         {'id': 'content', 'name': '内容', 'show_type': 'none'},
+        {'id': 'author_name', 'name': '创建人'},
+        {'id': 'create_time', 'name': '创建时间'},
+        {'id': 'updated_by', 'name': '修改人'},
+        {'id': 'updated_time', 'name': '修改时间'},
     ]
     rules = [
         (v.not_empty, 'title', 'article_id', 'category'),

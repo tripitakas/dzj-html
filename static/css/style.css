@@ -161,7 +161,11 @@ a:focus {
 }
 
 .footer > span + span:before {
-  content: "·"
+  content: " · "
+}
+
+.footer > span a {
+  text-decoration: underline;
 }
 
 @media (max-width: 900px) {
