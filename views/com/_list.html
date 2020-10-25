@@ -92,11 +92,15 @@
         </div>
         <div class="modal-body">
           <div class="select-column">
+            <label class="checkbox-inline"><input type="checkbox" class="ckbox" title="ckbox" {{'checked' if 'ckbox' not in hide_fields else ''}}>
+              选择框</label>
             {% for f in table_fields %}
             <label class="checkbox-inline"><input type="checkbox" class="{{f['id']}}" title="{{f['id']}}" {{'checked' if f['id'] not in hide_fields else ''}}>
               {{f['name']}}
             </label>
             {% end %}
+            <label class="checkbox-inline"><input type="checkbox" class="action" title="action" {{'checked' if 'action' not in hide_fields else ''}}>
+              操作</label>
           </div>
         </div>
         <div class="modal-footer">
