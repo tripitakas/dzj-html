@@ -10,8 +10,25 @@ from controller import validate as v
 from .api import PageBoxApi, PageOrderApi
 
 
+class PageTasklistApi(PageHandler):
+    URL = '/api/page/task/list'
+
+    def post(self):
+        """ 获取页任务的页码"""
+        try:
+            rules = [(v.not_empty, 'search')]
+            self.validate(self.data, rules)
+            condition, _ = self.get_task_search_condition(self.data['search'], 'page')
+            tasks = list(self.db.task.find(condition, {'doc_id': 1}))
+            page_names = [task['doc_id'] for task in tasks]
+            self.send_data_response(dict(names=page_names))
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
 class PageTaskPublishApi(PageHandler):
-    URL = r'/api/page/task/publish'
+    URL = '/api/page/task/publish'
 
     field_names = {
         'published': '任务已发布', 'pending': '任务已悬挂', 'finished_before': '任务已完成',

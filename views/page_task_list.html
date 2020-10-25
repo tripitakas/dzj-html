@@ -68,6 +68,33 @@
     </div>
   </div>
 </div>
+<div id="batchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="batchModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <h4 class=" col-sm-2 control-label">更新哪些编码？</h4>
+            <div class="col-sm-10">
+              <div class="modal-radio">
+                <input type="radio" name="which-pages" value="0">选中页码
+                <input type="radio" name="which-pages" value="1">检索结果
+              </div>
+            </div>
+            <h4 class="col-sm-2 control-label">设置批次号</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="请输入批次号">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -205,12 +232,42 @@
   $.fn.modal.Constructor.prototype.enforceFocus = function () {
   };
 
+  // 综合统计
   $('.btn-dashboard').on('click', function () {
     var date = new Date();
     var day = date.getDay() || 7;
     date.setDate(date.getDate() - day + 1);
     date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     location.href = '/page/task/dashboard?start=' + date.format("yyyy-MM-dd hh:mm:ss");
+  });
+
+  function downloadTxt(fileName, content) {
+    var a = document.createElement('a');
+    a.href = 'data:text/plain;charset=utf-8,' + content;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  // 导出页码
+  $('.btn-export').on('click', function () {
+    Swal2.fire({title: '导出哪些页码？', input: 'radio', inputOptions: {1: '选中页码', 2: '检索结果'}}).then((result) => {
+      if (result.value === '1') {
+        var names = $.map($('table tbody :checked'), function (item) {
+          return $(item).parent().parent().find('.doc_id').text().trim();
+        }).join('\n');
+        if (!names.length) return showTips('请选择', '当前没有选中任何记录', 2000);
+        downloadTxt(`导出页码-${new Date().format("yyyyMMdd-hhmmss")}.txt`, names);
+      } else if (result.value === '2') {
+        if (!location.search.length) return showTips('', '请您先进行检索', 2000);
+        postApi('/page/task/list', {data: {search: location.search}}, function (res) {
+          var names = res['data']['names'].join('\n');
+          if (!names.length) return showTips('', '检索结果为空', 2000);
+          downloadTxt(`导出页码-${new Date().format("yyyyMMdd-hhmmss")}.txt`, names);
+        });
+      }
+    });
   });
 
   /*---综合检索---*/
