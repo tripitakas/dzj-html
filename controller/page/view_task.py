@@ -37,6 +37,7 @@ class PageTaskListHandler(PageHandler):
         {'id': 'remark', 'name': '备注'},
     ]
     operations = [
+        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
@@ -46,7 +47,6 @@ class PageTaskListHandler(PageHandler):
         ]},
         {'operation': 'btn-more', 'label': '更多操作', 'groups': [
             {'operation': 'bat-batch', 'label': '更新批次'},
-            {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
             {'operation': 'bat-republish', 'label': '批量重做'},
             {'operation': 'bat-assign', 'label': '批量指派'},
             {'operation': 'btn-export', 'label': '导出页码'},
