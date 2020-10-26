@@ -80,17 +80,31 @@ class PageSourceApi(BaseHandler):
     def post(self):
         """ 更新分类"""
         try:
-            rules = [(v.not_empty, 'source'), (v.not_both_empty, '_id', '_ids')]
-            self.validate(self.data, rules)
+            if not self.data.get('source'):
+                return self.send_error_response(e.not_allowed_empty, message='分类不许为空')
 
-            update = {'$set': {'source': self.data['source']}}
-            if self.data.get('_id'):
-                r = self.db.page.update_one({'_id': ObjectId(self.data['_id'])}, update)
-                self.add_log('update_page', target_id=self.data['_id'])
-            else:
-                r = self.db.page.update_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}, update)
-                self.add_log('update_page', target_id=self.data['_ids'])
-            self.send_data_response(dict(matched_count=r.matched_count))
+            if self.data.get('page_names'):
+                page_names = self.data['page_names']
+                page_names = page_names.split(',') if isinstance(page_names, str) else page_names
+                r = self.db.page.update_many({'name': {'$in': page_names}}, {'$set': {'source': self.data['source']}})
+                return self.send_data_response(dict(count=r.matched_count))
+
+            if self.data.get('search'):
+                condition = Page.get_page_search_condition(self.data['search'])[0]
+                r = self.db.page.update_many(condition, {'$set': {'source': self.data['source']}})
+                return self.send_data_response(dict(matched_count=r.matched_count))
+
+            if self.request.files.get('names_file'):
+                names_file = self.request.files.get('names_file')
+                names_str = str(names_file[0]['body'], encoding='utf-8')
+                try:
+                    page_names = json.loads(names_str)
+                except json.decoder.JSONDecodeError:
+                    ids_str = re.sub(r'(\n|\r\n)+', ',', names_str)
+                    page_names = ids_str.split(r',')
+                page_names = [n for n in page_names if n]
+                r = self.db.page.update_many({'name': {'$in': page_names}}, {'$set': {'source': self.data['source']}})
+                return self.send_data_response(dict(matched_count=r.matched_count))
 
         except self.DbError as error:
             return self.send_db_error(error)

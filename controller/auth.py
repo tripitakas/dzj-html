@@ -164,7 +164,7 @@ role_route_maps = {
         }
     },
     '生僻校对员': {
-        'is_assignable': True,
+        'is_assignable': False,
         'roles': ['工作人员'],
         'routes': {
             '/task/(lobby|my)/rare_proof': ['GET'],
@@ -175,7 +175,7 @@ role_route_maps = {
         }
     },
     '生僻审定员': {
-        'is_assignable': True,
+        'is_assignable': False,
         'roles': ['工作人员'],
         'routes': {
             '/task/(lobby|my)/rare_review': ['GET'],
@@ -231,6 +231,7 @@ role_route_maps = {
             '/task/browse/@task_type/@task_id': ['GET'],
             '/(page|char)/task/(list|statistic|dashboard)': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
+            '/api/page/task/list': ['POST'],
             '/api/(page|char)/task/publish': ['POST'],
             '/api/task/publish/import': ['POST'],
             '/api/task/republish/@task_id': ['POST'],

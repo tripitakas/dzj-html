@@ -81,7 +81,7 @@
       return showTips('提示', '有些选中项没有字图，无法合并！', 3000);
 
     imgNames = imgNames.filter((item) => item !== "");
-    Swal2.fire({title: '请选择合并到哪个字图', input: 'select', inputOptions: imgNames, showLoaderOnConfirm: true}).then((result) => {
+    Swal2.fire({title: '请选择合并到哪个字图', input: 'select', inputOptions: imgNames}).then((result) => {
       if (result.value !== undefined) {
         showConfirm('提示', '请慎重！将修改字数据，同时将删除其它字图', function () {
           postApi('/variant/merge', {data: {img_names: imgNames, main: imgNames[result.value]}}, function (res) {

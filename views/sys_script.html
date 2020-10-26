@@ -162,7 +162,7 @@
 
   // 批量生成字数据
   $('#bat-gen-chars').on('click', function () {
-    Swal2.fire({title: '请输入页数据的分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
+    Swal2.fire({title: '请输入页数据的分类', input: 'text'}).then((result) => {
       if (result.value) {
         postApi('/page/start_gen_chars', {data: {search: '?source="' + result.value + '"'}}, (res) => {
           Swal0.fire({
@@ -176,7 +176,7 @@
 
   // 批量生成字图
   $('#bat-gen-images').on('click', function () {
-    Swal2.fire({title: '请输入字数据的分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
+    Swal2.fire({title: '请输入字数据的分类', input: 'text'}).then((result) => {
       if (result.value) {
         postApi('/char/extract_img', {data: {type: 'search', search: '?source="' + result.value + '"'}}, (res) => {
           Swal0.fire({

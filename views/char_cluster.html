@@ -361,7 +361,7 @@
     var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
     if (!names.length)
       return showTips('请选择', '当前没有选中任何记录', 3000);
-    Swal2.fire({title: '请输入文字', input: 'text', inputValue: $('.proof .txt').val(), showLoaderOnConfirm: true}).then((result) => {
+    Swal2.fire({title: '请输入文字', input: 'text', inputValue: $('.proof .txt').val()}).then((result) => {
       if (result.value) {
         var data = {names: names, txt: result.value, task_type: taskType};
         postApi('/chars/txt', {data: data}, function (res) {
@@ -383,7 +383,7 @@
     var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
     if (!names.length)
       return showTips('请选择', '当前没有选中任何记录', 3000);
-    Swal2.fire({title: '请选择类型', input: 'radio', inputOptions: txtTypes, showLoaderOnConfirm: true}).then((result) => {
+    Swal2.fire({title: '请选择类型', input: 'radio', inputOptions: txtTypes}).then((result) => {
       if (result.value) {
         var data = {names: names, txt_type: result.value, task_type: taskType};
         postApi('/chars/txt_type', {data: data}, function (res) {
