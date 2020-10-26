@@ -74,10 +74,10 @@ class Task(Model):
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3], 'publishable': True, 'is_sys_task': True,
         },
-        'txt_match': {
-            'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': False, 'remark': '不要设置校次，以免影响field字段',
-        },
+        # 'txt_match': {
+        #     'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
+        #     'publishable': False, 'remark': '不要设置校次，以免影响field字段',
+        # },
         'text_proof': {
             'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_review'], 'publishable': True,

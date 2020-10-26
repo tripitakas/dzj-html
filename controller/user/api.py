@@ -387,25 +387,30 @@ class UserlistApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class ChangeUserRoleApi(BaseHandler):
-    URL = r'/api/user/role'
+class ChangeUserFieldsApi(BaseHandler):
+    URL = r'/api/user/(role|task_batch)'
 
-    def post(self):
-        """ 修改用户角色 """
+    def post(self, field):
+        """ 修改用户角色"""
         try:
-            rules = [(v.not_empty, '_id')]
+            rules = [(v.not_empty, '_id'), (v.not_both_empty, 'roles', 'task_batch')]
             self.validate(self.data, rules)
 
             user = self.db.user.find_one(dict(_id=ObjectId(self.data['_id'])))
             if not user:
                 return self.send_error_response(e.no_user, id=self.data['_id'])
 
-            roles = self.data.get('roles') or ''
-            r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': dict(roles=roles)})
+            if field == 'role':
+                field = 'roles'
+                value = self.data.get('roles') or ''
+            else:
+                value = self.data.get('task_batch') or {}
+            r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': {field: value}})
+
             if not r.matched_count:
                 return self.send_error_response(e.no_user)
-            self.add_log('change_role', target_id=self.data['_id'], content='%s,%s' % (user['name'], roles))
-            self.send_data_response({'roles': roles})
+            self.add_log('change_user', target_id=self.data['_id'], content='%s,%s,%s' % (user['name'], field, value))
+            self.send_data_response({field: value})
 
         except self.DbError as error:
             return self.send_db_error(error)

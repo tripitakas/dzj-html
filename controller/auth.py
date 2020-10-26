@@ -225,7 +225,9 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
+            '/user/admin': ['GET'],
             '/api/user/list': ['POST'],
+            '/api/user/task_batch': ['POST'],
             '/task/info/@task_id': ['GET'],
             '/page/task/resume/@page_name': ['GET'],
             '/task/browse/@task_type/@task_id': ['GET'],

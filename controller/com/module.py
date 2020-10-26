@@ -43,6 +43,7 @@ class ComLeft(UIModule):
             dict(name='任务管理', icon='icon-task-admin', sub_items=[
                 dict(name='页任务', icon='icon-subitem', link='/page/task/list'),
                 dict(name='字任务', icon='icon-subitem', link='/char/task/list'),
+
             ]),
             dict(name='数据管理', icon='icon-data', sub_items=[
                 dict(name='导图片', icon='icon-subitem', link='/data/image'),
@@ -56,6 +57,7 @@ class ComLeft(UIModule):
             ]),
             dict(name='文章管理', icon='icon-article', link='/article/admin'),
             dict(name='人员管理', icon='icon-users', id='user', sub_items=[
+                dict(name='指派批次', icon='icon-subitem', link='/user/task_batch'),
                 dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
                 dict(name='授权管理', icon='icon-subitem', link='/user/role'),
             ]),
