@@ -185,6 +185,47 @@
     </div>
   </div>
 </div>
+<div id="sourceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="sourceModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">更新分类</h4>
+      </div>
+      <div class="modal-body">
+        <h4 class="control-label">输入分类</h4>
+        <div>
+          <input type="text" class="form-control source" placeholder="请输入分类">
+        </div>
+        <div class="modal-tab">
+          <h4 class="control-label">选择待更新的页码</h4>
+          <ul class="nav nav-tabs" id="tabs2select">
+            <li class="active"><a href="#src-select" data-toggle="tab">按选中页码</a></li>
+            <li><a href="#src-search" data-toggle="tab">按检索参数</a></li>
+            <li><a href="#src-file" data-toggle="tab">上传编码文件</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active" id="src-select">
+              <textarea type="text" class="form-control" id="src-names" placeholder="所选中的页码"></textarea>
+            </div>
+            <div class="tab-pane" id="src-search">
+              <input type="text" class="form-control" id="src-param" placeholder="检索参数"/>
+              <span>注：将根据参数检索，然后更新检索结果的所有页面，而不是其中某页。</span>
+            </div>
+            <div class="tab-pane" id="src-file">
+              <i>请选择CSV、TXT或JSON格式的文件，大小不超过10M</i>
+              <input type="file" class="form-control" id="src-upload" accept=".txt,.csv" style="padding:4px 4px"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -305,15 +346,60 @@
   });
 
   // 更新分类
+  $sourceModal = $('#sourceModal');
   $('.operation .bat-source').on('click', function () {
+    // 检索参数
+    $sourceModal.find('#src-param').val(location.search);
+    // 选中页码
+    $sourceModal.find('#src-names').val($.map($('table tbody :checked'), function (item) {
+      return $(item).parent().parent().find('.name').text().trim();
+    }));
+    $('#sourceModal').modal();
+  });
+
+  $('#sourceModal .modal-confirm11').on('click', function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     if (!ids.length)
       return showTips('请选择', '当前没有选中任何记录', 3000);
-    Swal2.fire({title: '请输入分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
+    Swal2.fire({title: '请输入分类', input: 'text'}).then((result) => {
       if (result.value) {
         postApi('/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
       }
     });
+  });
+
+  $sourceModal.find('.modal-confirm').on('click', function () {
+    var source = $sourceModal.find('.source').val().trim();
+    if (!source.length) return showTips('请输入分类', '分类不允许为空', 3000);
+    var data = {'source': source};
+
+    var isFile = false;
+    var formData = new FormData();
+    var src = $sourceModal.find('.tab-pane.active').attr('id');
+    switch (src) {
+      case 'src-search':
+        var searchParam = $sourceModal.find('#src-param').val();
+        if (!searchParam.length) return showTips('提示', '检索条件不允许为空', 3000);
+        data['search'] = searchParam;
+        break;
+      case 'src-select':
+        var pageNames = $('#src-names').val().trim();
+        if (!pageNames.length) return showTips('提示', '请选择页码', 3000);
+        data['page_names'] = pageNames.split(',');
+        break;
+      case 'src-file':
+        var idsFile = $('#src-upload')[0].files[0];
+        if (typeof idsFile === "undefined") return showTips('提示', '请选择文件', 3000);
+        if (!/\.(csv|txt|json)$/.test(idsFile.name)) return showTips('提示', '文件不是CSV或TXT类型', 3000);
+        if (idsFile.size > (10 * 1024 * 1024)) return showTips('提示', '文件大小不能超过10M', 3000);
+        formData.append('data', JSON.stringify(data));
+        formData.append('names_file', idsFile);
+        isFile = true;
+        break;
+    }
+    postApi('/page/source', isFile ? formData : {data: data}, function (res) {
+      location.reload();
+    }, null, isFile);
   });
 
   // 生成字表
@@ -332,7 +418,7 @@
   });
 
   // 删除
-  $('.btn-delete').click(function () {
+  $('.btn-delete').on('click', function () {
     var name = $(this).parent().parent().find('.name').text().trim();
     showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
       postApi('/api/page/delete', {data: {page_name: name}}, function (res) {

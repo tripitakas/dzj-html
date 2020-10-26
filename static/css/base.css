@@ -432,13 +432,13 @@ body.widescreen {
   margin-left: 2px;
 }
 
-.sty-table .action {
+.sty-table tbody .action {
   color: #B8906F !important;
   cursor: pointer;
   font-size: 12px;
 }
 
-.sty-table .action:hover {
+.sty-table tbody .action:hover {
   color: #b33c2b !important;
   cursor: pointer;
   font-size: 12px;

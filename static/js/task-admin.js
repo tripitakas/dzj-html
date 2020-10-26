@@ -3,7 +3,7 @@ $('.operation .bat-batch').click(function () {
   var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
   if (!ids.length)
     return showTips('请选择', '当前没有选中任何记录', 3000);
-  Swal2.fire({title: '请输入批次', input: 'text', showLoaderOnConfirm: true}).then((result) => {
+  Swal2.fire({title: '请输入批次', input: 'text'}).then((result) => {
     if (result.value) {
       postApi('/task/batch', {data: {_ids: ids, batch: result.value}}, () => location.reload());
     }
@@ -77,6 +77,10 @@ $('.sty-table .action .btn-delete').click(function () {
 
 /*---指派任务---*/
 var $assignModal = $('#assignModal');
+$('.operation .bat-assign').click(function () {
+  $assignModal.modal();
+});
+
 var $assignResultModal = $('#assignResultModal');
 $assignModal.find(".select-user").select2({
   dropdownParent: $assignModal,

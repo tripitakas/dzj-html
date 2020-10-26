@@ -38,14 +38,16 @@ class CharTaskListHandler(CharHandler):
     ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
-        {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
-        {'operation': 'bat-batch', 'label': '更新批次'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
             {'operation': 'picked_user_id', 'label': '按用户'},
             {'operation': 'task_type', 'label': '按类型'},
             {'operation': 'status', 'label': '按状态'},
+        ]},
+        {'operation': 'btn-more', 'label': '更多操作', 'groups': [
+            {'operation': 'bat-batch', 'label': '更新批次'},
+            {'operation': 'bat-assign', 'label': '批量指派'},
         ]},
     ]
     actions = [
