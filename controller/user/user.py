@@ -14,6 +14,8 @@ class User(Model):
         {'id': 'email', 'name': '邮箱'},
         {'id': 'phone', 'name': '手机'},
         {'id': 'password', 'name': '密码'},
+        {'id': 'group', 'name': '用户组'},
+        {'id': 'task_batch', 'name': '任务批次'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
         {'id': 'agent', 'name': '浏览器类型'},
@@ -29,5 +31,5 @@ class User(Model):
     ]
     primary = '_id'
 
-    search_tips = '请搜索用户名、手机和邮箱'
-    search_fields = ['name', 'email', 'phone']
+    search_tips = '请搜索用户名、手机、邮箱、用户组和任务批次'
+    search_fields = ['name', 'email', 'phone', 'group', 'task_batch']

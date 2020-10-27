@@ -23,6 +23,7 @@ class CharTaskListHandler(CharHandler):
         {'id': 'num', 'name': '校次'},
         {'id': 'txt_kind', 'name': '字种'},
         {'id': 'char_count', 'name': '单字数量'},
+        {'id': 'required_count', 'name': '需要校对数量'},
         {'id': 'status', 'name': '状态', 'filter': CharHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': CharHandler.priorities},
         {'id': 'params', 'name': '输入参数'},
@@ -212,6 +213,8 @@ class CharTaskClusterHandler(CharHandler):
             get_user_filter()
             # 2.查找单字数据
             self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
+            if self.mode in ['do', 'update']:
+                self.page_size = 100 if self.page_size > 100 else self.page_size
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             chars = {d['name']: d for d in docs}
             # 设置列图hash值

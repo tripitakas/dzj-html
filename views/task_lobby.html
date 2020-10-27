@@ -30,7 +30,9 @@
       <div class="layout">
         <div class="wrapper">
           <div class="sty-list">
-            <div class="lobby-tips fl">共有 {{total_count}} 条任务</div>
+            <div class="lobby-tips fl">
+              {{'%s还有 %s 条任务' % ('您的任务批次为：%s，' % batch if batch else '', total_count)}}
+            </div>
             <div class="search fr">
               <input id="search-input" type="text" placeholder="搜索">
               <i class="ser-btn"></i>

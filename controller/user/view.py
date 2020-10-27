@@ -8,6 +8,7 @@ from controller import auth
 from controller import helper as h
 from controller.user.user import User
 from controller.base import BaseHandler
+from controller.task.task import Task as Tk
 
 
 class UserLoginHandler(BaseHandler):
@@ -39,9 +40,10 @@ class UsersAdminHandler(BaseHandler, User):
 
     page_title = '用户管理'
     table_fields = [dict(id=f['id'], name=f['name']) for f in User.fields if f['id'] not in ['password']]
-    info_fields = ['name', 'gender', 'email', 'phone', 'password']
+    info_fields = ['name', 'gender', 'email', 'phone', 'password', 'group', 'task_batch', 'agent']
+    hide_fields = ['agent', 'create_time', 'updated_time']
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'), options=f.get('options'))
-                     for f in User.fields if f['id'] not in ['img', 'create_time', 'updated_time']]
+                     for f in User.fields if f['id'] not in ['img', 'create_time', 'updated_time', 'task_batch']]
     operations = [  # 列表包含哪些批量操作
         {'operation': 'btn-add', 'label': '新增用户'},
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -51,6 +53,7 @@ class UsersAdminHandler(BaseHandler, User):
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
         {'action': 'btn-reset-pwd', 'label': '重置密码'},
+        {'action': 'btn-batch', 'label': '指派批次'},
     ]
 
     @staticmethod
@@ -59,6 +62,8 @@ class UsersAdminHandler(BaseHandler, User):
         if key == 'img':
             ava = 'imgs/ava%s.png' % ({'男': 1, '女': 2}.get(doc.get('gender')) or 3)
             return '<img src="/static/%s" class="thumb-md img-circle" />' % (value or ava)
+        if key == 'task_batch' and value:
+            return '<br/>'.join(['%s: %s' % (Tk.get_task_name(k), v) for k, v in value.items()])
         return h.format_value(value, key, doc)
 
     def get(self):

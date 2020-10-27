@@ -17,9 +17,9 @@ class PageTaskListHandler(PageHandler):
     search_fields = ['doc_id', 'batch', 'remark']
     table_fields = [
         {'id': '_id', 'name': '主键'},
+        {'id': 'batch', 'name': '批次号'},
         {'id': 'doc_id', 'name': '页编码'},
         {'id': 'char_count', 'name': '单字数量'},
-        {'id': 'batch', 'name': '批次号'},
         {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page', True, True)},
         {'id': 'num', 'name': '校次'},
         {'id': 'status', 'name': '状态', 'filter': PageHandler.task_statuses},
