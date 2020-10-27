@@ -18,13 +18,14 @@ class TaskLobbyHandler(TaskHandler):
     def get(self, task_type):
         """ 任务大厅"""
         try:
+            batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
             q = self.get_query_argument('q', '')
-            tasks, total_count = self.find_lobby(task_type, q=q)
+            tasks, total_count = self.find_lobby(task_type, q=q, batch=batch)
             collection = self.prop(self.task_types, task_type + '.data.collection')
             fields = [('txt_kind', '字种'), ('char_count', '单字数量')] if collection == 'char' else [
                 ('doc_id', '页编码'), ('char_count', '单字数量')]
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
-                        fields=fields, format_value=self.format_value)
+                        fields=fields, batch=batch, format_value=self.format_value)
         except Exception as error:
             return self.send_db_error(error)
 

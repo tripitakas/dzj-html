@@ -124,7 +124,7 @@ class TaskHandler(BaseHandler, Task):
             query.sort(o, asc)
         return list(query)
 
-    def find_lobby(self, task_type, page_size=None, q=None):
+    def find_lobby(self, task_type, page_size=None, q=None, batch=None):
         """ 按优先级排序后随机获取任务大厅的任务列表"""
 
         def get_random_skip():
@@ -136,11 +136,17 @@ class TaskHandler(BaseHandler, Task):
             skip = n3 if n3 > page_size else n3 + n2 if n3 + n2 > page_size else total_count
             return random.randint(1, skip - page_size) if skip > page_size else 0
 
-        page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
+        condition = {}
         field = 'doc_id' if task_type in self.get_page_tasks() else 'txt_kind'
-        condition = {field: {'$regex': q, '$options': '$i'}} if q else {}
+        if q:
+            condition.update({field: {'$regex': q, '$options': '$i'}})
+        if batch:
+            batch = {'$in': batch.split(',')} if ',' in batch else batch
+            condition.update({'batch': batch})
         condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
         total_count = self.db.task.count_documents(condition)
+        page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
+
         if self.has_num(task_type):  # 任务类型有多个校次的情况
             tasks = []
             my_tasks = self.find_mine(task_type)
@@ -156,6 +162,8 @@ class TaskHandler(BaseHandler, Task):
                 for t in tasks_in_db:
                     if t[field] not in [t[field] for t in tasks]:
                         tasks.append(t)
+            condition[field] = {'$nin': [t[field] for t in my_tasks]}
+            total_count = self.db.task.count_documents(condition)
         else:
             condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
             skip_no = get_random_skip()

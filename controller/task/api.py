@@ -30,7 +30,8 @@ class PickTaskApi(TaskHandler):
                 if task['status'] != self.STATUS_PUBLISHED:
                     return self.send_error_response(e.task_not_published)
             else:
-                tasks = self.find_lobby(task_type, page_size=1)[0]
+                batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
+                tasks = self.find_lobby(task_type, page_size=1, batch=batch)[0]
                 if not tasks:
                     return self.send_error_response(e.no_task_to_pick)
                 task = tasks[0]
