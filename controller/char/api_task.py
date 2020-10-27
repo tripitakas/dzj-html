@@ -31,15 +31,16 @@ class CharTaskPublishApi(CharHandler):
         """ 获取任务相关的文字"""
         return ''.join([str(p[field]) for p in task.get('params', [])])
 
-    def task_meta(self, task_type, params, cnt):
+    def task_meta(self, task_type, params, cnt, field):
         batch = self.data['batch']
         num = int(self.data.get('num') or 1)
         priority = int(self.data.get('priority') or 2)
         pre_tasks = self.data.get('pre_tasks') or []
-        txt_kind = ''.join([p.get('ocr_txt') or '' for p in params])
+        txt_kind = ''.join([p[field] for p in params if p.get(field)])
         return dict(task_type=task_type, num=num, batch=batch, collection='char', id_name='name',
-                    txt_kind=txt_kind, char_count=cnt, doc_id=None, steps={}, status=self.STATUS_PUBLISHED,
-                    priority=priority, pre_tasks=pre_tasks, params=params or {}, result={},
+                    txt_kind=txt_kind, char_count=cnt, required_count=None,
+                    doc_id=None, steps={}, status=self.STATUS_PUBLISHED, priority=priority,
+                    pre_tasks=pre_tasks, params=params or {}, result={},
                     create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                     publish_user_id=self.user_id, publish_by=self.username)
 
@@ -59,9 +60,7 @@ class CharTaskPublishApi(CharHandler):
         ]))
 
         # 去除已发布的任务
-        rare_type = task_type  # 生僻校对的任务类型同聚类校对
-        # rare_type = task_type.replace('cluster', 'rare')
-        cond = {'task_type': {'$in': [task_type, rare_type]}, 'num': num, 'params.source': source}
+        cond = {'task_type': task_type, 'num': num, 'params.source': source}
         published = list(self.db.task.find(cond))
         if published:
             published = ''.join([self.get_txt(t, field) for t in published])
@@ -70,7 +69,7 @@ class CharTaskPublishApi(CharHandler):
         # 针对常见字(字频大于等于50)，发布聚类校对
         counts1 = [c for c in counts if c['count'] >= 50]
         normal_tasks = [
-            self.task_meta(task_type, [{field: c['_id'], 'count': c['count'], 'source': source}], c['count'])
+            self.task_meta(task_type, [{field: c['_id'], 'count': c['count'], 'source': source}], c['count'], field)
             for c in counts1
         ]
         if normal_tasks:
@@ -78,6 +77,7 @@ class CharTaskPublishApi(CharHandler):
             log.append(dict(task_type=task_type, task_params=[t['params'] for t in normal_tasks]))
 
         # 针对生僻字(字频小于50)，发布生僻校对。发布任务时，字种不超过10个。
+        rare_type = task_type  # 生僻校对的任务类型同聚类校对
         counts2 = [c for c in counts if c['count'] < 50]
         rare_tasks = []
         params, total_count = [], 0
@@ -85,15 +85,21 @@ class CharTaskPublishApi(CharHandler):
             total_count += c['count']
             params.append({field: c['_id'], 'count': c['count'], 'source': source})
             if total_count >= 50 or len(params) >= 10:
-                rare_tasks.append(self.task_meta(rare_type, params, total_count))
+                rare_tasks.append(self.task_meta(rare_type, params, total_count, field))
                 params, total_count = [], 0
         if total_count:
-            rare_tasks.append(self.task_meta(rare_type, params, total_count))
+            rare_tasks.append(self.task_meta(rare_type, params, total_count, field))
         if rare_tasks:
             self.db.task.insert_many(rare_tasks)
             log.append(dict(task_type=rare_type, task_params=[t['params'] for t in rare_tasks]))
 
         self.add_op_log(self.db, 'publish_task', None, log, self.username)
+        # 启动脚本，更新required_count
+        script = 'nohup python3 %s/utils/update_char.py --func=update_task_required_count --batch=%s --renew=1 >> log/update_char_%s.log 2>&1 &'
+        script = script % (h.BASE_DIR, self.data['batch'], h.get_date_time(fmt='%Y%m%d%H%M%S'))
+        print(script)
+        os.system(script)
+
         return dict(published=published, normal_count=len(normal_tasks), rare_count=len(rare_tasks))
 
 

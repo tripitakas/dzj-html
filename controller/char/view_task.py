@@ -23,6 +23,7 @@ class CharTaskListHandler(CharHandler):
         {'id': 'num', 'name': '校次'},
         {'id': 'txt_kind', 'name': '字种'},
         {'id': 'char_count', 'name': '单字数量'},
+        {'id': 'required_count', 'name': '需要校对数量'},
         {'id': 'status', 'name': '状态', 'filter': CharHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': CharHandler.priorities},
         {'id': 'params', 'name': '输入参数'},
