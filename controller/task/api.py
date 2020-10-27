@@ -105,6 +105,28 @@ class UpdateTaskApi(TaskHandler):
             return self.send_db_error(error)
 
 
+class UpdateMyTaskApi(TaskHandler):
+    URL = '/api/my_task/remark/@task_id'
+
+    def post(self, task_id):
+        """ 批量更新任务批次或备注"""
+        try:
+            rules = [(v.not_empty, 'remark')]
+            self.validate(self.data, rules)
+
+            task = self.db.task.find_one({'_id': ObjectId(task_id)})
+            if not task:
+                return self.send_error_response(e.no_object, message="没有找到任务%s" % task_id)
+            print(task['picked_user_id'], self.user_id)
+            if task['picked_user_id'] != self.user_id:
+                return self.send_error_response(e.task_unauthorized)
+            self.db.task.update_one({'_id': task['_id']}, {'$set': {'remark': self.data['remark']}})
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class RepublishTaskApi(TaskHandler):
     URL = ['/api/task/republish', '/api/task/republish/@task_id']
 

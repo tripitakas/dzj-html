@@ -47,17 +47,19 @@ class TaskMyHandler(TaskHandler):
     @classmethod
     def set_template_kwargs(cls, collection):
         if collection == 'page':
-            cls.search_tips = '请搜索页编码'
-            cls.search_fields = ['doc_id']
+            cls.search_tips = '请搜索页编码、备注'
+            cls.search_fields = ['doc_id', 'remark']
             cls.table_fields = [{'id': 'doc_id', 'name': '页编码'}]
         else:
-            cls.search_tips = '请搜索字种'
-            cls.search_fields = ['txt_kind']
-            cls.table_fields = [{'id': 'txt_kind', 'name': '字种'}]
+            cls.search_tips = '请搜索字种、备注'
+            cls.search_fields = ['txt_kind', 'remark']
+            cls.table_fields = [{'id': 'txt_kind', 'name': '字种'},
+                                {'id': 'required_count', 'name': '需要校对数量'}]
         cls.table_fields.extend([
             {'id': 'char_count', 'name': '单字数量'},
             {'id': 'task_type', 'name': '类型'},
             {'id': 'status', 'name': '状态'},
+            {'id': 'remark', 'name': '备注'},
             {'id': 'picked_time', 'name': '领取时间'},
             {'id': 'finished_time', 'name': '完成时间'},
         ])

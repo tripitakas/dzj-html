@@ -126,6 +126,18 @@
     saveTask(true, null, afterSubmitted);
   });
 
+  // 备注任务
+  $('#task-my-remark').on("click", function () {
+    Swal2.fire({title: '请输入备注', input: 'text', inputValue: remark}).then((result) => {
+      if (result.value) {
+        postApi('/my_task/remark/' + taskId, {data: {remark: result.value}}, function () {
+          remark = result.value;
+          showSuccess('备注成功', '', 1000);
+        });
+      }
+    });
+  });
+
   // 任务退回
   $('#returnModal .modal-confirm').on('click', function () {
     var reason = $('#returnModal .return_reason').val().trim();

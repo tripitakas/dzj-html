@@ -80,6 +80,7 @@ role_route_maps = {
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],
+            '/api/my_task/remark/@task_id': ['POST'],
             '/api/variant/delete': ['POST'],
             '/page/@page_name': ['GET'],
             '/page/box/@page_name': ['GET'],
