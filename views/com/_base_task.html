@@ -54,7 +54,7 @@
   $('#taskConfigModal .modal-confirm').on('click', function () {
     var autoPick = $('#taskConfigModal .auto-pick :checked');
     autoPick && setStorage('autoPick', autoPick.val());
-    $("#taskConfigModal").modal('hide');
+    if ($('#taskConfigModal .item-title').length <= 1) $("#taskConfigModal").modal('hide');
   });
 
   // 离开页面

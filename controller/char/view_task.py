@@ -213,6 +213,8 @@ class CharTaskClusterHandler(CharHandler):
             get_user_filter()
             # 2.查找单字数据
             self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
+            if self.mode in ['do', 'update']:
+                self.page_size = 100 if self.page_size > 100 else self.page_size
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             chars = {d['name']: d for d in docs}
             # 设置列图hash值

@@ -302,6 +302,8 @@
     if (pageSize.length) {
       if (!/^\d+$/.test(pageSize)) {
         return showTips('提示', '每页条数中请输入数字', 3000);
+      } else if (parseInt(pageSize) > 100) {
+        return showTips('提示', '每页条数不能超过100', 3000);
       } else {
         data['cluster_page_size'] = pageSize;
       }
