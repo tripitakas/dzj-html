@@ -83,14 +83,14 @@
               </div>
             </div>
             <div class="bottom clearfix">
-              <div class="item star">
+              <div class="item" id="star">
                 <p style="padding-top: 31px"><img src="{{static_url('imgs/hand3.png')}}"></p>
                 <p class="tit" style="margin-top: 6px"><img src="{{static_url('imgs/star-title.png')}}" alt=""></p>
                 <ul>
                   {% for s in month_stars %}
                   <li>
                     <span class="name">{{s['username']}}</span>
-                    <span class="content">本月 完成了 {{handler.get_task_name(s['task_type'])}} {{s['count']}}页</span>
+                    <span class="content">本月完成了{{handler.get_task_name(s['task_type'])}} {{s['count']}}条</span>
                   </li>
                   {% end %}
                 </ul>

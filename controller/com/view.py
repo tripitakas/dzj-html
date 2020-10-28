@@ -22,7 +22,7 @@ class HomeHandler(TaskHandler):
         def get_month_star():
             """ 每种任务类型，选出前三名，作为本月校勘之星"""
             mt_stars = []
-            task_types = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'text_hard']
+            task_types = ['cut_proof', 'cut_review', 'cluster_proof', 'cluster_review']
             for task_type in task_types:
                 month_begin = datetime.strptime(get_date_time('%Y-%m'), '%Y-%m')
                 cond = {'task_type': task_type, 'status': 'finished', 'finished_time': {'$gte': month_begin}}

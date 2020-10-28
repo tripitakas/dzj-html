@@ -189,7 +189,7 @@
 }
 
 .bottom .item {
-  flex: 1;
+  flex: auto;
   margin: 5px 0;
 }
 
@@ -270,6 +270,10 @@
 
 .bottom .item#trend {
   min-width: 400px;
+}
+
+.bottom .item#star {
+  min-width: 270px;
 }
 
 .bottom .item#practice {
