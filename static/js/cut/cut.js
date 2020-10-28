@@ -145,7 +145,6 @@
       }
       return c;
     });
-    s = s.replace(/'/g, '"').replace(/: True/g, ': 1').replace(/: (False|None)/g, ': 0').replace(/\\/g, '/');
     return s;
   }
 
@@ -252,7 +251,10 @@
     getHandle: getHandle,
 
     decodeJSON: function (text) {
-      return JSON.parse(decodeHtml(text));
+      var s = decodeHtml(text);
+      s = s.replace(/: True/g, ': 1').replace(/: (False|None)/g, ': 0').replace(/\\/g, '/');
+      // https://blog.csdn.net/u011277123/article/details/53055479
+      return eval("(" + s + ")");
     },
 
     showHandles: function (el, handle) {
