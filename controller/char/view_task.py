@@ -42,6 +42,7 @@ class CharTaskListHandler(CharHandler):
         {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
+            {'operation': 'batch', 'label': '按批次'},
             {'operation': 'picked_user_id', 'label': '按用户'},
             {'operation': 'task_type', 'label': '按类型'},
             {'operation': 'status', 'label': '按状态'},
@@ -99,8 +100,8 @@ class CharTaskStatHandler(CharHandler):
         """ 根据用户、任务类型或任务状态统计页任务"""
         try:
             kind = self.get_query_argument('kind', '')
-            if kind not in ['picked_user_id', 'task_type', 'status']:
-                return self.send_error_response(e.statistic_type_error, message='只能按用户、任务类型或任务状态统计')
+            if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
+                return self.send_error_response(e.statistic_type_error, message='只能按用户、批次、任务类型或任务状态统计')
 
             counts = list(self.db.task.aggregate([
                 {'$match': self.get_task_search_condition(self.request.query, 'char')[0]},
@@ -116,7 +117,7 @@ class CharTaskStatHandler(CharHandler):
                 trans = self.task_names()
             elif kind == 'status':
                 trans = self.task_statuses
-            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态')[kind]
+            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态', batch='批次')[kind]
 
             self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='char')
 
