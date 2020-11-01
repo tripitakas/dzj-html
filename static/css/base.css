@@ -819,11 +819,11 @@ body.widescreen {
   background: transparent;
 }
 
-.modal-radio input[type='radio'] {
+.modal-radio > input[type='radio'] {
   margin: 7px 5px 0 15px;
 }
 
-.modal-radio input[type='radio']:first-child {
+.modal-radio > input[type='radio']:first-child {
   margin-left: 0;
 }
 
