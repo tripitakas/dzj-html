@@ -153,6 +153,10 @@ def get_date_time(fmt=None, date_time=None, diff_seconds=None):
     return time.astimezone(time_zone).strftime(fmt or '%Y-%m-%d %H:%M:%S')
 
 
+def calc_ms(start_time):
+    return round((datetime.now() - start_time).microseconds / 1000)
+
+
 def my_framer():
     """ 出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者 """
     f0 = f = old_framer()
