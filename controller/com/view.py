@@ -41,7 +41,7 @@ class HomeHandler(TaskHandler):
                     ]))
                     for c in counts[:3]:
                         mt_stars.append(dict(task_type=task_type, picked_user_id=c['_id'], count=c['count']))
-                self.db.star.insert_one(dict(month=last_month, stars=stars))
+                self.db.star.insert_one(dict(month=last_month, stars=mt_stars))
             else:
                 mt_stars = stars['stars']
             if not mt_stars:
