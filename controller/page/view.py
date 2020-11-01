@@ -39,6 +39,7 @@ class PageListHandler(PageHandler):
         {'operation': 'btn-more', 'label': '更多操作', 'groups': [
             {'operation': 'bat-delete', 'label': '批量删除'},
             {'operation': 'bat-source', 'label': '更新分类'},
+            {'operation': 'btn-statistic', 'label': '统计分类'},
             {'operation': 'btn-duplicate', 'label': '查找重复'},
             {'operation': 'bat-gen-chars', 'label': '生成字数据'},
         ]},
@@ -126,6 +127,22 @@ class PageListHandler(PageHandler):
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         page_tasks=page_tasks, task_statuses=self.task_statuses, match_fields=self.match_fields,
                         match_statuses=self.match_statuses, format_value=self.format_value, **kwargs)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class PageStatHandler(PageHandler):
+    URL = '/page/statistic'
+
+    def get(self):
+        """ 根据页数据分类"""
+        try:
+            counts = list(self.db.page.aggregate([
+                {'$group': {'_id': '$source', 'count': {'$sum': 1}}},
+            ]))
+
+            self.render('data_statistic.html', counts=counts, collection='page')
 
         except Exception as error:
             return self.send_db_error(error)

@@ -345,6 +345,11 @@
     location.href = location.pathname + '?duplicate=true';
   });
 
+  // 统计分类
+  $('.operation .btn-statistic').on('click', function () {
+    location.href = '/page/statistic';
+  });
+
   // 更新分类
   $sourceModal = $('#sourceModal');
   $('.operation .bat-source').on('click', function () {

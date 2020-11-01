@@ -1,8 +1,8 @@
 from . import view, api, api_task as at, view_task as vt, api_ocr as ao
 
 views = [
-    view.PageListHandler, view.PageBrowseHandler, view.PageViewHandler, view.PageInfoHandler,
-    view.PageBoxHandler, view.PageOrderHandler, view.PageTxtHandler,
+    view.PageListHandler, view.PageStatHandler, view.PageBrowseHandler, view.PageViewHandler,
+    view.PageInfoHandler, view.PageBoxHandler, view.PageOrderHandler, view.PageTxtHandler,
     view.PageTxtMatchHandler, view.PageFindCmpHandler,
     vt.PageTaskCutHandler, vt.PageTaskTextHandler, vt.PageTaskDashBoardHandler,
     vt.PageTaskListHandler, vt.PageTaskStatHandler, vt.PageTaskResumeHandler,

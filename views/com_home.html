@@ -90,7 +90,7 @@
                   {% for s in month_stars %}
                   <li>
                     <span class="name">{{s['username']}}</span>
-                    <span class="content">本月完成了{{handler.get_task_name(s['task_type'])}} {{s['count']}}条</span>
+                    <span class="content">上月完成了{{handler.get_task_name(s['task_type'])}} {{s['count']}}条</span>
                   </li>
                   {% end %}
                 </ul>
