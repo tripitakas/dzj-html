@@ -196,8 +196,13 @@ class ComModal(UIModule):
 
 class ReturnModal(UIModule):
     def render(self):
-        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
-        modal_fields = [{'id': 'return_reason', 'name': '退回理由', 'input_type': 'textarea'}]
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '退回后返回大厅'), ('modal-next', '退回后领下一条')]
+        modal_fields = [
+            {'id': 'return_reason', 'name': '退回理由', 'input_type': 'textarea'},
+            {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': [
+                '空白页', '图片页', '体例未规定', '字体太草', '字图歪斜', '操作无权限', '大片字迹模糊', '大量字框切错', '大量特殊符号'
+            ]},
+        ]
         return self.render_string('com/_modal.html', modal_fields=modal_fields, id='returnModal', title='退回任务',
                                   buttons=buttons)
 
