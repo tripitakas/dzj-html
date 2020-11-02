@@ -31,6 +31,7 @@ class Task(Model):
         {'id': 'result', 'name': '输出结果'},
         {'id': 'txt_kind', 'name': '字种'},
         {'id': 'char_count', 'name': '单字数量'},
+        {'id': 'required_count', 'name': '需要校对数量'},
         {'id': 'type_tips', 'name': '类型说明'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
@@ -74,10 +75,10 @@ class Task(Model):
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3], 'publishable': True, 'is_sys_task': True,
         },
-        'txt_match': {
-            'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
-            'publishable': False, 'remark': '不要设置校次，以免影响field字段',
-        },
+        # 'txt_match': {
+        #     'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
+        #     'publishable': False, 'remark': '不要设置校次，以免影响field字段',
+        # },
         'text_proof': {
             'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_review'], 'publishable': True,

@@ -144,6 +144,7 @@ class SubmitTasksApi(PageHandler):
         update = {k: self.prop(task, 'result.' + k) or self.prop(page, k) for k in ['width', 'height', 'layout']}
         update.update({k: self.prop(task, 'result.' + k) for k in ['blocks', 'columns', 'chars']})
         update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
+        update['create_time'] = self.now()
         self.apply_txt(update, 'ocr_col')
         self.update_page_cid(update)
 

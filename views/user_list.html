@@ -1,8 +1,57 @@
 {% extends "com/_list.html" %}
+{% block custom-css %}
+<link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
+<style>
+  #batchModal .modal-body h4, #batchModal .modal-body div {
+    margin: 5px 0;
+  }
+</style>
+{% end %}
+
+{% block custom-modal %}
+<div id="batchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">指派批次-<span class="username"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <input type="hidden" id="_id" value="">
+            <h4 class="col-sm-2 control-label">切分校对</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control cut_proof" placeholder="请输入任务批次，多个批次时以英文逗号分隔">
+            </div>
+            <h4 class="col-sm-2 control-label">切分审定</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control cut_review" placeholder="请输入任务批次，多个批次时以英文逗号分隔">
+            </div>
+            <h4 class="col-sm-2 control-label">聚类校对</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control cluster_proof" placeholder="请输入任务批次，多个批次时以英文逗号分隔">
+            </div>
+            <h4 class="col-sm-2 control-label">聚类审定</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control cluster_review" placeholder="请输入任务批次，多个批次时以英文逗号分隔">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
 
 {% block custom-js %}
 <script>
-  $('.btn-reset-pwd').click(function () {
+  // 重置密码
+  $('.btn-reset-pwd').on('click', function () {
     var id = $(this).parent().parent().attr('id');
     var user = getData(id);
     showConfirm("确定重置" + user.name + "吗？", "重置后无法恢复！", function () {
@@ -12,6 +61,33 @@
         showError('重置失败', err.message, 5000);
       });
     });
+  });
+
+  // 指派批次
+  $('.btn-batch').on('click', function () {
+    var id = $(this).parent().parent().attr('id');
+    var user = getData(id);
+    var batch = user['task_batch'] || {};
+    $('#batchModal #_id').text(user['_id']);
+    $('#batchModal .username').text(user['name']);
+    $('#batchModal .cut_proof').val(batch['cut_proof']);
+    $('#batchModal .cut_review').val(batch['cut_review']);
+    $('#batchModal .cluster_proof').val(batch['cluster_proof']);
+    $('#batchModal .cluster_review').val(batch['cluster_review']);
+    $('#batchModal').modal();
+  });
+
+  $('#batchModal .modal-confirm').on('click', function () {
+    var _id = $('#batchModal #_id').text().trim();
+    var cut_proof = $('#batchModal .cut_proof').val().trim();
+    var cut_review = $('#batchModal .cut_review').val().trim();
+    var cluster_proof = $('#batchModal .cluster_proof').val().trim();
+    var cluster_review = $('#batchModal .cluster_review').val().trim();
+    var data = {cut_proof: cut_proof, cut_review: cut_review, cluster_proof: cluster_proof, cluster_review: cluster_review};
+    for (var key in data) {
+      if (!data[key].length) delete data[key];
+    }
+    postApi('/user/task_batch', {data: {_id: _id, task_batch: data}}, () => location.reload());
   });
 </script>
 {% end %}

@@ -54,7 +54,7 @@
   $('#taskConfigModal .modal-confirm').on('click', function () {
     var autoPick = $('#taskConfigModal .auto-pick :checked');
     autoPick && setStorage('autoPick', autoPick.val());
-    $("#taskConfigModal").modal('hide');
+    if ($('#taskConfigModal .item-title').length <= 1) $("#taskConfigModal").modal('hide');
   });
 
   // 离开页面
@@ -126,19 +126,38 @@
     saveTask(true, null, afterSubmitted);
   });
 
+  // 备注任务
+  $('#task-my-remark').on("click", function () {
+    Swal2.fire({title: '请输入备注', input: 'text', inputValue: remark}).then((result) => {
+      if (result.value) {
+        postApi('/my_task/remark/' + taskId, {data: {remark: result.value}}, function () {
+          remark = result.value;
+          showSuccess('备注成功', '', 1000);
+        });
+      }
+    });
+  });
+
   // 任务退回
-  $('#returnModal .modal-confirm').on('click', function () {
+  $('#returnModal .modal-confirm, #returnModal .modal-next').on('click', function () {
     var reason = $('#returnModal .return_reason').val().trim();
     if (!reason.length) {
       return showTips('提示', '尚未填写退回理由', 3000);
     }
-    $(this).text('进行中...');
+    var $this = $(this);
+    $this.text('进行中...');
     postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
-      showSuccess('成功', '任务已退回成功。', 2000);
-      goto('/task/lobby/' + taskType, 1000);
+      showSuccess('成功', '任务已退回成功。', 1000);
+      if ($this.hasClass('modal-next')) pick('/task/pick/' + taskType);
+      else goto('/task/lobby/' + taskType, 1000);
     });
   });
 
+  $('#returnModal .options :radio').on('click', function () {
+    $('#returnModal .return_reason').val($(this).val());
+  });
+
+  //
   // 前一个任务
   $('#task-prev').on('click', function () {
     var path = '/task/browse/' + taskType + '/' + taskId;

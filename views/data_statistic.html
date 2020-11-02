@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <title>{{'字' if collection == 'char' else '页' }}任务统计</title>
+  <title>分类统计</title>
   {% include com/_base_css.html %}
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -18,24 +18,24 @@
 <body>
 <div class="app-main">
   <div class="main">
-    {% module ComLeft(active_id='#%s-task-list' % collection) %}
+    {% module ComLeft(active_id='#%s-list' % collection) %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
         <div class="wrapper">
           <div class="sty-list">
-            <div class="tips">合计{{sum([c['count'] for c in counts])}}条任务</div>
+            <div class="tips">合计{{len(counts)}}种分类</div>
             <table class="sty-table">
               <thead>
               <tr>
-                <th>{{label}}</th>
+                <th>分类</th>
                 <th>数量</th>
               </tr>
               </thead>
               <tbody>
               {% for c in counts %}
               <tr>
-                <td>{{trans.get(c['_id']) or c['_id']}}</td>
+                <td>{{c['_id']}}</td>
                 <td>{{c['count']}}</td>
               </tr>
               {% end %}

@@ -11,9 +11,9 @@
         <input type="hidden" class="update-url">
         <input type="hidden" class="_id">
         <form class="form-horizontal">
-          {% for f in modal_fields %}
-          {% set input_type, fid, name = f.get('input_type') or '', f.get('id') or '', f.get('name') or '' %}
           <div class="form-group">
+            {% for f in modal_fields %}
+            {% set input_type, fid, name = f.get('input_type') or '', f.get('id') or '', f.get('name') or '' %}
             {% if name %}
             <h4 class="col-sm-2 control-label">{{name}}</h4>
             {% end %}
@@ -23,7 +23,9 @@
                 {% set options = [[k, v] for k,v in f['options'].items()] if isinstance(f.get('options'), dict) else f['options'] %}
                 {% for o in options %}
                 {% set o = [o, o] if isinstance(o, str) else o %}
-                <input type="radio" name="{{fid}}" value="{{o[0]}}">{{o[1]}}
+                <label class="radio-inline">
+                  <input type="radio" name="{{fid}}" value="{{o[0]}}">{{o[1]}}
+                </label>
                 {% end %}
               </div>
               {% elif input_type == 'checkbox' %}
@@ -48,8 +50,8 @@
               <input type="text" class="form-control {{fid}}" {{'readonly' if f.get('readonly') else ''}}>
               {% end %}
             </div>
+            {% end %}
           </div>
-          {% end %}
         </form>
       </div>
       {% if len(buttons) %}

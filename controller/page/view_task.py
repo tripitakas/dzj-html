@@ -17,9 +17,9 @@ class PageTaskListHandler(PageHandler):
     search_fields = ['doc_id', 'batch', 'remark']
     table_fields = [
         {'id': '_id', 'name': '主键'},
+        {'id': 'batch', 'name': '批次号'},
         {'id': 'doc_id', 'name': '页编码'},
         {'id': 'char_count', 'name': '单字数量'},
-        {'id': 'batch', 'name': '批次号'},
         {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page', True, True)},
         {'id': 'num', 'name': '校次'},
         {'id': 'status', 'name': '状态', 'filter': PageHandler.task_statuses},
@@ -41,6 +41,7 @@ class PageTaskListHandler(PageHandler):
         {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
+            {'operation': 'batch', 'label': '按批次'},
             {'operation': 'picked_user_id', 'label': '按用户'},
             {'operation': 'task_type', 'label': '按类型'},
             {'operation': 'status', 'label': '按状态'},
@@ -100,8 +101,8 @@ class PageTaskStatHandler(PageHandler):
         """ 根据用户、任务类型或任务状态统计页任务"""
         try:
             kind = self.get_query_argument('kind', '')
-            if kind not in ['picked_user_id', 'task_type', 'status']:
-                return self.send_error_response(e.statistic_type_error, message='只能按用户、任务类型或任务状态统计')
+            if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
+                return self.send_error_response(e.statistic_type_error, message='只能按用户、批次、任务类型或任务状态统计')
 
             counts = list(self.db.task.aggregate([
                 {'$match': self.get_task_search_condition(self.request.query, 'page')[0]},
@@ -117,7 +118,7 @@ class PageTaskStatHandler(PageHandler):
                 trans = {k: t['name'] for k, t in PageHandler.task_types.items()}
             elif kind == 'status':
                 trans = self.task_statuses
-            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态')[kind]
+            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态', batch='批次')[kind]
             self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='page')
 
         except Exception as error:

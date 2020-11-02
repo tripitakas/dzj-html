@@ -80,6 +80,7 @@ role_route_maps = {
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],
+            '/api/my_task/remark/@task_id': ['POST'],
             '/api/variant/delete': ['POST'],
             '/page/@page_name': ['GET'],
             '/page/box/@page_name': ['GET'],
@@ -225,7 +226,9 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
+            '/user/admin': ['GET'],
             '/api/user/list': ['POST'],
+            '/api/user/task_batch': ['POST'],
             '/task/info/@task_id': ['GET'],
             '/page/task/resume/@page_name': ['GET'],
             '/task/browse/@task_type/@task_id': ['GET'],

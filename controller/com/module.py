@@ -43,6 +43,7 @@ class ComLeft(UIModule):
             dict(name='任务管理', icon='icon-task-admin', sub_items=[
                 dict(name='页任务', icon='icon-subitem', link='/page/task/list'),
                 dict(name='字任务', icon='icon-subitem', link='/char/task/list'),
+
             ]),
             dict(name='数据管理', icon='icon-data', sub_items=[
                 dict(name='导图片', icon='icon-subitem', link='/data/image'),
@@ -56,6 +57,7 @@ class ComLeft(UIModule):
             ]),
             dict(name='文章管理', icon='icon-article', link='/article/admin'),
             dict(name='人员管理', icon='icon-users', id='user', sub_items=[
+                dict(name='指派批次', icon='icon-subitem', link='/user/task_batch'),
                 dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
                 dict(name='授权管理', icon='icon-subitem', link='/user/role'),
             ]),
@@ -194,8 +196,13 @@ class ComModal(UIModule):
 
 class ReturnModal(UIModule):
     def render(self):
-        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
-        modal_fields = [{'id': 'return_reason', 'name': '退回理由', 'input_type': 'textarea'}]
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '退回后返回大厅'), ('modal-next', '退回后领下一条')]
+        modal_fields = [
+            {'id': 'return_reason', 'name': '退回理由', 'input_type': 'textarea'},
+            {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': [
+                '空白页', '图片页', '体例未规定', '字体太草', '字图歪斜', '操作无权限', '大片字迹模糊', '大量字框切错', '大量特殊符号'
+            ]},
+        ]
         return self.render_string('com/_modal.html', modal_fields=modal_fields, id='returnModal', title='退回任务',
                                   buttons=buttons)
 

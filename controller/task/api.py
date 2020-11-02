@@ -30,7 +30,8 @@ class PickTaskApi(TaskHandler):
                 if task['status'] != self.STATUS_PUBLISHED:
                     return self.send_error_response(e.task_not_published)
             else:
-                tasks = self.find_lobby(task_type, page_size=1)[0]
+                batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
+                tasks = self.find_lobby(task_type, page_size=1, batch=batch)[0]
                 if not tasks:
                     return self.send_error_response(e.no_task_to_pick)
                 task = tasks[0]
@@ -99,6 +100,28 @@ class UpdateTaskApi(TaskHandler):
                 r = self.db.task.update_many({'_id': {'$in': _ids}}, {'$set': update})
                 self.add_log('update_task', target_id=_ids, content=update)
             self.send_data_response(dict(count=r.matched_count))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class UpdateMyTaskApi(TaskHandler):
+    URL = '/api/my_task/remark/@task_id'
+
+    def post(self, task_id):
+        """ 批量更新任务批次或备注"""
+        try:
+            rules = [(v.not_empty, 'remark')]
+            self.validate(self.data, rules)
+
+            task = self.db.task.find_one({'_id': ObjectId(task_id)})
+            if not task:
+                return self.send_error_response(e.no_object, message="没有找到任务%s" % task_id)
+            print(task['picked_user_id'], self.user_id)
+            if task['picked_user_id'] != self.user_id:
+                return self.send_error_response(e.task_unauthorized)
+            self.db.task.update_one({'_id': task['_id']}, {'$set': {'remark': self.data['remark']}})
+            self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)

@@ -119,13 +119,15 @@ function decodeJSON(s, toHTML) {
     }
     return c;
   });
-  s = toHTML ? s : s.replace(/'/g, '"').replace(/: True/g, ': 1').replace(/: (False|None)/g, ': 0').replace(/\\/g, '/');
-  return toHTML ? s : parseJSON(s);
+  if (toHTML) return s;
+  s = s.replace(/: True/g, ': 1').replace(/: (False|None)/g, ': 0').replace(/\\/g, '/');
+  return parseJSON(s);
 }
 
 function parseJSON(s) {
   try {
-    s = JSON.parse(s);
+    s = eval("(" + s + ")");
+    // s = JSON.parse(s);
     if ('_id' in s && '$oid' in s['_id'])
       s['_id'] = s['_id']['$oid'];
     return s

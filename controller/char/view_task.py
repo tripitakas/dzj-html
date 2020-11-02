@@ -23,6 +23,7 @@ class CharTaskListHandler(CharHandler):
         {'id': 'num', 'name': '校次'},
         {'id': 'txt_kind', 'name': '字种'},
         {'id': 'char_count', 'name': '单字数量'},
+        {'id': 'required_count', 'name': '需要校对数量'},
         {'id': 'status', 'name': '状态', 'filter': CharHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': CharHandler.priorities},
         {'id': 'params', 'name': '输入参数'},
@@ -41,6 +42,7 @@ class CharTaskListHandler(CharHandler):
         {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
+            {'operation': 'batch', 'label': '按批次'},
             {'operation': 'picked_user_id', 'label': '按用户'},
             {'operation': 'task_type', 'label': '按类型'},
             {'operation': 'status', 'label': '按状态'},
@@ -98,8 +100,8 @@ class CharTaskStatHandler(CharHandler):
         """ 根据用户、任务类型或任务状态统计页任务"""
         try:
             kind = self.get_query_argument('kind', '')
-            if kind not in ['picked_user_id', 'task_type', 'status']:
-                return self.send_error_response(e.statistic_type_error, message='只能按用户、任务类型或任务状态统计')
+            if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
+                return self.send_error_response(e.statistic_type_error, message='只能按用户、批次、任务类型或任务状态统计')
 
             counts = list(self.db.task.aggregate([
                 {'$match': self.get_task_search_condition(self.request.query, 'char')[0]},
@@ -115,7 +117,7 @@ class CharTaskStatHandler(CharHandler):
                 trans = self.task_names()
             elif kind == 'status':
                 trans = self.task_statuses
-            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态')[kind]
+            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态', batch='批次')[kind]
 
             self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='char')
 
@@ -212,6 +214,8 @@ class CharTaskClusterHandler(CharHandler):
             get_user_filter()
             # 2.查找单字数据
             self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
+            if self.mode in ['do', 'update']:
+                self.page_size = 100 if self.page_size > 100 else self.page_size
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             chars = {d['name']: d for d in docs}
             # 设置列图hash值
