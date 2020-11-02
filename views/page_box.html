@@ -109,6 +109,14 @@
               <td>按照方向键↑→↓←的指示，切换当前字框</td>
             </tr>
             <tr>
+              <td>空格/x</td>
+              <td>所有、透视</td>
+            </tr>
+            <tr>
+              <td>z、r</td>
+              <td>撤销、重做</td>
+            </tr>
+            <tr>
               <td>鼠标滚轮</td>
               <td>鼠标滚轮上下滚动显示，按下Shift键则左右滚动显示</td>
             </tr>
@@ -327,6 +335,11 @@
     var from = decodeFrom() ? '?from=' + decodeFrom() : '';
     location.href = '/page/order/{{page["name"]}}' + from;
   });
+
+  // 快捷键
+  $.mapKey('space', () => $('#toggle-all').click());
+  $.mapKey('x', () => $('#toggle-opacity').click());
+
 </script>
 </body>
 </html>
