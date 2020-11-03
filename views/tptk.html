@@ -228,10 +228,10 @@
   $.cut.switchCurrentBox(null);
   setTimeout(function () {
     $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+    $.cut.setLink(false);
   }, 200);
 
   // 初始化设置
-  $.cut.setLink(false);
   $.cut.toggleBox(false);
 
   $.cut.state.canHitBox = function (el) {
