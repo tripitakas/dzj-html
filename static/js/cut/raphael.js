@@ -1223,12 +1223,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                sleep: 100
 	            };
 	        }
-	        //setTimeout(function () {
+	        setTimeout(function () {
 	            for (var key in p) if (p[has](key) && key != ps) {
 	                p[key].sleep--;
 	                !p[key].sleep && delete p[key];
 	            }
-	        //});
+	        });
 	        return p[ps];
 	    };
 	    /*\
@@ -6483,7 +6483,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                            return w.substring(1).toUpperCase();
 	                        });
 	                        node.style[cssrule] = value;
-	                        // o._.dirty = 1;
+	                        o._.dirty = 1;
 	                        node.setAttribute(att, value);
 	                        break;
 	                }
@@ -7504,7 +7504,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        if (newpath) {
 	            a.path = R._getPath[o.type](o);
-	            // o._.dirty = 1;
+	            o._.dirty = 1;
 	        }
 	        params.href && (node.href = params.href);
 	        params.title && (node.title = params.title);
@@ -7513,7 +7513,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        "blur" in params && o.blur(params.blur);
 	        if (params.path && o.type == "path" || newpath) {
 	            node.path = path2vml(~Str(a.path).toLowerCase().indexOf("r") ? R._pathToAbsolute(a.path) : a.path);
-	            // o._.dirty = 1;
+	            o._.dirty = 1;
 	            if (o.type == "image") {
 	                o._.fillpos = [a.x, a.y];
 	                o._.fillsize = [a.width, a.height];
@@ -7527,7 +7527,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                rx = +a.rx || +a.r || 0,
 	                ry = +a.ry || +a.r || 0;
 	            node.path = R.format("ar{0},{1},{2},{3},{4},{1},{4},{1}x", round((cx - rx) * zoom), round((cy - ry) * zoom), round((cx + rx) * zoom), round((cy + ry) * zoom), round(cx * zoom));
-	            // o._.dirty = 1;
+	            o._.dirty = 1;
 	        }
 	        if ("clip-rect" in params) {
 	            var rect = Str(params["clip-rect"]).split(separator);
@@ -7688,7 +7688,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ("x" in params || "y" in params) && (res.path.v = R.format("m{0},{1}l{2},{1}", round(a.x * zoom), round(a.y * zoom), round(a.x * zoom) + 1));
 	            var dirtyattrs = ["x", "y", "text", "font", "font-family", "font-weight", "font-style", "font-size"];
 	            for (var d = 0, dd = dirtyattrs.length; d < dd; d++) if (dirtyattrs[d] in params) {
-	                // res._.dirty = 1;
+	                res._.dirty = 1;
 	                break;
 	            }
 

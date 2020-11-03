@@ -131,12 +131,10 @@
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.switchCurrentBox(null);
-  setTimeout(function () {
-    $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
-    $.cut.setLink(false);
-  }, 200);
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
 
   // 初始化设置
+  $.cut.setLink(false);
   $.cut.toggleBox(false);
   setTimeout(function () {
     $.cut.switchCurrentBox('{{cur_cid}}');

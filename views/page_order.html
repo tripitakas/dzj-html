@@ -186,9 +186,7 @@
   $.cut.bindKeys();
   $.cut.switchCurrentBox(null);
   $.cut.bindCharOrderKeys();
-  setTimeout(function () {
-    $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
-  }, 200);
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
   // 初始化设置
   if ($.cut.data.image) {

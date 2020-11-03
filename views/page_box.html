@@ -190,15 +190,13 @@
   // 设置三种切分框的状态
   function updateThreeBoxes() {
     $.cut.switchCurrentBox(null);
-    setTimeout(function () {
-      var charActive = $('#toggle-char').hasClass('active');
-      $.cut.toggleBox(charActive, 'char');
-      var blockActive = $('#toggle-block').hasClass('active');
-      $.cut.toggleBox(blockActive, 'block');
-      var columnActive = $('#toggle-column').hasClass('active');
-      $.cut.toggleBox(columnActive, 'column');
-      console.log(charActive + '|' + columnActive + '|' | blockActive);
-    }, 200);
+    var charActive = $('#toggle-char').hasClass('active');
+    $.cut.toggleBox(charActive, 'char');
+    var blockActive = $('#toggle-block').hasClass('active');
+    $.cut.toggleBox(blockActive, 'block');
+    var columnActive = $('#toggle-column').hasClass('active');
+    $.cut.toggleBox(columnActive, 'column');
+    console.log(charActive + '|' + columnActive + '|' | blockActive);
   }
 
   $.cut.state.canHitBox = function (el) {
