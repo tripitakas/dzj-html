@@ -226,7 +226,9 @@
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.switchCurrentBox(null);
-  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+  setTimeout(function () {
+    $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+  }, 200);
 
   // 初始化设置
   $.cut.setLink(false);
