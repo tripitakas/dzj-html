@@ -270,9 +270,7 @@
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.switchCurrentBox(null);
-  setTimeout(function () {
-    $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
-  }, 200);
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
 
   $.cut.state.canHitBox = function (el) {
     if ($('#toggle-char').hasClass('active') && el.data('class') === 'char')

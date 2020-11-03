@@ -238,10 +238,7 @@
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.switchCurrentBox(null);
-  setTimeout(function () {
-    $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
-    $.cut.setLink(false);
-  }, 200);
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
 
   $.cut.state.canHitBox = function (el) {
     if ($('#toggle-char').hasClass('active') && el.data('class') === 'char') return true;
@@ -250,6 +247,7 @@
   };
 
   // 初始化设置
+  $.cut.setLink(false);
   $.cut.toggleBox(false);
 
   // 切换文本
