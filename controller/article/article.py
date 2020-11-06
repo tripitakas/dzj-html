@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import controller.validate as v
+from controller import helper as h
 from controller.model import Model
 
 
@@ -40,3 +41,14 @@ class Article(Model):
         {'action': 'article-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
+
+    @classmethod
+    def get_article_search_condition(cls, request_query):
+        """ 获取文章的查询条件"""
+        condition, params = dict(), dict()
+        for field in ['category', 'active']:
+            value = h.get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: value})
+        return condition, params
