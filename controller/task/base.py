@@ -177,11 +177,10 @@ class TaskHandler(BaseHandler, Task):
         if task_type:
             condition.update({'task_type': task_type})
         if status:
-            condition.update({'status': {'$in': [status] if isinstance(status, str) else status}})
+            condition.update({'status': {'$in': status} if isinstance(status, list) else status})
         if mine:
-            con_status = condition.get('status') or {}
-            con_status.update({'$ne': self.STATUS_RETURNED})
-            condition.update({'status': con_status})
+            if not condition.get('status'):
+                condition.update({'status': {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}})
             condition.update({'picked_user_id': self.user_id})
         return self.db.task.count_documents(condition)
 
