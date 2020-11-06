@@ -70,7 +70,8 @@ class ComLeft(UIModule):
                 dict(name='自动标点', icon='icon-subitem', link='/com/punctuate'),
                 dict(name='全文检索', icon='icon-subitem', link='/com/search'),
             ]),
-            dict(name='帮助中心', icon='icon-info', link='/help'),
+            dict(name='帮助中心', icon='icon-help', link='/help'),
+            dict(name='通知公告', icon='icon-info', link='/announce'),
         ]
 
         # nlc左侧菜单项
@@ -109,7 +110,8 @@ class ComLeft(UIModule):
             dict(name='相关工具', icon='icon-tool', sub_items=[
                 dict(name='自动标点', icon='icon-subitem', link='/com/punctuate'),
             ]),
-            dict(name='帮助中心', icon='icon-info', link='/help'),
+            dict(name='帮助中心', icon='icon-help', link='/help'),
+            dict(name='通知公告', icon='icon-info', link='/announce'),
         ]
 
         # 计算当前用户有权访问的菜单
