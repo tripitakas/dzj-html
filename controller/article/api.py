@@ -50,8 +50,7 @@ class ArticleUpsertApi(BaseHandler):
             info = dict(title=self.data['title'].strip(), article_id=article_id, category=self.data['category'].strip(),
                         active=self.data['active'].strip(), content=self.data['content'].strip(), images=images,
                         updated_time=self.now(), updated_by=self.username)
-            if self.data.get('no'):
-                info['no'] = int(self.data['no'])
+            info['no'] = int(self.data.get('no') or 9999)
 
             if mode == 'update':
                 _id = ObjectId(self.data['_id'])

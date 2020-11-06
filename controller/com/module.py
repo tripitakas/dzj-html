@@ -55,7 +55,6 @@ class ComLeft(UIModule):
                 dict(name='字数据', icon='icon-subitem', link='/char/list'),
                 dict(name='异体字', icon='icon-subitem', link='/data/variant'),
             ]),
-            dict(name='文章管理', icon='icon-article', link='/article/admin'),
             dict(name='人员管理', icon='icon-users', id='user', sub_items=[
                 dict(name='指派批次', icon='icon-subitem', link='/user/task_batch'),
                 dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
@@ -66,12 +65,13 @@ class ComLeft(UIModule):
                 dict(name='脚本日志', icon='icon-subitem', link='/sys/oplog'),
                 dict(name='操作日志', icon='icon-subitem', link='/sys/log'),
             ]),
+            dict(name='文章管理', icon='icon-article', link='/article/admin'),
+            dict(name='帮助中心', icon='icon-help', link='/help'),
+            dict(name='通知公告', icon='icon-info', link='/announce'),
             dict(name='相关工具', icon='icon-tool', sub_items=[
                 dict(name='自动标点', icon='icon-subitem', link='/com/punctuate'),
                 dict(name='全文检索', icon='icon-subitem', link='/com/search'),
             ]),
-            dict(name='帮助中心', icon='icon-help', link='/help'),
-            dict(name='通知公告', icon='icon-info', link='/announce'),
         ]
 
         # nlc左侧菜单项

@@ -12,11 +12,24 @@ from controller.article.article import Article
 class ArticleAdminHandler(BaseHandler, Article):
     URL = '/article/admin'
 
+    table_fields = [
+        {'id': 'no', 'name': '序号'},
+        {'id': 'title', 'name': '标题'},
+        {'id': 'article_id', 'name': '标识'},
+        {'id': 'category', 'name': '分类', 'filter': {'帮助': '帮助', '通知': '通知'}},
+        {'id': 'active', 'name': '是否发布', 'filter': {'是': '是', '否': '否'}},
+        {'id': 'author_name', 'name': '创建人'},
+        {'id': 'create_time', 'name': '创建时间'},
+        {'id': 'updated_by', 'name': '修改人'},
+        {'id': 'updated_time', 'name': '修改时间'},
+    ]
+
     def get(self):
         """ 文章管理"""
         try:
             kwargs = self.get_template_kwargs()
-            docs, pager, q, order = self.find_by_page(self, default_order='-create_time')
+            cd, params = self.get_article_search_condition(self.request.query)
+            docs, pager, q, order = self.find_by_page(self, cd, None, '-create_time', {'content': 0})
             self.render('article_admin.html', docs=docs, pager=pager, order=order, q=q, **kwargs)
 
         except Exception as error:
