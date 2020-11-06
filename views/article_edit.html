@@ -133,7 +133,7 @@
 <script>
   var articleId = '{{article_id}}';
   var _id = '{{article.get("_id") or ""}}';
-  initEditor('content-editor', decodeJSON('{{article.get("content") or ""}}', true));
+  initEditor('content-editor', decodeJSON('{{article.get("content", "").replace("\n", "")}}', true));
 
   // 提交
   $('#btn-submit').on('click', function () {
