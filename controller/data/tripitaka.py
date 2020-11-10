@@ -70,9 +70,12 @@ class TptkViewHandler(PageHandler):
                 if nav['next'] > nav['last']:
                     nav['next'] = nav['last']
 
+            cid = self.get_query_argument('cid', '')
+
             self.render(
                 'tptk.html', tripitaka=tripitaka, page=page, page_name=page_name, volume_code=volume_code,
-                tripitaka_code=name_slice[0], chars_col=chars_col, txts=txts, nav=nav, img_url=img_url,
+                tripitaka_code=name_slice[0], chars_col=chars_col, txts=txts, nav=nav, cur_cid=cid,
+                img_url=img_url,
             )
 
         except Exception as error:

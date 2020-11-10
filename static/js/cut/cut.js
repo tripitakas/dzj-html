@@ -925,9 +925,7 @@
     },
 
     removeBox: function () {
-      if (state.beforeRemove && state.beforeRemove(state.edit)) {
-        return;
-      }
+      if (state.beforeRemove && state.beforeRemove(state.edit)) return;
       this.cancelDrag();
       var el = state.edit;
       if (el && !state.readonly && !el.data('readonly') && !el.data('readonly')) {
@@ -949,6 +947,23 @@
 
         return info.char_id;
       }
+    },
+
+    removeBoxes: function (ids, boxType) {
+      if (state.beforeRemove && state.beforeRemove(state.edit)) return;
+      this.cancelDrag();
+      var unDelete = 0;
+      data.chars.forEach(function (box) {
+        if (box.class.indexOf(boxType) > -1 && ids.indexOf(box.cid) > -1) {
+          if (box.readonly) {
+            unDelete += 1;
+          } else {
+            box.shape.remove();
+            box.shape = null;
+          }
+        }
+      });
+      return unDelete;
     },
 
     addBox: function () {

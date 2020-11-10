@@ -150,7 +150,7 @@ $(document).on('click', '#enlarge-font', function () {
 $(document).on('click', '.m-footer .page-name', function () {
   if ($(this).hasClass('disabled'))
     return;
-  var url = '/page/' + $(this).text();
+  var url = '/tptk/' + $(this).text();
   var charName = $('.m-footer .char-name').text();
   if (typeof charName !== 'undefined' && charName !== '' && charName !== '未选中') {
     var cid = charName.split('_').pop();
