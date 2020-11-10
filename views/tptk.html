@@ -231,7 +231,6 @@
   // 初始化设置
   $.cut.setLink(false);
   $.cut.toggleBox(false);
-  console.log(getStorage('tptkRight', true));
   if (!getStorage('tptkRight', true)) $('#toggle-right').click();
   setTimeout(function () {
     $.cut.switchCurrentBox('{{cur_cid}}');
@@ -252,7 +251,7 @@
       var curId = $.cut.getCurrentCharID(true);
       if (curId) {
         $('.m-footer .char-name').text(curId);
-        $('.m-footer .char-info').text((info.txt || '') + (info['is_small'] ? '（小字）' : ''));
+        $('.m-footer .char-info').text((info.txt || info.ocr_txt || '') + (info['is_small'] ? '（小字）' : ''));
       } else {
         $('.m-footer .char-name').text('未选中');
         $('.m-footer .char-info').text('');
