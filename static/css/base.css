@@ -774,6 +774,7 @@ body.widescreen {
 .m-alert .text a {
   text-decoration: underline;
   color: var(--Brown_Darker);
+  cursor: pointer;
 }
 
 .dropdown-menu > .active > a {
