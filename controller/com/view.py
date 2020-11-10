@@ -87,10 +87,10 @@ class HomeHandler(TaskHandler):
             unfinished_count = self.count_task(status=self.STATUS_PICKED, mine=True)
 
             # 最新动态
-            status = [self.STATUS_PICKED, self.STATUS_FINISHED]
             fields = ['task_type', 'doc_id', 'txt_kind', 'status', 'picked_time', 'finished_time', 'picked_by',
                       'picked_user_id']
-            condition = {'task_type': {'$regex': '(cut_|text_|cluster_|rare_)'}, 'status': {'$in': status}}
+            condition = {'task_type': {'$in': ['cut_proof', 'cut_review', 'cluster_proof', 'cluster_review']},
+                         'status': {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}}
             latest_tasks = list(self.db.task.find(condition, {k: 1 for k in fields}).sort('picked_time', -1).limit(10))
 
             # 本月校勘之星

@@ -241,7 +241,7 @@
     } else if (reason === 'navigate') {
       var curId = $.cut.getCurrentCharID(true);
       $('.m-footer .char-name').text(curId || '未选中');
-      var msg = (info.txt || '') + (info['is_small'] ? '（小字）' : '') + (info.readonly ? ' 权限：只读' : ' 权限：读写');
+      var msg = (info.txt || info.ocr_txt || '') + (info['is_small'] ? '（小字）' : '') + (info.readonly ? '，  权限：只读' : '，  权限：读写');
       $('.m-footer .char-info').text(curId ? msg : '');
     } else if (reason === 'initial') {
       var invalid = $.cut.data.chars.map(function (c) {
@@ -289,10 +289,12 @@
         $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
         $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
         var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
+        tips += `<a onclick="deleteBoxes([${res['out_boxes']}],'${res['box_type']}');">批量删除</a>`;
         bsShow('已保存!', tips, 'warning');
       }
     });
   });
+
 
   afterStepped = function (submit, res, jumpUrl) {
     if (res.valid) {
@@ -302,9 +304,17 @@
       $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
       $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
       var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
+      tips += `<a onclick="deleteBoxes([${res['out_boxes']}],'${res['box_type']}');">批量删除</a>`;
       bsShow('已保存!', tips, 'warning');
     }
   };
+
+  function deleteBoxes(cids, boxType) {
+    showConfirm('提示', '确定批量删除高亮的框吗？', function () {
+      $.cut.removeBoxes(cids, boxType);
+      bsHide();
+    });
+  }
 
   // 切换步骤
   var stepsFinished = null;

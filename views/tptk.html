@@ -170,7 +170,7 @@
             </tr>
             <tr>
               <td><i class="icon-txt"></i></td>
-              <td>打开或关闭右侧文本。关闭文本可以更舒适的阅读原始图片</td>
+              <td>打开或关闭右侧文本。系统会记住您的选择，刷新页面或下一页时，将默认打开或关闭</td>
             </tr>
             <tr>
               <td><i class="icon-blur"></i></td>
@@ -231,6 +231,12 @@
   // 初始化设置
   $.cut.setLink(false);
   $.cut.toggleBox(false);
+  console.log(getStorage('tptkRight', true));
+  if (!getStorage('tptkRight', true)) $('#toggle-right').click();
+  setTimeout(function () {
+    $.cut.switchCurrentBox('{{cur_cid}}');
+    $.cut.toggleClass(['{{cur_cid}}'], null, 'flash', true);
+  }, 500);
 
   $.cut.state.canHitBox = function (el) {
     if ($('#toggle-char').hasClass('active') && el.data('class') === 'char')
@@ -258,6 +264,11 @@
 {% end %}
 
 <script>
+  // 隐藏右侧区域-设置浏览器状态
+  $(document).on('click', '#toggle-right', function () {
+    setStorage('tptkRight', $(this).hasClass('active'));
+  });
+
   var volumeCode = '{{volume_code}}';
   $('.m-pager .btn-page:not(.to)').click(function () {
     window.location = '/tptk/' + volumeCode + '_' + $(this).attr('data-value');
@@ -271,13 +282,8 @@
     }
   });
 
-  $('#pic-left').click(function () {
-    $('.btn-page.prev').click();
-  });
-
-  $('#pic-right').click(function () {
-    $('.btn-page.next').click();
-  });
+  $('#pic-left').on('click', () => $('.btn-page.prev').click());
+  $('#pic-right').on('click', () => $('.btn-page.next').click());
 
   // 快捷键缩放页面
   var width = $('.page-img img').length ? $('.page-img img').width() : 0;

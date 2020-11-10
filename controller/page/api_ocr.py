@@ -32,14 +32,15 @@ class FetchTasksApi(TaskHandler):
                 for t in tasks:
                     PageHandler.pack_boxes(pages.get(t['doc_id']))
                     t['params'] = pages.get(t['doc_id'])
-            return [dict(task_id=str(t['_id']), priority=t.get('priority'), page_name=t.get('doc_id'),
-                         params=t.get('params')) for t in tasks]
+            return [dict(task_id=str(t['_id']), num=t.get('num'), priority=t.get('priority'),
+                         page_name=t.get('doc_id'), params=t.get('params')) for t in tasks]
 
         try:
             size = int(self.data.get('size') or 1)
-            tasks = list(self.db.task.find({'task_type': data_task, 'status': self.STATUS_PUBLISHED}).limit(size))
+            p = {f: 1 for f in ['num', 'priority', 'doc_id', 'params']}
+            tasks = list(self.db.task.find({'task_type': data_task, 'status': self.STATUS_PUBLISHED}, p).limit(size))
             if not tasks:
-                tasks = list(self.db.task.find({'task_type': data_task, 'status': self.STATUS_FETCHED}).limit(size))
+                tasks = list(self.db.task.find({'task_type': data_task, 'status': self.STATUS_FETCHED}, p).limit(size))
                 if not tasks:
                     self.send_data_response(dict(tasks=[]))
             tasks2send = get_tasks()
@@ -138,17 +139,20 @@ class SubmitTasksApi(PageHandler):
             return self.send_db_error(error)
 
     def submit_ocr_box(self, task):
-        page = self.db.page.find_one({'name': task.get('page_name')})
+        page = self.db.page.find_one({'name': task.get('page_name')}, {'name': 1})
         if not page:
             return e.no_object
-        update = {k: self.prop(task, 'result.' + k) or self.prop(page, k) for k in ['width', 'height', 'layout']}
+
+        fields = ['width', 'height', 'layout']
+        update = {k: self.prop(task, 'result.' + k) for k in fields if self.prop(task, 'result.' + k)}
+        # ocr_box任务将覆盖page已有的栏框、列框和字框数据
         update.update({k: self.prop(task, 'result.' + k) for k in ['blocks', 'columns', 'chars']})
         update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
         update['create_time'] = self.now()
         self.apply_txt(update, 'ocr_col')
         self.update_page_cid(update)
-
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
+
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),
@@ -179,24 +183,25 @@ class SubmitTasksApi(PageHandler):
                 c['txt'] = oc.get('ocr_txt')
         # 将列文本适配至字框
         self.apply_txt(page, 'ocr_col')
-
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
             'chars': page['chars'], 'columns': page['columns'],
             'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED,
         }})
+
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),
         }})
 
     def submit_upload_cloud(self, task):
-        page = self.db.page.find_one({'name': task.get('page_name')})
+        page = self.db.page.find_one({'name': task.get('page_name')}, {'name': 1})
         if not page:
             return e.no_object
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
             'img_cloud_path': self.prop(task, 'result.img_cloud_path'),
             'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED
         }})
+
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),
