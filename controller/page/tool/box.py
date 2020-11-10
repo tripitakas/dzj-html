@@ -45,15 +45,15 @@ class Box(BoxOrder):
         width = width or page.get('width')
         height = height or page.get('height')
         blocks, columns, chars = cls.filter_box(page, width, height)
-        column_out_block, column_in_block = cls.boxes_out_of_boxes(columns, blocks)
-        if column_out_block:
-            return False, '列框不在栏框内', 'column', [c['cid'] for c in column_out_block]
-        char_out_block, char_in_block = cls.boxes_out_of_boxes(chars, blocks)
-        if char_out_block:
-            return False, '字框不在栏框内', 'char', [c['cid'] for c in char_out_block]
         char_out_column, char_in_column = cls.boxes_out_of_boxes(chars, columns)
         if char_out_column:
             return False, '字框不在列框内', 'char', [c['cid'] for c in char_out_column]
+        char_out_block, char_in_block = cls.boxes_out_of_boxes(chars, blocks)
+        if char_out_block:
+            return False, '字框不在栏框内', 'char', [c['cid'] for c in char_out_block]
+        column_out_block, column_in_block = cls.boxes_out_of_boxes(columns, blocks)
+        if column_out_block:
+            return False, '列框不在栏框内', 'column', [c['cid'] for c in column_out_block]
         return True, None, None, []
 
     @classmethod
