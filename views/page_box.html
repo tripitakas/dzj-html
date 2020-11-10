@@ -241,7 +241,7 @@
     } else if (reason === 'navigate') {
       var curId = $.cut.getCurrentCharID(true);
       $('.m-footer .char-name').text(curId || '未选中');
-      var msg = (info.txt || '') + (info['is_small'] ? '（小字）' : '') + (info.readonly ? ' 权限：只读' : ' 权限：读写');
+      var msg = (info.txt || info.ocr_txt || '') + (info['is_small'] ? '（小字）' : '') + (info.readonly ? '，  权限：只读' : '，  权限：读写');
       $('.m-footer .char-info').text(curId ? msg : '');
     } else if (reason === 'initial') {
       var invalid = $.cut.data.chars.map(function (c) {
