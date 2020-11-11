@@ -328,7 +328,7 @@ def reset_cut_proof(db, user_no=None):
             # 重置page的tasks字段
             db.page.update_many({'name': {'$in': page_names}}, {'$set': {'tasks.%s.%s' % (task_type, 1): 'picked'}})
             # 重置该账号非系统指派的任务
-            cond1 = {'task_type': task_type, 'doc_id': {'$nin': page_names}, 'picked_by': user['_id']}
+            cond1 = {'task_type': task_type, 'doc_id': {'$nin': page_names}, 'picked_user_id': user['_id']}
             db.task.update_many(cond1, {'$set': {'status': 'published'}})
             db.task.update_many(cond1, {'$unset': {
                 'picked_time': '', 'picked_by': '', 'picked_user_id': '',
@@ -358,7 +358,7 @@ def assign_cluster_proof(db, user_no=None, reset=False):
                 'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
             }})
             if reset:
-                cond1 = {'task_type': task_type, 'txt_kind': {'$nin': txt_kinds}, 'picked_by': user['_id']}
+                cond1 = {'task_type': task_type, 'txt_kind': {'$nin': txt_kinds}, 'picked_user_id': user['_id']}
                 db.task.update_many(cond1, {'$set': {'status': 'published'}})
                 db.task.update_many(cond1, {'$unset': {
                     'picked_time': '', 'picked_by': '', 'picked_user_id': '',
