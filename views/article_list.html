@@ -7,7 +7,10 @@
   }
 
   .article-list .doc {
+    padding: 5px;
+    border-radius: 4px;
     margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.75);
   }
 
   .doc .title {
@@ -39,7 +42,8 @@
   {% for d in docs %}
   <div class="doc">
     <div class="title">
-      <a href="/article/{{d['article_id']}}">{{d['title']}}</a>
+      <a href="{{d.get('title_link') or '/article/%s' % d['article_id']}}" target="{{'_blank' if d.get('title_link') else '_self'}}">
+        {{d['title']}}</a>
       <span class="time">{{to_date_str(d['create_time'])}}</span>
     </div>
     <div class="content">

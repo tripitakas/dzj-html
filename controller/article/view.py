@@ -16,7 +16,7 @@ class ArticleAdminHandler(BaseHandler, Article):
         {'id': 'no', 'name': '序号'},
         {'id': 'title', 'name': '标题'},
         {'id': 'article_id', 'name': '标识'},
-        {'id': 'category', 'name': '分类', 'filter': {'帮助': '帮助', '通知': '通知'}},
+        {'id': 'category', 'name': '分类', 'filter': {'帮助': '帮助', '公告': '公告', '通知': '通知'}},
         {'id': 'active', 'name': '是否发布', 'filter': {'是': '是', '否': '否'}},
         {'id': 'author_name', 'name': '创建人'},
         {'id': 'create_time', 'name': '创建时间'},
