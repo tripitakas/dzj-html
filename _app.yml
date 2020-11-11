@@ -6,7 +6,7 @@ site:
   name: 如是古籍数字化平台
   keywords: 大藏经,古籍数字化,tripitaka
   description: 如是古籍数字化平台
-  domain: test.tripitakas.net
+  domain: dev.tripitakas.net
   skin:
   # https:
   #  certfile: tripitaka.crt
@@ -44,7 +44,7 @@ role:
 
 # 任务
 task:
-  auto_recycle: true
+  auto_recycle: false
   task_timeout_days: 7
 
 
