@@ -359,13 +359,15 @@ def assign_cluster_proof(db, user_no=None, reset=False):
             }})
             if reset:
                 cond1 = {'task_type': task_type, 'txt_kind': {'$nin': txt_kinds}, 'picked_user_id': user['_id']}
+                tasks = list(db.task.find(cond1, {'txt_kind': 1}))
                 db.task.update_many(cond1, {'$set': {'status': 'published'}})
                 db.task.update_many(cond1, {'$unset': {
                     'picked_time': '', 'picked_by': '', 'picked_user_id': '',
                     'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
                 }})
                 # 重置char表的txt字段
-                for ocr_txt in txt_kinds:
+                txt_kinds_str = ''.join(txt_kinds + [t['txt_kind'] for t in tasks])
+                for ocr_txt in txt_kinds_str:
                     db.char.update_many({'ocr_txt': ocr_txt}, {'$set': {'txt': ocr_txt, 'txt_logs': [], 'tasks': {}}})
                 # 清空用户新增的异体字
                 db.variant.delete_many({'create_by': '考核%2d' % i})
@@ -400,6 +402,32 @@ def reset_user_data_and_tasks(db, user_no=None, admin_name=None):
     db.oplog.update_one({'_id': _id}, {'$set': {'status': 'finished'}})
 
 
+def reset_redundant_tasks(db, user_no=None):
+    """ 删除考核账号下的非考核任务"""
+    for i in range(1, 51):
+        if not user_no or user_no == i:
+            print('processing user %s' % i)
+            # 重置该账号非系统指派的切分任务
+            task_type = 'cut_proof'
+            page_names = eval('names%s' % i)
+            user = db.user.find_one({'email': 'exam%02d@tripitakas.net' % int(i)})
+            cond1 = {'task_type': task_type, 'doc_id': {'$nin': page_names}, 'picked_user_id': user['_id']}
+            db.task.update_many(cond1, {'$set': {'status': 'published'}})
+            db.task.update_many(cond1, {'$unset': {
+                'picked_time': '', 'picked_by': '', 'picked_user_id': '',
+                'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
+            }})
+            # 重置该账号非系统指派的聚类任务
+            task_type = 'cluster_proof'
+            txt_kinds = eval('txt_kinds%d' % i)
+            cond1 = {'task_type': task_type, 'txt_kind': {'$nin': txt_kinds}, 'picked_user_id': user['_id']}
+            db.task.update_many(cond1, {'$set': {'status': 'published'}})
+            db.task.update_many(cond1, {'$unset': {
+                'picked_time': '', 'picked_by': '', 'picked_user_id': '',
+                'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
+            }})
+
+
 def main(db=None, db_name=None, uri=None, func='', **kwargs):
     cfg = hp.load_config()
     db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
@@ -410,3 +438,4 @@ if __name__ == '__main__':
     import fire
 
     fire.Fire(main)
+
