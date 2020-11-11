@@ -359,13 +359,15 @@ def assign_cluster_proof(db, user_no=None, reset=False):
             }})
             if reset:
                 cond1 = {'task_type': task_type, 'txt_kind': {'$nin': txt_kinds}, 'picked_user_id': user['_id']}
+                tasks = list(db.task.find(cond1, {'txt_kind': 1}))
                 db.task.update_many(cond1, {'$set': {'status': 'published'}})
                 db.task.update_many(cond1, {'$unset': {
                     'picked_time': '', 'picked_by': '', 'picked_user_id': '',
                     'finished_time': '', 'steps.submitted': '', 'result.steps_finished': ''
                 }})
                 # 重置char表的txt字段
-                for ocr_txt in txt_kinds:
+                txt_kinds_str = ''.join(txt_kinds + [t['txt_kind'] for t in tasks])
+                for ocr_txt in txt_kinds_str:
                     db.char.update_many({'ocr_txt': ocr_txt}, {'$set': {'txt': ocr_txt, 'txt_logs': [], 'tasks': {}}})
                 # 清空用户新增的异体字
                 db.variant.delete_many({'create_by': '考核%2d' % i})
@@ -436,3 +438,4 @@ if __name__ == '__main__':
     import fire
 
     fire.Fire(main)
+

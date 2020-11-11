@@ -175,9 +175,9 @@ class CharTaskClusterHandler(CharHandler):
             if update == 'my':
                 cond['txt_logs.user_id'] = self.user_id
             elif update == 'all':
-                cond['txt_logs'] = {'$exists': True}
+                cond['txt_logs'] = {'$nin': [None, []]}
             elif update == 'un':
-                cond['txt_logs'] = None
+                cond['txt_logs'] = {'$in': [None, []]}
             # 是否已提交
             submitted = self.get_query_argument('submitted', 0)
             if submitted == 'true':
