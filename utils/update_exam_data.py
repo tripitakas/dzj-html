@@ -370,7 +370,7 @@ def assign_cluster_proof(db, user_no=None, reset=False):
                 for ocr_txt in txt_kinds_str:
                     db.char.update_many({'ocr_txt': ocr_txt}, {'$set': {'txt': ocr_txt, 'txt_logs': [], 'tasks': {}}})
                 # 清空用户新增的异体字
-                db.variant.delete_many({'create_by': '考核%2d' % i})
+                # db.variant.delete_many({'create_by': '考核%2d' % i})
 
 
 def initial_run(db):
