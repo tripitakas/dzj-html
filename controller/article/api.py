@@ -41,20 +41,20 @@ class ArticleUpsertApi(BaseHandler):
     def post(self, mode):
         """ 保存文章"""
         try:
-            fields = ['title', 'article_id', 'category', 'active', 'content'] + ['_id'] if mode == 'update' else []
+            fields = ['title', 'title_link', 'article_id', 'category', 'active', 'content']
+            info = {k: self.data[k].strip() for k in fields}
+            if mode == 'update':
+                fields += ['_id']
             rules = [(v.not_empty, *fields), (v.is_article, 'article_id'), (v.is_digit, 'no')]
             self.validate(self.data, rules)
 
-            article_id = self.data['article_id'].strip()
             images = re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', self.data['content'])
-            info = dict(title=self.data['title'].strip(), article_id=article_id, category=self.data['category'].strip(),
-                        active=self.data['active'].strip(), content=self.data['content'].strip(), images=images,
-                        updated_time=self.now(), updated_by=self.username)
-            info['no'] = int(self.data.get('no') or 9999)
+            info.update(dict(images=images, no=int(self.data.get('no') or 9999),
+                             updated_time=self.now(), updated_by=self.username))
 
             if mode == 'update':
                 _id = ObjectId(self.data['_id'])
-                article = self.db.article.find_one({'article_id': article_id, '_id': {'$ne': _id}})
+                article = self.db.article.find_one({'article_id': info['article_id'], '_id': {'$ne': _id}})
                 if article:
                     return self.send_error_response(errors.doc_existed, message='文章标识已被占用')
                 r = self.db.article.update_one({'_id': _id}, {'$set': info})

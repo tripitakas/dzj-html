@@ -1,3 +1,4 @@
+{% if page_count >= 1 %}
 <div class="pagers">
   <span>当前&nbsp;<em>{{cur_page}}</em>/{{page_count}}&nbsp;页，共&nbsp;<em>{{doc_count}}</em>&nbsp;条</span>
   {% if page_count > 1 %}
@@ -40,3 +41,4 @@
     location.href = setQueryString('page_size', this.value);
   });
 </script>
+{% end %}

@@ -11,6 +11,7 @@ class Article(Model):
     fields = [
         {'id': 'no', 'name': '序号'},
         {'id': 'title', 'name': '标题'},
+        {'id': 'title_link', 'name': '标题链接'},
         {'id': 'article_id', 'name': '标识'},
         {'id': 'category', 'name': '分类'},
         {'id': 'active', 'name': '是否发布'},
