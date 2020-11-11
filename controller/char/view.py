@@ -63,7 +63,6 @@ class CharListHandler(CharHandler):
     ]
     actions = [
         {'action': 'btn-detail', 'label': '详情'},
-        {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除', 'url': '/api/char/delete'},
     ]
     hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'data_level', 'cc', 'sc', 'pos', 'column', 'diff', 'txt_logs',

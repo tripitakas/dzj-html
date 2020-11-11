@@ -801,6 +801,14 @@ body.widescreen {
   width: 380px;
 }
 
+.modal .control-label {
+  padding: 7px 0;
+}
+
+.modal .form-control {
+  margin-bottom: 5px;
+}
+
 .modal .item-title {
   margin: 12px 0 8px;
 }
@@ -816,7 +824,7 @@ body.widescreen {
 }
 
 .modal-radio, .modal-select, .modal-checkbox {
-  margin-top: 3px !important;
+  margin-top: 0 !important;
   background: transparent;
 }
 

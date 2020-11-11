@@ -1247,7 +1247,7 @@ a:focus {
 }
 
 .modal .modal-dialog .modal-content .modal-body {
-  padding: 20px 0;
+  padding: 20px 0 10px;
 }
 
 .modal .modal-dialog .modal-content .modal-footer {
