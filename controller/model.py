@@ -112,7 +112,7 @@ class Model(object):
 
     @classmethod
     def pack_doc(cls, doc, self=None):
-        d = {f['id']: doc.get(f['id']) for f in cls.fields if cls.prop(doc, f['id'])}
+        d = {f['id']: cls.prop(doc, f['id']) for f in cls.fields if cls.prop(doc, f['id']) is not None}
         if doc.get('_id'):
             d['_id'] = ObjectId(str(doc['_id']))
         return d
@@ -255,7 +255,7 @@ class Model(object):
             else:
                 valid_docs.append(cls.pack_doc(doc))
                 valid_codes.append(doc.get(cls.primary))
-        # 剔除数据库中的重复记录
+        # 分离数据库中的重复记录
         existed_docs = []
         if valid_docs:
             existed_record = list(db[collection].find({cls.primary: {'$in': valid_codes}}))
