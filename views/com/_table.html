@@ -2,7 +2,10 @@
 <table class="sty-table">
   <thead>
   <tr>
+    {% if len(actions) %}
     <th class="ckbox{{' hide' if 'ckbox' in hide_fields else ''}}"><input id="check-all" type="checkbox"/></th>
+    {% end %}
+
     {% for f in table_fields %}
     {% if f.get('filter') %}
     <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
@@ -25,6 +28,7 @@
     </th>
     {% end %}
     {% end %}
+
     {% if len(actions) %}
     <th class="action{{' hide' if 'action' in hide_fields else ''}}"><span>操作</span></th>
     {% end %}
@@ -34,12 +38,17 @@
   <tbody>
   {% for d in docs %}
   <tr id="{{d['_id']}}">
+    {% if len(actions) %}
     <td class="ckbox{{' hide' if 'ckbox' in hide_fields else ''}}"><input type="checkbox"/></td>
+    {% end %}
+
     {% for f in table_fields %}
     <td class="{{'%s%s' % (f['id'], ' hide' if f['id'] in hide_fields else '')}}" title="{{d.get(f['id']) if f.get('filter') else ''}}">
       {% raw format_value(prop(d, f['id']), f['id'], d) or '' %}
     </td>
     {% end %}
+
+    {% if len(actions) %}
     <td class="action{{' hide' if 'action' in hide_fields else ''}}">
       {% set info = {f: prop(d, f, '') for f in info_fields} %}
       <span class="hide info">{{pack(info)}}</span>
@@ -48,6 +57,7 @@
       <a class="{{a['action']}}{{' disabled' if disabled else ''}}" url="{{a.get('url') or ''}}">{{a['label']}}</a>
       {% end %}
     </td>
+    {% end %}
   </tr>
   {% end %}
   </tbody>

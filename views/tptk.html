@@ -114,9 +114,9 @@
         </div>
       </div>
       <div class="right">
-        <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}">经目</a>
-        <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}">卷目</a>
-        <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}">册目</a>
+        <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?from={{current_path}}">经目</a>
+        <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}?from={{current_path}}">卷目</a>
+        <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}?from={{current_path}}">册目</a>
       </div>
     </div>
     <div class="m-body flex pfread">
@@ -308,7 +308,6 @@
   $.mapKey('7', () => zoomImg(0.7));
   $.mapKey('8', () => zoomImg(0.8));
   $.mapKey('9', () => zoomImg(0.9));
-
 
 </script>
 </body>
