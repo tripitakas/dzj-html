@@ -91,13 +91,18 @@ class TptkMetaHandler(BaseHandler):
             tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code})
             if not tripitaka:
                 return self.send_error_response(e.no_object, message='藏经%s不存在' % tripitaka_code)
-            trans = dict(sutra='经', reel='卷', volume='册')
-            title = '%s-%s目' % (tripitaka['name'], trans[collection])
+
             model = eval(collection.capitalize())
             kwargs = model.get_template_kwargs()
             kwargs['actions'] = []
+            kwargs['search_tips'] = kwargs['search_tips'].replace('统一经编码、', '')
+            kwargs['search_fields'] = [f for f in kwargs['search_fields'] if f != 'uni_sutra_code']
+            kwargs['table_fields'] = [f for f in kwargs['table_fields'] if f['id'] not in ['uni_sutra_code', 'remark']]
+
+            trans = dict(sutra='经', reel='卷', volume='册')
+            title = '%s-%s目' % (tripitaka['name'], trans[collection])
             condition = {'%s_code' % collection: {'$regex': tripitaka_code}}
-            docs, pager, q, order = model.find_by_page(self, condition=condition)
+            docs, pager, q, order = model.find_by_page(self, condition, kwargs['search_fields'])
             self.render('tptk_meta.html', collection=collection, tripitaka=tripitaka, tripitaka_code=tripitaka_code,
                         title=title, docs=docs, pager=pager, q=q, order=order, **kwargs)
 

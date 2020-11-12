@@ -32,8 +32,7 @@ class Tripitaka(Model):
     search_fields = ['name', 'tripitaka_code']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     info_fields = [f['id'] for f in fields]
-    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                          options=f.get('options', [])) for f in fields]
+    update_fields = [f for f in fields]
 
     @classmethod
     def get_need_fields(cls):
@@ -46,6 +45,7 @@ class Sutra(Model):
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'sutra_name', 'name': '经名'},
+        {'id': 'category', 'name': '分类'},
         {'id': 'due_reel_count', 'name': '应存卷数', 'type': 'int'},
         {'id': 'existed_reel_count', 'name': '实存卷数', 'type': 'int'},
         {'id': 'author', 'name': '作译者'},
@@ -64,12 +64,11 @@ class Sutra(Model):
     primary = 'sutra_code'
 
     page_title = '经数据管理'
-    search_tips = '请搜索统一经编码、经编码、经名、起始册'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'start_volume']
+    search_tips = '请搜统一经编码、索经编码、经名、分类、起始册'
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'category', 'start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     info_fields = [f['id'] for f in fields]
-    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                          options=f.get('options', [])) for f in fields]
+    update_fields = [f for f in fields]
 
     @classmethod
     def get_need_fields(cls):
@@ -145,11 +144,9 @@ class Volume(Model):
     page_title = '册数据管理'
     search_tips = '请搜索册编码'
     search_fields = ['volume_code']
-    table_fields = [dict(id=f['id'], name=f['name']) for f in fields if f['id'] not in
-                    ['content_pages', 'front_cover_pages', 'back_cover_pages']]
+    table_fields = [dict(id=f['id'], name=f['name']) for f in fields if '_pages' not in f['id']]
     info_fields = [f['id'] for f in fields]
-    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                          options=f.get('options', [])) for f in fields]
+    update_fields = [f for f in fields]
 
     @classmethod
     def get_need_fields(cls):
