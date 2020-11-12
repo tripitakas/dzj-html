@@ -125,6 +125,7 @@ class Volume(Model):
     fields = [
         {'id': 'tripitaka_code', 'name': '藏编码'},
         {'id': 'volume_code', 'name': '册编码'},
+        {'id': 'category', 'name': '分类'},
         {'id': 'envelop_no', 'name': '函序号'},
         {'id': 'volume_no', 'name': '册序号', 'type': 'int'},
         {'id': 'content_page_count', 'name': '正文页数'},
@@ -142,8 +143,8 @@ class Volume(Model):
     primary = 'volume_code'
 
     page_title = '册数据管理'
-    search_tips = '请搜索册编码'
-    search_fields = ['volume_code']
+    search_tips = '请搜索册编码和分类'
+    search_fields = ['volume_code', 'category']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields if '_pages' not in f['id']]
     info_fields = [f['id'] for f in fields]
     update_fields = [f for f in fields]
