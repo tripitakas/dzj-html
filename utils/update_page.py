@@ -228,11 +228,18 @@ def update_sub_columns_txt(db, json_path=''):
 
 
 def update_page_code(db):
+    size = 10000
     cond = {'page_code': {'$in': [None, '']}}
-    pages = list(db.page.find(cond, {'name': 1}))
-    for p in pages:
-        page_code = hp.align_code(p['name'])
-        db.page.update_one({'_id': p['_id']}, {'$set': {'page_code': page_code}})
+    cnt = db.page.count_documents(cond)
+    page_count = math.ceil(cnt / size)
+    print('[%s]total: %s items, %s each page, %s pages.' % (hp.get_date_time(), cnt, size, page_count))
+    for i in range(page_count):
+        project = {'name': 1}
+        pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        print('[%s]%s/%s...' % (hp.get_date_time(), i, page_count))
+        for p in pages:
+            page_code = hp.align_code(p['name'])
+            db.page.update_one({'_id': p['_id']}, {'$set': {'page_code': page_code}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
