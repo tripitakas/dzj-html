@@ -7,6 +7,7 @@
 import logging
 from bson.objectid import ObjectId
 from controller import errors as e
+from controller import helper as hp
 from controller import validate as v
 from controller.task.base import TaskHandler
 from controller.page.base import PageHandler
@@ -148,6 +149,7 @@ class SubmitTasksApi(PageHandler):
         # ocr_box任务将覆盖page已有的栏框、列框和字框数据
         update.update({k: self.prop(task, 'result.' + k) for k in ['blocks', 'columns', 'chars']})
         update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
+        update['page_code'] = hp.align_code(page['name'])
         update['create_time'] = self.now()
         self.apply_txt(update, 'ocr_col')
         self.update_page_cid(update)

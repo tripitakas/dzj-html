@@ -123,6 +123,7 @@ class PageListHandler(PageHandler):
                 condition, params = self.get_duplicate_condition()
             else:
                 condition, params = Page.get_page_search_condition(self.request.query)
+            print(params)
             page_tasks = {'': '', **PageHandler.task_names('page', True, True)}
             docs, pager, q, order = Page.find_by_page(self, condition)
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
