@@ -55,11 +55,6 @@ class Page(Model):
                     ocr='', ocr_col='', txt='')
 
     @classmethod
-    def reset_order(cls, order):
-        trans = {'name': 'page_code', '-name': '-page_code'}
-        return trans.get(order) or order
-
-    @classmethod
     def insert_many(cls, db, file_stream=None, layout=None):
         """ 插入新页面
         :param db 数据库连接

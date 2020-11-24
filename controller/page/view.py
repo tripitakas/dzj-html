@@ -18,6 +18,7 @@ class PageListHandler(PageHandler):
     page_title = '页数据管理'
     table_fields = [
         {'id': 'name', 'name': '页编码'},
+        {'id': 'page_code', 'name': '对齐编码'},
         {'id': 'source', 'name': '分类'},
         {'id': 'layout', 'name': '页面结构'},
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
@@ -165,14 +166,14 @@ class PageBrowseHandler(PageHandler):
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             condition = self.get_page_search_condition(self.request.query)[0]
-            page_code = page.get('page_code', '')
+            order = self.get_query_argument('order', '_id')
             to = self.get_query_argument('to', '')
             if to == 'next':
-                condition['page_code'] = {'$gt': page_code}
-                page = self.db.page.find_one(condition, sort=[('page_code', 1)])
+                condition[order] = {'$gt': page.get(order)}
+                page = self.db.page.find_one(condition, sort=[(order, 1)])
             elif to == 'prev':
-                condition['page_code'] = {'$lt': page_code}
-                page = self.db.page.find_one(condition, sort=[('page_code', -1)])
+                condition[order] = {'$lt': page.get(order)}
+                page = self.db.page.find_one(condition, sort=[(order, -1)])
             if not page:
                 message = '已是第一页' if to == 'prev' else '已是最后一页'
                 return self.send_error_response(e.no_object, message=message)
