@@ -61,7 +61,7 @@ class Task(Model):
         'cut_review': {
             'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
             'steps': [['box', '字框'], ['order', '字序']],
-            'num': [1, 2, 3], 'pre_tasks': ['cut_proof'], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_proof'], 'publishable': True,
         },
         'upload_cloud': {
             'name': '上传云端', 'data': {'collection': 'page', 'id': 'name'},
@@ -69,11 +69,11 @@ class Task(Model):
         },
         'ocr_box': {
             'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3], 'publishable': True, 'is_sys_task': True,
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True, 'is_sys_task': True,
         },
         'ocr_text': {
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3], 'publishable': True, 'is_sys_task': True,
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True, 'is_sys_task': True,
         },
         # 'txt_match': {
         #     'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
@@ -85,7 +85,7 @@ class Task(Model):
         },
         'text_review': {
             'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3], 'pre_tasks': ['text_proof'], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['text_proof'], 'publishable': True,
         },
         'cluster_proof': {
             'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},

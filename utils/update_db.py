@@ -19,7 +19,8 @@ def index_db(db):
         'user': ['name', 'email', 'phone'],
         'page': ['name', 'page_code', 'source', 'tasks'],
         'char': ['name', 'source', 'uid', 'ocr_txt', 'txt', 'diff', 'un_required', 'cc', 'sc', 'txt_level', 'has_img'],
-        'task': ['task_type', 'collection', 'id_name', 'doc_id', 'txt_kind', 'status'],
+        'task': ['batch', 'task_type', 'num', 'collection', 'id_name', 'doc_id', 'txt_kind', 'status',
+                 'picked_user_id'],
         'log': ['create_time', 'user_id', 'op_type'],
         'variant': ['txt', 'normal_txt'],
     }
