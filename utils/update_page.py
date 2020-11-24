@@ -227,6 +227,14 @@ def update_sub_columns_txt(db, json_path=''):
                 db.page.update_one({'_id': page['_id']}, {'$set': {'columns': columns}})
 
 
+def update_page_code(db):
+    cond = {'page_code': {'$in': [None, '']}}
+    pages = list(db.page.find(cond, {'name': 1}))
+    for p in pages:
+        page_code = hp.align_code(p['name'])
+        db.page.update_one({'_id': p['_id']}, {'$set': {'page_code': page_code}})
+
+
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)

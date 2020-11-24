@@ -804,6 +804,7 @@ body.widescreen {
 
 .modal .control-label {
   padding: 7px 0;
+  clear: left;
 }
 
 .modal .form-control {
