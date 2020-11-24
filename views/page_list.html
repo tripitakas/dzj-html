@@ -350,7 +350,8 @@
   // 浏览
   $('.action .btn-nav').on('click', function () {
     var name = $(this).parent().siblings('.name').text();
-    location.href = '/page/browse/' + name + location.search;
+    var symbol = location.search ? '&' : '?';
+    location.href = '/page/browse/' + name + location.search + symbol + 'from=' + encodeFrom();
   });
 
   // 查找重复

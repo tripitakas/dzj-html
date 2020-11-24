@@ -191,6 +191,7 @@ class Task(Model):
     @classmethod
     def get_task_search_condition(cls, request_query, collection=None):
         """ 获取任务的查询条件"""
+        request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(collection=collection) if collection else dict(), dict()
         for field in ['task_type', 'collection', 'status', 'priority', 'txt_kind']:
             value = h.get_url_param(field, request_query)

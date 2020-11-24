@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import re
 import controller.validate as v
 from controller import helper as h
 from controller.model import Model
@@ -46,6 +46,7 @@ class Article(Model):
     @classmethod
     def get_article_search_condition(cls, request_query):
         """ 获取文章的查询条件"""
+        request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(), dict()
         for field in ['category', 'active']:
             value = h.get_url_param(field, request_query)
