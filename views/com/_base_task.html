@@ -18,6 +18,13 @@
   var remark = '{{handler.task.get("remark") or ""}}';
   var isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
 
+  // 快捷键
+  $.mapKey('r', () => !$('#task-return').hasClass('hide') && $('#task-return').click());
+  $.mapKey('t', () => !$('#task-submit').hasClass('hide') && $('#task-submit').click());
+  $.mapKey('t', () => !$('#submit-steps').hasClass('hide') && $('#submit-steps').click());
+  $.mapKey('p', () => !$('#step-prev').hasClass('hide') && $('#step-prev').click());
+  $.mapKey('n', () => !$('#step-next').hasClass('hide') && $('#step-next').click());
+
   $('#task-return').on('click', () => $("#returnModal").modal());
   $('#task-remark').on('click', () => $("#remarkModal").modal());
   $('#task-config').on('click', () => $("#taskConfigModal").modal());

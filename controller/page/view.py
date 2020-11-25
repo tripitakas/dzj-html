@@ -123,7 +123,6 @@ class PageListHandler(PageHandler):
                 condition, params = self.get_duplicate_condition()
             else:
                 condition, params = Page.get_page_search_condition(self.request.query)
-            print(params)
             page_tasks = {'': '', **PageHandler.task_names('page', True, True)}
             docs, pager, q, order = Page.find_by_page(self, condition)
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
@@ -166,6 +165,7 @@ class PageBrowseHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            print(self.request.query)
             condition = self.get_page_search_condition(self.request.query)[0]
             order = self.get_query_argument('order', '_id')
             to = self.get_query_argument('to', '')
