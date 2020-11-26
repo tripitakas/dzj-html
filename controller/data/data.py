@@ -50,6 +50,7 @@ class Sutra(Model):
         {'id': 'existed_reel_count', 'name': '实存卷数', 'type': 'int'},
         {'id': 'author', 'name': '作译者'},
         {'id': 'trans_time', 'name': '翻译时间'},
+        {'id': 'thousand', 'name': '千字文'},
         {'id': 'start_volume', 'name': '起始册'},
         {'id': 'start_page', 'name': '起始页', 'type': 'int'},
         {'id': 'end_volume', 'name': '终止册'},
@@ -64,8 +65,8 @@ class Sutra(Model):
     primary = 'sutra_code'
 
     page_title = '经数据管理'
-    search_tips = '请搜统一经编码、索经编码、经名、分类、起始册'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'category', 'start_volume']
+    search_tips = '请搜索统一经编码、经编码、经名、作译者、分类、起始册'
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'author', 'category', 'start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     info_fields = [f['id'] for f in fields]
     update_fields = [f for f in fields]

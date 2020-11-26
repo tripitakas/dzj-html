@@ -114,9 +114,9 @@
         </div>
       </div>
       <div class="right">
-        <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?from={{current_path}}">经目</a>
-        <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}?from={{current_path}}">卷目</a>
-        <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}?from={{current_path}}">册目</a>
+        <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?from={{current_path}}" target="_blank">经目</a>
+        <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}?from={{current_path}}" target="_blank">卷目</a>
+        <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}?from={{current_path}}" target="_blank">册目</a>
       </div>
     </div>
     <div class="m-body flex pfread">
@@ -284,13 +284,15 @@
   $('#pic-left').on('click', () => $('.btn-page.prev').click());
   $('#pic-right').on('click', () => $('.btn-page.next').click());
 
+
   // 快捷键缩放页面
-  var width = $('.page-img img').length ? $('.page-img img').width() : 0;
-  var height = $('.page-img img').length ? $('.page-img img').height() : 0;
+  var width, height;
 
   function zoomImg(ratio) {
     var pageImg = $('.page-img img');
     if (pageImg.length) {
+      width = width || $('.page-img img').width();
+      height = height || $('.page-img img').height();
       pageImg.width(width * ratio);
       pageImg.height(height * ratio);
     } else {

@@ -96,7 +96,7 @@ class TptkMetaHandler(BaseHandler):
             kwargs = model.get_template_kwargs()
             kwargs['actions'] = []
             kwargs['search_tips'] = kwargs['search_tips'].replace('统一经编码、', '')
-            hide_fields = ['envelop_no', 'volume_no', 'uni_sutra_code', 'remark']
+            hide_fields = ['envelop_no', 'volume_no', 'uni_sutra_code', 'trans_time', 'remark']
             kwargs['search_fields'] = [f for f in kwargs['search_fields'] if f not in hide_fields]
             kwargs['search_tips'] = '请搜索' + '、'.join([model.get_field_name(f) for f in kwargs['search_fields']])
             kwargs['table_fields'] = [f for f in kwargs['table_fields'] if f['id'] not in hide_fields]
