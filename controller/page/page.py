@@ -17,6 +17,7 @@ class Page(Model):
         {'id': 'source', 'name': '分类'},
         {'id': 'layout', 'name': '页面结构'},
         {'id': 'page_code', 'name': '对齐编码'},
+        {'id': 'book_page', 'name': '原书页码'},
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
