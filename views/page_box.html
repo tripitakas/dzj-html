@@ -150,9 +150,9 @@
     image: "{{img_url}}",
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
-    chars: '{{page["chars"]}}',
-    blocks: '{{page["blocks"]}}',
-    columns: '{{page["columns"]}}',
+    chars: '{{page.get("chars") or []}}',
+    blocks: '{{page.get("blocks") or []}}',
+    columns: '{{page.get("columns") or []}}',
     scrollContainer: '#holder-container',
   });
   $.cut.bindKeys();

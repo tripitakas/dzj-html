@@ -37,7 +37,7 @@
         <div id="toggle-char" class="btn-txt icon-chars{{' active' if btn_config.get('toggle-char') == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-order" class="btn-txt icon-char-order{{' active' if btn_config.get('toggle-order') == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
         <div id="toggle-more" class="btn-txt icon-more" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
-        <div class="btn-group more-group hide" id="more-group">
+        <div class="btn-group more-group" id="more-group">
           <button id="btn-block" type="button" class="btn btn-default btn-sm">修改栏框</button>
           <button id="btn-box" type="button" class="btn btn-default btn-sm">修改切分</button>
           <button id="btn-order" type="button" class="btn btn-default btn-sm">修改字序</button>
@@ -164,17 +164,17 @@
 
   // 修改字框
   $('#btn-box').on('click', function () {
-    location = '/page/box/{{page["name"]}}?from=' + encodeFrom();
+    window.open('/page/box/{{page["name"]}}', '_blank');
   });
 
   // 修改栏框
   $('#btn-block').on('click', function () {
-    location = '/page/block/{{page["name"]}}?from=' + encodeFrom();
+    window.open('/page/block/{{page["name"]}}', '_blank');
   });
 
   // 修改字序
   $('#btn-order').on('click', function () {
-    location = '/page/order/{{page["name"]}}?from=' + encodeFrom();
+    window.open('/order/box/{{page["name"]}}', '_blank');
   });
 
   // 获取当前按钮状态
@@ -262,9 +262,9 @@
     image: '{{img_url}}',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
-    chars: '{{page["chars"]}}',
-    blocks: '{{page["blocks"]}}',
-    columns: '{{page["columns"]}}',
+    chars: '{{page.get("chars") or []}}',
+    blocks: '{{page.get("blocks") or []}}',
+    columns: '{{page.get("columns") or []}}',
     scrollContainer: '#left-region',
   });
   $.cut.bindKeys();
