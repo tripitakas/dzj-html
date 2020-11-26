@@ -45,16 +45,16 @@ class Sutra(Model):
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'sutra_name', 'name': '经名'},
-        {'id': 'category', 'name': '分类'},
-        {'id': 'due_reel_count', 'name': '应存卷数', 'type': 'int'},
-        {'id': 'existed_reel_count', 'name': '实存卷数', 'type': 'int'},
         {'id': 'author', 'name': '作译者'},
-        {'id': 'trans_time', 'name': '翻译时间'},
-        {'id': 'thousand', 'name': '千字文'},
         {'id': 'start_volume', 'name': '起始册'},
         {'id': 'start_page', 'name': '起始页', 'type': 'int'},
         {'id': 'end_volume', 'name': '终止册'},
         {'id': 'end_page', 'name': '终止页', 'type': 'int'},
+        {'id': 'due_reel_count', 'name': '应存卷数', 'type': 'int'},
+        {'id': 'existed_reel_count', 'name': '实存卷数', 'type': 'int'},
+        {'id': 'category', 'name': '分类'},
+        {'id': 'thousand', 'name': '千字文'},
+        {'id': 'trans_time', 'name': '翻译时间'},
         {'id': 'remark', 'name': '备注'}
     ]
     rules = [

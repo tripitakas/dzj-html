@@ -111,8 +111,10 @@ class Model(object):
         return name
 
     @classmethod
-    def pack_doc(cls, doc, self=None):
-        d = {f['id']: cls.prop(doc, f['id']) for f in cls.fields if cls.prop(doc, f['id']) is not None}
+    def pack_doc(cls, doc, self=None, exclude_none=False):
+        d = {f['id']: cls.prop(doc, f['id']) for f in cls.fields}
+        if exclude_none:
+            d = {k: v for k, v in d.items() if v is not None}
         if doc.get('_id'):
             d['_id'] = ObjectId(str(doc['_id']))
         return d

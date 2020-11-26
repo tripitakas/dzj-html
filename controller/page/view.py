@@ -19,6 +19,7 @@ class PageListHandler(PageHandler):
     table_fields = [
         {'id': 'name', 'name': '页编码'},
         {'id': 'page_code', 'name': '对齐编码'},
+        {'id': 'book_page', 'name': '原书页码'},
         {'id': 'source', 'name': '分类'},
         {'id': 'layout', 'name': '页面结构'},
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
@@ -31,7 +32,8 @@ class PageListHandler(PageHandler):
         {'id': 'op_text', 'name': '文本匹配'},
     ]
     info_fields = ['name', 'source', 'box_ready', 'layout', 'remark_box', 'op_text']
-    hide_fields = ['uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'remark_box', 'remark_txt', 'op_text']
+    hide_fields = ['book_page', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'remark_box', 'remark_txt',
+                   'op_text']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
