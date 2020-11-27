@@ -185,7 +185,7 @@ class PageBrowseHandler(PageHandler):
             txt_fields = [t[1] for t in txts]
             txt_dict = {t[1]: t for t in txts}
             img_url = self.get_page_img(page)
-            chars_col = self.get_chars_col(page['chars'])
+            chars_col = self.get_chars_col(page.get('chars'))
             info = {f['id']: self.prop(page, f['id'], '') for f in edit_fields}
             btn_config = json_util.loads(self.get_secure_cookie('page_browse_btn') or '{}')
             active = btn_config.get('sutra-txt')
