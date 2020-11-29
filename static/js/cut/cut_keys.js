@@ -169,7 +169,7 @@
       on('insert', function () {
         self.addBox();
       });
-      on('n', function () {
+      on('c', function () {
         self.addBox();
       });
     },
