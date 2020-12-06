@@ -402,7 +402,10 @@ class PageTxtHandler(PageHandler):
         nm_a = sum(ch_a) / len(ch_a)
         for ch in page['chars']:
             ch['name'] = page['name'] + '_' + str(ch['cid'])
-            ch['txt'] = ch.get('txt') or ch.get('ocr_txt') or '■'
+            ch['alternatives'] = ch.get('alternatives', '').replace('"', '').replace("'", '')
+            ch['ocr_txt'] = ch.get('ocr_txt', '').replace('"', '').replace("'", '')
+            ch['txt'] = ch.get('txt', '').replace('"', '').replace("'", '')
+            ch['txt'] = ch['txt'] or ch['ocr_txt'] or '■'
             r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
             ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
 
