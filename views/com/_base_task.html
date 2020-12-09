@@ -37,7 +37,7 @@
     if (remark.length) {
       $("#remarkModal .remark").val(remark);
     } else if (remark1.length && options.indexOf(remark1) < 0) {
-      $("#remarkModal .options").append(`<input type="radio" name="options" value="${remark1}">${remark1}`);
+      $("#remarkModal .options").append(`<label class="radio-inline"><input type="radio" name="options" value="${remark1}">${remark1}</label>`);
     }
     $('#remarkModal .is_sample :radio[value="' + isSample + '"]').prop('checked', true);
     $('#taskConfigModal .auto-pick :radio[value=' + getStorage('autoPick', '是') + ']').prop('checked', true);
@@ -137,12 +137,10 @@
   // 备注任务
   $('#task-my-remark').on("click", function () {
     Swal2.fire({title: '请输入备注', input: 'text', inputValue: remark}).then((result) => {
-      if (result.value) {
-        postApi('/my_task/remark/' + taskId, {data: {remark: result.value}}, function () {
-          remark = result.value;
-          showSuccess('备注成功', '', 1000);
-        });
-      }
+      postApi('/my_task/remark/' + taskId, {data: {remark: result.value}}, function () {
+        remark = result.value;
+        showSuccess('备注成功', '', 1000);
+      });
     });
   });
 
