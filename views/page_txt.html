@@ -333,6 +333,11 @@
     $('.current-line').next().find('.char').eq(idx).click();
   });
 
+  // 更多操作
+  $(document).on('click', '#toggle-more', function () {
+    $('#more-group').toggleClass('hide');
+  });
+
   // 修改字框
   $('#btn-box').on('click', function () {
     location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
