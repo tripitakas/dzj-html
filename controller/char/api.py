@@ -68,7 +68,7 @@ class CharTxtApi(CharHandler):
         """ 更新字符的txt"""
 
         try:
-            rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt, 'txt'), (v.is_txt_type, 'txt_type')]
+            rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt_type, 'txt_type')]
             self.validate(self.data, rules)
             char = self.db.char.find_one({'name': char_name})
             if not char:

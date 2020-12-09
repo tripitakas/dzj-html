@@ -71,6 +71,7 @@ def i18n(key):
         'columns': '列框',
         'chars': '字框',
         'normal_txt': '正字',
+        'remark': '备注',
     }
     return maps[key] if key in maps else key
 

@@ -267,7 +267,7 @@ class PageCharTxtApi(PageHandler):
         """ 更新字符的txt"""
 
         try:
-            rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt, 'txt'), (v.is_txt_type, 'txt_type')]
+            rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt_type, 'txt_type')]
             self.validate(self.data, rules)
             page_name, cid = '_'.join(char_name.split('_')[:-1]), int(char_name.split('_')[-1])
             cond = {'name': page_name, 'chars.cid': cid}

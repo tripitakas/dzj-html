@@ -86,7 +86,9 @@ class UpdateTaskApi(TaskHandler):
     def post(self, field):
         """ 批量更新任务批次或备注"""
         try:
-            rules = [(v.not_both_empty, '_ids', '_id'), (v.not_both_empty, 'batch', 'remark')]
+            rules = [(v.not_both_empty, '_ids', '_id')]
+            field == 'batch' and rules.append((v.not_empty, 'batch'))
+            field == 'remark' and rules.append((v.not_none, 'remark'))
             self.validate(self.data, rules)
 
             update = {field: self.data[field]}
