@@ -113,7 +113,7 @@ class UpdateMyTaskApi(TaskHandler):
     def post(self, task_id):
         """ 批量更新任务批次或备注"""
         try:
-            rules = [(v.not_empty, 'remark')]
+            rules = [(v.not_none, 'remark')]
             self.validate(self.data, rules)
 
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
