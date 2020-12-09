@@ -58,7 +58,7 @@ class Char(Model):
         def c2int(c):
             return int(float(c) * 1000)
 
-        request_query = re.sub('[?&]?from=.*$', '', request_query)
+        # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(), dict()
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:
