@@ -18,6 +18,7 @@ class Char(Model):
         {'id': 'source', 'name': '分类'},
         {'id': 'has_img', 'name': '是否已有字图'},
         {'id': 'img_need_updated', 'name': '是否需要更新字图'},
+        {'id': 'diff', 'name': '是否不匹配'},
         {'id': 'un_required', 'name': '是否不必校对'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},

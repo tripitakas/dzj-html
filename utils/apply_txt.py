@@ -22,13 +22,15 @@ from controller.page.tool.esearch import find_match
 from controller.page.base import PageHandler as Ph
 
 
-def find_cmp(db):
+def find_cmp(db, source):
     """ 根据ocr文本，从cbeta库中寻找比对文本"""
     size = 10
-    condition = {'cmp_txt': None}
-    print('[%s]%s pages to process' % (hp.get_date_time(), db.page.count_documents(condition)))
-    while db.page.count_documents(condition):
-        pages = list(db.page.find(condition).sort('_id', 1).limit(size))
+    cond = {'source': source}
+    page_count = math.ceil(db.page.count_documents(cond) / size)
+    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    for i in range(page_count):
+        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             ocr = Ph.get_txt(page, 'ocr')
@@ -37,18 +39,17 @@ def find_cmp(db):
             db.page.update_one({'_id': page['_id']}, {'$set': {'cmp_txt': cmp_txt}})
 
 
-def apply_txt(db, field, regen=None):
+def apply_txt(db, source, field, reset=None):
     """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种文本"""
     size = 10
-    if regen:
-        db.page.update_many({}, {'$unset': {'txt_match.' + field: ''}})
-    handled = []
-    condition = {'txt_match.' + field: None, 'name': {'$nin': handled}}
-    print('[%s]%s pages to process' % (hp.get_date_time(), db.page.count_documents(condition)))
-    while db.page.find_one(condition):
-        pages = list(db.page.find(condition).sort('_id', 1).limit(size))
+    cond = {'source': source}
+    page_count = math.ceil(db.page.count_documents(cond) / size)
+    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    reset and db.page.update_many(cond, {'$unset': {'txt_match.' + field: ''}})
+    for i in range(page_count):
+        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
-            handled.append(page['name'])
             if not Ph.get_txt(page, field):
                 print('[%s]processing %s: %s not exist' % (hp.get_date_time(), page['name'], field))
                 continue
@@ -58,14 +59,14 @@ def apply_txt(db, field, regen=None):
             print('[%s]processing %s: %s' % (hp.get_date_time(), page['name'], 'match' if match else 'not match'))
 
 
-def migrate_txt_to_char(db, fields=None):
+def migrate_page_txt_to_char(db, source, fields=None):
     """ 将page表的文本同步到char表"""
-    if not fields:
-        fields = ['ocr_col', 'cmp_txt', 'txt']
+    fields = fields or ['ocr_col', 'cmp_txt', 'txt']
     if isinstance(fields, str):
         fields = fields.split(',')
+
     size = 10
-    cond = {}
+    cond = {'source': source}
     page_count = math.ceil(db.page.count_documents(cond) / size)
     for i in range(page_count):
         project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
@@ -74,18 +75,17 @@ def migrate_txt_to_char(db, fields=None):
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             for c in page['chars']:
                 update = {f: c[f] for f in fields if c.get(f)}
-                if update:
-                    db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
+                update and db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
 
 
-def set_diff_symbol(db):
+def set_diff_symbol(db, source):
     """ 设置char表的diff标记"""
 
     def is_valid(_txt):
         return _txt not in [None, '', '■']
 
     size = 5000
-    cond = {'source': '60华严'}
+    cond = {'source': source}
     page_count = math.ceil(db.char.count_documents(cond) / size)
     for i in range(page_count):
         print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
