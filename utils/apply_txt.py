@@ -25,7 +25,7 @@ from controller.page.base import PageHandler as Ph
 def find_cmp(db, source):
     """ 根据ocr文本，从cbeta库中寻找比对文本"""
     size = 10
-    cond = {'source': source}
+    cond = {'source': source, 'cmp_txt': None}
     page_count = math.ceil(db.page.count_documents(cond) / size)
     print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
     for i in range(page_count):
@@ -34,6 +34,8 @@ def find_cmp(db, source):
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             ocr = Ph.get_txt(page, 'ocr')
+            if not ocr:
+                continue
             ocr = re.sub(r'■+', '', ocr)
             cmp_txt = find_match(ocr)
             db.page.update_one({'_id': page['_id']}, {'$set': {'cmp_txt': cmp_txt}})
@@ -42,10 +44,10 @@ def find_cmp(db, source):
 def apply_txt(db, source, field, reset=None):
     """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种文本"""
     size = 10
-    cond = {'source': source}
+    reset and db.page.update_many({'source': source}, {'$unset': {'txt_match.' + field: ''}})
+    cond = {'source': source, 'txt_match.' + field: None}
     page_count = math.ceil(db.page.count_documents(cond) / size)
     print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
-    reset and db.page.update_many(cond, {'$unset': {'txt_match.' + field: ''}})
     for i in range(page_count):
         fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
         pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
