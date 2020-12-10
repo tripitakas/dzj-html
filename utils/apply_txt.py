@@ -49,8 +49,7 @@ def apply_txt(db, source, field, reset=None):
     page_count = math.ceil(db.page.count_documents(cond) / size)
     print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
     for i in range(page_count):
-        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
-        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(cond).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             if not Ph.get_txt(page, field):
                 print('[%s]processing %s: %s not exist' % (hp.get_date_time(), page['name'], field))
