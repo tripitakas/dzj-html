@@ -125,27 +125,30 @@ def set_diff_symbol(db, source):
         db.char.update_many({'_id': {'$in': same}}, {'$set': {'diff': False}})
 
 
-def set_un_required_proof(db, source):
+def set_un_required_proof(db, source='法华经-10版本'):
     """ 设置char表的un_required标记"""
     size = 10000
-    cond = {'source': source}
+    cond = {'source': source, 'name': {'$regex': 'GL_116_1_1_270'}}
     item_count = db.char.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
-        projection = {k: 1 for k in ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
+        projection = {k: 1 for k in ['cc', 'ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
         chars = list(db.char.find(cond, projection).sort('_id', 1).skip(i * size).limit(size))
         un_required = []
         for c in chars:
             if c.get('cc', 0) >= 0.99 and c.get('cmp_txt', 0) == c.get('alternatives', '')[:1]:
                 un_required.append(c['_id'])
-        db.char.update_many({'_id': {'$in': un_required}}, {'$set': {'un_required': True}})
+        un_required and db.char.update_many({'_id': {'$in': un_required}}, {'$set': {'un_required': True}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='set_un_required_proof', **kwargs):
+    uri_prod = 'mongodb://tripitaka-product:sm2019321-321.product@111.198.8.162:29019'
+    db_prod = pymongo.MongoClient(uri_prod)['tripitaka-product']
+
     db = pymongo.MongoClient(uri)[db_name]
-    eval(func)(db, **kwargs)
+    eval(func)(db_prod, **kwargs)
 
     print('finished.')
 
