@@ -104,6 +104,7 @@ def find_match(ocr):
             match += match3
         if abs(len(match) - len(ocr)) < 20:
             return match
+    return ''
 
 
 if __name__ == '__main__':
