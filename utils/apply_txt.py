@@ -143,12 +143,9 @@ def set_un_required_proof(db, source='法华经-10版本'):
         un_required and db.char.update_many({'_id': {'$in': un_required}}, {'$set': {'un_required': True}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='set_un_required_proof', **kwargs):
-    uri_prod = 'mongodb://tripitaka-product:sm2019321-321.product@111.198.8.162:29019'
-    db_prod = pymongo.MongoClient(uri_prod)['tripitaka-product']
-
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
-    eval(func)(db_prod, **kwargs)
+    eval(func)(db, **kwargs)
 
     print('finished.')
 
