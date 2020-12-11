@@ -70,15 +70,17 @@ def find_neighbor(page_code, neighbor='next'):
     return neighbor_node and neighbor_node[0]
 
 
-def find_match(ocr):
+def find_match(ocr, depth=5):
     """ 从cbeta文中找出与ocr匹配的文本"""
     ocr = ''.join(ocr) if isinstance(ocr, list) else ocr.replace('|', '')
-    if len(ocr) < 10 or (len(ocr) < 20 and re.findall(r'[第苐][一二三四五六七八九十]+[張张]', ocr)):
+    if len(ocr) < 10:
+        return ''
+    if len(ocr) < 20 and re.findall(r'[第苐][一二三四五六七八九十]+[張张]', ocr):
         return ''
     ret = find(ocr)
     if not ret:
         return ''
-    for n in range(5):
+    for n in range(depth):
         cb = ''.join(ret[n]['_source']['origin'])
         diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
         # 寻找第一个和最后一个同文
@@ -93,14 +95,14 @@ def find_match(ocr):
         match = ''
         if start > 0:
             _ocr = ''.join([d['ocr'] for d in diff[:start]])
-            match1 = find_match(_ocr)
+            match1 = find_match(_ocr, 1)
             match += match1
         if start and end >= start:
             match2 = ''.join([d['cb'] for d in diff[start:end + 1]])
             match += match2
         if end and end + 1 < len(diff):
             _ocr = ''.join([d['ocr'] for d in diff[end + 1:]])
-            match3 = find_match(_ocr)
+            match3 = find_match(_ocr, 1)
             match += match3
         if abs(len(match) - len(ocr)) < 20:
             return match
@@ -108,6 +110,6 @@ def find_match(ocr):
 
 
 if __name__ == '__main__':
-    ocr_txt = '而諸子等樂著嬉戲不肯信受不驚不畏了|無出心亦復不知何者是火何者爲舎云何|爲失伹東西走戲視父而巳尒時長者即作|是𫝹此舎巳爲大火所燒我及諸子若不時|出必爲所焚我今當設方便令諸子等得免|斯害父知諸子先心各有所好種種珍玩竒|異之物情必樂著而告之言汝等所可玩好|希有難得汝若不取後必憂悔如此種種羊|車鹿車牛車今在門外可以遊戲汝等於此|火宅冝速出來隨汝所欲皆當與汝尒時諸|子聞父所說珍玩之物適其願故心各勇𨦣|互相推排競共馳走爭出火宅是時長者見|諸子等安隱得出皆於四衢道中露地而坐|無復障礙其心泰然歡喜踊躍時諸子等各|白父言父先所許玩好之具羊車鹿車牛車|願時賜與舎利弗尒時長者各賜諸子等一|大車其車髙廣衆寳莊校周帀欄楯四靣懸|鈴又於其上張設幰蓋亦以珍竒雜寳而嚴|飾之寳繩交絡垂諸華瓔重𢾾綩維安置丹|枕駕以白牛膚色充潔形體姝好有大筋力|行步平正其疾如風又多僕從而侍衛之所|以者何是大長者財富無量種種諸藏悉皆|充溢而作是𫝹我財物無極不應以下劣小|車與諸子等今此㓜童皆是吾子愛無偏黨|我有如是七寳大車其數無量應當等心各|各與之不冝差別所以者何以我此物周給'
+    ocr_txt = '能尋香奏樂世樂乾土音岳阿修羅此云非天婆稚此云有縛佉羅騫䭾此云廣肩佉丘加切騫音愆毘摩質多羅此云海水波音卽帝釋夫人'
     res = find_match(ocr_txt)
     print(res)

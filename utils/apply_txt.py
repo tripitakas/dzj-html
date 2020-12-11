@@ -22,53 +22,73 @@ from controller.page.tool.esearch import find_match
 from controller.page.base import PageHandler as Ph
 
 
-def find_cmp(db, source):
+def find_cmp(db, source, reset=None):
     """ 根据ocr文本，从cbeta库中寻找比对文本"""
     size = 10
-    cond = {'source': source, 'cmp_txt': None}
-    page_count = math.ceil(db.page.count_documents(cond) / size)
-    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    cond = {'source': source}
+    item_count = db.page.count_documents(cond)
+    print('[%s]%s items to process' % (hp.get_date_time(), item_count))
+    updated, ignored = [], []
+    page_count = math.ceil(item_count / size)
     for i in range(page_count):
         fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
         pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+            if not reset and 'cmp_txt' in page:
+                ignored.append(page['name'])
+                continue
             ocr = Ph.get_txt(page, 'ocr')
             if not ocr:
+                ignored.append(page['name'])
                 continue
-            ocr = re.sub(r'■+', '', ocr)
-            cmp_txt = find_match(ocr)
+            cmp_txt = find_match(re.sub(r'■+', '', ocr))
             db.page.update_one({'_id': page['_id']}, {'$set': {'cmp_txt': cmp_txt}})
+            updated.append(page['name'])
+    print('%s updated: %s' % (len(updated), updated))
+    print('%s ignored: %s' % (len(ignored), ignored))
 
 
 def apply_txt(db, source, field, reset=None):
     """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种文本"""
     size = 10
-    reset and db.page.update_many({'source': source}, {'$unset': {'txt_match.' + field: ''}})
-    cond = {'source': source, 'txt_match.' + field: None}
-    page_count = math.ceil(db.page.count_documents(cond) / size)
-    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
+    cond = {'source': source}
+    item_count = db.page.count_documents(cond)
+    print('[%s]%s items to process' % (hp.get_date_time(), item_count))
+    field1 = 'txt_match.' + field
+    reset and db.page.update_many(cond, {'$unset': {field1: ''}})
+
+    updated, ignored = [], []
+    page_count = math.ceil(item_count / size)
     for i in range(page_count):
         pages = list(db.page.find(cond).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
+            print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+            if not reset and field1 in page:
+                ignored.append(page['name'])
+                continue
             if not Ph.get_txt(page, field):
-                print('[%s]processing %s: %s not exist' % (hp.get_date_time(), page['name'], field))
+                ignored.append(page['name'])
                 continue
             match, txt = Ph.apply_txt(page, field)
-            update = {'chars': page['chars'], 'txt_match.' + field: {'status': match, 'value': txt}}
-            db.page.update_one({'_id': page['_id']}, {'$set': update})
-            print('[%s]processing %s: %s' % (hp.get_date_time(), page['name'], 'match' if match else 'not match'))
+            db.page.update_one({'_id': page['_id']}, {'$set': {
+                'chars': page['chars'], field1: {'status': match, 'value': txt}
+            }})
+            updated.append(page['name'])
+    print('%s updated: %s' % (len(updated), updated))
+    print('%s ignored: %s' % (len(ignored), ignored))
 
 
 def migrate_page_txt_to_char(db, source, fields=None):
     """ 将page表的文本同步到char表"""
     fields = fields or ['ocr_col', 'cmp_txt', 'txt']
-    if isinstance(fields, str):
-        fields = fields.split(',')
+    fields = fields.split(',') if isinstance(fields, str) else fields
 
     size = 10
     cond = {'source': source}
-    page_count = math.ceil(db.page.count_documents(cond) / size)
+    item_count = db.page.count_documents(cond)
+    print('[%s]%s items to process' % (hp.get_date_time(), item_count))
+    page_count = math.ceil(item_count / size)
     for i in range(page_count):
         project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
         pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
@@ -87,7 +107,9 @@ def set_diff_symbol(db, source):
 
     size = 5000
     cond = {'source': source}
-    page_count = math.ceil(db.char.count_documents(cond) / size)
+    item_count = db.char.count_documents(cond)
+    print('[%s]%s items to process' % (hp.get_date_time(), item_count))
+    page_count = math.ceil(item_count / size)
     for i in range(page_count):
         print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
         projection = {k: 1 for k in ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
@@ -106,6 +128,7 @@ def set_diff_symbol(db, source):
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
+
     print('finished.')
 
 
