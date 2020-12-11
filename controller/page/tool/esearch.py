@@ -78,33 +78,35 @@ def find_match(ocr):
     ret = find(ocr)
     if not ret:
         return ''
-    cb = ''.join(ret[0]['_source']['origin'])
-    diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
-    # 寻找第一个和最后一个同文
-    start, end = 0, 0
-    for i, d in enumerate(diff):
-        if d.get('is_same') and len(d['ocr']) > 2 and not start:
-            start = i
-        if diff[-i - 1].get('is_same') and len(diff[-i - 1]['ocr']) > 2 and not end:
-            end = len(diff) - i - 1
-        if start and end:
-            break
-    match = ''
-    if start > 0:
-        _ocr = ''.join([d['ocr'] for d in diff[:start]])
-        match1 = find_match(_ocr)
-        match += match1
-    if start and end >= start:
-        match2 = ''.join([d['cb'] for d in diff[start:end + 1]])
-        match += match2
-    if end and end + 1 < len(diff):
-        _ocr = ''.join([d['ocr'] for d in diff[end + 1:]])
-        match3 = find_match(_ocr)
-        match += match3
-    return match
+    for n in range(5):
+        cb = ''.join(ret[n]['_source']['origin'])
+        diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
+        # 寻找第一个和最后一个同文
+        start, end = 0, 0
+        for i, d in enumerate(diff):
+            if d.get('is_same') and len(d['ocr']) > 2 and not start:
+                start = i
+            if diff[-i - 1].get('is_same') and len(diff[-i - 1]['ocr']) > 2 and not end:
+                end = len(diff) - i - 1
+            if start and end:
+                break
+        match = ''
+        if start > 0:
+            _ocr = ''.join([d['ocr'] for d in diff[:start]])
+            match1 = find_match(_ocr)
+            match += match1
+        if start and end >= start:
+            match2 = ''.join([d['cb'] for d in diff[start:end + 1]])
+            match += match2
+        if end and end + 1 < len(diff):
+            _ocr = ''.join([d['ocr'] for d in diff[end + 1:]])
+            match3 = find_match(_ocr)
+            match += match3
+        if abs(len(match) - len(ocr)) < 20:
+            return match
 
 
 if __name__ == '__main__':
-    ocr_txt = '壬甘柩沜采二加弟丨允蒲汁字兮|十種一切解脫光明雲悉皆彌覆充|滿虛空來詣佛所供養恭敬札拜巳|在於上方妙音勝蓮華藏師寸座上|結加趺坐如是等十億佛剎塵數世|界海中有十億佛剎微麈數等大菩|薩來一一菩薩各將一佛世界麈數|菩薩以爲眷屬一一菩薩各與一佛|世界微塵數等妙莊嚴雲悉皆彌覆|充滿虛空隨所來方結加趺坐彼諸|菩薩次第坐已一切毛孔各出十佛|世界微塵數等一切妙寶淨光明雲|一一光中各出十佛世界塵數菩薩|一二菩薩剿切法界方便海充滿一|切微塵道一一塵中有十佛世界塵|數佛剎一一佛剎中三世諸沸皆悉|顯現念念中於一卜世界各化一佛|剎塵數衆生以夢自在示現法門教|化一切諸天化生法門教化一切菩|薩行處音聲法門教化震動莆切佛|剎建立諸佛法門教化一切願海法|門教化一切衆生言辞入佛音聲法|門教化一切佛法雲雨法門教化法|界白在光明法門教化建立二切大||十選甫卜鸞壬毛專于斗引漫嵒兮|衆海於普賢苦薩法門教化以如是|等一切法門隨其所樂而教化之於|一念頃能滅一切世界中各如湏彌|山麈數衆生諸惡道苦各如湏彌山|塵數衆生令囄邪定立正定聚各如|湏彌山塵數衆生令立聲聞緣覺之|地各如湏彌山塵數衆生立无上道|各如湏彌山塵數衆生立一切不可|畫功德智慧地各如湏彌山塵數衆|生令立盧舍那佛願性海中爾時諸|菩薩光明中以偈頌曰|一切光明出妙音說諸菩薩具足行|佛子功德悉成蒲普遍一切十方界|无量劫海修行道欲令衆生離苦故|不自計巳生死苦佛子善入大方便|无量无邊無有餘窮盡一切大海劫|遍行一切諸法門善說微妙寂靜法|一切三世佛肝願皆得淸淨具足滿|佛子饒益諸衆生能自具行淸淨道|皆能往詣諸佛所淸淨法身照十方|佛于智海无邊底普觀諸法寂減相|四光明中有无量无上大慈難思議|渚淨慧眼照諸法此是佛子妙境界||亅丷氵郞苐十只只只巾兮|一七悉受諸佛剎又能震動諸國土|能令衆生无怖想是名淸淨方便地|一一塵中无量身復現无量莊嚴剎|於一念中皆悉見是无障㝵淨法門|三世所有一切卻於一念中能悉現|猶如幻化無肝有是名渚佛无㝵法|普賢諸行皆具足能令衆生悉淸淨|諸佛子具自在法一一毛孔師子吼|爾時世尊欲令一切菩薩大衆知佛|无量無邊境界白在法門故放眉閒|白毫相凶切寶色燈明雲光名一切|菩薩慧光觀察照十方藏此光遍照|一切佛剎於一念中皆悉普照一切|法界於一切世界雨一切佛諸大願|雲顯現普賢菩薩示大衆巳還從足|下相輪中入於彼復有大蓮華生以|衆寶爲莖一切寶王爲莊嚴藏其葉|遍覆一切法界一切寶香莊嚴其鬚|閻浮檀金以爲其臺此華生巳如來|眉間有一大菩薩出名日一切諸法|勝音輿世界海塵數菩薩衆俱敬繞|世尊无量帀巳退坐蓮華臺上眷暴|菩薩坐蓮嘗鬚一仞渚法勝音菩薩'
+    ocr_txt = '而諸子等樂著嬉戲不肯信受不驚不畏了|無出心亦復不知何者是火何者爲舎云何|爲失伹東西走戲視父而巳尒時長者即作|是𫝹此舎巳爲大火所燒我及諸子若不時|出必爲所焚我今當設方便令諸子等得免|斯害父知諸子先心各有所好種種珍玩竒|異之物情必樂著而告之言汝等所可玩好|希有難得汝若不取後必憂悔如此種種羊|車鹿車牛車今在門外可以遊戲汝等於此|火宅冝速出來隨汝所欲皆當與汝尒時諸|子聞父所說珍玩之物適其願故心各勇𨦣|互相推排競共馳走爭出火宅是時長者見|諸子等安隱得出皆於四衢道中露地而坐|無復障礙其心泰然歡喜踊躍時諸子等各|白父言父先所許玩好之具羊車鹿車牛車|願時賜與舎利弗尒時長者各賜諸子等一|大車其車髙廣衆寳莊校周帀欄楯四靣懸|鈴又於其上張設幰蓋亦以珍竒雜寳而嚴|飾之寳繩交絡垂諸華瓔重𢾾綩維安置丹|枕駕以白牛膚色充潔形體姝好有大筋力|行步平正其疾如風又多僕從而侍衛之所|以者何是大長者財富無量種種諸藏悉皆|充溢而作是𫝹我財物無極不應以下劣小|車與諸子等今此㓜童皆是吾子愛無偏黨|我有如是七寳大車其數無量應當等心各|各與之不冝差別所以者何以我此物周給'
     res = find_match(ocr_txt)
     print(res)
