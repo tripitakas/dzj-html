@@ -27,9 +27,9 @@ def find_cmp(db, source, reset=None):
     size = 10
     cond = {'source': source}
     item_count = db.page.count_documents(cond)
-    print('[%s]%s items to process' % (hp.get_date_time(), item_count))
-    updated, ignored = [], []
     page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
+    updated, ignored = [], []
     for i in range(page_count):
         fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
         pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
@@ -54,12 +54,12 @@ def apply_txt(db, source, field, reset=None):
     size = 10
     cond = {'source': source}
     item_count = db.page.count_documents(cond)
-    print('[%s]%s items to process' % (hp.get_date_time(), item_count))
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
     field1 = 'txt_match.' + field
     reset and db.page.update_many(cond, {'$unset': {field1: ''}})
 
     updated, ignored = [], []
-    page_count = math.ceil(item_count / size)
     for i in range(page_count):
         pages = list(db.page.find(cond).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
@@ -87,8 +87,8 @@ def migrate_page_txt_to_char(db, source, fields=None):
     size = 10
     cond = {'source': source}
     item_count = db.page.count_documents(cond)
-    print('[%s]%s items to process' % (hp.get_date_time(), item_count))
     page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
         pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
@@ -108,8 +108,8 @@ def set_diff_symbol(db, source):
     size = 5000
     cond = {'source': source}
     item_count = db.char.count_documents(cond)
-    print('[%s]%s items to process' % (hp.get_date_time(), item_count))
     page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
         projection = {k: 1 for k in ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
@@ -123,6 +123,24 @@ def set_diff_symbol(db, source):
                 same.append(c['_id'])
         db.char.update_many({'_id': {'$in': diff}}, {'$set': {'diff': True}})
         db.char.update_many({'_id': {'$in': same}}, {'$set': {'diff': False}})
+
+
+def set_un_required_proof(db, source):
+    """ 设置char表的un_required标记"""
+    size = 10000
+    cond = {'source': source}
+    item_count = db.char.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
+        projection = {k: 1 for k in ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
+        chars = list(db.char.find(cond, projection).sort('_id', 1).skip(i * size).limit(size))
+        un_required = []
+        for c in chars:
+            if c.get('cc', 0) >= 0.99 and c.get('cmp_txt', 0) == c.get('alternatives', '')[:1]:
+                un_required.append(c['_id'])
+        db.char.update_many({'_id': {'$in': un_required}}, {'$set': {'un_required': True}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
