@@ -200,7 +200,7 @@ class SubmitTasksApi(PageHandler):
         if not page:
             return e.no_object
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
-            'img_cloud_path': self.prop(task, 'result.img_cloud_path'),
+            # 'img_cloud_path': self.prop(task, 'result.img_cloud_path'),
             'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED
         }})
 

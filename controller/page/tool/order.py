@@ -25,7 +25,7 @@ class BoxOrder(object):
         assert type(fields) in [str, list]
         fields = fields.replace(' ', '').split(',') if isinstance(fields, str) else fields
         for n, box in enumerate(boxes):
-            boxes[n] = {k: box[k] for k in fields if box.get(k)}
+            boxes[n] = {k: box[k] for k in fields if k in box}
         return boxes
 
     @staticmethod
