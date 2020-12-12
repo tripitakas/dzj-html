@@ -124,7 +124,7 @@ class TaskHandler(BaseHandler, Task):
             query.sort(o, asc)
         return list(query)
 
-    def find_lobby(self, task_type, page_size=None, q=None, batch=None):
+    def find_lobby(self, task_type, page_size=None, q=None, batch=None, is_oriented=None):
         """ 按优先级排序后随机获取任务大厅的任务列表"""
 
         def get_random_skip():
@@ -141,8 +141,10 @@ class TaskHandler(BaseHandler, Task):
         if q:
             condition.update({field: {'$regex': q, '$options': '$i'}})
         if batch:
-            batch = {'$in': batch.split(',')} if ',' in batch else batch
+            batch = {'$in': batch.split(',').strip()} if ',' in batch else batch
             condition.update({'batch': batch})
+        if is_oriented in [True, False]:
+            condition.update({'is_oriented': is_oriented})
         condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
         total_count = self.db.task.count_documents(condition)
         page_size = page_size or self.prop(self.config, 'pager.page_size', 10)

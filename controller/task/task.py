@@ -27,6 +27,7 @@ class Task(Model):
         {'id': 'priority', 'name': '优先级'},
         {'id': 'steps', 'name': '步骤'},
         {'id': 'pre_tasks', 'name': '前置任务'},
+        {'id': 'is_oriented', 'name': '是否定向'},
         {'id': 'params', 'name': '输入参数'},
         {'id': 'result', 'name': '输出结果'},
         {'id': 'txt_kind', 'name': '字种'},
@@ -121,6 +122,7 @@ class Task(Model):
 
     # 任务优先级
     priorities = {3: '高', 2: '中', 1: '低'}
+    yes_no = {True: '是', False: '否'}
 
     @classmethod
     def has_num(cls, task_type):
@@ -186,6 +188,8 @@ class Task(Model):
             return '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
         if key == 'priority' and value:
             return cls.get_priority_name(int(value or 0))
+        if key == 'is_oriented':
+            return cls.yes_no.get(value) or ''
         return h.format_value(value, key, doc)
 
     @classmethod
@@ -193,9 +197,9 @@ class Task(Model):
         """ 获取任务的查询条件"""
         # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        for field in ['task_type', 'collection', 'status', 'priority', 'txt_kind']:
+        for field in ['task_type', 'collection', 'status', 'priority', 'txt_kind', 'is_oriented']:
             value = h.get_url_param(field, request_query)
-            if value:
+            if value not in ['', None]:
                 params[field] = value
                 condition.update({field: int(value) if field == 'priority' else value})
         for field in ['batch', 'doc_id', 'remark']:

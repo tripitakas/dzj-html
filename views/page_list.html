@@ -278,6 +278,11 @@
           <label class="radio-inline"><input type="radio" name="priority" value="2" checked>中</label>
           <label class="radio-inline"><input type="radio" name="priority" value="1">低</label>
         </div>
+        <h4 class="control-label">是否定向</h4>
+        <div class="is_oriented">
+          <label class="radio-inline"><input type="radio" name="is_oriented" value="1">是</label>
+          <label class="radio-inline"><input type="radio" name="is_oriented" value="0" checked>否</label>
+        </div>
         <h4 class="control-label hide">任务已完成时，是否重新发布？</h4>
         <div class="force hide">
           <label class="radio-inline"><input type="radio" name="force" value="0" checked>否</label>
@@ -575,8 +580,8 @@
   var publishFields = [
     {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
     {id: 'steps', input_type: 'checkbox'}, {id: 'fields', input_type: 'checkbox'},
-    {id: 'priority', input_type: 'radio'}, {id: 'num', input_type: 'radio'},
-    {id: 'force', input_type: 'radio'}
+    {id: 'priority', input_type: 'radio'}, {id: 'is_oriented', input_type: 'radio'},
+    {id: 'num', input_type: 'radio'}, {id: 'force', input_type: 'radio'}
   ];
   // 弹框
   $('.btn-publish a').on('click', function () {

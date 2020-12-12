@@ -36,11 +36,12 @@ class CharTaskPublishApi(CharHandler):
         num = int(self.data.get('num') or 1)
         priority = int(self.data.get('priority') or 2)
         pre_tasks = self.data.get('pre_tasks') or []
+        is_oriented = self.data.get('is_oriented') == '1'
         txt_kind = ''.join([p[field] for p in params if p.get(field)])
         return dict(task_type=task_type, num=num, batch=batch, collection='char', id_name='name',
-                    txt_kind=txt_kind, char_count=cnt, required_count=None,
-                    doc_id=None, steps={}, status=self.STATUS_PUBLISHED, priority=priority,
-                    pre_tasks=pre_tasks, params=params or {}, result={},
+                    txt_kind=txt_kind, char_count=cnt, required_count=None, doc_id=None,
+                    steps={}, status=self.STATUS_PUBLISHED, priority=priority,
+                    is_oriented=is_oriented, pre_tasks=pre_tasks, params=params or {}, result={},
                     create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                     publish_user_id=self.user_id, publish_by=self.username)
 

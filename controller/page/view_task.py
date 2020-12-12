@@ -27,6 +27,7 @@ class PageTaskListHandler(PageHandler):
         {'id': 'priority', 'name': '优先级', 'filter': PageHandler.priorities},
         {'id': 'steps', 'name': '步骤'},
         {'id': 'pre_tasks', 'name': '前置任务'},
+        {'id': 'is_oriented', 'name': '是否定向', 'filter': PageHandler.yes_no},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},

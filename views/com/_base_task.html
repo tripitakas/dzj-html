@@ -147,6 +147,7 @@
 
   // 任务退回
   $('#returnModal .modal-confirm, #returnModal .modal-next').on('click', function () {
+    if ($(this).text() === '进行中...') return;
     var reason = $('#returnModal .return_reason').val().trim();
     if (!reason.length) {
       return showTips('提示', '尚未填写退回理由', 3000);
