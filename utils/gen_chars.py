@@ -18,29 +18,33 @@ from controller import helper as hp
 from controller.base import BaseHandler as Bh
 
 
-def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None,
-              page_names=None, username=None):
-    """ 从页数据中导出字数据"""
-
-    def is_changed(a, b):
-        """ 检查坐标和字序是否发生变化"""
-        if a['char_id'] != b['char_id']:
+def is_changed(a, b):
+    """ 检查坐标和字序是否发生变化"""
+    if a['char_id'] != b['char_id']:
+        return True
+    for k in ['x', 'y', 'w', 'h']:
+        if a['pos'][k] != b['pos'][k]:
             return True
-        for k in ['x', 'y', 'w', 'h']:
-            if a['pos'][k] != b['pos'][k]:
-                return True
-        for k in ['x', 'y', 'w', 'h', 'cid']:
-            if not a.get('column') or not b.get('column'):
-                return True
-            if a['column'][k] != b['column'][k]:
-                return True
-        return False
+    for k in ['x', 'y', 'w', 'h', 'cid']:
+        if not a.get('column') or not b.get('column'):
+            return True
+        if a['column'][k] != b['column'][k]:
+            return True
+    return False
 
+
+def is_valid(txt):
+    return txt not in [None, '', '■']
+
+
+def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None, page_names=None, username=None):
+    """ 从页数据中导出字数据"""
     cfg = hp.load_config()
     db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
+    # reset
     if reset:
         db.char.delete_many({})
-
+    # condition
     if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
         condition = {'name': {'$in': page_names}}
@@ -48,7 +52,7 @@ def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None,
         condition = json.loads(condition)
     elif not condition:
         condition = {}
-
+    # process
     once_size = 300
     total_count = db.page.count_documents(condition)
     print('[%s]start gen chars, condition=%s, count=%s' % (hp.get_date_time(), condition, total_count))
@@ -70,11 +74,16 @@ def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None,
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
-                        m['ocr_txt'] = c.get('alternatives', '')[:1] or c.get('ocr_col') or ''
-                        # 如果cc大于0.99且OCR字框和比对文本相同，则设置不必校对
-                        if c.get('cc', 0) >= 0.99 and c.get('cmp_txt', 0) == c.get('alternatives', '')[:1]:
-                            m['un_required'] = True
+                        # ocr_txt
+                        m['ocr_txt'] = c.get('alternatives', '')[:1]
+                        if is_valid(m.get('ocr_col')) and m['ocr_col'] != m.get('ocr_txt') and m['ocr_col'] == m.get(
+                                'cmp_txt'):
+                            m['ocr_txt'] = m['ocr_col']
                         m['txt'] = c.get('txt') or m['ocr_txt']
+                        # un_required
+                        m['un_required'] = False
+                        if m.get('cc', 0) >= 990 and m.get('cmp_txt', 0) == m.get('alternatives', '')[:1]:
+                            m['un_required'] = True
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         if 'column_no' not in c:
                             c['column_no'] = c.pop('line_no')

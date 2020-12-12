@@ -22,19 +22,24 @@ from controller.page.tool.esearch import find_match
 from controller.page.base import PageHandler as Ph
 
 
+def is_valid(txt):
+    return txt not in [None, '', '■']
+
+
 def find_cmp(db, source, reset=None):
     """ 根据ocr文本，从cbeta库中寻找比对文本"""
-    size = 10
+    size = 100
     cond = {'source': source}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
-    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
     updated, ignored = [], []
     for i in range(page_count):
-        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars', 'ocr', 'cmp_txt']
         pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
-            print('[%s]processing %s' % (hp.get_date_time(), page['name']))
+            print('[%s]%s' % (hp.get_date_time(), page['name']))
             if not reset and 'cmp_txt' in page:
                 ignored.append(page['name'])
                 continue
@@ -51,35 +56,55 @@ def find_cmp(db, source, reset=None):
 
 def apply_txt(db, source, field, reset=None):
     """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种文本"""
-    size = 10
+    size = 100
     cond = {'source': source}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
-    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    # reset
     field1 = 'txt_match.' + field
     reset and db.page.update_many(cond, {'$unset': {field1: ''}})
-
+    # process
     updated, ignored = [], []
     for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
         pages = list(db.page.find(cond).sort('_id', 1).skip(i * size).limit(size))
-        for page in pages:
-            print('[%s]processing %s' % (hp.get_date_time(), page['name']))
-            if not reset and field1 in page:
-                ignored.append(page['name'])
+        for p in pages:
+            print('[%s]%s' % (hp.get_date_time(), p['name']))
+            if not reset and field1 in p:
+                ignored.append(p['name'])
                 continue
-            if not Ph.get_txt(page, field):
-                ignored.append(page['name'])
+            if not Ph.get_txt(p, field):
+                ignored.append(p['name'])
                 continue
-            match, txt = Ph.apply_txt(page, field)
-            db.page.update_one({'_id': page['_id']}, {'$set': {
-                'chars': page['chars'], field1: {'status': match, 'value': txt}
-            }})
-            updated.append(page['name'])
+            match, txt = Ph.apply_txt(p, field)
+            db.page.update_one({'_id': p['_id']}, {'$set': {
+                'chars': p['chars'], field1: {'status': match, 'value': txt}}})
+            updated.append(p['name'])
     print('%s updated: %s' % (len(updated), updated))
     print('%s ignored: %s' % (len(ignored), ignored))
 
 
-def migrate_page_txt_to_char(db, source, fields=None):
+def reset_ocr_txt(db, source):
+    """ 重置page表的chars.ocr_txt字段"""
+    size = 100
+    cond = {'source': source}
+    item_count = db.page.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['name', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for p in pages:
+            print('[%s]%s' % (hp.get_date_time(), p['name']))
+            for c in p['chars']:
+                if is_valid(c.get('ocr_col')) and c['ocr_col'] != c.get('ocr_txt') and c['ocr_col'] == c.get('cmp_txt'):
+                    c['ocr_txt'] = c['ocr_col']
+            db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
+
+
+def migrate_txt_to_char(db, source, fields=None):
     """ 将page表的文本同步到char表"""
     fields = fields or ['ocr_col', 'cmp_txt', 'txt']
     fields = fields.split(',') if isinstance(fields, str) else fields
@@ -90,8 +115,9 @@ def migrate_page_txt_to_char(db, source, fields=None):
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
-        project = {'name': 1, 'chars': 1, 'blocks': 1, 'columns': 1}
-        pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        project = ['name', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in project}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             for c in page['chars']:
@@ -99,47 +125,24 @@ def migrate_page_txt_to_char(db, source, fields=None):
                 update and db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
 
 
-def set_diff_symbol(db, source):
-    """ 设置char表的diff标记"""
-
-    def is_valid(_txt):
-        return _txt not in [None, '', '■']
-
-    size = 5000
+def set_char_un_required(db, source):
+    """ 设置char表的un_required标记"""
+    size = 10000
     cond = {'source': source}
     item_count = db.char.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
-        print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
-        projection = {k: 1 for k in ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
-        chars = list(db.char.find(cond, projection).sort('_id', 1).skip(i * size).limit(size))
-        diff, same = [], []
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']
+        chars = list(db.char.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        required, un_required = [], []
         for c in chars:
-            txts = [c.get('alternatives') and c['alternatives'][0], c.get('ocr_col'), c.get('cmp_txt')]
-            if len(set(t for t in txts if is_valid(t))) > 1:
-                diff.append(c['_id'])
-            else:
-                same.append(c['_id'])
-        db.char.update_many({'_id': {'$in': diff}}, {'$set': {'diff': True}})
-        db.char.update_many({'_id': {'$in': same}}, {'$set': {'diff': False}})
-
-
-def set_un_required_proof(db, source='法华经-10版本'):
-    """ 设置char表的un_required标记"""
-    size = 10000
-    cond = {'source': source, 'name': {'$regex': 'GL_116_1_1_270'}}
-    item_count = db.char.count_documents(cond)
-    page_count = math.ceil(item_count / size)
-    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
-    for i in range(page_count):
-        print('[%s]processing page %s of each %s records.' % (hp.get_date_time(), i, size))
-        projection = {k: 1 for k in ['cc', 'ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']}
-        chars = list(db.char.find(cond, projection).sort('_id', 1).skip(i * size).limit(size))
-        un_required = []
-        for c in chars:
-            if c.get('cc', 0) >= 0.99 and c.get('cmp_txt', 0) == c.get('alternatives', '')[:1]:
+            if c.get('cc', 0) >= 990 and c.get('cmp_txt', 0) == c.get('alternatives', '')[:1]:
                 un_required.append(c['_id'])
+            else:
+                required.append(c['_id'])
+        required and db.char.update_many({'_id': {'$in': required}}, {'$set': {'un_required': False}})
         un_required and db.char.update_many({'_id': {'$in': un_required}}, {'$set': {'un_required': True}})
 
 
