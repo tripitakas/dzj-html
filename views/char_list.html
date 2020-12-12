@@ -282,6 +282,13 @@
               <label class="radio-inline"><input type="radio" name="priority" value="1">低</label>
             </div>
           </div>
+          <div class="form-group is_oriented">
+            <h4 class="control-label">是否定向</h4>
+            <div class="value">
+              <label class="radio-inline"><input type="radio" name="is_oriented" value="1">是</label>
+              <label class="radio-inline"><input type="radio" name="is_oriented" value="0" checked>否</label>
+            </div>
+          </div>
           <div class="form-group source">
             <h4 class="control-label">选择数据分类</h4>
             <input type="text" class="form-control value" placeholder="请输入分类"/>
@@ -419,16 +426,18 @@
   });
 
   $('#publishModal .modal-confirm').on('click', function () {
-    var $this = $(this);
-    $this.text('进行中...');
+    if ($(this).text() === '进行中...') return;
+    $(this).text('进行中...');
     var num = $('#publishModal .num :checked').val();
     var batch = $('#publishModal .batch .value').val();
     var source = $('#publishModal .source .value').val();
     var priority = $('#publishModal .priority :checked').val();
+    var is_oriented = $('#publishModal .is_oriented :checked').val();
     var preTasks = $.map($('.pre_tasks :checked'), function (item) {
       return $(item).attr('title');
     });
-    var data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, priority: priority, source: source};
+    var $this = $(this);
+    var data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, priority: priority, is_oriented: is_oriented, source: source};
     postApi('/char/task/publish', {data: data}, (res) => {
       $this.text('发布');
       var tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;

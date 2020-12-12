@@ -27,6 +27,7 @@ class CharTaskListHandler(CharHandler):
         {'id': 'required_count', 'name': '需要校对数量'},
         {'id': 'status', 'name': '状态', 'filter': CharHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': CharHandler.priorities},
+        {'id': 'is_oriented', 'name': '是否定向', 'filter': CharHandler.yes_no},
         {'id': 'params', 'name': '输入参数'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
@@ -170,6 +171,8 @@ class CharTaskClusterHandler(CharHandler):
             un_required = self.get_query_argument('un_required', 0)
             if un_required == 'true':
                 cond['un_required'] = True
+            else:
+                cond['un_required'] = False
             # 按置信度过滤
             cc = self.get_query_argument('cc', 0)
             if cc:
@@ -205,7 +208,7 @@ class CharTaskClusterHandler(CharHandler):
             ocr_txts = [c['ocr_txt'] for c in params]
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts} if len(ocr_txts) > 1 else ocr_txts[0],
-                    'txt_level': {'$lte': user_level}, 'un_required': None}
+                    'txt_level': {'$lte': user_level}}
             # 统计任务相关字种
             counts = list(self.db.char.aggregate([
                 {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
