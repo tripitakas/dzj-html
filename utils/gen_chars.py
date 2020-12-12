@@ -37,13 +37,10 @@ def is_valid(txt):
     return txt not in [None, '', '■']
 
 
-def gen_chars(db=None, db_name=None, uri=None, reset=False, condition=None, page_names=None, username=None):
+def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, username=None):
     """ 从页数据中导出字数据"""
     cfg = hp.load_config()
     db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
-    # reset
-    if reset:
-        db.char.delete_many({})
     # condition
     if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
