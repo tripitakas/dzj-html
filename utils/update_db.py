@@ -19,7 +19,7 @@ def index_db(db):
         'user': ['name', 'email', 'phone'],
         'page': ['name', 'page_code', 'source', 'tasks'],
         'char': ['name', 'source', 'uid', 'ocr_txt', 'txt', 'diff', 'un_required', 'cc', 'sc', 'txt_level', 'has_img'],
-        'task': ['batch', 'task_type', 'num', 'collection', 'id_name', 'doc_id', 'txt_kind', 'status',
+        'task': ['batch', 'task_type', 'num', 'collection', 'id_name', 'doc_id', 'txt_kind', 'status', 'is_oriented',
                  'picked_user_id'],
         'log': ['create_time', 'user_id', 'op_type'],
         'variant': ['txt', 'normal_txt'],
@@ -43,8 +43,11 @@ def init_variants(db):
 
 
 def main(db_name='tripitaka', uri='localhost', func='index_db', **kwargs):
+    uri_prod = 'mongodb://tripitaka-product:sm2019321-321.product@111.198.8.162:29019'
+    db_prod = pymongo.MongoClient(uri_prod)['tripitaka-product']
+
     db = pymongo.MongoClient(uri)[db_name]
-    eval(func)(db, **kwargs)
+    eval(func)(db_prod, **kwargs)
 
 
 if __name__ == '__main__':

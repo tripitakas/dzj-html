@@ -70,7 +70,7 @@ def find_neighbor(page_code, neighbor='next'):
     return neighbor_node and neighbor_node[0]
 
 
-def find_match(ocr, depth=5):
+def find_match(ocr, depth=10):
     """ 从cbeta文中找出与ocr匹配的文本"""
     ocr = ''.join(ocr) if isinstance(ocr, list) else ocr.replace('|', '')
     if len(ocr) < 10:

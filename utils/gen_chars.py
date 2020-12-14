@@ -81,6 +81,10 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                         m['un_required'] = False
                         if m.get('cc', 0) >= 990 and m.get('cmp_txt', 0) == m.get('alternatives', '')[:1]:
                             m['un_required'] = True
+                        # diff
+                        txts = [c.get('alternatives') and c['alternatives'][0], c.get('ocr_col'), c.get('cmp_txt')]
+                        if len(set(t for t in txts if is_valid(t))) > 1:
+                            m['diff'] = True
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         if 'column_no' not in c:
                             c['column_no'] = c.pop('line_no')
