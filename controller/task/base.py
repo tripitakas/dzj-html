@@ -141,7 +141,7 @@ class TaskHandler(BaseHandler, Task):
         if q:
             condition.update({field: {'$regex': q, '$options': '$i'}})
         if batch:
-            batch = {'$in': batch.split(',').strip()} if ',' in batch else batch
+            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
             condition.update({'batch': batch})
         if is_oriented in [True, False]:
             condition.update({'is_oriented': is_oriented})
