@@ -41,13 +41,13 @@
              title="显隐字框"></div>
         <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
         <div class="btn-group hl-box more-group" id="more-group">
-          <button id="toggle-all" class="btn btn-default btn-sm" type="button" title="显隐所有字框[空格]">所有<sup class="s-count"></sup></button>
+          <button id="toggle-all" class="btn btn-default btn-sm" type="button" title="显隐所有字框[空格]">蒙白<sup class="s-count"></sup></button>
           <button id="toggle-opacity" class="btn btn-default btn-sm" type="button" title="透视所有字框[x]">透视<sup class="s-count"></sup></button>
-          <button id="toggle-overlap" class="btn btn-default btn-sm" type="button" title="显隐重叠字框">重叠<sup class="s-count"></sup></button>
-          <button id="toggle-narrow" class="btn btn-default btn-sm" type="button" title="显隐窄字框">窄框<sup class="s-count"></sup></button>
-          <button id="toggle-flat" class="btn btn-default btn-sm" type="button" title="显隐扁字框">扁框<sup class="s-count"></sup></button>
-          <button id="toggle-large" class="btn btn-default btn-sm" type="button" title="显隐大字框">大框<sup class="s-count"></sup></button>
-          <button id="toggle-small" class="btn btn-default btn-sm" type="button" title="显隐小字框">小框<sup class="s-count"></sup></button>
+          <button id="toggle-large" class="btn btn-default btn-sm" type="button" title="显隐大字框[a]">大框<sup class="s-count"></sup></button>
+          <button id="toggle-small" class="btn btn-default btn-sm" type="button" title="显隐小字框[s]">小框<sup class="s-count"></sup></button>
+          <button id="toggle-narrow" class="btn btn-default btn-sm" type="button" title="显隐窄字框[d]">窄框<sup class="s-count"></sup></button>
+          <button id="toggle-flat" class="btn btn-default btn-sm" type="button" title="显隐扁字框[f]">扁框<sup class="s-count"></sup></button>
+          <button id="toggle-overlap" class="btn btn-default btn-sm" type="button" title="显隐重叠字框[g]">重叠<sup class="s-count"></sup></button>
           <button id="btn-order" class="btn btn-default btn-sm{{'' if '/page/box' in handler.request.uri else ' hide'}}" type="button" title="修改字序">字序</button>
         </div>
       </div>
@@ -347,10 +347,15 @@
   });
 
   // 快捷键
+  $.mapKey('c', () => $.cut.addBox());
   $.mapKey('space', () => $('#toggle-all').click());
   $.mapKey('m', () => $('#toggle-blur').click());
   $.mapKey('x', () => $('#toggle-opacity').click());
-  $.mapKey('e', () => $.cut.removeBox());
+  $.mapKey('a', () => $('#toggle-large').click());
+  $.mapKey('s', () => $('#toggle-small').click());
+  $.mapKey('d', () => $('#toggle-narrow').click());
+  $.mapKey('f', () => $('#toggle-flat').click());
+  $.mapKey('g', () => $('#toggle-overlap').click());
 
 </script>
 </body>
