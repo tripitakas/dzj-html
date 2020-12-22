@@ -76,10 +76,6 @@ class Task(Model):
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3, 4, 5, 6], 'publishable': True, 'is_sys_task': True,
         },
-        # 'txt_match': {
-        #     'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
-        #     'publishable': False, 'remark': '不要设置校次，以免影响field字段',
-        # },
         'text_proof': {
             'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_review'], 'publishable': True,
@@ -96,14 +92,6 @@ class Task(Model):
             'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
             'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': True,
         },
-        # 'rare_proof': {
-        #     'name': '生僻校对', 'data': {'collection': 'char', 'id': 'name'},
-        #     'num': [1, 2, 3, 4, 5, 6], 'publishable': False,
-        # },
-        # 'rare_review': {
-        #     'name': '生僻审定', 'data': {'collection': 'char', 'id': 'name'},
-        #     'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': False,
-        # },
     }
 
     # 任务状态表
@@ -121,13 +109,18 @@ class Task(Model):
     }
 
     # 任务优先级
-    priorities = {3: '高', 2: '中', 1: '低'}
     yes_no = {True: '是', False: '否'}
+    priorities = {3: '高', 2: '中', 1: '低'}
 
     @classmethod
     def has_num(cls, task_type):
         num = cls.prop(cls.task_types, task_type + '.num')
         return num is not None
+
+    @classmethod
+    def get_data_field(cls, task_type):
+        c2f = dict(page='doc_id', char='txt_kind')
+        return c2f.get(cls.prop(cls.task_types, task_type + '.data.collection'))
 
     @classmethod
     def get_page_tasks(cls):
