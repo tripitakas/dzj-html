@@ -42,12 +42,9 @@ def init_variants(db):
     print('add %s variants' % len(variants2insert))
 
 
-def main(db_name='tripitaka', uri='localhost', func='index_db', **kwargs):
-    uri_prod = 'mongodb://tripitaka-product:sm2019321-321.product@111.198.8.162:29019'
-    db_prod = pymongo.MongoClient(uri_prod)['tripitaka-product']
-
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
-    eval(func)(db_prod, **kwargs)
+    eval(func)(db, **kwargs)
 
 
 if __name__ == '__main__':
