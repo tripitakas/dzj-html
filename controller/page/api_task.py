@@ -126,13 +126,16 @@ class PageTaskPublishApi(PageHandler):
 
     def create_tasks(self, page_names, status, pre_tasks=None):
         def get_task(page_name, char_count=None, params=None):
-            steps = self.data.get('steps') and dict(todo=self.data['steps'])
-            return dict(task_type=task_type, num=int(self.data.get('num') or 1), batch=self.data['batch'],
-                        collection='page', id_name='name', doc_id=page_name, char_count=char_count, status=status,
-                        steps=steps, priority=int(self.data['priority']), pre_tasks=pre_tasks, is_oriented=is_oriented,
-                        params=params or {}, result={},
+            num = int(self.data.get('num') or 1)
+            priority = int(self.data['priority'])
+            steps = self.data.get('steps') and dict(todo=self.data['steps']) or {}
+            task = dict(task_type=task_type, num=num, batch=self.data['batch'], status=status, priority=priority,
+                        steps=steps, pre_tasks=pre_tasks, is_oriented=is_oriented, collection='page', id_name='name',
+                        doc_id=page_name, char_count=char_count, params=params or {}, result={},
                         create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                         publish_user_id=self.user_id, publish_by=self.username)
+            not is_oriented and task.pop('is_oriented', 0)
+            return task
 
         if not page_names:
             return

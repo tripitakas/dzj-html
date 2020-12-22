@@ -189,7 +189,7 @@ class Task(Model):
         if key == 'priority' and value:
             return cls.get_priority_name(int(value or 0))
         if key == 'is_oriented':
-            return cls.yes_no.get(value) or ''
+            return cls.yes_no.get(value) or '否'
         return h.format_value(value, key, doc)
 
     @classmethod
@@ -201,7 +201,9 @@ class Task(Model):
             value = h.get_url_param(field, request_query)
             if value not in ['', None]:
                 params[field] = value
-                condition.update({field: int(value) if field == 'priority' else value})
+                value = int(value) if field == 'priority' else value
+                value = None if field == 'is_oriented' and not value else value
+                condition.update({field: value})
         for field in ['batch', 'doc_id', 'remark']:
             value = h.get_url_param(field, request_query)
             if value:
