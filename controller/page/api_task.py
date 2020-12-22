@@ -126,13 +126,16 @@ class PageTaskPublishApi(PageHandler):
 
     def create_tasks(self, page_names, status, pre_tasks=None):
         def get_task(page_name, char_count=None, params=None):
-            steps = self.data.get('steps') and dict(todo=self.data['steps'])
-            return dict(task_type=task_type, num=int(self.data.get('num') or 1), batch=self.data['batch'],
-                        collection='page', id_name='name', doc_id=page_name, char_count=char_count, status=status,
-                        steps=steps, priority=int(self.data['priority']), pre_tasks=pre_tasks, is_oriented=is_oriented,
-                        params=params or {}, result={},
+            num = int(self.data.get('num') or 1)
+            priority = int(self.data['priority'])
+            steps = self.data.get('steps') and dict(todo=self.data['steps']) or {}
+            task = dict(task_type=task_type, num=num, batch=self.data['batch'], status=status, priority=priority,
+                        steps=steps, pre_tasks=pre_tasks, is_oriented=is_oriented, collection='page', id_name='name',
+                        doc_id=page_name, char_count=char_count, params=params or {}, result={},
                         create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                         publish_user_id=self.user_id, publish_by=self.username)
+            not is_oriented and task.pop('is_oriented', 0)
+            return task
 
         if not page_names:
             return
@@ -142,23 +145,11 @@ class PageTaskPublishApi(PageHandler):
             {'$match': {'name': {'$in': list(page_names)}}},
             {'$project': {'name': 1, 'char_count': {'$size': {'$ifNull': ['$chars', []]}}}}
         ]))
-        if pages:
-            if task_type != 'txt_match':
-                tasks = [get_task(page['name'], page['char_count']) for page in pages]
-                self.db.task.insert_many(tasks, ordered=False)
-                update = {'tasks.%s.%s' % (task_type, self.data.get('num') or 1): status}
-                self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
-            # else:
-            #     tasks, fields = [], self.data.get('fields') or ['ocr_col']
-            #     for page in pages:
-            #         for field in fields:
-            #             # field对应的文本存在且不匹配时才发布任务
-            #             if self.prop(page, 'txt_match.' + field) is not True and self.get_txt(page, field):
-            #                 tasks.append(get_task(page['name'], page['char_count'], dict(field=field)))
-            #     if tasks:
-            #         self.db.task.insert_many(tasks, ordered=False)
-            #     update = {'tasks.%s.%s' % (task_type, f): status for f in fields}
-            #     self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
+        tasks = [get_task(page['name'], page['char_count']) for page in pages]
+        if tasks:
+            self.db.task.insert_many(tasks, ordered=False)
+            update = {'tasks.%s.%s' % (task_type, self.data.get('num') or 1): status}
+            self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
 
 
 class PageTaskCutApi(PageHandler):

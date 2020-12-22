@@ -124,53 +124,27 @@ class TaskHandler(BaseHandler, Task):
             query.sort(o, asc)
         return list(query)
 
-    def find_lobby(self, task_type, page_size=None, q=None, batch=None, is_oriented=None):
+    def find_lobby(self, task_type, page_size=None, q=None, batch=None, count_total=True):
         """ 按优先级排序后随机获取任务大厅的任务列表"""
-
-        def get_random_skip():
-            condition.update(dict(priority=3))
-            n3 = self.db.task.count_documents(condition)
-            condition.update(dict(priority=2))
-            n2 = self.db.task.count_documents(condition)
-            condition.pop('priority', 0)
-            skip = n3 if n3 > page_size else n3 + n2 if n3 + n2 > page_size else total_count
-            return random.randint(1, skip - page_size) if skip > page_size else 0
-
         condition = {}
         field = 'doc_id' if task_type in self.get_page_tasks() else 'txt_kind'
-        if q:
-            condition.update({field: {'$regex': q, '$options': '$i'}})
-        if batch:
-            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
-            condition.update({'batch': batch})
-        if is_oriented in [True, False]:
-            condition.update({'is_oriented': is_oriented})
+        q and condition.update({field: {'$regex': q, '$options': '$i'}})
+        batch = {'$in': batch.strip().split(',')} if ',' in (batch or '') else batch
+        condition.update({'batch': batch} if batch else {'is_oriented': None})
         condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
-        total_count = self.db.task.count_documents(condition)
         page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
-
-        if self.has_num(task_type):  # 任务类型有多个校次的情况
-            tasks = []
+        tasks = []
+        if self.has_num(task_type):
             my_tasks = self.find_mine(task_type)
-            while len(tasks) < page_size:
-                not_allowed = [t[field] for t in my_tasks + tasks] if (my_tasks or tasks) else []
-                if not_allowed:
-                    condition[field] = condition.get(field) or {}
-                    condition[field].update({'$nin': not_allowed})
-                skip_no = get_random_skip()
-                tasks_in_db = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
-                if not tasks_in_db:
-                    break
-                for t in tasks_in_db:
-                    if t[field] not in [t[field] for t in tasks]:
-                        tasks.append(t)
-            condition[field] = {'$nin': [t[field] for t in my_tasks]}
-            total_count = self.db.task.count_documents(condition)
-        else:
-            condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
-            skip_no = get_random_skip()
-            tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
-
+            if my_tasks:  # 任务类型有多个校次时，不允许领取同一编码码的其它校次
+                condition[field] = condition.get(field) or {}
+                condition[field].update({'$nin': [t[field] for t in my_tasks]})
+        for i in [3, 2, 1]:
+            if len(tasks) < page_size:
+                tasks.extend(list(self.db.task.aggregate([
+                    {'$match': {'priority': i, **condition}}, {'$sample': {'size': page_size - len(tasks)}}
+                ])))
+        total_count = 0 if not count_total else self.db.task.count_documents(condition)
         return tasks[:page_size], total_count
 
     def count_task(self, task_type=None, status=None, mine=False):

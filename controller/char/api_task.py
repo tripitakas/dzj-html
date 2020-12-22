@@ -38,12 +38,13 @@ class CharTaskPublishApi(CharHandler):
         pre_tasks = self.data.get('pre_tasks') or []
         is_oriented = self.data.get('is_oriented') == '1'
         txt_kind = ''.join([p[field] for p in params if p.get(field)])
-        return dict(task_type=task_type, num=num, batch=batch, collection='char', id_name='name',
-                    txt_kind=txt_kind, char_count=cnt, required_count=None, doc_id=None,
-                    steps={}, status=self.STATUS_PUBLISHED, priority=priority,
-                    is_oriented=is_oriented, pre_tasks=pre_tasks, params=params or {}, result={},
+        task = dict(task_type=task_type, num=num, batch=batch, status=self.STATUS_PUBLISHED, priority=priority,
+                    steps={}, pre_tasks=pre_tasks, is_oriented=is_oriented, collection='char', id_name='name',
+                    doc_id=None, char_count=cnt, txt_kind=txt_kind, required_count=None, params=params or {}, result={},
                     create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                     publish_user_id=self.user_id, publish_by=self.username)
+        not is_oriented and task.pop('is_oriented', 0)
+        return task
 
     def publish_cluster_task(self):
         """ 发布聚类校对、审定任务 """
