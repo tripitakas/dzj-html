@@ -121,7 +121,8 @@ function updateColumnImg(ch) {
     $.cut.create({
       minRatio: true,
       addDisable: true,
-      holder: 'col-holder',
+      holder: 'col-holder-inner',
+      scrollContainer: '#col-holder',
       image: columnUrl,
       width: column.w,
       height: column.h,
