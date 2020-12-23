@@ -172,7 +172,7 @@ class CharTaskClusterHandler(CharHandler):
             if un_required == 'true':
                 cond['un_required'] = True
             else:
-                cond['un_required'] = False
+                cond['un_required'] = {'$in': [False, None]}
             # 按置信度过滤
             cc = self.get_query_argument('cc', 0)
             if cc:

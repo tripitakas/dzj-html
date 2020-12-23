@@ -550,7 +550,7 @@
       self.destroy();
       data.paper = Raphael(p.holder, p.width, p.height).initZoom();
       data.holder = document.getElementById(p.holder);
-      data.scrollContainer = p.scrollContainer && $(p.scrollContainer);
+      data.scrollContainer = p.scrollContainer && $(p.scrollContainer); // 有滚动条的画布容器窗口
       state.focus = true;
       state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function () {
       };
@@ -907,7 +907,8 @@
         state.edit.attr('opacity', 1);
         delete state.originBox;
       }
-      if (state.edit && state.edit.getBBox().width < 1) {
+      var box = state.edit && state.edit.getBBox();
+      if (box && box.width < 1) {
         state.edit.remove();
         state.edit = null;
       } else if (state.edit && state.editHandle.fill) {
@@ -1134,6 +1135,9 @@
 
     setRatio: function (ratio) {
       var el = state.edit || state.hover;
+      if (data.chars.length === 1 && (!el || !el.getBBox())) {
+        el = data.chars[0].shape;
+      }
       var box = el && el.getBBox();
       var body = document.documentElement || document.body;
       var pos = [body.scrollLeft, body.scrollTop];
