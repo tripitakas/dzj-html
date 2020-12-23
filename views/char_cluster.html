@@ -130,7 +130,11 @@
       </div>
       <div class="column-panel">
         <div id="col-holder"><div id="col-holder-inner"></div></div>
-        <button id="submit-box" class="btn btn-primary btn-sm" style="margin-top: 6px">确认</button>
+        <div class="btn-group" role="group" aria-label="column panel buttons" style="margin-top: 6px">
+          <button id="zoom-out" class="btn btn-default btn-sm" title="缩小">-</button>
+          <button id="submit-box" class="btn btn-primary btn-sm">确认</button>
+          <button id="zoom-in" class="btn btn-default btn-sm" title="放大">+</button>
+        </div>
       </div>
       <div class="work-panel">
         {% module CharTxt(docs and docs[0] or {}, txt_fields = ['txt']) %}

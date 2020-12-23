@@ -201,3 +201,13 @@ $('.m-footer .char-name').on('click', function () {
   }
   window.open('/char/' + charName, '_blank');
 });
+
+// 放大列图
+$('#zoom-in').on('click', function () {
+  $.cut.setRatio($.cut.data.ratio * 1.5);
+});
+
+// 缩小列图
+$('#zoom-out').on('click', function () {
+  $.cut.setRatio($.cut.data.ratio * 0.9);
+});
