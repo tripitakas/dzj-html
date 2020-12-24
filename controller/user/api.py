@@ -405,7 +405,7 @@ class ChangeUserFieldsApi(BaseHandler):
                 value = self.data.get('roles') or ''
             else:
                 value = self.data.get('task_batch') or {}
-            r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': {field: value}})
+            r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': {field: value.strip()}})
 
             if not r.matched_count:
                 return self.send_error_response(e.no_user)
