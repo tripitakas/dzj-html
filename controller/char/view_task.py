@@ -215,7 +215,7 @@ class CharTaskClusterHandler(CharHandler):
                 {'$sort': {'count': -1}},
             ]))
             txts = [c['_id'] for c in counts]
-            v_txts = [int(t[1:]) for t in txts if t[0] == 'Y' and t[1:]]
+            v_txts = [int(t[1:]) for t in txts if len(t) > 1 and t[0] == 'Y']
             if v_txts:
                 v_txts = list(self.db.variant.find({'uid': {'$in': v_txts}}, {'uid': 1, 'img_name': 1}))
                 v_txts = {'Y%s' % t['uid']: t['img_name'] for t in v_txts}

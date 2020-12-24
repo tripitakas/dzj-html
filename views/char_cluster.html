@@ -85,7 +85,7 @@
           <span class="txt-kind{{' current' if not cur_txt else ''}}"></span>
           {% for t in txts %}
           <span class="txt-kind{{' current' if t == cur_txt else ''}}" data-value="{{t}}">
-          {% if t[0] == 'Y' %}
+          {% if t and t[0] == 'Y' %}
             <img src="{{handler.get_web_img(v_txts.get(t), 'char')}}"/>
           {% else %}
             {{t}}
