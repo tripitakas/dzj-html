@@ -127,6 +127,9 @@
     var roles = $.map($roleModal.find(':checked'), function (item) {
       return $(item).attr('title');
     }).join(',');
+    if (!roles.length) {
+      roles = ' ';  // 避免API得到空串
+    }
     var name = $roleModal.find('#name').text();
     var data = {_id: $roleModal.find('#_id').text(), roles: roles};
     postApi('/user/role', {data: data}, function () {
