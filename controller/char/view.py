@@ -194,7 +194,7 @@ class CharBrowseHandler(CharHandler):
         """ 浏览字图"""
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
-            docs, pager, q, order = Char.find_by_page(self, condition)
+            docs, pager, q, order = Char.find_by_page(self, condition, default_order='_id')
             chars = {str(d['name']): d for d in docs}
             for d in docs:
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))

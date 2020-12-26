@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <title>{{'字' if collection == 'char' else '页' }}任务统计</title>
+  <title>{{title}}</title>
   {% include com/_base_css.html %}
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -24,19 +24,21 @@
       <div class="layout">
         <div class="wrapper">
           <div class="sty-list">
-            <div class="tips">合计{{sum([c['count'] for c in counts])}}条任务</div>
+            <div class="tips">合计{{total}}条任务</div>
             <table class="sty-table">
               <thead>
               <tr>
-                <th>{{label}}</th>
-                <th>数量</th>
+                {% for h in head %}
+                <th>{{h}}</th>
+                {% end %}
               </tr>
               </thead>
               <tbody>
-              {% for c in counts %}
+              {% for row in rows %}
               <tr>
-                <td>{{trans.get(c['_id']) or c['_id']}}</td>
-                <td>{{c['count']}}</td>
+                {% for i in row %}
+                <td>{{i}}</td>
+                {% end %}
               </tr>
               {% end %}
               </tbody>

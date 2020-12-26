@@ -108,6 +108,19 @@
                 {% end %}
               </select>
             </div>
+            <h4 class="col-sm-2 control-label">是否定向</h4>
+            <div class="col-sm-10">
+              <select class="form-control is_oriented">
+                <option value=""></option>
+                {% for k, v in handler.yes_no.items() %}
+                {% if params.get('is_oriented') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
             <h4 class="col-sm-2 control-label">领取人</h4>
             <div class="col-sm-10">
               <select class="form-control picked_user_id">
@@ -222,9 +235,9 @@
   var $searchModal = $("#searchModal");
   var searchFields = [
     {id: 'batch'}, {id: 'txt_kind'}, {id: 'status', input_type: 'select'}, {id: 'task_type', input_type: 'select'},
-    {id: 'picked_user_id', input_type: 'select'}, {id: 'publish_start'}, {id: 'publish_end'},
-    {id: 'picked_start'}, {id: 'picked_end'}, {id: 'finished_start'}, {id: 'finished_end'},
-    {id: 'remark'}
+    {id: 'picked_user_id', input_type: 'select'}, {id: 'is_oriented', input_type: 'select'},
+    {id: 'publish_start'}, {id: 'publish_end'}, {id: 'picked_start'}, {id: 'picked_end'},
+    {id: 'finished_start'}, {id: 'finished_end'}, {id: 'remark'}
   ];
   // 设置时间选择器
   $("#searchModal .publish_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});

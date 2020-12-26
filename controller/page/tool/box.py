@@ -175,6 +175,21 @@ class Box(BoxOrder):
             updated = updated or r
         return updated
 
+    @classmethod
+    def reset_page_cid(cls, page):
+        if page.get('blocks'):
+            page['blocks'].sort(key=itemgetter('block_no'))
+            for i, b in enumerate(page['blocks']):
+                b['cid'] = i + 1
+        if page.get('columns'):
+            page['columns'].sort(key=itemgetter('block_no', 'column_no'))
+            for i, b in enumerate(page['columns']):
+                b['cid'] = i + 1
+        if page.get('chars'):
+            page['chars'].sort(key=itemgetter('block_no', 'column_no', 'char_no'))
+            for i, b in enumerate(page['chars']):
+                b['cid'] = i + 1
+
     @staticmethod
     def is_box_pos_equal(box1, box2):
         for k in ['x', 'y', 'w', 'h']:

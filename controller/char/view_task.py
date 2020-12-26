@@ -4,6 +4,7 @@
 import re
 from bson import json_util
 from datetime import datetime
+from operator import itemgetter
 from .char import Char
 from .base import CharHandler
 from controller import errors as e
@@ -26,6 +27,7 @@ class CharTaskListHandler(CharHandler):
         {'id': 'required_count', 'name': '需要校对数量'},
         {'id': 'status', 'name': '状态', 'filter': CharHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': CharHandler.priorities},
+        {'id': 'is_oriented', 'name': '是否定向', 'filter': CharHandler.yes_no},
         {'id': 'params', 'name': '输入参数'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
@@ -97,7 +99,7 @@ class CharTaskStatHandler(CharHandler):
     URL = '/char/task/statistic'
 
     def get(self):
-        """ 根据用户、任务类型或任务状态统计页任务"""
+        """ 根据用户、批次、任务类型或任务状态统计"""
         try:
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
@@ -109,17 +111,26 @@ class CharTaskStatHandler(CharHandler):
                 {'$sort': {'count': -1}},
             ]))
 
-            trans = {}
+            head, rows = [], []
             if kind == 'picked_user_id':
+                head = ['用户', '分组', '数量']
                 users = list(self.db.user.find({'_id': {'$in': [c['_id'] for c in counts]}}))
-                trans = {u['_id']: u['name'] for u in users}
+                users = {u['_id']: [u.get('name'), u.get('group') or ''] for u in users}
+                rows = [[*users.get(c['_id'], ['', '']), c['count']] for c in counts]
+                rows.sort(key=itemgetter(1))
             elif kind == 'task_type':
-                trans = self.task_names()
+                head = ['任务类型', '数量']
+                rows = [[self.task_types[c['_id']]['name'] or c['_id'], c['count']] for c in counts]
             elif kind == 'status':
-                trans = self.task_statuses
-            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态', batch='批次')[kind]
+                head = ['任务状态', '数量']
+                rows = [[self.task_statuses['_id'], c['count']] for c in counts]
+            elif kind == 'batch':
+                head = ['批次', '数量']
+                rows = [[c['_id'], c['count']] for c in counts]
+            total = sum([c['count'] for c in counts])
 
-            self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='char')
+            self.render('task_statistic.html', collection='char', kind=kind, total=total, head=head, rows=rows,
+                        title='字任务统计')
 
         except Exception as error:
             return self.send_db_error(error)
@@ -160,6 +171,8 @@ class CharTaskClusterHandler(CharHandler):
             un_required = self.get_query_argument('un_required', 0)
             if un_required == 'true':
                 cond['un_required'] = True
+            else:
+                cond['un_required'] = {'$in': [False, None]}
             # 按置信度过滤
             cc = self.get_query_argument('cc', 0)
             if cc:
@@ -195,14 +208,14 @@ class CharTaskClusterHandler(CharHandler):
             ocr_txts = [c['ocr_txt'] for c in params]
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts} if len(ocr_txts) > 1 else ocr_txts[0],
-                    'txt_level': {'$lte': user_level}, 'un_required': None}
+                    'txt_level': {'$lte': user_level}}
             # 统计任务相关字种
             counts = list(self.db.char.aggregate([
                 {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
                 {'$sort': {'count': -1}},
             ]))
             txts = [c['_id'] for c in counts]
-            v_txts = [int(t[1:]) for t in txts if t[0] == 'Y']
+            v_txts = [int(t[1:]) for t in txts if len(t) > 1 and t[0] == 'Y']
             if v_txts:
                 v_txts = list(self.db.variant.find({'uid': {'$in': v_txts}}, {'uid': 1, 'img_name': 1}))
                 v_txts = {'Y%s' % t['uid']: t['img_name'] for t in v_txts}

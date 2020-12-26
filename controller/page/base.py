@@ -141,7 +141,7 @@ class PageHandler(TaskHandler, Page, Box):
         if not cls.get_txt(page, field):
             return False, ''
         match = True
-        diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field))[0]
+        diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field), filter_junk=False)[0]
         for s in diff_segments:
             if s['is_same'] and s['base'] == '\n':
                 s['cmp1'] = '\n'

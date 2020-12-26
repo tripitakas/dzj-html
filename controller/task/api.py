@@ -21,28 +21,21 @@ class PickTaskApi(TaskHandler):
             if uncompleted:
                 url = '/task/do/%s/%s' % (uncompleted[0]['task_type'], uncompleted[0]['_id'])
                 return self.send_error_response(e.task_uncompleted, **{'url': url, 'doc_id': uncompleted[0]['doc_id']})
-
+            # 领取任务
             task_id, task = self.prop(self.data, 'task_id'), None
             if task_id:
+                field = self.get_data_field(task_type)
                 task = self.db.task.find_one({'_id': ObjectId(task_id)})
-                if not task:
-                    return self.send_error_response(e.no_object, message='没有找到该任务')
-                if task['status'] != self.STATUS_PUBLISHED:
-                    return self.send_error_response(e.task_not_published)
-            else:
+                if self.has_num(task_type) and task.get(field) and self.db.task.find_one(dict(
+                        task_type=task_type, status={'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]},
+                        field=task[field], picked_user_id=self.user_id,
+                )):
+                    task = None
+            if not task or task['status'] != self.STATUS_PUBLISHED:
                 batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
-                tasks = self.find_lobby(task_type, page_size=1, batch=batch)[0]
-                if not tasks:
-                    return self.send_error_response(e.no_task_to_pick)
-                task = tasks[0]
-
-            # 如果任务有多个校次，则检查用户是否曾领取过某校次
-            if task.get('doc_id') and self.has_num(task_type) and self.db.task.find_one(dict(
-                    task_type=task_type, status={'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]},
-                    doc_id=task['doc_id'], picked_user_id=self.user_id,
-            )):
-                message = '您曾领取过本任务中的某校次，不能再领取其它校次。'
-                return self.send_error_response(e.group_task_duplicated, message=message)
+                task = self.pick_one(task_type, batch=batch)
+            if not task:
+                return self.send_error_response(e.no_task_to_pick)
             # 分配任务
             self.db.task.update_one({'_id': task['_id']}, {'$set': {
                 'status': self.STATUS_PICKED, 'picked_user_id': self.user_id, 'picked_by': self.username,
@@ -86,7 +79,9 @@ class UpdateTaskApi(TaskHandler):
     def post(self, field):
         """ 批量更新任务批次或备注"""
         try:
-            rules = [(v.not_both_empty, '_ids', '_id'), (v.not_both_empty, 'batch', 'remark')]
+            rules = [(v.not_both_empty, '_ids', '_id')]
+            field == 'batch' and rules.append((v.not_empty, 'batch'))
+            field == 'remark' and rules.append((v.not_none, 'remark'))
             self.validate(self.data, rules)
 
             update = {field: self.data[field]}
@@ -111,7 +106,7 @@ class UpdateMyTaskApi(TaskHandler):
     def post(self, task_id):
         """ 批量更新任务批次或备注"""
         try:
-            rules = [(v.not_empty, 'remark')]
+            rules = [(v.not_none, 'remark')]
             self.validate(self.data, rules)
 
             task = self.db.task.find_one({'_id': ObjectId(task_id)})

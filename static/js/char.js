@@ -121,7 +121,8 @@ function updateColumnImg(ch) {
     $.cut.create({
       minRatio: true,
       addDisable: true,
-      holder: 'col-holder',
+      holder: 'col-holder-inner',
+      scrollContainer: '#col-holder',
       image: columnUrl,
       width: column.w,
       height: column.h,
@@ -199,4 +200,14 @@ $('.m-footer .char-name').on('click', function () {
     charName = pageName + '_' + cid;
   }
   window.open('/char/' + charName, '_blank');
+});
+
+// 放大列图
+$('#zoom-in').on('click', function () {
+  $.cut.setRatio($.cut.data.ratio * 1.5);
+});
+
+// 缩小列图
+$('#zoom-out').on('click', function () {
+  $.cut.setRatio($.cut.data.ratio * 0.9);
 });

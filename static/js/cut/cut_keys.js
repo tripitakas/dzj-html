@@ -25,16 +25,16 @@
       });
 
       // w a s d：移动当前字框
-      on('a', function () {
+      on('ctrl+a', function () {
         self.moveBox('left');
       });
-      on('d', function () {
+      on('ctrl+d', function () {
         self.moveBox('right');
       });
-      on('w', function () {
+      on('ctrl+w', function () {
         self.moveBox('up');
       });
-      on('s', function () {
+      on('ctrl+s', function () {
         self.moveBox('down');
       });
 
@@ -71,6 +71,9 @@
         self.removeBox();
       });
       on('del', function () {
+        self.removeBox();
+      });
+      on('e', function () {
         self.removeBox();
       });
       on('esc', function () {
@@ -167,9 +170,6 @@
 
       // insert/n 增加字框
       on('insert', function () {
-        self.addBox();
-      });
-      on('n', function () {
         self.addBox();
       });
     },

@@ -27,6 +27,7 @@ class Task(Model):
         {'id': 'priority', 'name': '优先级'},
         {'id': 'steps', 'name': '步骤'},
         {'id': 'pre_tasks', 'name': '前置任务'},
+        {'id': 'is_oriented', 'name': '是否定向'},
         {'id': 'params', 'name': '输入参数'},
         {'id': 'result', 'name': '输出结果'},
         {'id': 'txt_kind', 'name': '字种'},
@@ -61,7 +62,7 @@ class Task(Model):
         'cut_review': {
             'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
             'steps': [['box', '字框'], ['order', '字序']],
-            'num': [1, 2, 3], 'pre_tasks': ['cut_proof'], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_proof'], 'publishable': True,
         },
         'upload_cloud': {
             'name': '上传云端', 'data': {'collection': 'page', 'id': 'name'},
@@ -69,23 +70,19 @@ class Task(Model):
         },
         'ocr_box': {
             'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3], 'publishable': True, 'is_sys_task': True,
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True, 'is_sys_task': True,
         },
         'ocr_text': {
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3], 'publishable': True, 'is_sys_task': True,
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True, 'is_sys_task': True,
         },
-        # 'txt_match': {
-        #     'name': '图文匹配', 'data': {'collection': 'page', 'id': 'name'},
-        #     'publishable': False, 'remark': '不要设置校次，以免影响field字段',
-        # },
         'text_proof': {
             'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_review'], 'publishable': True,
         },
         'text_review': {
             'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3], 'pre_tasks': ['text_proof'], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['text_proof'], 'publishable': True,
         },
         'cluster_proof': {
             'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},
@@ -95,14 +92,6 @@ class Task(Model):
             'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
             'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': True,
         },
-        # 'rare_proof': {
-        #     'name': '生僻校对', 'data': {'collection': 'char', 'id': 'name'},
-        #     'num': [1, 2, 3, 4, 5, 6], 'publishable': False,
-        # },
-        # 'rare_review': {
-        #     'name': '生僻审定', 'data': {'collection': 'char', 'id': 'name'},
-        #     'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': False,
-        # },
     }
 
     # 任务状态表
@@ -120,12 +109,18 @@ class Task(Model):
     }
 
     # 任务优先级
+    yes_no = {True: '是', False: '否'}
     priorities = {3: '高', 2: '中', 1: '低'}
 
     @classmethod
     def has_num(cls, task_type):
         num = cls.prop(cls.task_types, task_type + '.num')
         return num is not None
+
+    @classmethod
+    def get_data_field(cls, task_type):
+        c2f = dict(page='doc_id', char='txt_kind')
+        return c2f.get(cls.prop(cls.task_types, task_type + '.data.collection'))
 
     @classmethod
     def get_page_tasks(cls):
@@ -186,23 +181,28 @@ class Task(Model):
             return '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
         if key == 'priority' and value:
             return cls.get_priority_name(int(value or 0))
+        if key == 'is_oriented':
+            return cls.yes_no.get(value) or '否'
         return h.format_value(value, key, doc)
 
     @classmethod
     def get_task_search_condition(cls, request_query, collection=None):
         """ 获取任务的查询条件"""
+        # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        for field in ['task_type', 'collection', 'status', 'priority', 'txt_kind']:
+        for field in ['task_type', 'collection', 'status', 'priority', 'txt_kind', 'is_oriented']:
             value = h.get_url_param(field, request_query)
-            if value:
+            if value not in ['', None]:
                 params[field] = value
-                condition.update({field: int(value) if field == 'priority' else value})
+                value = int(value) if field == 'priority' else value
+                value = None if field == 'is_oriented' and not value else value
+                condition.update({field: value})
         for field in ['batch', 'doc_id', 'remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 m = re.match(r'["\'](.*)["\']', value)
-                condition.update({field: m.group(1) if m else {'$regex': value, '$options': '$i'}})
+                condition.update({field: m.group(1) if m else {'$regex': value}})
         picked_user_id = h.get_url_param('picked_user_id', request_query)
         if picked_user_id:
             params['picked_user_id'] = picked_user_id

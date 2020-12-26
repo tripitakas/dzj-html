@@ -46,6 +46,7 @@
               <span style="margin: 5px 5px">~</span>
               <input type="text" class="form-control flatpickr end" data-enable-time=true data-enable-seconds=true
                      value="{{end or ''}}" placeholder="请选择结束时间">
+              <span type="button" id="last-month" class="btn btn-default">上月</span>
               <span type="button" id="last-week" class="btn btn-default">上周</span>
               <span type="button" id="this-week" class="btn btn-default">本周</span>
               <span type="button" id="this-month" class="btn btn-default">本月</span>
@@ -136,8 +137,19 @@
     $(".select-time .end").val("");
   });
 
+  $('#last-month').on('click', function () {
+    var date = new Date();
+    var start = new Date(date.getFullYear(), date.getMonth() - 1);
+    if (date.getMonth() == 1) start = new Date(date.getFullYear() - 1, 12);
+    $(".select-time .start").val(start.format("yyyy-MM-dd 00:00:00"));
+    var end = new Date(date.getFullYear(), date.getMonth());
+    $(".select-time .end").val(end.format("yyyy-MM-dd 00:00:00"));
+  });
+
+
   $('#clear').on('click', function () {
     $(".select-time .start").val("");
+    $(".select-time .end").val("");
   });
 
   $('#confirm').on('click', function () {

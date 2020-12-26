@@ -19,12 +19,16 @@ from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
 
+from datetime import datetime
+from controller import helper as hp
+
 
 class TaskHandler(BaseHandler, Task):
     def __init__(self, application, request, **kwargs):
         super(TaskHandler, self).__init__(application, request, **kwargs)
         self.task = self.task_type = self.steps = self.task_id = None
         self.mode = self.readonly = self.submit_by_page = None
+        self.my_tasks = []
 
     def prepare(self):
         """ 根据url参数，检查任务是否存在并设置任务，检查任务权限，设置任务相关参数"""
@@ -108,7 +112,7 @@ class TaskHandler(BaseHandler, Task):
             query.sort(o, asc)
         return list(query)
 
-    def find_mine(self, task_type=None, page_size=None, order=None, status=None, user_id=None):
+    def find_mine(self, task_type=None, page_size=None, order=None, status=None, user_id=None, project=None):
         """ 查找我的任务"""
         assert status in [None, self.STATUS_PICKED, self.STATUS_FINISHED]
         condition = {'picked_user_id': user_id or self.user_id}
@@ -117,6 +121,8 @@ class TaskHandler(BaseHandler, Task):
         if status:
             condition.update({'status': status or {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}})
         query = self.db.task.find(condition)
+        if project:
+            query = self.db.task.find(condition, project)
         if page_size:
             query.limit(page_size)
         if order:
@@ -128,48 +134,43 @@ class TaskHandler(BaseHandler, Task):
         """ 按优先级排序后随机获取任务大厅的任务列表"""
 
         def get_random_skip():
-            condition.update(dict(priority=3))
-            n3 = self.db.task.count_documents(condition)
-            condition.update(dict(priority=2))
-            n2 = self.db.task.count_documents(condition)
-            condition.pop('priority', 0)
-            skip = n3 if n3 > page_size else n3 + n2 if n3 + n2 > page_size else total_count
-            return random.randint(1, skip - page_size) if skip > page_size else 0
+            n = 0
+            for p in [3, 2, 1]:
+                n += self.db.task.count_documents({'priority': p, **condition})
+                if n > page_size:
+                    return random.randint(1, n - page_size)
+            return 0
 
-        condition = {}
-        field = 'doc_id' if task_type in self.get_page_tasks() else 'txt_kind'
+        condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
+        field = self.get_data_field(task_type)
         if q:
             condition.update({field: {'$regex': q, '$options': '$i'}})
         if batch:
-            batch = {'$in': batch.split(',')} if ',' in batch else batch
+            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
             condition.update({'batch': batch})
-        condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
-        total_count = self.db.task.count_documents(condition)
-        page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
-
-        if self.has_num(task_type):  # 任务类型有多个校次的情况
-            tasks = []
-            my_tasks = self.find_mine(task_type)
-            while len(tasks) < page_size:
-                not_allowed = [t[field] for t in my_tasks + tasks] if (my_tasks or tasks) else []
-                if not_allowed:
-                    condition[field] = condition.get(field) or {}
-                    condition[field].update({'$nin': not_allowed})
-                skip_no = get_random_skip()
-                tasks_in_db = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
-                if not tasks_in_db:
-                    break
-                for t in tasks_in_db:
-                    if t[field] not in [t[field] for t in tasks]:
-                        tasks.append(t)
-            condition[field] = {'$nin': [t[field] for t in my_tasks]}
-            total_count = self.db.task.count_documents(condition)
         else:
-            condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
-            skip_no = get_random_skip()
-            tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
-
+            condition.update({'is_oriented': None})
+        page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
+        skip_no = get_random_skip()
+        tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
+        total_count = self.db.task.count_documents(condition)
         return tasks[:page_size], total_count
+
+    def pick_one(self, task_type, batch=None):
+        """ 领取任务"""
+        condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
+        if batch:
+            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
+            condition.update({'batch': batch})
+        else:
+            condition.update({'is_oriented': None})
+        if self.has_num(task_type):
+            field = self.get_data_field(task_type)
+            my_tasks = self.find_mine(task_type, project={field: 1})
+            if my_tasks:
+                condition[field] = condition.get(field) or {}
+                condition[field].update({'$nin': [t[field] for t in my_tasks]})
+        return self.db.task.find_one(condition, sort=[('priority', 1)])
 
     def count_task(self, task_type=None, status=None, mine=False):
         """ 统计任务数量"""

@@ -18,8 +18,8 @@ class TaskLobbyHandler(TaskHandler):
     def get(self, task_type):
         """ 任务大厅"""
         try:
-            batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
             q = self.get_query_argument('q', '')
+            batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
             tasks, total_count = self.find_lobby(task_type, q=q, batch=batch)
             collection = self.prop(self.task_types, task_type + '.data.collection')
             fields = [('txt_kind', '字种'), ('char_count', '单字数量')] if collection == 'char' else [

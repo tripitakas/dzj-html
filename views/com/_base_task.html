@@ -18,6 +18,14 @@
   var remark = '{{handler.task.get("remark") or ""}}';
   var isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
 
+  // 快捷键
+  $.mapKey('t', () => {
+    if ($('#submit-steps').length && !$('#submit-steps').hasClass('hide')) $('#submit-steps').click();
+    else if ($('#task-submit').length && !$('#task-submit').hasClass('hide')) $('#task-submit').click();
+  });
+  $.mapKey('p', () => !$('#step-prev').hasClass('hide') && $('#step-prev').click());
+  $.mapKey('n', () => !$('#step-next').hasClass('hide') && $('#step-next').click());
+
   $('#task-return').on('click', () => $("#returnModal").modal());
   $('#task-remark').on('click', () => $("#remarkModal").modal());
   $('#task-config').on('click', () => $("#taskConfigModal").modal());
@@ -29,7 +37,7 @@
     if (remark.length) {
       $("#remarkModal .remark").val(remark);
     } else if (remark1.length && options.indexOf(remark1) < 0) {
-      $("#remarkModal .options").append(`<input type="radio" name="options" value="${remark1}">${remark1}`);
+      $("#remarkModal .options").append(`<label class="radio-inline"><input type="radio" name="options" value="${remark1}">${remark1}</label>`);
     }
     $('#remarkModal .is_sample :radio[value="' + isSample + '"]').prop('checked', true);
     $('#taskConfigModal .auto-pick :radio[value=' + getStorage('autoPick', '是') + ']').prop('checked', true);
@@ -129,17 +137,17 @@
   // 备注任务
   $('#task-my-remark').on("click", function () {
     Swal2.fire({title: '请输入备注', input: 'text', inputValue: remark}).then((result) => {
-      if (result.value) {
-        postApi('/my_task/remark/' + taskId, {data: {remark: result.value}}, function () {
-          remark = result.value;
-          showSuccess('备注成功', '', 1000);
-        });
-      }
+      if (result.dismiss === 'cancel') return;
+      postApi('/my_task/remark/' + taskId, {data: {remark: result.value}}, function () {
+        remark = result.value;
+        showSuccess('备注成功', '', 1000);
+      });
     });
   });
 
   // 任务退回
   $('#returnModal .modal-confirm, #returnModal .modal-next').on('click', function () {
+    if ($(this).text() === '进行中...') return;
     var reason = $('#returnModal .return_reason').val().trim();
     if (!reason.length) {
       return showTips('提示', '尚未填写退回理由', 3000);

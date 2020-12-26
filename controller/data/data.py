@@ -32,8 +32,7 @@ class Tripitaka(Model):
     search_fields = ['name', 'tripitaka_code']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     info_fields = [f['id'] for f in fields]
-    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                          options=f.get('options', [])) for f in fields]
+    update_fields = [f for f in fields]
 
     @classmethod
     def get_need_fields(cls):
@@ -46,14 +45,16 @@ class Sutra(Model):
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'sutra_name', 'name': '经名'},
-        {'id': 'due_reel_count', 'name': '应存卷数', 'type': 'int'},
-        {'id': 'existed_reel_count', 'name': '实存卷数', 'type': 'int'},
         {'id': 'author', 'name': '作译者'},
-        {'id': 'trans_time', 'name': '翻译时间'},
         {'id': 'start_volume', 'name': '起始册'},
         {'id': 'start_page', 'name': '起始页', 'type': 'int'},
         {'id': 'end_volume', 'name': '终止册'},
         {'id': 'end_page', 'name': '终止页', 'type': 'int'},
+        {'id': 'due_reel_count', 'name': '应存卷数', 'type': 'int'},
+        {'id': 'existed_reel_count', 'name': '实存卷数', 'type': 'int'},
+        {'id': 'category', 'name': '分类'},
+        {'id': 'thousand', 'name': '千字文'},
+        {'id': 'trans_time', 'name': '翻译时间'},
         {'id': 'remark', 'name': '备注'}
     ]
     rules = [
@@ -64,12 +65,11 @@ class Sutra(Model):
     primary = 'sutra_code'
 
     page_title = '经数据管理'
-    search_tips = '请搜索统一经编码、经编码、经名、起始册'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'start_volume']
+    search_tips = '请搜索统一经编码、经编码、经名、作译者、分类、起始册'
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name', 'author', 'category', 'start_volume']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     info_fields = [f['id'] for f in fields]
-    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                          options=f.get('options', [])) for f in fields]
+    update_fields = [f for f in fields]
 
     @classmethod
     def get_need_fields(cls):
@@ -126,6 +126,7 @@ class Volume(Model):
     fields = [
         {'id': 'tripitaka_code', 'name': '藏编码'},
         {'id': 'volume_code', 'name': '册编码'},
+        {'id': 'category', 'name': '分类'},
         {'id': 'envelop_no', 'name': '函序号'},
         {'id': 'volume_no', 'name': '册序号', 'type': 'int'},
         {'id': 'content_page_count', 'name': '正文页数'},
@@ -143,13 +144,11 @@ class Volume(Model):
     primary = 'volume_code'
 
     page_title = '册数据管理'
-    search_tips = '请搜索册编码'
-    search_fields = ['volume_code']
-    table_fields = [dict(id=f['id'], name=f['name']) for f in fields if f['id'] not in
-                    ['content_pages', 'front_cover_pages', 'back_cover_pages']]
+    search_tips = '请搜索册编码和分类'
+    search_fields = ['volume_code', 'category']
+    table_fields = [dict(id=f['id'], name=f['name']) for f in fields if '_pages' not in f['id']]
     info_fields = [f['id'] for f in fields]
-    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                          options=f.get('options', [])) for f in fields]
+    update_fields = [f for f in fields]
 
     @classmethod
     def get_need_fields(cls):
@@ -235,6 +234,7 @@ class Variant(Model):
 
     @classmethod
     def get_variant_search_condition(cls, request_query):
+        # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(), dict()
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:

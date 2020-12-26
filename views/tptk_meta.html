@@ -19,8 +19,8 @@
       width: 360px;
     }
 
-    td.remark {
-      max-width: 200px;
+    td.remark, td.thousand {
+      max-width: 180px;
     }
 
     td.start_volume, td.start_page, td.end_volume, td.end_page, td.volume_code {
@@ -78,17 +78,17 @@
 <script>
 
   $('td.start_volume,  td.end_volume,  td.volume_code').on('click', function () {
-    location.href = '/tptk/' + $(this).text().trim();
+    window.open('/tptk/' + $(this).text().trim(), '_blank');
   });
 
   $('td.start_page').on('click', function () {
     var volumeCode = $(this).parent().find('.start_volume').text();
-    location.href = '/tptk/' + volumeCode + '_' + $(this).text().trim();
+    window.open('/tptk/' + volumeCode + '_' + $(this).text().trim(), '_blank');
   });
 
   $('td.end_page').on('click', function () {
     var volumeCode = $(this).parent().find('.end_volume').text();
-    location.href = '/tptk/' + volumeCode + '_' + $(this).text().trim();
+    window.open('/tptk/' + volumeCode + '_' + $(this).text().trim(), '_blank');
   });
 </script>
 

@@ -18,6 +18,8 @@ class PageListHandler(PageHandler):
     page_title = '页数据管理'
     table_fields = [
         {'id': 'name', 'name': '页编码'},
+        {'id': 'page_code', 'name': '对齐编码'},
+        {'id': 'book_page', 'name': '原书页码'},
         {'id': 'source', 'name': '分类'},
         {'id': 'layout', 'name': '页面结构'},
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
@@ -30,7 +32,8 @@ class PageListHandler(PageHandler):
         {'id': 'op_text', 'name': '文本匹配'},
     ]
     info_fields = ['name', 'source', 'box_ready', 'layout', 'remark_box', 'op_text']
-    hide_fields = ['uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'remark_box', 'remark_txt', 'op_text']
+    hide_fields = ['book_page', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'remark_box', 'remark_txt',
+                   'op_text']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
@@ -164,15 +167,16 @@ class PageBrowseHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            print(self.request.query)
             condition = self.get_page_search_condition(self.request.query)[0]
-            page_code = page.get('page_code', '')
+            order = self.get_query_argument('order', '_id')
             to = self.get_query_argument('to', '')
             if to == 'next':
-                condition['page_code'] = {'$gt': page_code}
-                page = self.db.page.find_one(condition, sort=[('page_code', 1)])
+                condition[order] = {'$gt': page.get(order)}
+                page = self.db.page.find_one(condition, sort=[(order, 1)])
             elif to == 'prev':
-                condition['page_code'] = {'$lt': page_code}
-                page = self.db.page.find_one(condition, sort=[('page_code', -1)])
+                condition[order] = {'$lt': page.get(order)}
+                page = self.db.page.find_one(condition, sort=[(order, -1)])
             if not page:
                 message = '已是第一页' if to == 'prev' else '已是最后一页'
                 return self.send_error_response(e.no_object, message=message)
@@ -181,7 +185,7 @@ class PageBrowseHandler(PageHandler):
             txt_fields = [t[1] for t in txts]
             txt_dict = {t[1]: t for t in txts}
             img_url = self.get_page_img(page)
-            chars_col = self.get_chars_col(page['chars'])
+            chars_col = self.get_chars_col(page.get('chars'))
             info = {f['id']: self.prop(page, f['id'], '') for f in edit_fields}
             btn_config = json_util.loads(self.get_secure_cookie('page_browse_btn') or '{}')
             active = btn_config.get('sutra-txt')
@@ -398,7 +402,10 @@ class PageTxtHandler(PageHandler):
         nm_a = sum(ch_a) / len(ch_a)
         for ch in page['chars']:
             ch['name'] = page['name'] + '_' + str(ch['cid'])
-            ch['txt'] = ch.get('txt') or ch.get('ocr_txt') or '■'
+            ch['alternatives'] = ch.get('alternatives', '').replace('"', '').replace("'", '')
+            ch['ocr_txt'] = ch.get('ocr_txt', '').replace('"', '').replace("'", '')
+            ch['txt'] = ch.get('txt', '').replace('"', '').replace("'", '')
+            ch['txt'] = ch['txt'] or ch['ocr_txt'] or '■'
             r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
             ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
 

@@ -227,6 +227,22 @@ def update_sub_columns_txt(db, json_path=''):
                 db.page.update_one({'_id': page['_id']}, {'$set': {'columns': columns}})
 
 
+def update_page_code(db):
+    size = 10000
+    cond = {'page_code': {'$in': [None, '']}, 'name': {'$nin': [None, '']}}
+    cnt = db.page.count_documents(cond)
+    page_count = math.ceil(cnt / size)
+    print('[%s]total: %s items, %s each page, %s pages.' % (hp.get_date_time(), cnt, size, page_count))
+    idx = 0
+    while db.page.count_documents(cond):
+        idx += 1
+        pages = list(db.page.find(cond, {'name': 1}).limit(size))
+        print('[%s]processing %s/%s...' % (hp.get_date_time(), idx, page_count))
+        for p in pages:
+            page_code = hp.align_code(p['name'])
+            db.page.update_one({'_id': p['_id']}, {'$set': {'page_code': page_code}})
+
+
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)

@@ -85,7 +85,7 @@
           <span class="txt-kind{{' current' if not cur_txt else ''}}"></span>
           {% for t in txts %}
           <span class="txt-kind{{' current' if t == cur_txt else ''}}" data-value="{{t}}">
-          {% if t[0] == 'Y' %}
+          {% if t and t[0] == 'Y' %}
             <img src="{{handler.get_web_img(v_txts.get(t), 'char')}}"/>
           {% else %}
             {{t}}
@@ -129,8 +129,12 @@
         {% module Pager(pager) %}
       </div>
       <div class="column-panel">
-        <div id="col-holder"></div>
-        <button id="submit-box" class="btn btn-primary btn-sm" style="margin-top: 6px">确认</button>
+        <div id="col-holder"><div id="col-holder-inner"></div></div>
+        <div class="btn-group" role="group" aria-label="column panel buttons" style="margin-top: 6px">
+          <button id="zoom-out" class="btn btn-default btn-sm" title="缩小">-</button>
+          <button id="submit-box" class="btn btn-primary btn-sm">确认</button>
+          <button id="zoom-in" class="btn btn-default btn-sm" title="放大">+</button>
+        </div>
       </div>
       <div class="work-panel">
         {% module CharTxt(docs and docs[0] or {}, txt_fields = ['txt']) %}
@@ -270,8 +274,8 @@
 </div>
 
 {% include com/_base_js.html %}
-{% include com/_base_task.html %}
 {% include com/_base_cut.html %}
+{% include com/_base_task.html %}
 <script src="{{static_url('js/char.js')}}"></script>
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>

@@ -17,6 +17,7 @@ class Page(Model):
         {'id': 'source', 'name': '分类'},
         {'id': 'layout', 'name': '页面结构'},
         {'id': 'page_code', 'name': '对齐编码'},
+        {'id': 'book_page', 'name': '原书页码'},
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
@@ -55,11 +56,6 @@ class Page(Model):
                     ocr='', ocr_col='', txt='')
 
     @classmethod
-    def reset_order(cls, order):
-        trans = {'name': 'page_code', '-name': '-page_code'}
-        return trans.get(order) or order
-
-    @classmethod
     def insert_many(cls, db, file_stream=None, layout=None):
         """ 插入新页面
         :param db 数据库连接
@@ -89,6 +85,7 @@ class Page(Model):
 
     @classmethod
     def get_page_search_condition(cls, request_query):
+        # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(), dict()
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:
@@ -106,8 +103,10 @@ class Page(Model):
         task_status = h.get_url_param('task_status', request_query)
         if task_status:
             params['task_status'] = task_status
+        num = h.get_url_param('num', request_query) or 1
+        params['num'] = num
         if task_type and task_status:
-            condition.update({'tasks.%s.1' % task_type: None if task_status == 'un_published' else task_status})
+            condition.update({'tasks.%s.%s' % (task_type, num): None if task_status == 'un_published' else task_status})
         match_field = h.get_url_param('match_field', request_query)
         if match_field:
             params['match_field'] = match_field

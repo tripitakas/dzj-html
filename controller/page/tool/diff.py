@@ -21,13 +21,15 @@ class Diff(object):
     cmp_junk_char = r'[\-\.\{\}\(\),0-9a-z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…\s\n\f\t\v\u3000]'
 
     @classmethod
-    def pre_base(cls, base, keep_line=True):
+    def pre_base(cls, base, keep_line=True, filter_junk=True):
         """ base预处理"""
         # 平台中用|表示换行，因此先恢复换行
         base = base.replace('|', '\n').rstrip('\n')
         # 根据参数决定是否保留换行
         base = base.replace('\n', '') if not keep_line else base
-        return re.sub(Diff.base_junk_char, '', base)
+        # 检查junk字符串
+        base = re.sub(Diff.base_junk_char, '', base) if filter_junk else base
+        return base
 
     @classmethod
     def pre_cmp(cls, cmp):
@@ -35,7 +37,7 @@ class Diff(object):
         return re.sub(Diff.cmp_junk_char, '', cmp)
 
     @classmethod
-    def diff(cls, base='', cmp1='', cmp2='', cmp3='', check_variant=True, label=None):
+    def diff(cls, base='', cmp1='', cmp2='', cmp3='', check_variant=True, filter_junk=True, label=None):
         """ 文本比对。 换行以base的换行为准，自动过滤掉cmp1/cmp2/cmp3的换行符
         :param base: 基础比对文本
         :param check_variant: 是否检查异体字
@@ -47,28 +49,28 @@ class Diff(object):
 
         base = base or ''
         if not cmp1 and not cmp2 and not cmp3:
-            return Diff._diff_one(base), []
+            return Diff._diff_one(base, filter_junk), []
 
         ret, err = [], []
         diff_func = Diff._diff_two_v2
         if cmp1:
-            ret1 = diff_func(base, cmp1, check_variant, {'base': lbl['base'], 'cmp': lbl['cmp1']})
+            ret1 = diff_func(base, cmp1, check_variant, filter_junk, {'base': lbl['base'], 'cmp': lbl['cmp1']})
             ret, _err = Diff._merge_by_combine(ret, ret1, base_key=lbl['base'])
             err.extend(_err)
         if cmp2:
-            ret2 = diff_func(base, cmp2, check_variant, {'base': lbl['base'], 'cmp': lbl['cmp2']})
+            ret2 = diff_func(base, cmp2, check_variant, filter_junk, {'base': lbl['base'], 'cmp': lbl['cmp2']})
             ret, _err = Diff._merge_by_combine(ret, ret2, base_key=lbl['base'])
             err.extend(_err)
         if cmp3:
-            ret3 = diff_func(base, cmp3, check_variant, {'base': lbl['base'], 'cmp': lbl['cmp3']})
+            ret3 = diff_func(base, cmp3, check_variant, filter_junk, {'base': lbl['base'], 'cmp': lbl['cmp3']})
             ret, _err = Diff._merge_by_combine(ret, ret3, base_key=lbl['base'])
             err.extend(_err)
         return ret, err
 
     @classmethod
-    def _diff_one(cls, base):
+    def _diff_one(cls, base, filter_junk):
         """ 将单独一份文本按照_diff_two的格式输出"""
-        base = Diff.pre_base(base)
+        base = Diff.pre_base(base, True, filter_junk)
         ret, line_no = [], 1
         for line in base.split('\n'):
             if line:
@@ -87,7 +89,7 @@ class Diff(object):
         return ret
 
     @classmethod
-    def _diff_two_v2(cls, base, cmp, check_variant=True, label=None):
+    def _diff_two_v2(cls, base, cmp, check_variant=True, filter_junk=True, label=None):
         lbl = {'base': 'base', 'cmp': 'cmp'}
         if label and isinstance(label, dict):
             lbl.update(label)
@@ -95,7 +97,7 @@ class Diff(object):
         # 和v1不同，v2在比较时，先去掉换行符，以免对diff算法干扰
         base = base.replace('|', '\n').rstrip('\n')
         base_lines = base.split('\n')
-        base = cls.pre_base(base, False)
+        base = cls.pre_base(base, False, filter_junk)
         cmp = cls.pre_cmp(cmp)
         segments = []
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
@@ -182,13 +184,13 @@ class Diff(object):
         return line_segments
 
     @classmethod
-    def _diff_two_v1(cls, base, cmp, check_variant=True, label=None):
+    def _diff_two_v1(cls, base, cmp, check_variant=True, filter_junk=True, label=None):
         lbl = {'base': 'base', 'cmp': 'cmp'}
         if label and isinstance(label, dict):
             lbl.update(label)
 
         ret, line_no = [], 1
-        base, cmp = cls.pre_base(base), cls.pre_cmp(cmp)
+        base, cmp = cls.pre_base(base, True, filter_junk), cls.pre_cmp(cmp)
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
         for tag, i1, i2, j1, j2 in s.get_opcodes():
             t1, t2 = base[i1:i2], cmp[j1:j2]

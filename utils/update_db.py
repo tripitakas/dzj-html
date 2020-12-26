@@ -19,7 +19,8 @@ def index_db(db):
         'user': ['name', 'email', 'phone'],
         'page': ['name', 'page_code', 'source', 'tasks'],
         'char': ['name', 'source', 'uid', 'ocr_txt', 'txt', 'diff', 'un_required', 'cc', 'sc', 'txt_level', 'has_img'],
-        'task': ['task_type', 'collection', 'id_name', 'doc_id', 'txt_kind', 'status'],
+        'task': ['batch', 'task_type', 'num', 'collection', 'id_name', 'doc_id', 'txt_kind', 'status', 'is_oriented',
+                 'picked_user_id'],
         'log': ['create_time', 'user_id', 'op_type'],
         'variant': ['txt', 'normal_txt'],
     }
@@ -41,7 +42,7 @@ def init_variants(db):
     print('add %s variants' % len(variants2insert))
 
 
-def main(db_name='tripitaka', uri='localhost', func='index_db', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

@@ -22,6 +22,12 @@ class TptkViewHandler(PageHandler):
     URL = '/tptk/@page_prefix'
 
     @staticmethod
+    def get_book_meta(page):
+        if page.get('book_page'):
+            v, p, b = page['book_page'].split('_')
+            return '册%s，页%s，栏%s' % (v, p, b)
+
+    @staticmethod
     def pad_name(page_name, level=3):
         """ 根据层次补齐page_name"""
         name_slice = page_name.split('_')
@@ -71,11 +77,12 @@ class TptkViewHandler(PageHandler):
                     nav['next'] = nav['last']
 
             cid = self.get_query_argument('cid', '')
+            book_meta = self.get_book_meta(page) or ''
 
             self.render(
                 'tptk.html', tripitaka=tripitaka, page=page, page_name=page_name, volume_code=volume_code,
                 tripitaka_code=name_slice[0], chars_col=chars_col, txts=txts, nav=nav, cur_cid=cid,
-                img_url=img_url,
+                book_meta=book_meta, img_url=img_url,
             )
 
         except Exception as error:
@@ -91,13 +98,20 @@ class TptkMetaHandler(BaseHandler):
             tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code})
             if not tripitaka:
                 return self.send_error_response(e.no_object, message='藏经%s不存在' % tripitaka_code)
-            trans = dict(sutra='经', reel='卷', volume='册')
-            title = '%s-%s目' % (tripitaka['name'], trans[collection])
+
             model = eval(collection.capitalize())
             kwargs = model.get_template_kwargs()
             kwargs['actions'] = []
+            kwargs['search_tips'] = kwargs['search_tips'].replace('统一经编码、', '')
+            hide_fields = ['envelop_no', 'volume_no', 'uni_sutra_code', 'trans_time', 'remark']
+            kwargs['search_fields'] = [f for f in kwargs['search_fields'] if f not in hide_fields]
+            kwargs['search_tips'] = '请搜索' + '、'.join([model.get_field_name(f) for f in kwargs['search_fields']])
+            kwargs['table_fields'] = [f for f in kwargs['table_fields'] if f['id'] not in hide_fields]
+
+            trans = dict(sutra='经', reel='卷', volume='册')
+            title = '%s-%s目' % (tripitaka['name'], trans[collection])
             condition = {'%s_code' % collection: {'$regex': tripitaka_code}}
-            docs, pager, q, order = model.find_by_page(self, condition=condition)
+            docs, pager, q, order = model.find_by_page(self, condition, kwargs['search_fields'])
             self.render('tptk_meta.html', collection=collection, tripitaka=tripitaka, tripitaka_code=tripitaka_code,
                         title=title, docs=docs, pager=pager, q=q, order=order, **kwargs)
 

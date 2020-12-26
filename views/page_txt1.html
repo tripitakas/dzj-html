@@ -87,6 +87,11 @@
         <div id="enlarge-txt-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
         <div id="reduce-txt-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
         <div id="toggle-layout0" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="切换为页图模式"></div>
+        <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
+        <div class="btn-group more-group hide" id="more-group">
+          <span id="btn-box" class="btn btn-default btn-sm" type="button">修改字框</span>
+          <span id="btn-order" class="btn btn-default btn-sm" type="button">修改字序</span>
+        </div>
       </div>
       <div class="right">
         {% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_task_btns.html %} {% end %}
@@ -297,6 +302,21 @@
       var size = parseInt($(item).css('font-size')) + 2;
       $(item).css('font-size', size + 'px');
     });
+  });
+
+  // 更多操作
+  $(document).on('click', '#toggle-more', function () {
+    $('#more-group').toggleClass('hide');
+  });
+
+  // 修改字框
+  $('#btn-box').on('click', function () {
+    location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
+  });
+
+  // 修改字序
+  $('#btn-order').on('click', function () {
+    location = '/page/order/{{page["name"]}}?from=' + encodeFrom();
   });
 
 </script>

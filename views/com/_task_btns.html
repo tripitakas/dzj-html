@@ -4,14 +4,14 @@
 <div id="task-config" class="btn-txt icon-config {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="任务配置"></div>
 <div id="task-my-remark" class="btn-txt icon-edit2 {{'' if handler.mode in ['do', 'update'] else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
 <div id="task-return" class="btn-txt icon-return-task {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="退回任务"></div>
-<div id="step-prev" class="btn-txt icon-prev-step {{'' if handler.steps['prev'] else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="上一步"></div>
-<div id="step-next" class="btn-txt icon-next-step {{'' if handler.steps['next'] and (not steps_unfinished2 or handler.mode in ['view', 'browse']) else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="下一步"></div>
+<div id="step-prev" class="btn-txt icon-prev-step {{'' if handler.steps['prev'] else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="上一步[p]"></div>
+<div id="step-next" class="btn-txt icon-next-step {{'' if handler.steps['next'] and (not steps_unfinished2 or handler.mode in ['view', 'browse']) else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="下一步[n]"></div>
 <!--有下一步且（步骤已完成或view、browse模式）-->
 {% end %}
 
 {% if hasattr(handler, 'task_type') and handler.task_type and not steps_unfinished2 %}
 <div id="page-submit" class="btn-txt icon-done {{'' if handler.submit_by_page and not handler.readonly else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="提交当前页"></div>
-<div id="task-submit" class="btn-txt icon-submit {{'hide' if handler.steps['next'] or handler.readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交任务"></div>
+<div id="task-submit" class="btn-txt icon-submit {{'hide' if handler.steps['next'] or handler.readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交任务[t]"></div>
 {% end %}
 
 {% if handler.mode == 'browse' %}

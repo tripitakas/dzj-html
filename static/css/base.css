@@ -55,7 +55,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   background: url(../imgs/fbg.png) repeat;
-  font-family: Microsoft YaHei, SimSun, sans-serif, Helvetica Neue, Helvetica;
+  font-family: Microsoft YaHei, SimSun, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
+  /*font-family: Microsoft YaHei, SimSun, sans-serif, Helvetica Neue, Helvetica;*/
 }
 
 img {
@@ -803,6 +804,7 @@ body.widescreen {
 
 .modal .control-label {
   padding: 7px 0;
+  clear: left;
 }
 
 .modal .form-control {

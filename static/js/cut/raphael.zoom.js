@@ -14,7 +14,7 @@ Raphael.fn.elements = function() {
     b = b.next; 
   }
   return r;
-}
+};
 
 // initialize zoom of paper
 Raphael.fn.initZoom = function(zoom) {
@@ -26,7 +26,7 @@ Raphael.fn.initZoom = function(zoom) {
   }
   
   return this;
-}
+};
 
 // set the zoom of all elements
 Raphael.fn.setZoom = function(zoom) {
@@ -42,7 +42,7 @@ Raphael.fn.setZoom = function(zoom) {
   this.zoom = zoom;
   
   return this;
-}
+};
 
 // initialize zoom of element
 Raphael.el.initZoom = function(zoom) {
@@ -59,13 +59,13 @@ Raphael.el.initZoom = function(zoom) {
   this.setStrokeWidth(sw / zoom);
   
   if (this.type == "text") {
-    var fs = parseFloat(this.attr("font-size")) || 0
+    var fs = parseFloat(this.attr("font-size")) || 0;
     this.zoom_memory["font-size"] = fs;
     this.zoom_memory["x"] = (parseFloat(this.attrs["x"]) || 0) / zoom;
     this.zoom_memory["y"] = (parseFloat(this.attrs["y"]) || 0) / zoom;
   }
   return this;
-}
+};
 
 // zoom element preserving some original values
 Raphael.el.setZoom = function(zoom) {
@@ -90,7 +90,7 @@ Raphael.el.setZoom = function(zoom) {
     });
   
   return this;
-}
+};
 
 // set element zoomed attributes
 Raphael.el.setAttr = function() {
@@ -105,23 +105,23 @@ Raphael.el.setAttr = function() {
     switch(key) {
       case "stroke-width":
         this.setStrokeWidth(attr[key]);
-      break;
+        break;
       case "font-size":
         this.setFontSize(attr[key]);
-      break;
+        break;
       case "x":
       case "y":
         if (this.type == "text")
           this.zoom_memory[key] = attr[key] / this.zoom;
         this.attr(key, attr[key]);
-      break;
+        break;
       default:
         this.attr(key, attr[key]);
-      break;
+        break;
     }
   }
   return this;
-}
+};
 
 // set element translation
 Raphael.el.setTranslation = function(x, y) {
@@ -134,7 +134,7 @@ Raphael.el.setTranslation = function(x, y) {
     this.translate(x,y);
   
   return this;
-}
+};
 
 // set element rotation
 Raphael.el.setRotation = function(angle, x, y) {
@@ -147,7 +147,7 @@ Raphael.el.setRotation = function(angle, x, y) {
   this._.rt = { cx: null, cy: undefined, deg: 360 };
   
   return this;
-}
+};
 
 // set element zoomed stroke width
 Raphael.el.setStrokeWidth = function(value) {
@@ -158,7 +158,7 @@ Raphael.el.setStrokeWidth = function(value) {
   }
   
   return this;
-}
+};
 
 // set element font size
 Raphael.el.setFontSize = function(value) {
@@ -168,7 +168,7 @@ Raphael.el.setFontSize = function(value) {
   }
   
   return this;
-}
+};
 
 // apply the current scale and reset it to 1
 Raphael.el.applyScale = function() {
@@ -178,6 +178,6 @@ Raphael.el.applyScale = function() {
     this.scale(1, 1);
   }
   return this;
-}
+};
 
 

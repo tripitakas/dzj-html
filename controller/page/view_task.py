@@ -4,6 +4,7 @@
 import re
 from bson import json_util
 from datetime import datetime
+from operator import itemgetter
 from controller import errors as e
 from controller.page.base import PageHandler
 from controller.page.view import PageTxtHandler
@@ -26,6 +27,7 @@ class PageTaskListHandler(PageHandler):
         {'id': 'priority', 'name': '优先级', 'filter': PageHandler.priorities},
         {'id': 'steps', 'name': '步骤'},
         {'id': 'pre_tasks', 'name': '前置任务'},
+        {'id': 'is_oriented', 'name': '是否定向', 'filter': PageHandler.yes_no},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
@@ -98,7 +100,7 @@ class PageTaskStatHandler(PageHandler):
     URL = '/page/task/statistic'
 
     def get(self):
-        """ 根据用户、任务类型或任务状态统计页任务"""
+        """ 根据用户、批次、任务类型或任务状态统计"""
         try:
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
@@ -110,16 +112,25 @@ class PageTaskStatHandler(PageHandler):
                 {'$sort': {'count': -1}},
             ]))
 
-            trans = {}
+            head, rows = [], []
             if kind == 'picked_user_id':
+                head = ['用户', '分组', '数量']
                 users = list(self.db.user.find({'_id': {'$in': [c['_id'] for c in counts]}}))
-                trans = {u['_id']: u['name'] for u in users}
+                users = {u['_id']: [u.get('name'), u.get('group') or ''] for u in users}
+                rows = [[*users.get(c['_id'], ['', '']), c['count']] for c in counts]
+                rows.sort(key=itemgetter(1))
             elif kind == 'task_type':
-                trans = {k: t['name'] for k, t in PageHandler.task_types.items()}
+                head = ['任务类型', '数量']
+                rows = [[self.task_types[c['_id']]['name'] or c['_id'], c['count']] for c in counts]
             elif kind == 'status':
-                trans = self.task_statuses
-            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态', batch='批次')[kind]
-            self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='page')
+                head = ['任务状态', '数量']
+                rows = [[self.task_statuses['_id'], c['count']] for c in counts]
+            elif kind == 'batch':
+                head = ['批次', '数量']
+                rows = [[c['_id'], c['count']] for c in counts]
+            total = sum([c['count'] for c in counts])
+            self.render('task_statistic.html', collection='page', kind=kind, total=total, head=head, rows=rows,
+                        title='页任务统计')
 
         except Exception as error:
             return self.send_db_error(error)

@@ -18,6 +18,7 @@ class Char(Model):
         {'id': 'source', 'name': '分类'},
         {'id': 'has_img', 'name': '是否已有字图'},
         {'id': 'img_need_updated', 'name': '是否需要更新字图'},
+        {'id': 'diff', 'name': '是否不匹配'},
         {'id': 'un_required', 'name': '是否不必校对'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
@@ -54,15 +55,11 @@ class Char(Model):
         return cls.prop(cls.txt_types, txt_type) or txt_type
 
     @classmethod
-    def reset_order(cls, order):
-        trans = {'name': 'uid', '-name': '-uid'}
-        return trans.get(order) or order
-
-    @classmethod
     def get_char_search_condition(cls, request_query):
         def c2int(c):
             return int(float(c) * 1000)
 
+        # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(), dict()
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:
