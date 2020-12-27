@@ -393,19 +393,20 @@ class ChangeUserFieldsApi(BaseHandler):
     def post(self, field):
         """ 修改用户角色"""
         try:
-            rules = [(v.not_empty, '_id'), (v.not_both_empty, 'roles', 'task_batch')]
+            if field == 'role':
+                field = 'roles'
+            rules = [(v.not_empty, '_id', field)]
             self.validate(self.data, rules)
 
             user = self.db.user.find_one(dict(_id=ObjectId(self.data['_id'])))
             if not user:
                 return self.send_error_response(e.no_user, id=self.data['_id'])
 
-            if field == 'role':
-                field = 'roles'
-                value = self.data.get('roles') or ''
+            if field == 'roles':
+                value = (self.data.get('roles') or '').strip()
             else:
                 value = self.data.get('task_batch') or {}
-            r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': {field: value.strip()}})
+            r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': {field: value}})
 
             if not r.matched_count:
                 return self.send_error_response(e.no_user)
