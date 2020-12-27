@@ -38,7 +38,14 @@
     }
   });
   $('.pagers .page-size').on("change", function () {
-    location.href = setQueryString('page_size', this.value);
+    var old_page_size = parseInt('{{page_size}}'),
+        page_size = this.value,
+        cur_page = parseInt('{{cur_page}}'),
+        offset = (cur_page - 1) * old_page_size,
+        new_page = Math.max(1, parseInt(offset / page_size + 1));
+
+    var search = setQueryString('page', new_page, true);
+    location.href = setQueryString('page_size', this.value, false, search);
   });
 </script>
 {% end %}
