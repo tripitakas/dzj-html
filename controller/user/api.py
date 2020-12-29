@@ -388,7 +388,7 @@ class UserlistApi(BaseHandler):
 
 
 class ChangeUserFieldsApi(BaseHandler):
-    URL = r'/api/user/(role|task_batch)'
+    URL = r'/api/user/(roles|task_batch)'
 
     def post(self, field):
         """ 修改用户角色"""
@@ -400,8 +400,8 @@ class ChangeUserFieldsApi(BaseHandler):
             if not user:
                 return self.send_error_response(e.no_user, id=self.data['_id'])
 
-            if field == 'role':
-                field, value = 'roles', self.data.get('roles') or ''
+            if field == 'roles':
+                value = self.data.get('roles') or ''
             else:
                 value = self.data.get('task_batch') or {}
             r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': {field: value}})

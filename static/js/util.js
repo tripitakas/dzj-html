@@ -68,9 +68,9 @@ function getQueryString(name) {
   return r != null ? unescape(r[2]) : '';
 }
 
-function setQueryString(name, value, onlySearch) {
-  var search = location.search;
+function setQueryString(name, value, onlySearch, search) {
   var add = name + '=' + value;
+  search = search || location.search;
   if (search.indexOf(name + '=') !== -1) {
     search = search.replace(new RegExp(name + '=.*?(&|$)', 'i'), add + '&');
     search = search.replace(/&$/, '');
