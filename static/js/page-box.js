@@ -2,12 +2,6 @@
  @desc 切分相关操作
  */
 
-// 检查字框覆盖情况、或检查框序
-$.mapKey('c', () => {
-  if ($.box.isCutMode()) $('#btn-check-cut').click();
-  else $('#btn-check-link').click();
-});
-
 // 检查框外框，并重新排序
 $('#btn-check-cut').on('click', function () {
   let r = $.box.checkBoxes();
