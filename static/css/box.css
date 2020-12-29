@@ -1,0 +1,370 @@
+.box-holder {
+  padding: 0 5px;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: auto !important;
+  text-align: center !important;
+}
+
+.box-holder svg {
+  margin: auto;
+  cursor: crosshair;
+  width: unset !important;
+  height: unset !important;;
+}
+
+.box-holder .box {
+}
+
+.box.odd {
+  stroke: green;
+  stroke-width: 1pt;
+  stroke-opacity: 0.7;
+}
+
+.box.even {
+  stroke: blue;
+  stroke-width: 1pt;
+  stroke-opacity: 0.7;
+}
+
+.box.hover {
+  fill: red;
+  fill-opacity: 0.2;
+}
+
+.box.current {
+  fill: red;
+  stroke: red;
+  fill-opacity: 0.1;
+}
+
+.box.edited {
+  stroke: red;
+  display: block;
+}
+
+.box.on-drag {
+  opacity: 0.4;
+  stroke: rgba(0, 255, 0, 0.6);
+}
+
+.box.dragging {
+  stroke: red;
+}
+
+.box.readonly {
+  stroke: rgba(192, 192, 192, 0.5);
+}
+
+.box.highlight {
+  fill: #FF69B4 !important;
+  fill-opacity: 0.3 !important;
+  display: block !important;
+}
+
+.handle {
+  stroke: red;
+  stroke-width: 0.75;
+}
+
+.handle.active {
+  fill: red;
+  fill-opacity: 0.75;
+}
+
+.box.s-deleted { /*系统删除*/
+  display: none !important;
+}
+
+/*-多选模式-*/
+.multi .box.u-selected {
+  stroke: red;
+  fill: red !important;
+  fill-opacity: 0.1 !important;
+}
+
+.multi .box.dragging {
+  stroke: grey;
+}
+
+.multi .box.hover {
+  fill: none;
+}
+
+/*-显示字框蒙白、透视、大小窄扁等-*/
+.shape-white .box {
+  fill: white !important;
+  fill-opacity: 1 !important;
+  stroke-opacity: 0 !important;
+}
+
+.shape-opacity .box {
+  fill: blue !important;
+  fill-opacity: 0.3 !important;
+  stroke-opacity: 0 !important;
+}
+
+.shape-flat .box.s-flat,
+.shape-large .box.s-large,
+.shape-small .box.s-small,
+.shape-narrow .box.s-narrow,
+.shape-overlap .box.s-overlap,
+.shape-mayWrong .box.s-mayWrong {
+  fill: blue !important;
+  fill-opacity: 0.3 !important;
+}
+
+/*-字框、列框、栏框-*/
+.box.char {
+  stroke-width: 1pt;
+}
+
+.box.column {
+  stroke-width: 1.5pt;
+}
+
+.box.block {
+  stroke-width: 2pt;
+}
+
+.show-char .char,
+.show-block .block,
+.show-column .column {
+  stroke-opacity: 0.6;
+}
+
+.show-all .box {
+  stroke-opacity: 0.3;
+}
+
+.show-char .block, .show-char .column,
+.show-block .char, .show-block .column,
+.show-column .block, .show-column .char,
+.hide-all .block, .hide-all .column, .hide-all .char {
+  display: none;
+}
+
+/*-框序-*/
+.no {
+  display: none;
+}
+
+.no.odd {
+  fill: green;
+}
+
+.no.even {
+  fill: blue;
+}
+
+.no-char {
+  font-size: 14px !important;
+}
+
+.no-column {
+  font-size: 20px !important;;
+}
+
+.no-block {
+  font-size: 32px !important;;
+}
+
+.show-char-no .no-char,
+.show-block-no .no-block,
+.show-column-no .no-column {
+  display: block;
+}
+
+/*-框线-*/
+.link {
+  display: none;
+}
+
+.link.odd {
+  stroke: green;
+}
+
+.link.even {
+  stroke: blue;
+}
+
+.link.hover {
+  stroke: red !important;
+}
+
+.link.on-drag {
+  display: none !important;
+}
+
+.link.dragging {
+  stroke: red;
+  display: block;
+}
+
+.show-char-link .ln-char,
+.show-block-link .ln-block,
+.show-column-link .ln-column {
+  display: block;
+}
+
+.order-mode .box {
+  stroke-opacity: 0.3 !important;
+}
+
+.order-mode .box.current {
+  fill: red;
+  stroke: red;
+  display: block;
+  fill-opacity: 0.1;
+  stroke-opacity: 0.7;
+}
+
+.order-mode .handle {
+  display: none !important;
+}
+
+.ln-char {
+  stroke-width: 1;
+}
+
+.ln-column {
+  stroke-width: 1.5;
+}
+
+.ln-block {
+  stroke-width: 2;
+}
+
+.cap.out {
+  fill: blue;
+  stroke: none;
+  fill-opacity: 0.6;
+}
+
+.cap.in {
+  fill: red;
+  stroke: none;
+  fill-opacity: 0.6;
+}
+
+.cut-mode .cap {
+  display: none;
+}
+
+/*-操作痕迹-*/
+.box.hint {
+  display: none;
+}
+
+.box.h-hide {
+  display: none !important;
+}
+
+.box.h-show {
+  display: block !important;
+}
+
+/*--1.用户痕迹--*/
+.box.u-added {
+  stroke: #A0522D;
+  stroke-opacity: 0.7;
+}
+
+.box.u-deleted {
+  display: none;
+}
+
+.box.u-changed {
+  stroke: red;
+  stroke-opacity: 0.7;
+}
+
+.usr-hint .box,
+.usr-hint .handle {
+  display: none;
+}
+
+.usr-hint.show-all .hint,
+.usr-hint.show-char .char.hint,
+.usr-hint.show-block .block.hint,
+.usr-hint.show-column .column.hint {
+  display: block !important;
+}
+
+.usr-hint .hint.h-added {
+  stroke: #A0522D !important;
+  stroke-opacity: 0.7 !important;
+}
+
+.usr-hint .hint.h-deleted {
+  cursor: pointer;
+  fill: white;
+  fill-opacity: 0;
+  stroke: black !important;
+  stroke-opacity: 0.7 !important;
+}
+
+.usr-hint .hint.h-changed {
+  stroke: red !important;
+  stroke-opacity: 0.7 !important;
+}
+
+/*--2.初始状态--*/
+.box.init {
+  display: none;
+}
+
+.ini-hint .handle {
+  display: none;
+}
+
+.ini-hint .box.b-added,
+.ini-hint .box.b-changed,
+.ini-hint .box.b-deleted {
+  display: none;
+}
+
+.ini-hint.show-all .init,
+.ini-hint.show-char .char.init,
+.ini-hint.show-block .block.init,
+.ini-hint.show-column .column.init {
+  display: block !important;
+}
+
+.ini-hint .box {
+  fill: none;
+  stroke: grey !important;
+  stroke-opacity: 0.5 !important;
+}
+
+/*--3.总的修改--*/
+.box.b-deleted {
+  display: none;
+}
+
+.cmb-hint .handle {
+  display: none;
+}
+
+.cmb-hint .box {
+  fill: none !important;
+  stroke: grey !important;
+  stroke-opacity: 0.2 !important;
+}
+
+.cmb-hint .box.b-added {
+  stroke: #A0522D !important;
+  stroke-opacity: 0.7 !important;
+}
+
+.cmb-hint .box.b-deleted:not(.b-added) {
+  display: block !important;
+  stroke: black !important;
+  stroke-opacity: 0.7 !important;
+}
+
+.cmb-hint .box.b-changed:not(.b-added):not(.b-deleted) {
+  stroke: red !important;
+  stroke-opacity: 0.7 !important;
+}
