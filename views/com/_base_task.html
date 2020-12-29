@@ -69,9 +69,7 @@
   window.leave = function () {
     if (from) {
       window.location = from;
-    } else if (mode === 'do') {
-      window.location = '/task/lobby/' + taskType;
-    } else if (mode === 'update') {
+    } else if (mode === 'update' || mode === 'do') {
       window.location = '/task/my/' + taskType;
     } else {
       window.history.back();
