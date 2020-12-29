@@ -73,10 +73,9 @@ class Box(BoxOrder):
         """ 根据字框调整栏框边界，去掉没有字框的栏框"""
         ret = []
         for b in blocks:
-            b_chars = [c for c in chars if str(c['block_no']) == str(b['block_no'])]
-            if b_chars:
-                b.update(cls.get_outer_range(b_chars))
-                ret.append(b)
+            b_chars = [c for c in chars if c.get('block_no') and str(c['block_no']) == str(b['block_no'])]
+            b_chars and b.update(cls.get_outer_range(b_chars))
+            ret.append(b)
         return ret
 
     @classmethod
@@ -84,11 +83,10 @@ class Box(BoxOrder):
         """ 根据字框调整列框边界，去掉没有字框的列框"""
         ret = []
         for c in columns:
-            c_chars = [ch for ch in chars if
-                       int(ch['block_no']) == int(c['block_no']) and int(ch['column_no']) == int(c['column_no'])]
-            if c_chars:
-                c.update(cls.get_outer_range(c_chars))
-                ret.append(c)
+            c_chars = [ch for ch in chars if ch.get('block_no') and ch.get('column_no') and
+                       str(ch['block_no']) == str(c['block_no']) and str(ch['column_no']) == str(c['column_no'])]
+            c_chars and c.update(cls.get_outer_range(c_chars))
+            ret.append(c)
         return ret
 
     @classmethod
@@ -174,21 +172,6 @@ class Box(BoxOrder):
             r = cls.update_box_cid(page.get(box_type))
             updated = updated or r
         return updated
-
-    @classmethod
-    def reset_page_cid(cls, page):
-        if page.get('blocks'):
-            page['blocks'].sort(key=itemgetter('block_no'))
-            for i, b in enumerate(page['blocks']):
-                b['cid'] = i + 1
-        if page.get('columns'):
-            page['columns'].sort(key=itemgetter('block_no', 'column_no'))
-            for i, b in enumerate(page['columns']):
-                b['cid'] = i + 1
-        if page.get('chars'):
-            page['chars'].sort(key=itemgetter('block_no', 'column_no', 'char_no'))
-            for i, b in enumerate(page['chars']):
-                b['cid'] = i + 1
 
     @staticmethod
     def is_box_pos_equal(box1, box2):

@@ -4,7 +4,6 @@
 import re
 from bson import json_util
 from datetime import datetime
-from operator import itemgetter
 from controller import errors as e
 from controller.page.base import PageHandler
 from controller.page.view import PageTxtHandler
@@ -15,19 +14,20 @@ class PageTaskListHandler(PageHandler):
 
     page_title = '页任务管理'
     search_tips = '请搜索页编码、批次号或备注'
-    search_fields = ['doc_id', 'batch', 'remark']
     table_fields = [
         {'id': '_id', 'name': '主键'},
         {'id': 'batch', 'name': '批次号'},
         {'id': 'doc_id', 'name': '页编码'},
-        {'id': 'char_count', 'name': '单字数量'},
         {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page', True, True)},
         {'id': 'num', 'name': '校次'},
+        {'id': 'pre_tasks', 'name': '前置任务'},
         {'id': 'status', 'name': '状态', 'filter': PageHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': PageHandler.priorities},
-        {'id': 'steps', 'name': '步骤'},
-        {'id': 'pre_tasks', 'name': '前置任务'},
-        {'id': 'is_oriented', 'name': '是否定向', 'filter': PageHandler.yes_no},
+        {'id': 'char_count', 'name': '单字数量'},
+        {'id': 'added', 'name': '新增'},
+        {'id': 'deleted', 'name': '删除'},
+        {'id': 'changed', 'name': '修改'},
+        {'id': 'total', 'name': '所有'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
@@ -38,6 +38,7 @@ class PageTaskListHandler(PageHandler):
         {'id': 'finished_time', 'name': '完成时间'},
         {'id': 'remark', 'name': '备注'},
     ]
+    search_fields = ['doc_id', 'batch', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
@@ -100,7 +101,7 @@ class PageTaskStatHandler(PageHandler):
     URL = '/page/task/statistic'
 
     def get(self):
-        """ 根据用户、批次、任务类型或任务状态统计"""
+        """ 根据用户、任务类型或任务状态统计页任务"""
         try:
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
@@ -112,25 +113,16 @@ class PageTaskStatHandler(PageHandler):
                 {'$sort': {'count': -1}},
             ]))
 
-            head, rows = [], []
+            trans = {}
             if kind == 'picked_user_id':
-                head = ['用户', '分组', '数量']
                 users = list(self.db.user.find({'_id': {'$in': [c['_id'] for c in counts]}}))
-                users = {u['_id']: [u.get('name'), u.get('group') or ''] for u in users}
-                rows = [[*users.get(c['_id'], ['', '']), c['count']] for c in counts]
-                rows.sort(key=itemgetter(1))
+                trans = {u['_id']: u['name'] for u in users}
             elif kind == 'task_type':
-                head = ['任务类型', '数量']
-                rows = [[self.task_types[c['_id']]['name'] or c['_id'], c['count']] for c in counts]
+                trans = {k: t['name'] for k, t in PageHandler.task_types.items()}
             elif kind == 'status':
-                head = ['任务状态', '数量']
-                rows = [[self.task_statuses['_id'], c['count']] for c in counts]
-            elif kind == 'batch':
-                head = ['批次', '数量']
-                rows = [[c['_id'], c['count']] for c in counts]
-            total = sum([c['count'] for c in counts])
-            self.render('task_statistic.html', collection='page', kind=kind, total=total, head=head, rows=rows,
-                        title='页任务统计')
+                trans = self.task_statuses
+            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态', batch='批次')[kind]
+            self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans, collection='page')
 
         except Exception as error:
             return self.send_db_error(error)
@@ -282,20 +274,8 @@ class PageTaskCutHandler(PageHandler):
             self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
 
         self.pack_boxes(page)
-        img_url = self.get_page_img(page)
-        if self.steps['current'] == 'order':
-            reorder = self.get_query_argument('reorder', '')
-            if reorder:
-                page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
-            chars_col = self.get_chars_col(page['chars'])
-            self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=self.readonly)
-        else:
-            self.set_box_access(page, task_type)
-            submitted = self.prop(self.task, 'steps.submitted', [])
-            steps_finished = self.prop(self.task, 'result.steps_finished') or 'box' in submitted
-            steps_unfinished = True if steps_finished is None else not steps_finished
-            self.render('page_box.html', page=page, img_url=img_url, steps_unfinished=steps_unfinished,
-                        readonly=self.readonly)
+        page['img_url'] = self.get_page_img(page)
+        self.render('page_box2.html', page=page, readonly=self.readonly)
 
 
 class PageTaskTextHandler(PageHandler):
