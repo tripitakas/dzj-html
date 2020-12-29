@@ -226,7 +226,7 @@
 </div>
 
 {% include com/_base_js.html %}
-{% include com/_base_task.html %}
+<script src="{{static_url('js/box/jquery.mapKey.js')}}"></script>
 <script src="{{static_url('js/box/raphael.js')}}"></script>
 <script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
 <script src="{{static_url('js/box/box.base.js')}}"></script>
@@ -237,6 +237,7 @@
 <script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/box/box.page.js')}}"></script>
 <script src="{{static_url('js/page-box.js')}}"></script>
+{% include com/_base_task.html %}
 <script>
   $.page.init({
     holder: '.box-holder',
@@ -268,21 +269,15 @@
     postApi(location.pathname, {data: data}, function (res) {
       bsShow('成功!', '已保存。', 'info', 1000);
       $this.removeClass('disabled');
-      if (id === 'task-submit')
+      if (id === 'save') {
+        location.reload();
+      } else if (id === 'task-submit') {
         pick(taskType);
-      else if (id === 'task-submit-back') {
+      } else {
         location.href = '/task/lobby/' + taskType;
       }
     });
   });
-
-  // 调试代码
-  $('#btn-debug').on('click', function () {
-  });
-  window.onload = function () {
-    // $('#toggle-order').click();
-  };
-
 </script>
 </body>
 </html>
