@@ -176,7 +176,7 @@ class APITestCase(AsyncHTTPTestCase):
         if roles:
             for u in users:
                 u['roles'] = u.get('roles', roles)
-                r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u['roles'])})
+                r = self.fetch('/api/user/roles', body={'data': dict(_id=u['_id'], roles=u['roles'])})
                 self.assert_code(200, r)
         return users
 
@@ -192,7 +192,7 @@ class APITestCase(AsyncHTTPTestCase):
         roles = ','.join(auth.get_assignable_roles())
         if '系统管理员' not in roles:
             roles += ',系统管理员'
-        r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=roles)})
+        r = self.fetch('/api/user/roles', body={'data': dict(_id=u['_id'], roles=roles)})
         self.assert_code(200, r)
         return r
 

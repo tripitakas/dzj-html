@@ -132,7 +132,7 @@
     }
     var name = $roleModal.find('#name').text();
     var data = {_id: $roleModal.find('#_id').text(), roles: roles};
-    postApi('/user/role', {data: data}, function () {
+    postApi('/user/roles', {data: data}, function () {
       showSuccess('修改成功', name + ' 的信息已修改。', 2000);
       refresh(1000);
     }, function (err) {
