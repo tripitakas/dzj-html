@@ -285,8 +285,8 @@ role_route_maps = {
             '/user/admin': ['GET'],
             '/api/user/admin': ['POST'],
             '/api/user/admin/(delete|reset_pwd)': ['POST'],
-            '/user/role': ['GET'],
-            '/api/user/role': ['POST'],
+            '/user/roles': ['GET'],
+            '/api/user/roles': ['POST'],
         }
     },
     '系统管理员': {
