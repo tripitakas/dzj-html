@@ -1,0 +1,564 @@
+/**
+ * box.base.js is used for cutting chars within image by drawing rectangle boxes.
+ * It is base on raphael: https://dmitrybaranovskiy.github.io/raphael/reference.html
+ * Notice:
+ * 1. box.base.js依赖于box.css和css box-holder类
+ *    如果有画布，则画布将画在box-holder上；如果没有画布，则用page-img显示图片
+ * 2. Raphael会将页面svg元素的属性存在内部变量element中，它不是实时的。如果用js直接修改svg元素的属性，
+ *    element中的属性并不会同步更新。在使用时要留意这一点
+ * 3. Raphael内部变量保存在box.elem中。box.elem的class有多种属性，通过这些属性来控制元素的显示效果。
+ *    框的所有操作历史（包括此次和此前的增删改）在初始化时设置在class属性中，包括b-added/b-deleted/b-changed
+ * 4. element的attrs属性保留的是初始的坐标，而getBBox函数返回的是zoom之后的坐标
+ * 5. 事件函数回调：boxObservers/onBoxChanged/notifyChanged
+ *    - 内部事件通过notifyChanged传给boxObservers中的函数
+ *    - 内部或外部函数都可以通过onBoxChanged来捕获各种事件进行处理
+ * Date: 2020-12-25
+ */
+(function () {
+  'use strict';
+
+  // 数据定义
+  let data = {
+    paper: null,                                    // Raphael画布
+    holder: null,                                   // 画布所在的页面元素
+    image: {elem: null, width: null, height: null}, // 背景图
+    showMode: null,                                 // 初始化的显示模式
+    initRatio: 1,                                   // 框坐标初始化的缩放比例
+    ratio: 1,                                       // Raphael画布当前的缩放比例
+    boxes: [],                                      // 带坐标的box数据
+    boxObservers: [],                               // box改变的回调函数
+  };
+
+  // 当前状态
+  let status = {
+    userId: '',                                     // 用户id
+    boxMode: 'cut',                                 // cut/order
+    readonly: true,                                 // 是否只读
+    curBox: null,                                   // 当前框
+    curBoxType: 'char',                             // 当前框类型
+    curNoType: 'char',                              // 当前序号类型
+  };
+
+  $.box = {
+    data: data,
+    status: status,
+    initSvg: initSvg,
+    setParam: setParam,
+    cmpBox: cmpBox,
+    setBoxes: setBoxes,
+    getBoxes: getBoxes,
+    navigate: navigate,
+    isOverlap: isOverlap,
+    isDeleted: isDeleted,
+    showBoxes: showBoxes,
+    getBoxId: getBoxId,
+    getMaxCid: getMaxCid,
+    createBox: createBox,
+    createRect: createRect,
+    switchCurBox: switchCurBox,
+    findFirstBox: findFirstBox,
+    setCurBoxType: setCurBoxType,
+    highlightBoxes: highlightBoxes,
+    findBoxByPoint: findBoxByPoint,
+    scrollToVisible: scrollToVisible,
+    isInRect: isInRect,
+    getTxt: getTxt,
+    getPoint: getPoint,
+    getDistance: getDistance,
+    getHandlePt: getHandlePt,
+    showNo: showNo,
+    toggleNo: toggleNo,
+    zoomImg: zoomImg,
+    toggleImage: toggleImage,
+    initImgRatio: initImgRatio,
+    setImageOpacity: setImageOpacity,
+    round: round,
+    hasClass: hasClass,
+    addClass: addClass,
+    removeClass: removeClass,
+    toggleClass: toggleClass,
+    onBoxChanged: onBoxChanged,
+    notifyChanged: notifyChanged,
+  };
+
+  /*
+  * 初始化画布
+  * holder为必选项。imgUrl为可选项，表示画布的背景图的url。
+  * width/height为可选项，表示画布初始宽和高。如果没有设置，则仅显示图片，不设置画布。
+  * showMode为可选项，表示缩放模式，可以为空，或者'width-full'/'height-full'/'no-scroll'。
+  */
+  function initSvg(holder, imgUrl, width, height, showMode) {
+    // holder
+    let hd = holder.substr(1);
+    data.holder = holder.startsWith('#') ? document.getElementById(hd) : document.getElementsByClassName(hd)[0];
+    data.showMode = showMode;
+    // svg画布模式 or 纯图片模式
+    if (!width) return initImg(imgUrl);
+    // ratio
+    let r = initRatio(width, height, showMode);
+    Object.assign(data.image, {width: width, height: height});
+    // paper and image
+    data.paper = Raphael(data.holder, width * r, height * r);
+    Object.assign(data.image, {width: width, height: height});
+    data.image.elem = imgUrl && imgUrl.indexOf('err=1') < 0 && data.paper.image(imgUrl, 0, 0, width * r, height * r);
+    if ($.fn.mapKey) $.fn.mapKey.enabled = true;
+  }
+
+  function initRatio(width, height, showMode) {
+    showMode = showMode || data.showMode;
+    let r = 1, rw = ($(data.holder).width() - 15) / width, rh = ($(data.holder).height() - 5) / height;
+    if (showMode === 'width-full') r = rw;
+    else if (showMode === 'height-full') r = rh;
+    else if (showMode === 'no-scroll') r = Math.min(rw, rh);
+    data.initRatio = r;
+    return r;
+  }
+
+  function initImg(imgUrl) {
+    $(data.holder).html('<div class="box-holder"><div class="page-img"><img src="' + imgUrl + '" alt="图片不存在"/></div></div>')
+  }
+
+  function initImgRatio() {
+    if (!data.image.width) {
+      let img = $(data.holder).find('.page-img img');
+      initRatio(img.width(), img.height(), data.showMode);
+      zoomImg(1);
+    }
+  }
+
+  function setParam(param) {
+    if (param.userId !== undefined) status.userId = param.userId;
+    if (param.boxMode !== undefined) status.boxMode = param.boxMode;
+    if (param.readonly !== undefined) status.readonly = param.readonly;
+  }
+
+  function cmpBox(a, b) {
+    // 1. 栏框>列框>字框
+    let t = {block: 1, column: 2, char: 3};
+    if (a.boxType !== b.boxType) return t[a.boxType] - t[b.boxType];
+    // 2. 依次比较栏号、列号、字号
+    let bno1 = a.block_no || 0, bno2 = b.block_no || 0;
+    if (bno1 !== bno2) return bno1 - bno2;
+    let cno1 = a.column_no || 0, cno2 = b.column_no || 0;
+    if (cno1 !== cno2) return cno1 - cno2;
+    return (a.char_no || 0) - (b.char_no || 0);
+  }
+
+  function isDeleted(box) {
+    return box.op === 'deleted' || (box.deleted && box.op !== 'recovered');
+  }
+
+  function isOverlap(e1, e2) {
+    let ext = 2 * data.ratio;
+    let b1 = (e1.elem || e1).getBBox(), b2 = (e2.elem || e2).getBBox();
+    let out = b1.x > b2.x2 - ext || b2.x > b1.x2 - ext || b1.y > b2.y2 - ext || b2.y > b1.y2 - ext;
+    return !out;
+  }
+
+  function setBoxes(param) {
+    // reset boxes
+    if (param.reset) {
+      data.boxes.forEach((b) => b.elem.remove());
+      data.boxes = [];
+    }
+    // set boxType
+    if (param.boxes) {
+      if (param.boxType) param.boxes.forEach((b) => b.boxType = param.boxType);
+      data.boxes.push(...param.boxes);
+    }
+    if (param.blocks) {
+      param.blocks.forEach((b) => b.boxType = 'block');
+      data.boxes.push(...param.blocks);
+    }
+    if (param.columns) {
+      param.columns.forEach((b) => b.boxType = 'column');
+      data.boxes.push(...param.columns);
+    }
+    if (param.chars) {
+      param.chars.forEach((b) => b.boxType = 'char');
+      data.boxes.push(...param.chars);
+    }
+    // set params and draw boxes
+    data.boxes.sort(cmpBox).forEach(function (box, i) {
+      box.idx = i;
+      box.cid = box.cid || (getMaxCid(box.boxType) + 1);
+      box.elem = createBox(box).attr({'id': box.boxType + box.cid + '#' + i});
+    });
+  }
+
+  function getBoxes() {
+    let blocks = [], columns = [], chars = [];
+    data.boxes.forEach((b) => {
+      if (isDeleted(b)) return;
+      if (b.boxType === 'char') chars.push(b);
+      if (b.boxType === 'block') blocks.push(b);
+      if (b.boxType === 'column') columns.push(b);
+    });
+    return {blocks: blocks, columns: columns, chars: chars};
+  }
+
+  /**
+   * 显示字框
+   * @param boxType 显示哪个boxType的字框。可选, 如果为空，则显示所有
+   * @param cids 显示哪些cid对应的字框。可选, 如果为空，则显示所有
+   * @param reset 是否隐藏其它字框，可选
+   */
+  function showBoxes(boxType, cids, reset) {
+    if (boxType && typeof boxType === 'string') boxType = [boxType];
+    data.boxes.forEach(function (b, i) {
+      if ((!boxType || boxType.indexOf(b.boxType) > -1) && (!cids || cids.indexOf(b.cid) > -1)) {
+        if (b.elem) {
+          removeClass(b.elem, 'hide');
+        } else {
+          b.elem = createBox(b);
+          b.elem.attr({'id': b.boxType + b.cid + '#' + i});
+        }
+      } else if (reset) {
+        addClass(b, 'hide');
+      }
+    });
+  }
+
+  function setCurBoxType(boxType) {
+    status.curBoxType = boxType;
+  }
+
+  function highlightBoxes(boxType, cids, reset) {
+    if (typeof boxType === 'string') boxType = [boxType];
+    data.boxes.forEach(function (b) {
+      if ((!boxType || boxType.indexOf(b.boxType) > -1) && (!cids || cids.indexOf(b.cid) > -1)) {
+        if (!b.elem) showBoxes(b.boxType, [b.cid]);
+        addClass(b.elem, 'highlight');
+      } else if (reset) {
+        removeClass(b.elem, 'highlight');
+      }
+    });
+  }
+
+  function scrollToVisible(elem) {
+    if (elem && elem.elem) elem = elem.elem;
+    if (!elem || !elem.getBBox()) return;
+    let unit = 10;
+    let patch = unit * data.ratio;
+    let bb = elem.getBBox();
+    let hd = $($.box.data.holder);
+    let bd = $.box.data.holder.getBoundingClientRect();
+    let vb = {x: hd.scrollLeft(), y: hd.scrollTop(), w: bd.width, h: bd.height};
+    if (vb.x > bb.x) { // elem在视窗左侧
+      hd.scrollLeft(bb.x - unit);
+    }
+    if (bb.x2 > vb.x + vb.w) { // elem在视窗右侧
+      hd.scrollLeft(bb.x2 - vb.w + unit + patch);
+    }
+    if (vb.y > bb.y) { // elem在视窗上侧
+      hd.scrollTop(bb.y - unit);
+    }
+    if (bb.y2 > vb.y + vb.h) { // elem在视窗下侧
+      hd.scrollTop(bb.y2 - vb.h + unit + patch);
+    }
+  }
+
+  function navigate(direction) {
+    if (status.isMulti) return;
+    if (!status.curBox) {
+      for (let i = 0, len = data.boxes.length; i < len; i++) {
+        if (!status.curBoxType || data.boxes[i].boxType === status.curBoxType)
+          return switchCurBox(data.boxes[i]);
+      }
+    }
+    let cur = status.curBox.elem.getBBox();
+    let d, calc, ret = null, minDist = 1e8, invalid = 1e8;
+    if (direction === 'left' || direction === 'right') {
+      calc = function (box) {
+        if (direction === 'left' && (box.x > cur.x)) return invalid;
+        if (direction === 'right' && (box.x2 < cur.x2)) return invalid;
+        let dx = direction === 'left' ? (cur.x - box.x) : (box.x2 - cur.x2);
+        let dy = Math.abs(box.y + box.height / 2 - cur.y - cur.height / 2);
+        return dx * dx + 10 * dy * dy;
+      };
+    } else {
+      calc = function (box) {
+        if (direction === 'up' && (box.y > cur.y)) return invalid;
+        if (direction === 'down' && (box.y2 < cur.y2)) return invalid;
+        let dy = direction === 'up' ? (cur.y - box.y) : (box.y2 - cur.y2);
+        let dx = Math.abs(box.x + box.width / 2 - cur.x - cur.width / 2);
+        return 10 * dx * dx + dy * dy;
+      };
+    }
+    let boxType = status.curBoxType;
+    data.boxes.forEach(function (box) {
+      let pt = box.elem && box.elem.getBBox();
+      if (!pt || isDeleted(box) || equal(box, status.curBox)) return;
+      if (boxType && box.boxType !== boxType) return;
+      d = calc(pt);
+      if (d < minDist) {
+        minDist = d;
+        ret = box;
+      }
+    });
+    if (!ret && (direction === 'down' || direction === 'up')) {
+      let idx = data.boxes.indexOf(status.curBox);
+      idx += direction === 'down' ? 1 : -1;
+      if (idx < 0) idx = 0;
+      if (idx > data.boxes.length - 1) idx = data.boxes.length - 1;
+      ret = data.boxes[idx];
+      if (boxType && ret.boxType !== boxType) ret = null;
+    }
+    ret && scrollToVisible(ret);
+    switchCurBox(ret);
+  }
+
+  function findBoxByPoint(pt, boxType, func) {
+    if (!pt || !pt.x) return;
+    let ext = 5; // 字框四边往外延伸的冗余量
+    let ret = null, dist = 1e5;
+    data.boxes.forEach(function (box) {
+      if (box.elem && (!boxType || box.boxType === boxType) && isInRect(pt, box.elem, ext)) {
+        if (func && !func(box)) return;
+        for (let j = 0; j < 8; j++) {
+          let d = getDistance(pt, getHandlePt(box.elem, j));
+          if (d < dist) {
+            dist = d;
+            ret = box;
+          }
+        }
+      }
+    });
+    return ret;
+  }
+
+  function findFirstBox(boxType) {
+    for (let i = 0, len = data.boxes.length; i < len; i++) {
+      let b = data.boxes[i];
+      if (b.boxType === boxType && !isDeleted(b)) return b;
+    }
+  }
+
+  function switchCurBox(box) {
+    if (box) {
+      if (!equal(box, status.curBox)) {
+        removeClass(status.curBox, 'current');
+        addClass(box, 'current');
+        status.curBox = box;
+      }
+    } else {
+      removeClass(status.curBox, 'current hover');
+      status.curBox = null;
+    }
+    notifyChanged(box, 'switch');
+  }
+
+  /**
+   * 根据两个对角点创建字框图形
+   * transPos为真时，pt1、pt2是相对于当前画布的坐标，因此需要将坐标转换为相对于初始画布的坐标，然后再zoom至当前画布
+   */
+  function createRect(pt1, pt2, cls, transPos, force) {
+    let r = transPos ? data.ratio : 1;
+    let x = Math.min(pt1.x, pt2.x) / r, y = Math.min(pt1.y, pt2.y) / r;
+    let w = Math.abs(pt1.x - pt2.x) / r, h = Math.abs(pt1.y - pt2.y) / r;
+    if (w >= 5 && h >= 5 && w * h >= 100 || force) { // 要求字框面积≥100且宽高都≥5，以避免误点出碎块
+      let rect = data.paper.rect(x, y, w, h).setAttr({'class': cls});
+      if (data.ratio !== 1) rect.initZoom(1).setZoom(data.ratio);
+      return rect;
+    }
+  }
+
+  function createBox(box, cls) {
+    function getCls(box) {
+      let names = ['box'];
+      if (box.boxType) names.push(box.boxType);
+      if (box.readonly) names.push('readonly');
+      if (!isDeleted(box)) {
+        let isOdd = box.char_no ? box.column_no % 2 : box.block_no % 2;
+        names.push(isOdd ? 'odd' : 'even');
+      }
+      let boxHint = ['b-deleted', 'b-added', 'b-changed'].filter((op) => box[op.replace('b-', '')]).join(' ');
+      if (boxHint) names.push(boxHint);
+      return names.join(' ')
+    }
+
+    // 注：box的坐标始终是根据初始画布设置的，然后根据data.ratio转换至当前画布显示
+    let r = data.initRatio;
+    return createRect({x: box.x * r, y: box.y * r}, {x: box.x * r + box.w * r, y: box.y * r + box.h * r},
+        cls || getCls(box), false, true);
+  }
+
+  function getMaxCid(boxType) {
+    let maxCid = 0;
+    data.boxes.forEach(function (box) {
+      if (box.cid && box.cid > maxCid && (!boxType || box.boxType.indexOf(boxType) > -1))
+        maxCid = box.cid;
+    });
+    return maxCid;
+  }
+
+  function getBoxId(b) {
+    let id = 'b' + (b['block_no'] || 0);
+    if (b.boxType === 'block') return id;
+    id += 'c' + (b['column_no'] || 0);
+    if (b.boxType === 'column') return id;
+    id += 'c' + (b['char_no'] || 0);
+    if (b.boxType === 'char') return id;
+  }
+
+  function getTxt(b) {
+    return b['txt'] || b['ocr_txt'] || '';
+  }
+
+  function getPoint(e) {
+    let svg = data.holder.getElementsByTagName('svg')[0];
+    let box = svg.getBoundingClientRect();
+    return {x: e.clientX - box.x, y: e.clientY - box.y};
+  }
+
+  function isInRect(pt, el, tol) {
+    if (el && el.elem) el = el.elem;
+    let box = el && el.getBBox && el.getBBox();
+    return box && pt.x > box.x - tol && pt.y > box.y - tol &&
+        pt.x < box.x2 + tol && pt.y < box.y2 + tol;
+  }
+
+  function getDistance(a, b) {
+    let cx = a.x - b.x, cy = a.y - b.y;
+    return Math.sqrt(cx * cx + cy * cy);
+  }
+
+  // 得到字框矩形的控制点坐标
+  function getHandlePt(el, index) {
+    // el是raphael element
+    let b = el && el.getBBox && el.getBBox();
+    if (!b) return {};
+    if (index === 0) return {x: b.x, y: b.y};                               // left top
+    if (index === 1) return {x: b.x + b.width, y: b.y};                     // right top
+    if (index === 2) return {x: b.x + b.width, y: b.y + b.height};          // right bottom
+    if (index === 3) return {x: b.x, y: b.y + b.height};                    // left bottom
+    if (index === 4) return {x: b.x + b.width / 2, y: b.y};                 // top center
+    if (index === 5) return {x: b.x + b.width, y: b.y + b.height / 2};      // right center
+    if (index === 6) return {x: b.x + b.width / 2, y: b.y + b.height};      // bottom center
+    if (index === 7) return {x: b.x, y: b.y + b.height / 2};                // left center
+    if (index === 8) return {x: b.x + b.width / 2, y: b.y + b.height / 2};  // center
+  }
+
+  function showNo() {
+    data.boxes.forEach(function (b, i) {
+      if (isDeleted(b))
+        return addClass(b.noElem, 'hide');
+      let no = b[b.boxType + '_no'] || '0';
+      let noId = 'no-' + b.boxType + b.cid;
+      if (b.noElem && (b.op || '') !== 'changed')
+        return $('#' + noId + ' tspan').text(no);
+      b.noElem && b.noElem.remove();
+      let center = getHandlePt(b.elem, 8);
+      let parentNo = b.boxType === 'column' ? b.block_no : b.column_no;
+      let cls = 'no no-' + b.boxType + (parentNo % 2 ? ' odd' : ' even');
+      b.noElem = data.paper.text(center.x, center.y, no).attr({'class': cls, 'id': noId});
+    });
+  }
+
+  function toggleNo(boxType, show) {
+    status.curBoxType = boxType;
+    status.curNoType = boxType;
+    $(data.holder).removeClass('show-block-no show-column-no show-char-no');
+    if (boxType && show) {
+      $(data.holder).addClass('show-' + boxType + '-no');
+      showNo();
+    }
+  }
+
+  /**
+   * 缩放画布或图片
+   * ratio：设置缩放比例，相对原始大小缩放；factor：设置缩放因子，从当前大小开始缩放
+   */
+  function zoomImg(ratio, factor) {
+    data.ratio = ratio || data.ratio || 1; // 初始化比例
+    if (factor) data.ratio *= factor;
+    let image = data.image;
+    let img = $(data.holder).find('.page-img img');
+    if (image.elem) { // svg画布模式
+      Raphael.maxStrokeWidthZoom = 10;
+      data.paper.setZoom(data.ratio);
+      let r = data.initRatio * data.ratio;
+      data.paper.setSize(data.image.width * r, data.image.height * r);
+    } else { // 纯图片模式
+      let r = (100 * data.initRatio * data.ratio) + '%';
+      img.width(r).height(r);
+    }
+  }
+
+  function toggleImage(show) {
+    let image = data.image;
+    if (image.elem) {
+      show = show || image.elem.node.style.display === 'none';
+      image.elem.node.style.display = show ? 'block' : 'none';
+    } else {
+      let img = $(data.holder).find('.page-img img');
+      show = show || img.hasClass('hide');
+      show ? img.removeClass('hide') : img.addClass('hide');
+    }
+  }
+
+  function setImageOpacity(opacity) {
+    let image = data.image;
+    if (image.elem) {
+      data.image.elem.node.style.opacity = opacity;
+    } else {
+      let img = $(data.holder).find('.page-img img');
+      img.css('opacity', opacity);
+    }
+  }
+
+  function equal(el1, el2) {
+    if (el1 && el1.elem) el1 = el1.elem;
+    if (el2 && el2.elem) el2 = el2.elem;
+    return el1 && el2 && el1.id === el2.id;
+  }
+
+  function round(f, n) {
+    let m = Math.pow(10, n || 1);
+    return Math.round(f * m) / m;
+  }
+
+  function hasClass(elem, className) {
+    if (elem && elem.elem) elem = elem.elem;
+    if (!elem || !elem.attrs) return false;
+    return elem.attr('class').split(' ').indexOf(className) > -1;
+  }
+
+  function addClass(elem, className) {
+    if (elem && elem.elem) elem = elem.elem;
+    if (!elem || !elem.attrs) return;
+    let cNames = className.split(' ');
+    let eNames = elem.attr('class').split(' ');
+    cNames.forEach(function (cls) {
+      if (cls.length && eNames.indexOf(cls) < 0) eNames.push(cls);
+    });
+    elem.attr({'class': eNames.filter((n) => n.length).join(' ')});
+    return elem;
+  }
+
+  function removeClass(elem, className) {
+    if (elem && elem.elem) elem = elem.elem;
+    if (!elem || !elem.attrs) return;
+    let cNames = className.split(' ');
+    let eNames = elem.attr('class').split(' ');
+    elem.attr({'class': eNames.filter((s) => s.length && cNames.indexOf(s) < 0).join(' ')});
+    return elem;
+  }
+
+  function toggleClass(elem, className) {
+    hasClass(elem, className) ? removeClass(elem, className) : addClass(elem, className);
+  }
+
+  // 注册回调函数: function callback(box, reason, param)
+  function onBoxChanged(callback) {
+    data.boxObservers.push(callback);
+  }
+
+  // 调用回调函数
+  function notifyChanged(box, reason, param) {
+    data.boxObservers.forEach(function (func) {
+      func && func(box, reason, param);
+    });
+  }
+
+}());

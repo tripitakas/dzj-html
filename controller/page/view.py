@@ -285,11 +285,10 @@ class PageBoxHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            sub_columns = self.get_query_argument('sub_columns', '')
-            self.pack_boxes(page, extract_sub_columns=sub_columns == 'true')
+            self.pack_boxes(page)
             self.set_box_access(page)
-            img_url = self.get_page_img(page)
-            self.render('page_box.html', page=page, img_url=img_url, readonly=False)
+            page['img_url'] = self.get_page_img(page)
+            self.render('page_box2.html', page=page)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -310,7 +309,9 @@ class PageOrderHandler(PageHandler):
                 page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
             chars_col = self.get_chars_col(page['chars'])
             self.pack_boxes(page)
-            self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=False)
+            cut = self.get_query_argument('cut', '')
+            template = 'page_order2.html' if cut == '2' else 'page_order.html'
+            self.render(template, page=page, chars_col=chars_col, img_url=img_url, readonly=False)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -402,10 +403,7 @@ class PageTxtHandler(PageHandler):
         nm_a = sum(ch_a) / len(ch_a)
         for ch in page['chars']:
             ch['name'] = page['name'] + '_' + str(ch['cid'])
-            ch['alternatives'] = ch.get('alternatives', '').replace('"', '').replace("'", '')
-            ch['ocr_txt'] = ch.get('ocr_txt', '').replace('"', '').replace("'", '')
-            ch['txt'] = ch.get('txt', '').replace('"', '').replace("'", '')
-            ch['txt'] = ch['txt'] or ch['ocr_txt'] or '■'
+            ch['txt'] = ch.get('txt') or ch.get('ocr_txt') or '■'
             r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
             ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
 
