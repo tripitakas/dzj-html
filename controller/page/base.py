@@ -343,7 +343,6 @@ class PageHandler(TaskHandler, Page, Box):
                     self.set_box_id(cid2box[cid], box_type, bid)
             page[box_type].sort(key=itemgetter('idx'))
         # 根据字框调整栏框、列框
-        print(page['blocks'])
         page['blocks'] = self.adjust_blocks(page['blocks'], page['chars'])
         page['columns'] = self.adjust_columns(page['columns'], page['chars'])
         # 保存用户序线

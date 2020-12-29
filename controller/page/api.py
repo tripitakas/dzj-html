@@ -186,36 +186,6 @@ class PageBlocksApi(PageHandler):
             return self.send_db_error(error)
 
 
-class PageOrderApi(PageHandler):
-    URL = ['/api/page/order/@page_name']
-
-    def post(self, page_name):
-        """ 提交字序校对"""
-        try:
-            self.save_order(self, page_name)
-            self.send_data_response()
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-    @staticmethod
-    def save_order(self, page_name):
-        page = self.db.page.find_one({'name': page_name})
-        if not page:
-            self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-        self.validate(self.data, [(v.not_empty, 'chars_col')])
-        if not self.cmp_char_cid(page['chars'], self.data['chars_col']):
-            return self.send_error_response(e.cid_not_identical, message='检测到字框和切分校对时不同，请刷新页面')
-        if len(self.data['chars_col']) != len(page['columns']):
-            msg = '%s(字序列数) != %s(字框列数)，请检查。' % (len(self.data['chars_col']), len(page['columns']))
-            return self.send_error_response(e.col_not_identical, message=msg)
-        # 注：字序校对不记录日志，仅提供给任务所有者以及数据管理员修改
-        chars = self.update_char_order(page['chars'], self.data['chars_col'])
-        update = dict(chars=chars, chars_col=self.data['chars_col'])
-        self.db.page.update_one({'_id': page['_id']}, {'$set': update})
-        self.add_log('update_order', target_id=page['_id'], target_name=page['name'])
-
-
 class PageCharBoxApi(PageHandler):
     URL = '/api/page/char/box/@char_name'
 

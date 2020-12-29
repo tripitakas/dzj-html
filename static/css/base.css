@@ -632,6 +632,7 @@ body.widescreen {
   font-size: 20px;
   font-weight: 500;
   margin-right: 6px;
+  word-break: keep-all;
   color: var(--Color_333);
 }
 
@@ -922,7 +923,7 @@ body.widescreen {
 }
 
 .tooltip .tooltip-arrow {
-  /*display: none;*/
+  display: none;
   border-bottom-color: #eee !important;
 }
 

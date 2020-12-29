@@ -23,6 +23,7 @@ class PageTaskListHandler(PageHandler):
         {'id': 'pre_tasks', 'name': '前置任务'},
         {'id': 'status', 'name': '状态', 'filter': PageHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': PageHandler.priorities},
+        {'id': 'is_oriented', 'name': '是否定向', 'filter': PageHandler.yes_no},
         {'id': 'char_count', 'name': '单字数量'},
         {'id': 'added', 'name': '新增'},
         {'id': 'deleted', 'name': '删除'},
@@ -269,13 +270,16 @@ class PageTaskCutHandler(PageHandler):
 
     def get(self, task_type, task_id):
         """ 切分校对、审定页面"""
-        page = self.db.page.find_one({'name': self.task['doc_id']})
-        if not page:
-            self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+        try:
+            page = self.db.page.find_one({'name': self.task['doc_id']})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
 
-        self.pack_boxes(page)
-        page['img_url'] = self.get_page_img(page)
-        self.render('page_box2.html', page=page, readonly=self.readonly)
+            self.pack_boxes(page)
+            page['img_url'] = self.get_page_img(page)
+            self.render('page_box.html', page=page, readonly=self.readonly)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class PageTaskTextHandler(PageHandler):

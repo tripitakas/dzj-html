@@ -52,7 +52,7 @@
                 {% for f in fields %}
                 <td>{{format_value(t.get(f[0]) or '', f[0], t)}}</td>
                 {% end %}
-                <td><a class="pick-task" id="{{t['_id']}}" href="/task/pick/{{t['task_type']}}">领取</a></td>
+                <td><a class="pick-task" href="{{t['task_type']}}/{{t['_id']}}">领取</a></td>
               </tr>
               {% end %}
               </tbody>
@@ -67,21 +67,20 @@
 {% include com/_base_js.html %}
 <script src="{{static_url('js/task-pick.js')}}"></script>
 <script>
-  var taskType = '{{task_type}}';
   // 领任务
   $('.pick-task').on("click", function (e) {
     e.preventDefault();
-    pick($(this).attr('href'), $(this).attr('id'));
+    pick(...$(this).attr('href').split('/'));
   });
+
   // 搜索
   $('#search-input').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
+    let keyCode = event.keyCode || event.which;
     if (keyCode === 13) {
-      var q = $(this).val().trim();
+      let q = $(this).val().trim();
       location = location.pathname + (q === '' ? '' : "?q=" + q);
     }
   });
 </script>
-
 </body>
 </html>

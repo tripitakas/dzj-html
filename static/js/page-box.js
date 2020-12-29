@@ -57,7 +57,7 @@ $('#hint-list #cmb-hint').on('click', function () {
 // 操作历史-播放
 $('#hint-list #play-hint').on('click', function () {
   if (!$.box.eStatus.times.length)
-    return showTips('提示', '没有操作历史', 1000);
+    return showTips('提示', '没有修改历史', 1000);
   !$('#toggle-all').hasClass('active') && $('#toggle-all').click();
   $('#op-hint').removeClass('open');
   let play = (i) => {

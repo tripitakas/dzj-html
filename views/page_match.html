@@ -281,7 +281,7 @@
       var autoPick = localStorage.getItem('autoPick') || '是';
       if (mode === 'do' && autoPick === '是') {
         showSuccess('成功', '已成功提交！将自动领取下一个任务。', 2000);
-        pick('/task/pick/' + taskType);
+        pick(taskType);
       } else {
         window.leave();
       }
