@@ -35,8 +35,8 @@
     boxMode: 'cut',                                 // cut/order
     readonly: true,                                 // 是否只读
     curBox: null,                                   // 当前框
-    curBoxType: 'char',                             // 当前框类型
-    curNoType: 'char',                              // 当前序号类型
+    curBoxType: 'char',                             // 当前显示框的类型
+    curNoType: 'char',                              // 当前显示序号的类型
   };
 
   $.box = {
@@ -259,11 +259,12 @@
     }
   }
 
-  function navigate(direction) {
+  function navigate(direction, boxType) {
+    boxType = boxType || status.curBoxType;
     if (status.isMulti) return;
     if (!status.curBox) {
       for (let i = 0, len = data.boxes.length; i < len; i++) {
-        if (!status.curBoxType || data.boxes[i].boxType === status.curBoxType)
+        if (!boxType || data.boxes[i].boxType === boxType)
           return switchCurBox(data.boxes[i]);
       }
     }
@@ -286,7 +287,7 @@
         return 10 * dx * dx + dy * dy;
       };
     }
-    let boxType = status.curBoxType;
+
     data.boxes.forEach(function (box) {
       let pt = box.elem && box.elem.getBBox();
       if (!pt || isDeleted(box) || equal(box, status.curBox)) return;
@@ -457,7 +458,6 @@
   }
 
   function toggleNo(boxType, show) {
-    status.curBoxType = boxType;
     status.curNoType = boxType;
     $(data.holder).removeClass('show-block-no show-column-no show-char-no');
     if (boxType && show) {

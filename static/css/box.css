@@ -14,6 +14,7 @@
 }
 
 .box-holder .box {
+  cursor: crosshair;
 }
 
 .box.odd {

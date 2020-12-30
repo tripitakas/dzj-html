@@ -177,13 +177,13 @@
   //-------2.框大小窄扁及重叠-------
   // 切换显示框类型，包括all/block/column/char
   function switchBoxType(boxType, show) {
-    $.box.setCurBoxType(boxType);
     let holder = $($.box.data.holder);
     holder.removeClass('hide-all show-all show-block show-column show-char');
     if (show && boxType) {
       $.box.setCurBoxType(boxType === 'all' ? '' : boxType);
       holder.addClass('show-' + boxType);
     } else {
+      $.box.setCurBoxType('');
       holder.addClass('hide-all');
     }
   }

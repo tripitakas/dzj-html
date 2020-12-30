@@ -43,10 +43,10 @@
       on('del', () => self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink()));
       on('x', () => self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink()));
 
-      on('left', () => self.navigate('left'));
-      on('right', () => self.navigate('right'));
-      on('up', () => self.navigate('up'));
-      on('down', () => self.navigate('down'));
+      on('left', () => self.navigate('left', self.isCutMode() ? self.status.curBoxType : self.oStatus.curLinkType));
+      on('right', () => self.navigate('right', self.isCutMode() ? self.status.curBoxType : self.oStatus.curLinkType));
+      on('up', () => self.navigate('up', self.isCutMode() ? self.status.curBoxType : self.oStatus.curLinkType));
+      on('down', () => self.navigate('down', self.isCutMode() ? self.status.curBoxType : self.oStatus.curLinkType));
 
       on('alt+left', () => self.resizeBox('left', false));
       on('alt+right', () => self.resizeBox('right', false));

@@ -416,9 +416,6 @@
 
 
   function toggleLink(boxType, show) {
-    // 设置当前字框，并navigate至第一个框
-    status.curBoxType = boxType;
-    // 设置当前序线
     oStatus.curLinkType = boxType;
     $(data.holder).removeClass('show-block-link show-column-link show-char-link');
     if (boxType && show) {

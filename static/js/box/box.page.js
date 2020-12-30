@@ -156,7 +156,7 @@
   }
 
   function toggleBackBox(show) {
-    $.page.toggleCurBoxType(null, show);
+    $.page.toggleCurBoxType($.box.oStatus.curLinkType, show);
   }
 
   function toggleCurShape(shape, show) {
@@ -169,7 +169,7 @@
   }
 
   function toggleCurBoxType(boxType, show) {
-    boxType = boxType || $.box.status.curBoxType;
+    boxType = boxType || '';
     $('.toggle-box').removeClass('active');
     show && $('#toggle-' + boxType).addClass('active');
     $.box.switchBoxType(boxType, show);

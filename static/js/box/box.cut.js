@@ -165,7 +165,7 @@
     boxType = boxType || status.curBoxType;
     if (!boxType || typeof boxType !== 'string') {
       boxElem.remove();
-      return bsShow('错误', '请选择仅一种切分框类型', 'warning', 5000);
+      return bsShow('错误', '请选择一种且仅一种切分框类型', 'warning', 5000);
     }
     let box = {
       boxType: boxType, idx: data.boxes.length, cid: self.getMaxCid(boxType) + 1,
