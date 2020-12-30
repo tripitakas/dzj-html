@@ -39,11 +39,11 @@
       on('k', () => {
         $('#task-return').click();
       });
-      on('[', () => {
+      on('.', () => {
         if (self.isOrderMode()) $('#toggle-cut').click();
       });
 
-      on(']', () => {
+      on('/', () => {
         if (self.isCutMode()) $('#toggle-order').click();
       });
 
