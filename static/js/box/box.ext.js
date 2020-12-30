@@ -256,14 +256,15 @@
   // 如果initial，则根据box原始的的w/h参数计算，否则，根据box.elem的坐标转换后计算
   function getCharShape(box, initial) {
     if (box.boxType !== 'char' || !box.w) return;
-    if (box['is_small']) return 's-small';
     let p = box.elem && box.elem.attrs;
     if (!initial) box = {w: p.width / data.initRatio, h: p.height / data.initRatio};
     // shape的class均以s-开头
     if (box.w * box.h > eStatus.charMean.a * 1.5) return 's-large';
-    if (box.w * box.h < eStatus.charMean.a * 0.6) return 's-small';
-    if (box.w < eStatus.charMean.w * 0.5) return 's-narrow';
-    if (box.h < eStatus.charMean.h * 0.5) return 's-flat';
+    let small = '';
+    if (box['is_small'] || (box.w * box.h < eStatus.charMean.a * 0.64)) small = ' s-small';
+    if (box.w < eStatus.charMean.w * 0.5) return 's-narrow' + small;
+    else if (box.h < eStatus.charMean.h * 0.5) return 's-flat' + small;
+    return small.trim();
   }
 
   function updateCharShape(box) {
