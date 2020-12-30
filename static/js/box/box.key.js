@@ -48,7 +48,7 @@
       });
 
       // 图片操作
-      on('o', () => $('#toggle-blur').click());
+      on('m', () => $('#toggle-blur').click());
       on('p', () => $('#toggle-image').click());
       on('+', () => self.zoomImg(self.data.ratio * 1.2));
       on('=', () => self.zoomImg(self.data.ratio * 1.2));
