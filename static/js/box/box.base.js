@@ -312,7 +312,7 @@
 
   function findBoxByPoint(pt, boxType, func) {
     if (!pt || !pt.x) return;
-    let ext = 5; // 字框四边往外延伸的冗余量
+    let ext = 1; // 字框四边往外延伸的冗余量
     let ret = null, dist = 1e5;
     data.boxes.forEach(function (box) {
       if (box.elem && (!boxType || box.boxType === boxType) && isInRect(pt, box.elem, ext)) {
