@@ -472,7 +472,7 @@
       // s-deleted是系统删除，无需传给后台
       if (self.hasClass(box, 's-deleted')) return;
       order[box.boxType + 's'].push([box.cid, box[box.boxType + '_id'] || '']);
-      if (!box.op) return;
+      if (!box.op || !box.elem || !box.elem.attrs) return;
       let b = box.elem.attrs, p = {cid: box.cid, op: box.op};
       Object.assign(p, {
         x: self.round(b.x / r), y: self.round(b.y / r),
