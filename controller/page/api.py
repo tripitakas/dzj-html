@@ -140,24 +140,23 @@ class PageBoxApi(PageHandler):
     def post(self, page_name):
         """ 提交切分校对。切分数据以page表为准，box_level/box_logs等记录在page['chars']中，坐标信息同步更新char表"""
         try:
-            r = self.save_box(self, page_name)
-            self.send_data_response(r)
+            self.save_box(self, page_name)
+            return self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
     def save_box(self, page_name, task_type=None):
+        """ 保存用户提交。包括框修改、框序和用户序线"""
         page = self.db.page.find_one({'name': page_name})
         if not page:
             self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
 
-        rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+        rules = [(v.not_empty, 'op')]
         self.validate(self.data, rules)
-        page_updated = self.get_box_update(self.data, page, task_type)
+        page_updated = self.get_user_submit(self.data, page, task_type)
         self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})
-
-        valid, message, box_type, out_boxes = self.check_box_cover(page)
         self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
         if page.get('has_gen_chars'):  # 更新char表和字图
             gen_chars(db=self.db, page_names=page_name, username=self.username)
@@ -165,7 +164,7 @@ class PageBoxApi(PageHandler):
             script = script % (h.BASE_DIR, self.username, 1, h.get_date_time(fmt='%Y%m%d%H%M%S'))
             os.system(script)
 
-        return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
+        return page
 
 
 class PageBlocksApi(PageHandler):
@@ -185,36 +184,6 @@ class PageBlocksApi(PageHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
-
-
-class PageOrderApi(PageHandler):
-    URL = ['/api/page/order/@page_name']
-
-    def post(self, page_name):
-        """ 提交字序校对"""
-        try:
-            self.save_order(self, page_name)
-            self.send_data_response()
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-    @staticmethod
-    def save_order(self, page_name):
-        page = self.db.page.find_one({'name': page_name})
-        if not page:
-            self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-        self.validate(self.data, [(v.not_empty, 'chars_col')])
-        if not self.cmp_char_cid(page['chars'], self.data['chars_col']):
-            return self.send_error_response(e.cid_not_identical, message='检测到字框和切分校对时不同，请刷新页面')
-        if len(self.data['chars_col']) != len(page['columns']):
-            msg = '%s(字序列数) != %s(字框列数)，请检查。' % (len(self.data['chars_col']), len(page['columns']))
-            return self.send_error_response(e.col_not_identical, message=msg)
-        # 注：字序校对不记录日志，仅提供给任务所有者以及数据管理员修改
-        chars = self.update_char_order(page['chars'], self.data['chars_col'])
-        update = dict(chars=chars, chars_col=self.data['chars_col'])
-        self.db.page.update_one({'_id': page['_id']}, {'$set': update})
-        self.add_log('update_order', target_id=page['_id'], target_name=page['name'])
 
 
 class PageCharBoxApi(PageHandler):
@@ -267,7 +236,7 @@ class PageCharTxtApi(PageHandler):
         """ 更新字符的txt"""
 
         try:
-            rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt_type, 'txt_type')]
+            rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt, 'txt'), (v.is_txt_type, 'txt_type')]
             self.validate(self.data, rules)
             page_name, cid = '_'.join(char_name.split('_')[:-1]), int(char_name.split('_')[-1])
             cond = {'name': page_name, 'chars.cid': cid}

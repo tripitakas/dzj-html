@@ -16,7 +16,7 @@ class TestUserAdminApi(APITestCase):
     def test_user_admin_roles(self):
         """ 给用户授予角色 """
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
-        r = self.fetch('/api/user/role', body={'data': dict(_id=users[0]['_id'], email=u.user1[0], roles='切分校对员')})
+        r = self.fetch('/api/user/roles', body={'data': dict(_id=users[0]['_id'], email=u.user1[0], roles='切分校对员')})
         self.assert_code(200, r)
         data = self.parse_response(r)
         self.assertIn('切分校对员', data['roles'])

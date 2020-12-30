@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>文本匹配-{{page['name']}}</title>
   {% include com/_base_css.html %}
-  {% include com/_font_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/page-txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
@@ -282,7 +281,7 @@
       var autoPick = localStorage.getItem('autoPick') || '是';
       if (mode === 'do' && autoPick === '是') {
         showSuccess('成功', '已成功提交！将自动领取下一个任务。', 2000);
-        pick('/task/pick/' + taskType);
+        pick(taskType);
       } else {
         window.leave();
       }

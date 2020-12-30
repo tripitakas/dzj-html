@@ -102,6 +102,8 @@ class BoxOrder(object):
         """ 检查boxes1中所有不在boxes2的box。ratio越小，对交叉面积要求越低"""
         out_boxes, in_boxes = [], []
         for b1 in boxes1:
+            if b1.get('deleted'):
+                continue
             is_in = False
             for b2 in boxes2:
                 ratio1 = cls.box_overlap(b1, b2)[1]
@@ -118,7 +120,7 @@ class BoxOrder(object):
 
     @classmethod
     def cmp_up2down(cls, a, b):
-        """ 从上到下扫描（如果左右交叉时，则从右到左）"""
+        """ 先整体从上到下，次局部从右到左 """
         ry1, ry2 = cls.get_box_overlap(a, b, 'y')[1:]
         rx1, rx2 = cls.get_box_overlap(a, b, 'x')[1:]
         # 当二者在y轴上交叉且x轴几乎不交叉时，认为二者是水平邻居，则从右到左，即x值大的在前
@@ -130,7 +132,7 @@ class BoxOrder(object):
 
     @classmethod
     def cmp_right2left(cls, a, b):
-        """ 从右到左扫描（如果上下交叉时，则从上到下）"""
+        """ 先整体从右到左，次局部从上到下"""
         ry1, ry2 = cls.get_box_overlap(a, b, 'y')[1:]
         rx1, rx2 = cls.get_box_overlap(a, b, 'x')[1:]
         # 当二者在x轴上交叉且y轴几乎不交叉时，认为二者是上下邻居，则从上到下，即y值小的在前
@@ -444,19 +446,6 @@ class BoxOrder(object):
                 c['column_no'] = int(column_id[3:])
                 c['char_id'] = '%sc%s' % (column_id, i + 1)
             ret_chars.extend(column_chars)
-
+        ret_chars.sort(key=itemgetter('block_no', 'column_no', 'char_no'))
         cls.pop_fields(ret_chars, 'column_id,column_id2,hr_nbs,side,ratio')
         return ret_chars
-
-
-if __name__ == '__main__':
-    import pymongo
-
-    local_db = pymongo.MongoClient('mongodb://localhost')['tripitaka']
-    page = local_db.page.find_one({'name': 'ZH_2_2_4'})
-    chars1 = BoxOrder.calc_char_id(page['chars'], page['columns'])
-    for c in chars1:
-        # print('%s: %s' % (c['cid'], c['char_id']))
-        pass
-
-    print('finished.')

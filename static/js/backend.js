@@ -104,10 +104,9 @@ $.ajaxSetup({
   }
 });
 
-var HTML_DECODE = {'&lt;': '<', '&gt;': '>', '&nbsp;': ' ', '&amp;': '&', '&quot;': '"'};
-
 // 将tornado在网页中输出的对象串转为JSON对象，toHTML为true时只做网页解码
 function decodeJSON(s, toHTML) {
+  var HTML_DECODE = {'&lt;': '<', '&gt;': '>', '&nbsp;': ' ', '&amp;': '&', '&quot;': '"'};
   s = s.replace(/&\w+;|&#(\d+);/g, function ($0, $1) {
     var c = HTML_DECODE[$0];
     if (c === undefined) {
@@ -124,10 +123,22 @@ function decodeJSON(s, toHTML) {
   return parseJSON(s);
 }
 
+// parseJSON中eval函数需要调用ObjectId函数
+function ObjectId(id) {
+  return id;
+}
+
+// parseJSON中eval函数需要调用datetime.datetime函数
+var datetime = {
+  datetime: function (year, month, day, hour, minute, second, milli) {
+    return year + '-' + (month + '-').padStart(3, '0') + (day + ' ').padStart(3, '0')
+        + (hour + ':').padStart(3, '0') + (minute + ':').padStart(3, '0') + (second + '').padStart(2, '0');
+  },
+};
+
 function parseJSON(s) {
   try {
     s = eval("(" + s + ")");
-    // s = JSON.parse(s);
     if ('_id' in s && '$oid' in s['_id'])
       s['_id'] = s['_id']['$oid'];
     return s

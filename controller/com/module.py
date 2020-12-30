@@ -58,7 +58,7 @@ class ComLeft(UIModule):
             dict(name='人员管理', icon='icon-users', id='user', sub_items=[
                 dict(name='指派批次', icon='icon-subitem', link='/user/task_batch'),
                 dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
-                dict(name='授权管理', icon='icon-subitem', link='/user/role'),
+                dict(name='授权管理', icon='icon-subitem', link='/user/roles'),
             ]),
             dict(name='系统管理', icon='icon-admin', sub_items=[
                 dict(name='脚本管理', icon='icon-subitem', link='/sys/script'),
@@ -100,7 +100,7 @@ class ComLeft(UIModule):
             ]),
             dict(name='人员管理', icon='icon-users', sub_items=[
                 dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
-                dict(name='授权管理', icon='icon-subitem', link='/user/role'),
+                dict(name='授权管理', icon='icon-subitem', link='/user/roles'),
             ]),
             dict(name='系统管理', icon='icon-admin', sub_items=[
                 dict(name='脚本管理', icon='icon-subitem', link='/sys/script'),

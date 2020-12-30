@@ -107,20 +107,17 @@ class PageHandler(TaskHandler, Page, Box):
             b['readonly'] = not self.can_write(b, page, task_type)
 
     @classmethod
-    def pack_boxes(cls, page, extract_sub_columns=False, pop_char_logs=True):
-        if extract_sub_columns:
-            for col in page['columns']:
-                if col.get('sub_columns'):
-                    page['columns'].extend(col['sub_columns'])
-        fields1 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'block_id']
-        fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
-        fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'char_id', 'cc',
-                   'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
-        page.get('blocks') and cls.pick_fields(page['blocks'], fields1)
-        page.get('columns') and cls.pick_fields(page['columns'], fields2)
-        if not pop_char_logs:
-            fields3 = fields3 + ['box_logs', 'txt_logs']
-        page.get('chars') and cls.pick_fields(page['chars'], fields3)
+    def pack_boxes(cls, page, log=True, alternatives=False):
+        fields = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'added', 'deleted', 'changed']
+        log and fields.extend(['box_logs', 'txt_logs'])
+        if page.get('blocks'):
+            cls.pick_fields(page['blocks'], fields + ['block_id'])
+        if page.get('columns'):
+            cls.pick_fields(page['columns'], fields + ['column_no', 'column_id'])
+        if page.get('chars'):
+            fields3 = fields + ['column_no', 'char_no', 'char_id', 'is_small', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
+            alternatives and fields3.extend(['alternatives'])
+            cls.pick_fields(page['chars'], fields3)
 
     @classmethod
     def filter_symbol(cls, txt):
@@ -141,7 +138,7 @@ class PageHandler(TaskHandler, Page, Box):
         if not cls.get_txt(page, field):
             return False, ''
         match = True
-        diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field), filter_junk=False)[0]
+        diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field))[0]
         for s in diff_segments:
             if s['is_same'] and s['base'] == '\n':
                 s['cmp1'] = '\n'
@@ -179,12 +176,11 @@ class PageHandler(TaskHandler, Page, Box):
 
     def merge_box_logs(self, user_log, box_logs):
         """ 合并log至box_logs中。如果用户已在box_logs中，则更新用户已有的log；否则，新增一条log"""
-        assert 'pos' in user_log
         is_new = True
         box_logs = box_logs or []
         user_log['updated_time'] = self.now()
         for i, log in enumerate(box_logs):
-            if log.get('user_id') == self.user_id:
+            if is_new and log.get('user_id') == self.user_id:
                 log.update(user_log)
                 is_new = False
         if is_new:
@@ -257,6 +253,102 @@ class PageHandler(TaskHandler, Page, Box):
             columns = self.adjust_columns(columns, chars)
         page_updated = dict(chars=chars, blocks=blocks, columns=columns, chars_col=page.get('chars_col') or [])
         return page_updated
+
+    @classmethod
+    def set_box_id(cls, box, box_type, bid):
+        if not bid:
+            cls.pop_fields([box], 'block_no,block_id,column_no,column_id,char_no,char_id')
+        elif box_type == 'blocks':
+            box['block_id'] = bid
+            box['block_no'] = bid[1:]
+        elif box_type == 'columns':
+            box['column_id'] = bid
+            box['block_no'], box['column_no'] = bid[1:].split('c')
+        elif box_type == 'chars':
+            box['char_id'] = bid
+            box['block_no'], box['column_no'], box['char_no'] = bid[1:].split('c')
+        for k in ['block_no', 'column_no', 'char_no']:
+            if k in box:
+                box[k] = int(box[k])
+
+    @staticmethod
+    def get_user_hint_no(page, user_id):
+        no = dict(added=0, deleted=0, changed=0)
+        for field in ['blocks', 'columns', 'chars']:
+            for box in page[field]:
+                for log in (box.get('box_logs') or [])[::1]:
+                    if log.get('user_id') == user_id:
+                        no[log['op']] += 1
+                        continue
+        no['total'] = no['added'] + no['deleted'] + no['changed']
+        return no
+
+    def get_user_submit(self, submit_data, page, task_type=None):
+        """ 合并用户提交的数据修改和数据库中已有数据"""
+        # 合并用户修改
+        user_level = self.get_user_box_level(self, task_type)
+        meta = {'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
+        for box_type, ops in submit_data.get('op', {}).items():
+            boxes = page[box_type] or []
+            for op in ops or []:
+                pos = {k: op.get(k) for k in ['x', 'y', 'w', 'h']}
+                log = {'op': op['op'], 'pos': pos, **meta}
+                if op['op'] == 'added':
+                    boxes.append({**pos, 'cid': op['cid'], 'added': True, 'box_level': user_level, 'box_logs': [log]})
+                    continue
+                i, box = None, None
+                for j, b in enumerate(boxes):
+                    if b.get('cid') == op['cid']:
+                        i, box = j, b
+                        break
+                if not box:
+                    continue
+                # if not self.can_write(box, page, task_type):
+                #     continue
+                initial = {'op': 'initial', 'pos': {k: box.get(k) for k in ['x', 'y', 'w', 'h']}}
+                ori_logs = box.get('box_logs') or [initial]
+                if op['op'] == 'deleted':
+                    if box.get('deleted'):  # 已经删除的框，不能重复删除
+                        continue
+                    if box.get('added'):
+                        other_logs = [l for l in ori_logs if l.get('user_id') != self.user_id]
+                        if not len(other_logs):  # 如果是用户新增的框且无其他人修改，则直接删除
+                            boxes.pop(i)
+                    else:  # 否则打上deleted标记
+                        box.update({'deleted': True, 'box_level': user_level, 'box_logs': ori_logs + [log]})
+                elif op['op'] == 'recovered':
+                    if not box.get('deleted'):
+                        continue
+                    box_logs = [l for l in ori_logs if l.get('user_id') != self.user_id and l['op'] != 'deleted']
+                    if len(box_logs) == 1 and box_logs[0]['op'] == 'initial':
+                        box_logs = []
+                    box.update({'box_level': user_level, 'box_logs': box_logs})
+                    box.pop('deleted', 0)
+                elif op['op'] == 'changed':
+                    for i in range(len(ori_logs)):  # 去掉该用户连续的修改记录
+                        last = len(ori_logs) - 1 - i
+                        if ori_logs[last].get('user_id') == self.user_id and ori_logs[last]['op'] == 'changed':
+                            ori_logs.pop(last)
+                        else:
+                            break
+                    box.update({**pos, 'changed': True, 'box_level': user_level, 'box_logs': ori_logs + [log]})
+            page[box_type] = boxes
+        # 合并用户框序
+        for box_type, orders in submit_data.get('order', {}).items():
+            cid2box = {b['cid']: b for b in page[box_type]}
+            for i, o in enumerate(orders):
+                cid, bid = o[0], o[1]
+                if cid2box.get(cid):
+                    cid2box[cid]['idx'] = i
+                    self.set_box_id(cid2box[cid], box_type, bid)
+            page[box_type].sort(key=itemgetter('idx'))
+        # 根据字框调整栏框、列框
+        page['blocks'] = self.adjust_blocks(page['blocks'], page['chars'])
+        page['columns'] = self.adjust_columns(page['columns'], page['chars'])
+        # 保存用户序线
+        if 'user_links' in submit_data:
+            page['user_links'] = submit_data['user_links']
+        return {k: page.get(k) for k in ['blocks', 'columns', 'chars', 'user_links'] if k in page}
 
     @classmethod
     def get_txt(cls, page, key):

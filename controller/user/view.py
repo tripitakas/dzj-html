@@ -79,7 +79,7 @@ class UsersAdminHandler(BaseHandler, User):
 
 
 class UserRolesHandler(BaseHandler, User):
-    URL = '/user/role'
+    URL = '/user/roles'
 
     def get_template_kwargs(self, fields=None):
         kwargs = super().get_template_kwargs(fields)

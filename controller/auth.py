@@ -80,7 +80,7 @@ role_route_maps = {
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],
-            '/api/my_task/remark/@task_id': ['POST'],
+            '/api/task/my_remark/@task_id': ['POST'],
             '/api/variant/delete': ['POST'],
             '/page/@page_name': ['GET'],
             '/page/box/@page_name': ['GET'],
@@ -260,9 +260,9 @@ role_route_maps = {
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
             '/api/page': ['POST'],
-            '/page/(box|order|txt|txt_match|find_cmp)/@page_name': ['GET'],
+            '/page/(box|txt|txt_match|find_cmp)/@page_name': ['GET'],
             '/api/page/(delete|source|start_gen_chars|start_check_match)': ['POST'],
-            '/api/page/(box|order|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
+            '/api/page/(box|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
             '/char/(list|browse|statistic|consistent)': ['GET'],
             '/api/char/(delete|source|extract_img)': ['POST'],
         }
@@ -285,8 +285,8 @@ role_route_maps = {
             '/user/admin': ['GET'],
             '/api/user/admin': ['POST'],
             '/api/user/admin/(delete|reset_pwd)': ['POST'],
-            '/user/role': ['GET'],
-            '/api/user/role': ['POST'],
+            '/user/roles': ['GET'],
+            '/api/user/roles': ['POST'],
         }
     },
     '系统管理员': {

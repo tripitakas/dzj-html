@@ -7,5 +7,5 @@ views = [
 handlers = [
     api.PickTaskApi, api.ReturnTaskApi, api.UpdateTaskApi, api.RepublishTaskApi,
     api.DeleteTasksApi, api.AssignTasksApi, api.FinishTaskApi,
-    api.UpdateMyTaskApi, api.InitTasksForOPTestApi,
+    api.UpdateTaskMyRemarkApi, api.InitTasksForOPTestApi,
 ]
