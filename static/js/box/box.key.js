@@ -41,6 +41,7 @@
 
       on('back', () => self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink()));
       on('del', () => self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink()));
+      on('x', () => self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink()));
 
       on('left', () => self.navigate('left'));
       on('right', () => self.navigate('right'));

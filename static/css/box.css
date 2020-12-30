@@ -92,6 +92,10 @@
   fill: none;
 }
 
+.multi .handle {
+  display: none;
+}
+
 /*-显示字框蒙白、透视、大小窄扁等-*/
 .shape-white .box {
   fill: white !important;
@@ -131,11 +135,19 @@
 .show-char .char,
 .show-block .block,
 .show-column .column {
-  stroke-opacity: 0.6;
+  stroke-opacity: 0.9;
 }
 
-.show-all .box {
-  stroke-opacity: 0.3;
+.show-all .char {
+  stroke-opacity: 0.5;
+}
+
+.show-all .column {
+  stroke-opacity: 0.7;
+}
+
+.show-all .block {
+  stroke-opacity: 0.5;
 }
 
 .show-char .block, .show-char .column,
@@ -209,7 +221,7 @@
 }
 
 .order-mode .box {
-  stroke-opacity: 0.3 !important;
+  stroke-opacity: 0.5 !important;
 }
 
 .order-mode .box.current {
@@ -225,7 +237,7 @@
 }
 
 .ln-char {
-  stroke-width: 1;
+  stroke-width: 1.25;
 }
 
 .ln-column {

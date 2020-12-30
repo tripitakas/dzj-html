@@ -144,7 +144,8 @@
       self.addClass(box, 'hover');
       cStatus.hoverElem = box.elem;
     }
-    setActiveHandle(pt);
+    if (!box) self.removeClass(cStatus.hoverElem, 'hover');
+    if (status.curBox) setActiveHandle(pt);
   }
 
   function toggleMulti(multi) {
