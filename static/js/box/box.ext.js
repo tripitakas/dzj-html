@@ -223,7 +223,6 @@
   // 获取框大小窄扁、重叠等的数量
   function getBoxKindNo() {
     let boxType = status.curBoxType;
-    console.log(boxType);
     if (['char', 'column', 'block'].indexOf(boxType) < 0) return {};
     return {
       total: $('.box.' + boxType + ':not(.b-deleted):not(.u-deleted)').length,

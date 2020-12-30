@@ -358,7 +358,7 @@
     let r = transPos ? data.ratio : 1;
     let x = Math.min(pt1.x, pt2.x) / r, y = Math.min(pt1.y, pt2.y) / r;
     let w = Math.abs(pt1.x - pt2.x) / r, h = Math.abs(pt1.y - pt2.y) / r;
-    if (w >= 5 && h >= 5 && w * h >= 100 || force) { // 要求字框面积≥100且宽高都≥5，以避免误点出碎块
+    if (w >= 3 && h >= 3 && w * h >= 10 || force) { // 检查字框面积、宽高最小值，以避免误点出碎块
       let rect = data.paper.rect(x, y, w, h).setAttr({'class': cls});
       if (data.ratio !== 1) rect.initZoom(1).setZoom(data.ratio);
       return rect;

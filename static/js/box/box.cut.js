@@ -124,7 +124,7 @@
           self.switchCurBox(status.curBox);
         }
       } else { // 2.画新字框或选择字框
-        if (cStatus.isMulti) selectBoxes(cStatus.dragElem);
+        if (cStatus.isMulti) selectBoxes(cStatus.dragElem, e.shiftKey);
         else addBox(cStatus.dragElem);
       }
     } else {
@@ -162,6 +162,7 @@
   }
 
   function addBox(boxElem, boxType) {
+    if (!boxElem) return;
     boxType = boxType || status.curBoxType;
     if (!boxType || typeof boxType !== 'string') {
       boxElem.remove();
@@ -262,11 +263,11 @@
     !unNotify && self.notifyChanged(box, 'recovered');
   }
 
-  function selectBoxes(rangeElem) {
+  function selectBoxes(rangeElem, reverse) {
     if (!rangeElem) return;
     data.boxes.forEach(function (box) {
       if (canHit(box) && self.isOverlap(box.elem, rangeElem)) {
-        self.addClass(box, 'u-selected');
+        reverse ? self.removeClass(box, 'u-selected') : self.addClass(box, 'u-selected');
       }
     });
     rangeElem.remove();
@@ -453,6 +454,7 @@
     data.boxes.forEach((b) => self.removeClass(b, 'highlight'));
     let r = $.box.checkBoxCover();
     if (!r.status) {
+      debugger;
       r.outBoxes.forEach((b) => self.addClass(b, 'highlight'));
       let boxIdxes = r.outBoxes.map((b) => b.idx);
       let tips = `检测到<b style="color:red">${r.msg}</b>并高亮显示，请修正。`;

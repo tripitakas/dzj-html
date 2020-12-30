@@ -2,23 +2,41 @@
  @desc 切分相关操作
  */
 
-// 检查框外框，并重新排序
-$('#btn-check-cut').on('click', function () {
-  let r = $.box.checkBoxes();
-  if (r.status) {
-    if ($.box.cStatus.hasChanged) $.box.reorderBoxes();
-    bsShow('成功', '检查无误!', 'info', 1500);
+// 恢复初始状态
+$('#btn-reset').on('click', function () {
+  $.box.zoomImg(1);
+  $.box.toggleImage(true);
+  $.box.setImageOpacity(0.2);
+  if ($.box.isCutMode()) {
+    $('#no-hint').click();
+    $.page.toggleCurShape('', false);
+    if (!$('#toggle-char').hasClass('active')) $('#toggle-char').click();
+    if ($('#toggle-no-char').hasClass('active')) $('#toggle-no-char').click();
+    if ($('#toggle-multi').hasClass('active')) $('#toggle-multi').click();
+  } else {
+    $.page.toggleNo('', false);
+    $('.toggle-no').removeClass('active');
+    if (!$('#toggle-link-char').hasClass('active')) $('#toggle-link-char').click();
+    if (!$('#toggle-back-box').hasClass('active')) $('#toggle-back-box').click();
   }
 });
 
-// 检查序线，并更新序号
-$('#btn-check-link').on('click', function () {
-  let r = $.box.checkLinks();
-  if (!r.status) {
-    $.page.toggleLink(r.errorBoxType, true);
-  } else {
-    if ($.box.oStatus.hasChanged) $.box.updateNoByLinks(r.links);
-    bsShow('成功', '检查无误', 'info', 1500);
+// 检查、应用修改
+$('#btn-check').on('click', function () {
+  if ($.box.isCutMode()) { // 检查框外框，并重新排序
+    let r = $.box.checkBoxes();
+    if (r.status) {
+      if ($.box.cStatus.hasChanged) $.box.reorderBoxes();
+      bsShow('成功', '检查无误!', 'info', 1500);
+    }
+  } else { // 检查序线，并更新序号
+    let r = $.box.checkLinks();
+    if (!r.status) {
+      $.page.toggleLink(r.errorBoxType, true);
+    } else {
+      if ($.box.oStatus.hasChanged) $.box.updateNoByLinks(r.links);
+      bsShow('成功', '检查无误', 'info', 1500);
+    }
   }
 });
 
@@ -35,6 +53,7 @@ $('#toggle-my-hint').on('click', function () {
 
 // 操作历史-当前状态
 $('#hint-list #no-hint').on('click', function () {
+  $('#toggle-my-hint').removeClass('active');
   $.box.hideAllHint();
 });
 

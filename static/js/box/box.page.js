@@ -189,8 +189,11 @@
 
   function toggleMyHint(userId, show) {
     if (show) {
+      pStatus.cut.boxType = $.box.status.curBoxType;
+      toggleCurBoxType('all', true);
       $.box.showMyHint(userId);
     } else {
+      toggleCurBoxType(pStatus.cut.boxType, true);
       $.box.hideAllHint();
     }
     updateFootHintNo();
@@ -198,7 +201,6 @@
 
   function updateHeadBoxKindNo() {
     let no = $.box.getBoxKindNo();
-    console.log(no);
     $('#toggle-white .s-count').text(no.total || '');
     $('#toggle-opacity .s-count').text(no.total || '');
     $('#toggle-large .s-count').text(no.large || '');

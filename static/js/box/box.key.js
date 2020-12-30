@@ -3,14 +3,52 @@
 
   $.extend($.box, {
     bindKey: function (key, func) {
-      $.mapKey(key, func, {direction: 'down'});
+      key.split(',').forEach((k) => {
+        $.mapKey(k.trim(), func, {direction: 'down'});
+      });
     },
     bindKeys: function () {
       let self = this;
       let on = self.bindKey;
 
+      // 系统操作
+      on('esc', () => {
+        $('#btn-reset').click();
+      });
       on('h', () => $('#help').click());
-      on('b', () => $('#toggle-blur').click());
+      on('c', () => {
+        $('#btn-check').click();
+      });
+      on('z', () => {
+        self.isCutMode() && self.undo();
+      });
+      on('v', () => {
+        self.isCutMode() && self.redo();
+      });
+
+      // 任务与步骤
+      on('t', () => {
+        if (self.isOrderMode()) $('#task-submit').click();
+      });
+      on('y', () => {
+        if (self.isOrderMode()) $('#task-submit-back').click();
+      });
+      on('u', () => {
+        $('#save').click();
+      });
+      on('k', () => {
+        $('#task-return').click();
+      });
+      on(',', () => {
+        if (self.isOrderMode()) $('#toggle-cut').click();
+      });
+
+      on('.', () => {
+        if (self.isCutMode()) $('#toggle-order').click();
+      });
+
+      // 图片操作
+      on('o', () => $('#toggle-blur').click());
       on('p', () => $('#toggle-image').click());
       on('+', () => self.zoomImg(self.data.ratio * 1.2));
       on('=', () => self.zoomImg(self.data.ratio * 1.2));
@@ -25,41 +63,7 @@
       on('8', () => self.zoomImg(0.8));
       on('9', () => self.zoomImg(0.9));
 
-      on('t', () => {
-        if (self.isOrderMode()) $('#task-submit').click();
-      });
-      on('y', () => {
-        if (self.isOrderMode()) $('#task-submit-back').click();
-      });
-      on('u', () => {
-        $('#save').click();
-      });
-      on('k', () => {
-        $('#task-return').click();
-      });
-
-      on('m', () => {
-        if (self.isCutMode()) $('#toggle-order').click();
-      });
-      on('n', () => {
-        if (self.isOrderMode()) $('#toggle-cut').click();
-      });
-      on(',', () => {
-        $('#task-prev').click();
-      });
-      on('.', () => {
-        $('#task-next').click();
-      });
-
-      on('g', () => {
-        self.isCutMode() && self.redo();
-      });
-      on('j', () => {
-        self.isCutMode() && self.undo();
-      });
-      on('v', () => {
-        if (self.isCutMode()) $('#toggle-multi').click();
-      });
+      // 框提示
       on('a', () => {
         if (self.isCutMode())
           self.cStatus.isMulti ? self.moveBox('left') : $('#toggle-white').click();
@@ -73,8 +77,7 @@
           self.cStatus.isMulti ? self.moveBox('right') : $('#toggle-overlap').click();
       });
       on('f', () => {
-        if (self.isCutMode())
-          self.isCutMode() ? $('#toggle-mayWrong').click() : $('#toggle-back-box').click();
+        if (self.isCutMode()) $('#toggle-mayWrong').click();
       });
       on('q', () => {
         if (self.isCutMode()) $('#toggle-large').click();
@@ -84,35 +87,41 @@
           self.cStatus.isMulti ? self.moveBox('up') : $('#toggle-small').click();
       });
       on('e', () => {
-        self.isCutMode() ? $('#toggle-narrow').click() : $('#toggle-link-char').click();
+        if (self.isCutMode()) $('#toggle-narrow').click();
       });
       on('r', () => {
         if (self.isCutMode()) $('#toggle-flat').click();
       });
-      on('c', () => {
-        self.isCutMode() ? $('#btn-check-cut').click() : $('#btn-check-link').click();
-      });
 
+      // 框操作
+      on('shift+a', () => {
+        self.moveBox('left');
+      });
+      on('shift+d', () => {
+        self.moveBox('right');
+      });
+      on('shift+w', () => {
+        self.moveBox('up');
+      });
+      on('shift+s', () => {
+        self.moveBox('down');
+      });
+      on('back,del,x', () => {
+        self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
+      });
+      on('n', () => {
+        $('#toggle-no-char').click();
+      });
       on('i', () => {
         if (self.isCutMode()) $('#toggle-my-hint').click();
       });
-      on('l', () => {
-        if (self.isCutMode()) $('#op-hint').click();
+      on('g', () => {
+        if (self.isCutMode()) $('#toggle-multi').click();
       });
-      on('esc', () => {
-        if (self.isCutMode()) $('#no-hint').click();
+      on('space', () => {
+        if (self.isCutMode() && self.cStatus.isMulti)
+          self.toggleClass(self.status.curBox, 'u-selected');
       });
-
-      on('back', () => {
-        self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
-      });
-      on('del', () => {
-        self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
-      });
-      on('x', () => {
-        self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
-      });
-
       on('left', () => {
         let navType = self.isCutMode() ? self.status.curBoxType : self.oStatus.curLinkType;
         self.navigate('left', navType);
@@ -154,6 +163,15 @@
       on('shift+down', () => {
         if (self.isCutMode()) self.resizeBox('down', true);
       });
+
+      // 序操作
+      on('l', () => {
+        if (self.isOrderMode()) $('#toggle-link-char').click();
+      });
+      on('b', () => {
+        if (self.isOrderMode()) $('#toggle-back-box').click();
+      });
+
 
     },
   });
