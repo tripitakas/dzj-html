@@ -100,13 +100,13 @@
 .shape-white .box {
   fill: white !important;
   fill-opacity: 1 !important;
-  /*stroke-opacity: 0 !important;*/
+  stroke-opacity: 0.3 !important;
 }
 
 .shape-opacity .box {
   fill: blue !important;
   fill-opacity: 0.3 !important;
-  /*stroke-opacity: 0 !important;*/
+  stroke-opacity: 0.3 !important;
 }
 
 .shape-flat .box.s-flat,
@@ -116,7 +116,7 @@
 .shape-overlap .box.s-overlap,
 .shape-mayWrong .box.s-mayWrong {
   fill: blue !important;
-  fill-opacity: 0.3 !important;
+  fill-opacity: 0.5 !important;
 }
 
 /*-字框、列框、栏框-*/

@@ -235,7 +235,7 @@
     });
   }
 
-  function scrollToVisible(elem) {
+  function scrollToVisible(elem, center) {
     if (elem && elem.elem) elem = elem.elem;
     if (!elem || !elem.getBBox()) return;
     let unit = 10;
@@ -244,17 +244,18 @@
     let hd = $($.box.data.holder);
     let bd = $.box.data.holder.getBoundingClientRect();
     let vb = {x: hd.scrollLeft(), y: hd.scrollTop(), w: bd.width, h: bd.height};
+    let cp = {scrollLeft: bb.x - bd.width / 2, scrollTop: bb.y - bd.height / 2};
     if (vb.x > bb.x) { // elem在视窗左侧
-      hd.scrollLeft(bb.x - unit);
+      hd.animate(center ? cp : {scrollLeft: bb.x - unit}, 500);
     }
     if (bb.x2 > vb.x + vb.w) { // elem在视窗右侧
-      hd.scrollLeft(bb.x2 - vb.w + unit + patch);
+      hd.animate(center ? cp : {scrollLeft: bb.x2 - vb.w + unit + patch}, 500);
     }
     if (vb.y > bb.y) { // elem在视窗上侧
-      hd.scrollTop(bb.y - unit);
+      hd.animate(center ? cp : {scrollTop: bb.y - unit}, 500);
     }
     if (bb.y2 > vb.y + vb.h) { // elem在视窗下侧
-      hd.scrollTop(bb.y2 - vb.h + unit + patch);
+      hd.animate(center ? cp : {scrollTop: bb.y2 - vb.h + unit + patch}, 500);
     }
   }
 
@@ -304,7 +305,7 @@
       ret = data.boxes[idx];
       if (boxType && ret.boxType !== boxType) ret = null;
     }
-    ret && scrollToVisible(ret);
+    ret && scrollToVisible(ret, true);
     switchCurBox(ret);
   }
 
@@ -483,6 +484,7 @@
       let r = (100 * data.initRatio * data.ratio) + '%';
       img.width(r).height(r);
     }
+    status.curBox && scrollToVisible(status.curBox, true);
   }
 
   function toggleImage(show) {
