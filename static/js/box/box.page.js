@@ -198,6 +198,7 @@
 
   function updateHeadBoxKindNo() {
     let no = $.box.getBoxKindNo();
+    console.log(no);
     $('#toggle-white .s-count').text(no.total || '');
     $('#toggle-opacity .s-count').text(no.total || '');
     $('#toggle-large .s-count').text(no.large || '');

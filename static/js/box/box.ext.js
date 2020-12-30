@@ -223,15 +223,16 @@
   // 获取框大小窄扁、重叠等的数量
   function getBoxKindNo() {
     let boxType = status.curBoxType;
+    console.log(boxType);
     if (['char', 'column', 'block'].indexOf(boxType) < 0) return {};
     return {
-      total: $('.' + boxType + ':not(.b-deleted):not(.u-deleted)').length,
-      flat: $('.' + boxType + '.s-flat:not(.b-deleted):not(.u-deleted)').length,
-      large: $('.' + boxType + '.s-large:not(.b-deleted):not(.u-deleted)').length,
-      small: $('.' + boxType + '.s-small:not(.b-deleted):not(.u-deleted)').length,
-      narrow: $('.' + boxType + '.s-narrow:not(.b-deleted):not(.u-deleted)').length,
-      overlap: $('.' + boxType + '.s-overlap:not(.b-deleted):not(.u-deleted)').length,
-      mayWrong: $('.' + boxType + '.s-mayWrong:not(.b-deleted):not(.u-deleted)').length,
+      total: $('.box.' + boxType + ':not(.b-deleted):not(.u-deleted)').length,
+      flat: $('.box.' + boxType + '.s-flat:not(.b-deleted):not(.u-deleted)').length,
+      large: $('.box.' + boxType + '.s-large:not(.b-deleted):not(.u-deleted)').length,
+      small: $('.box.' + boxType + '.s-small:not(.b-deleted):not(.u-deleted)').length,
+      narrow: $('.box.' + boxType + '.s-narrow:not(.b-deleted):not(.u-deleted)').length,
+      overlap: $('.box.' + boxType + '.s-overlap:not(.b-deleted):not(.u-deleted)').length,
+      mayWrong: $('.box.' + boxType + '.s-mayWrong:not(.b-deleted):not(.u-deleted)').length,
     };
   }
 
@@ -260,7 +261,7 @@
     if (!initial) box = {w: p.width / data.initRatio, h: p.height / data.initRatio};
     // shape的class均以s-开头
     if (box.w * box.h > eStatus.charMean.a * 1.5) return 's-large';
-    if (box.w * box.h < eStatus.charMean.a * 0.36) return 's-small';
+    if (box.w * box.h < eStatus.charMean.a * 0.6) return 's-small';
     if (box.w < eStatus.charMean.w * 0.5) return 's-narrow';
     if (box.h < eStatus.charMean.h * 0.5) return 's-flat';
   }

@@ -187,6 +187,7 @@ $('#redo').on('click', function () {
 $('#toggle-multi').on('click', function () {
   $(this).toggleClass('active');
   $.box.toggleMulti($(this).hasClass('active'));
+  bsShow('', '多选模式已' + ($(this).hasClass('active') ? '开启' : '关闭'), 'info', 800);
 });
 
 // 查看page
