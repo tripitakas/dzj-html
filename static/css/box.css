@@ -80,16 +80,21 @@
 
 /*-多选模式-*/
 .multi .box.u-selected {
-  fill: #800000;
-  fill-opacity: 0.2;
+  fill: red;
+  stroke: red;
+  fill-opacity: 0.25;
 }
 
 .multi .box.dragging {
-  stroke: grey;
+  stroke: red;
 }
 
 .multi .box.current {
   fill: red !important;
+}
+
+.multi .box.hover {
+  fill-opacity: 0.15 !important;
 }
 
 .multi .handle {

@@ -13,11 +13,6 @@
   let adminRemark = '{{handler.task.get("remark") or ""}}';
   let isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
 
-  // 快捷键
-  $.mapKey('p', () => !$('#step-prev').hasClass('hide') && $('#step-prev').click());
-  $.mapKey('n', () => !$('#step-next').hasClass('hide') && $('#step-next').click());
-  $.mapKey('t', () => !$('#task-submit').hasClass('hide')) && $('#task-submit').click();
-
   // 模态框
   $('#task-return').on('click', () => $("#returnModal").modal());
   $('#task-remark').on('click', () => $("#remarkModal").modal());
