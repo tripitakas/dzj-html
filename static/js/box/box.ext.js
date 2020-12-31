@@ -225,13 +225,13 @@
     let boxType = status.curBoxType;
     if (['char', 'column', 'block'].indexOf(boxType) < 0) return {};
     return {
-      total: $('.box.' + boxType + ':not(.b-deleted):not(.u-deleted)').length,
-      flat: $('.box.' + boxType + '.s-flat:not(.b-deleted):not(.u-deleted)').length,
-      large: $('.box.' + boxType + '.s-large:not(.b-deleted):not(.u-deleted)').length,
-      small: $('.box.' + boxType + '.s-small:not(.b-deleted):not(.u-deleted)').length,
-      narrow: $('.box.' + boxType + '.s-narrow:not(.b-deleted):not(.u-deleted)').length,
-      overlap: $('.box.' + boxType + '.s-overlap:not(.b-deleted):not(.u-deleted)').length,
-      mayWrong: $('.box.' + boxType + '.s-mayWrong:not(.b-deleted):not(.u-deleted)').length,
+      total: $('.box.' + boxType + ':not(.s-deleted):not(.b-deleted):not(.u-deleted)').length,
+      flat: $('.box.' + boxType + '.s-flat:not(.s-deleted):not(.b-deleted):not(.u-deleted)').length,
+      large: $('.box.' + boxType + '.s-large:not(.s-deleted):not(.b-deleted):not(.u-deleted)').length,
+      small: $('.box.' + boxType + '.s-small:not(.s-deleted):not(.b-deleted):not(.u-deleted)').length,
+      narrow: $('.box.' + boxType + '.s-narrow:not(.s-deleted):not(.b-deleted):not(.u-deleted)').length,
+      overlap: $('.box.' + boxType + '.s-overlap:not(.s-deleted):not(.b-deleted):not(.u-deleted)').length,
+      mayWrong: $('.box.' + boxType + '.s-mayWrong:not(.s-deleted):not(.b-deleted):not(.u-deleted)').length,
     };
   }
 
@@ -254,9 +254,10 @@
 
   // 如果initial，则根据box原始的的w/h参数计算，否则，根据box.elem的坐标转换后计算
   function getCharShape(box, initial) {
-    if (box.boxType !== 'char' || !box.w) return;
+    if (box.boxType !== 'char') return;
     let p = box.elem && box.elem.attrs;
     if (!initial) box = {w: p.width / data.initRatio, h: p.height / data.initRatio};
+    if (!box.w) return;
     // shape的class均以s-开头
     if (box.w * box.h > eStatus.charMean.a * 1.5) return 's-large';
     let small = '';
@@ -267,6 +268,7 @@
   }
 
   function updateCharShape(box) {
+    debugger;
     if (box.boxType !== 'char') return;
     let cNames = box.elem.attr('class').split(' ');
     let cls = cNames.filter((s) => s.length && s.indexOf('s-') < 0).join(' ');

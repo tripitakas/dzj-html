@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>切分校对-{{page['name']}}</title>
+  <title>{{page['name']}}</title>
   {% include com/_base_css.html %}
   <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -65,7 +65,7 @@
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
-        <div class="btn-group title">切分校对</div>
+        <div class="btn-group title">切分</div>
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助[h]"></div>
@@ -128,8 +128,6 @@
             <li id="load-user-order" class="hint"><a href="#">加载用户序线</a></li>
           </ul>
         </div>
-        <div id="task-submit" class="btn-txt icon-submit task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
-        <div id="task-submit-back" class="btn-txt icon-check-outline2 task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
         <div id="task-my-remark" class="btn-txt icon-edit2 task my-task" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit task admin-task" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
         <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存[u]"></div>
@@ -138,6 +136,9 @@
         <div id="task-next" class="btn-txt icon-arrow-right task nav-task" data-toggle="tooltip" data-placement="bottom" title="后一个任务[]"></div>
         <div id="toggle-order" class="btn-txt icon-next-step cut toggle-mode" data-toggle="tooltip" data-placement="bottom" title="字序[.]"></div>
         <div id="toggle-cut" class="btn-txt icon-prev-step order toggle-mode" data-toggle="tooltip" data-placement="bottom" title="切分[/]"></div>
+        <div id="task-submit-back" class="btn-txt icon-check-outline2 task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
+        <div id="task-submit" class="btn-txt icon-submit task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
+
       </div><!--right-->
     </div><!--m-header-->
 
@@ -273,11 +274,9 @@
     postApi(location.pathname, {data: data}, function (res) {
       bsShow('成功!', '已保存。', 'info', 1000);
       $this.removeClass('disabled');
-      if (id === 'save') {
-        location.reload();
-      } else if (id === 'task-submit') {
+      if (id === 'task-submit') {
         pick(taskType);
-      } else {
+      } else if (id === 'task-submit-back') {
         location.href = '/task/lobby/' + taskType;
       }
     });

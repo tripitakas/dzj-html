@@ -58,7 +58,9 @@ class ReturnTaskApi(TaskHandler):
         """ 退回任务"""
         try:
             if self.task['picked_user_id'] != self.user_id:
-                return self.send_error_response(e.unauthorized, message='您没有该任务的权限')
+                return self.send_error_response(e.task_unauthorized, message='您没有该任务的权限')
+            if self.task['status'] != self.STATUS_PICKED:
+                return self.send_error_response(e.task_status_error, message='只能退回进行中的任务')
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
                 'return_reason': self.prop(self.data, 'reason', ''),
                 'status': self.STATUS_RETURNED,

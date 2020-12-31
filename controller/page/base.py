@@ -291,16 +291,20 @@ class PageHandler(TaskHandler, Page, Box):
         for box_type, ops in submit_data.get('op', {}).items():
             boxes = page[box_type] or []
             for op in ops or []:
+                # prepare
                 pos = {k: op.get(k) for k in ['x', 'y', 'w', 'h']}
                 log = {'op': op['op'], 'pos': pos, **meta}
-                if op['op'] == 'added':
-                    boxes.append({**pos, 'cid': op['cid'], 'added': True, 'box_level': user_level, 'box_logs': [log]})
-                    continue
                 i, box = None, None
                 for j, b in enumerate(boxes):
                     if b.get('cid') == op['cid']:
                         i, box = j, b
                         break
+                if op['op'] == 'added':
+                    if box:
+                        continue
+                    boxes.append({**pos, 'cid': op['cid'], 'added': True, 'box_level': user_level, 'box_logs': [log]})
+                    continue
+
                 if not box:
                     continue
                 # if not self.can_write(box, page, task_type):

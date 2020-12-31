@@ -113,7 +113,7 @@
         $.box.cStatus.hasChanged = false;
         $.box.drawLink(true);
       }
-      $('.m-header .left .title').text('字序校对');
+      $('.m-header .left .title').text('字序');
       toggleNo(pStatus.order.noType, true);
       toggleLink(pStatus.order.linkType || 'char', true, true);
     } else { // 从字序校对切换为切分校对
@@ -131,7 +131,7 @@
       toggleNo(null, false);
       toggleLink(null, false);
       // 进入切分校对
-      $('.m-header .left .title').text('切分校对');
+      $('.m-header .left .title').text('切分');
       toggleCurBoxType(pStatus.cut.boxType, true);
     }
     $('.toggle-mode').removeClass('hide');
