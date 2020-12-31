@@ -412,7 +412,6 @@
         self.addClass(b, isOdd ? 'odd' : 'even');
       }
     });
-    self.adjustBoxes();
   }
 
 

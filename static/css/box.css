@@ -13,8 +13,8 @@
   height: unset !important;;
 }
 
-.box-holder .box {
-  cursor: crosshair;
+.box-holder .char {
+  cursor: default;
 }
 
 .box.odd {

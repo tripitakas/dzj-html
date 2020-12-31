@@ -10,7 +10,7 @@
   $.box.onBoxChanged(function (box, reason, param) {
     if ('added/changed/deleted/recovered'.indexOf(reason) > -1) {
       $.box.eStatus.doLogs.push([box, reason, param]);
-      $.box.eStatus.undoLogs = [];
+      // $.box.eStatus.undoLogs = [];
     }
     if ('added/changed'.indexOf(reason) > -1) {
       let boxes = Array.isArray(box) ? box : [box];
@@ -29,7 +29,8 @@
     times: [],                                    // 日志中的时间信息
     doLogs: [],                                   // 增删改等do操作堆栈
     undoLogs: [],                                 // undo操作堆栈
-    charMean: {w: 0, h: 0, a: 0},                 // 字框的平均长、宽和面积
+    mayWrong: '',                                 // 易错字列表
+    charMeanA: 0,                                 // 字框的平均面积
     hint: {type: 0, user_id: 0, create_time: 0},  // 当前hint，type可为usr/ini/cmb
   };
 
@@ -50,6 +51,7 @@
     switchBoxType: switchBoxType,
     getBoxKindNo: getBoxKindNo,
     initCharKind: initCharKind,
+    updateMayWrong: updateMayWrong,
     updateCharShape: updateCharShape,
     updateCharOverlap: updateCharOverlap,
   });
@@ -189,16 +191,19 @@
   }
 
   // 初始化计算字框的各种属性
+  // 易错字列表：一二三士土王五夫去七十千不示入人八上下卜于干子今令雷電目岱支生品卷雲竺巨公金世甲
   function initCharKind() {
-    // 1.大小窄扁、易错
-    setCharMean();
-    let mayWrongChars = '一二三士土王五夫去七十千不示入人八上下卜于干子今令雷電目岱支生品卷雲竺巨公金世甲';
+    // 1.大小窄扁、易错字
+    let sizes = data.boxes.filter((b) => b.boxType === 'char' && !b.deleted && b.w && b.h)
+        .map((b) => b.w * b.h).sort((a, b) => b - a);
+    eStatus.charMeanA = sizes.length > 5 ? sizes[4] : sizes[0];
+
     data.boxes.forEach(function (b, i) {
       if (b.boxType === 'char' && !self.isDeleted(b)) {
         let shape = getCharShape(b, true);
         shape && self.addClass(b, shape);
-        let txt = self.getTxt(b);
-        if (txt && mayWrongChars.indexOf(txt) > -1) {
+        let txt = eStatus.mayWrong && self.getTxt(b);
+        if (txt && eStatus.mayWrong.indexOf(txt) > -1) {
           self.addClass(b, 's-mayWrong');
         }
       }
@@ -235,36 +240,18 @@
     };
   }
 
-  function setCharMean(reset) {
-    if (!reset && eStatus.charMean.w) return;
-    let length = 0, sum = {w: 0, h: 0, a: 0};
-    data.boxes.forEach(function (box) {
-      if (box.boxType === 'char' && !box.deleted && box.w && box.h) {
-        length++;
-        sum.w += box.w || 0;
-        sum.h += box.h || 0;
-        sum.a += (box.w * box.h) || 0;
-      }
-    });
-    // set mean
-    eStatus.charMean.w = sum.w / length;
-    eStatus.charMean.h = sum.h / length;
-    eStatus.charMean.a = sum.a / length;
-  }
-
   // 如果initial，则根据box原始的的w/h参数计算，否则，根据box.elem的坐标转换后计算
   function getCharShape(box, initial) {
     if (box.boxType !== 'char') return;
     let p = box.elem && box.elem.attrs;
     if (!initial) box = {w: p.width / data.initRatio, h: p.height / data.initRatio};
     if (!box.w) return;
-    // shape的class均以s-开头
-    if (box.w * box.h > eStatus.charMean.a * 1.5) return 's-large';
+    if (box.w * box.h > eStatus.charMeanA * 1.5) return 's-large';
     let small = '';
-    if (box['is_small'] || (box.w * box.h < eStatus.charMean.a * 0.64)) small = ' s-small';
-    if (box.w < eStatus.charMean.w * 0.5) return 's-narrow' + small;
-    else if (box.h < eStatus.charMean.h * 0.5) return 's-flat' + small;
-    return small.trim();
+    if (box['is_small'] || box.w * box.h < eStatus.charMeanA * 0.6) small = ' s-small';
+    if (box.w / box.h < 0.67) return 's-narrow' + small;
+    if (box.h / box.w < 0.67) return 's-flat' + small;
+    return small;
   }
 
   function updateCharShape(box) {
@@ -290,6 +277,20 @@
         if (!b1.overlap.length) self.removeClass(b1, 's-overlap');
       }
     }
+  }
+
+  function updateMayWrong(mayWrong) {
+    eStatus.mayWrong = mayWrong;
+    mayWrong && data.boxes.forEach(function (b, i) {
+      if (b.boxType === 'char' && !self.isDeleted(b)) {
+        let txt = self.getTxt(b);
+        if (txt && mayWrong.indexOf(txt) > -1) {
+          self.addClass(b, 's-mayWrong');
+        } else {
+          self.removeClass(b, 's-mayWrong');
+        }
+      }
+    });
   }
 
   //-------3.undo/redo-------

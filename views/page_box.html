@@ -9,24 +9,53 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
 </head>
 <style>
-  .m-header.cut-mode .order,
-  .m-header.order-mode .cut {
+  .m-toolbar.order-mode .cut,
+  .m-toolbar.cut-mode .order {
     display: none !important;
   }
 
-  .m-header .task {
+  .m-toolbar .task {
     display: none;
   }
 
-  .m-header.m-my-task .my-task,
-  .m-header.m-nav-task .nav-task,
-  .m-header.m-admin-task .admin-task {
+  .m-toolbar.m-my-task .my-task,
+  .m-toolbar.m-nav-task .nav-task,
+  .m-toolbar.m-admin-task .admin-task {
     display: block;
   }
 
-  .m-header .s-count {
+  .m-toolbar .s-count {
     font-size: 75%;
     color: var(--Brown_Darker);
+  }
+
+  .m-toolbar .btn-txt.active {
+    color: green;
+  }
+
+  .h-toolbar {
+    width: 40px;
+    height: 100%;
+    overflow-y: auto;
+    background: var(--Grey_Lighter);
+  }
+
+  .h-toolbar .btn-txt {
+    margin: 5px 5px;
+  }
+
+  .h-toolbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .h-toolbar::-webkit-scrollbar-thumb {
+    -webkit-box-shadow: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .h-toolbar::-webkit-scrollbar-track {
+    -webkit-box-shadow: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.1);
   }
 
   .m-footer {
@@ -57,10 +86,10 @@
 
 </style>
 
-<body class="widescreen">
+<body class="widescreen" style="overflow: hidden">
 <div class="app-main">
   <div class="main">
-    <div class="m-header cut-mode m-my-task">
+    <div class="m-header m-toolbar cut-mode m-my-task">
       <div class="left">
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
@@ -69,23 +98,12 @@
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助[h]"></div>
-        <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="bottom" title="恢复初始状态[esc]"></div>
-        <div id="btn-image" class="btn-group dropdown" title="图片操作">
-          <i class="btn-txt icon-image dropdown-toggle" data-toggle="dropdown"></i>
-          <ul class="dropdown-menu" data-stopPropagation="true">
-            <li id="toggle-image" class="active"><a href="#">显隐图片[p]</a></li>
-            <li id="toggle-blur" class="active"><a href="#">模糊图片[m]</a></li>
-            <li id="zoom-in"><a href="#">放大图片[+]</a></li>
-            <li id="zoom-reset"><a href="#">原始大小[1]</a></li>
-            <li id="zoom-out"><a href="#">缩小图片[-]</a></li>
-          </ul>
-        </div>
+        <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="bottom" title="恢复初始设置[esc]"></div>
         <div id="toggle-char" class="btn-txt icon-chars toggle-box cut active" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
         <div id="toggle-column" class="btn-txt icon-columns toggle-box cut" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
         <div id="toggle-block" class="btn-txt icon-blocks toggle-box cut" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
         <div id="toggle-all" class="btn-txt icon-three toggle-box cut" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
         <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no" data-toggle="tooltip" data-placement="bottom" title="显隐字框序号[n]"></div>
-        <div id="toggle-multi" class="btn-txt icon-multi cut" data-toggle="tooltip" data-placement="bottom" title="多选模式[g]"></div>
         <div id="undo" class="btn-txt icon-undo disabled cut" data-toggle="tooltip" data-placement="bottom" title="撤销[z]"></div>
         <div id="redo" class="btn-txt icon-redo disabled cut" data-toggle="tooltip" data-placement="bottom" title="重做[v]"></div>
         <div id="toggle-box-more" class="btn-txt icon-more cut hide" title="更多"></div>
@@ -121,21 +139,14 @@
             <li id="play-hint" class="hint"><a href="#">播放修改</a></li>
           </ul>
         </div>
-        <div id="reset-link" class="btn-group order" title="序线操作">
-          <i class="btn-txt icon-swap dropdown-toggle" data-toggle="dropdown"></i>
-          <ul id="reset-link-list" class="dropdown-menu pull-right" data-stopPropagation="true">
-            <li id="reset-order" class="hint"><a href="#">算法重新排序</a></li>
-            <li id="load-user-order" class="hint"><a href="#">加载用户序线</a></li>
-          </ul>
-        </div>
         <div id="task-my-remark" class="btn-txt icon-edit2 task my-task" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit task admin-task" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
         <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存[u]"></div>
         <div id="task-return" class="btn-txt icon-return-task task my-task" data-toggle="tooltip" data-placement="bottom" title="退回任务[k]"></div>
         <div id="task-prev" class="btn-txt icon-arrow-left task nav-task" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]"></div>
         <div id="task-next" class="btn-txt icon-arrow-right task nav-task" data-toggle="tooltip" data-placement="bottom" title="后一个任务[]"></div>
-        <div id="toggle-order" class="btn-txt icon-next-step cut toggle-mode" data-toggle="tooltip" data-placement="bottom" title="字序[.]"></div>
-        <div id="toggle-cut" class="btn-txt icon-prev-step order toggle-mode" data-toggle="tooltip" data-placement="bottom" title="切分[/]"></div>
+        <div id="toggle-order" class="btn-txt icon-next-step cut toggle-mode" data-toggle="tooltip" data-placement="bottom" title="字序[/]"></div>
+        <div id="toggle-cut" class="btn-txt icon-prev-step order toggle-mode" data-toggle="tooltip" data-placement="bottom" title="切分[.]"></div>
         <div id="task-submit-back" class="btn-txt icon-check-outline2 task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
         <div id="task-submit" class="btn-txt icon-submit task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
 
@@ -144,7 +155,20 @@
 
     <div class="m-body flex">
       <div class="m-content box-holder cut-mode show-char"></div>
-    </div><!--m-m-body-->
+      <div class="m-toolbar h-toolbar cut-mode">
+        <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="left" title="显隐图片[p]"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="left" title="模糊图片[m]"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="left" title="放大图片[+]"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="left" title="原始大小[1]"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="left" title="缩小图片[-]"></div>
+        <div id="cut-config" class="btn-txt icon-config cut" data-toggle="tooltip" data-placement="left" title="易错字配置"></div>
+        <div id="toggle-multi" class="btn-txt icon-multi cut" data-toggle="tooltip" data-placement="left" title="多选模式[g]"></div>
+        <div id="adjust-blocks" class="btn-txt icon-blocks2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整栏框"></div>
+        <div id="adjust-columns" class="btn-txt icon-columns2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整列框"></div>
+        <div id="reset-order" class="btn-txt icon-sort2 order" data-toggle="tooltip" data-placement="left" title="算法重新排序"></div>
+        <div id="load-user-order" class="btn-txt icon-swap order" data-toggle="tooltip" data-placement="left" title="加载用户序线"></div>
+      </div>
+    </div><!--m-body-->
 
     <div class="m-alert alert alert-info hide" id="m-alert">
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
@@ -154,7 +178,6 @@
     <div class="m-footer">
       <span>
         页编码：<span class="page-name">{{page['name']}}</span><span class="page-info"></span>
-        <span class="multi-select hide">多选已开启</span>
       </span>
       <span class="hint-info hide">
         <span class="added">新增(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
@@ -226,6 +249,7 @@
       </div>
     </div>
   </div>
+  {% module PageConfigModal() %}
   {% if hasattr(handler, 'task_type') and handler.task_type %}
   {% module ReturnModal() %}
   {% module TaskRemarkModal() %}
@@ -247,6 +271,7 @@
 <script src="{{static_url('js/page-box.js')}}"></script>
 {% include com/_base_task.html %}
 <script>
+  // initial
   $.page.init({
     holder: '.box-holder',
     imgUrl: '{{page["img_url"]}}',
@@ -263,7 +288,9 @@
     userLinks: decodeJSON('{{page.get("user_links") or "{}"}}'),
     showImage: $('#toggle-image').hasClass('active'),
     blurImage: $('#toggle-blur').hasClass('active') ? 0.2 : 1,
+    mayWrong: getStorage('mayWrong') || '一二三士土王五七十千不示入人八',
   });
+  $('#pageConfigModal .may_wrong').text($.box.eStatus.mayWrong);
 
   // 保存数据、提交任务
   $('#save,#task-submit,#task-submit-back').on('click', function () {

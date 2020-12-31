@@ -244,6 +244,16 @@ class PageRemarkModal(UIModule):
                                   buttons=buttons)
 
 
+class PageConfigModal(UIModule):
+    def render(self):
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
+        modal_fields = [
+            {'id': 'may_wrong', 'name': '易错字列表', 'input_type': 'textarea'}
+        ]
+        return self.render_string('com/_modal.html', modal_fields=modal_fields, id='pageConfigModal', title='配置',
+                                  buttons=buttons)
+
+
 class TaskConfigModal(UIModule):
     def render(self, config_fields=None):
         title = '配置项'

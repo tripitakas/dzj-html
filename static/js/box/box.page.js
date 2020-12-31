@@ -26,8 +26,8 @@
   });
 
   let pStatus = {
-    cut: {editBox: null, boxType: 'char'},      // 当前切分校对
-    order: {noType: null, linkType: 'char'},    // 当前框序校对
+    cut: {editBox: null, boxType: 'char'},      // 当前切分校对参数
+    order: {noType: null, linkType: 'char'},    // 当前框序校对参数
   };
 
   $.page = {
@@ -67,7 +67,8 @@
     if (!p.readonly) {
       $.box.initCut();
       $.box.initOrder();
-      if (p.userLinks) $.box.oStatus.userLinks = p.userLinks;
+      $.box.oStatus.userLinks = p.userLinks || {};
+      $.box.eStatus.mayWrong = p.mayWrong || '';
       // 4. 设置字框大小窄扁等属性
       $.box.initCharKind();
       updateHeadBoxKindNo();
@@ -113,6 +114,8 @@
         $.box.cStatus.hasChanged = false;
         $.box.drawLink(true);
       }
+      $('#toggle-order').addClass('hide');
+      $('#toggle-cut').removeClass('hide');
       $('.m-header .left .title').text('字序');
       toggleNo(pStatus.order.noType, true);
       toggleLink(pStatus.order.linkType || 'char', true, true);
@@ -131,12 +134,12 @@
       toggleNo(null, false);
       toggleLink(null, false);
       // 进入切分校对
+      $('#toggle-cut').addClass('hide');
+      $('#toggle-order').removeClass('hide');
       $('.m-header .left .title').text('切分');
       toggleCurBoxType(pStatus.cut.boxType, true);
     }
-    $('.toggle-mode').removeClass('hide');
-    $('#toggle-' + mode).addClass('hide');
-    $('.m-header').removeClass('cut-mode order-mode').addClass(mode + '-mode');
+    $('.m-toolbar').removeClass('cut-mode order-mode').addClass(mode + '-mode');
     $($.box.data.holder).removeClass('cut-mode order-mode').addClass(mode + '-mode');
     $.box.status.boxMode = mode;
   }
@@ -248,7 +251,7 @@
     if (box) {
       let t = {char: '字框', column: '列框', block: '栏框'};
       $('.m-footer .char-name').text(`${t[box.boxType]}#${box.cid}#${box[box.boxType + '_id'] || ''}`);
-      let info = `${box.txt || box['ocr_txt'] || ''}${box['is_small'] ? '(夹注小字)' : ''}${box.readonly ? '/只读' : ''}`;
+      let info = `${box.txt || box['ocr_txt'] || ''}${box['is_small'] ? '' : ''}${box.readonly ? '/只读' : ''}`;
       $('.m-footer .char-info').text(info);
     } else {
       $('.m-footer .char-name').text('未选中');
