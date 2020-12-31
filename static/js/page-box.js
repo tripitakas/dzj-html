@@ -206,7 +206,7 @@ $('#redo').on('click', function () {
 $('#toggle-multi').on('click', function () {
   $(this).toggleClass('active');
   $.box.toggleMulti($(this).hasClass('active'));
-  bsShow('', '多选模式已' + ($(this).hasClass('active') ? '开启' : '关闭'), 'info', 800);
+  $('.m-footer .multi-select').toggleClass('hide', !$(this).hasClass('active'));
 });
 
 // 查看page
@@ -214,10 +214,8 @@ $('.m-footer .page-name').on('click', function () {
   if ($(this).hasClass('disabled')) return;
   let url = '/tptk/' + $(this).text();
   let charName = $('.m-footer .char-name').text();
-  if (typeof charName !== 'undefined' && charName !== '' && charName !== '未选中') {
-    let cid = charName.split('_').pop();
-    cid = cid.split('#').pop();
-    url += '?cid=' + cid;
+  if (charName && charName.length && charName !== '未选中') {
+    url += '?cid=' + charName.split('#')[1];
   }
   window.open(url, '_blank');
 });
@@ -229,9 +227,8 @@ $('.m-footer .char-name').on('click', function () {
   if (!/b\dc\d+c\d+/.test(charName))
     return showTips('提示', '当前不是字框，无法查看', 3000);
   if (charName.indexOf('#') > -1) {
-    let cid = charName.split('#').pop();
     let pageName = $('.m-footer .page-name').text();
-    charName = pageName + '_' + cid;
+    charName = pageName + '_' + charName.split('#')[1];
   }
   window.open('/char/' + charName, '_blank');
 });

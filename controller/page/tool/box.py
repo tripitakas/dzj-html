@@ -73,8 +73,9 @@ class Box(BoxOrder):
         """ 根据字框调整栏框边界，去掉没有字框的栏框"""
         ret = []
         for b in blocks:
-            b_chars = [c for c in chars if c.get('block_no') and str(c['block_no']) == str(b['block_no'])]
-            b_chars and b.update(cls.get_outer_range(b_chars))
+            if not b.get('deleted'):
+                b_chars = [c for c in chars if c.get('block_no') and str(c['block_no']) == str(b['block_no'])]
+                b_chars and b.update(cls.get_outer_range(b_chars))
             ret.append(b)
         return ret
 
@@ -83,9 +84,10 @@ class Box(BoxOrder):
         """ 根据字框调整列框边界，去掉没有字框的列框"""
         ret = []
         for c in columns:
-            c_chars = [ch for ch in chars if ch.get('block_no') and ch.get('column_no') and
-                       str(ch['block_no']) == str(c['block_no']) and str(ch['column_no']) == str(c['column_no'])]
-            c_chars and c.update(cls.get_outer_range(c_chars))
+            if not c.get('deleted'):
+                c_chars = [ch for ch in chars if ch.get('block_no') and ch.get('column_no') and
+                           str(ch['block_no']) == str(c['block_no']) and str(ch['column_no']) == str(c['column_no'])]
+                c_chars and c.update(cls.get_outer_range(c_chars))
             ret.append(c)
         return ret
 

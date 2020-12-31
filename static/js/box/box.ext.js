@@ -268,7 +268,6 @@
   }
 
   function updateCharShape(box) {
-    debugger;
     if (box.boxType !== 'char') return;
     let cNames = box.elem.attr('class').split(' ');
     let cls = cNames.filter((s) => s.length && s.indexOf('s-') < 0).join(' ');

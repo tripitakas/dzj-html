@@ -157,8 +157,13 @@
         self.addClass(status.curBox, 'u-selected');
         self.switchCurBox(null);
       }
-    } else
+    } else {
+      data.boxes.forEach(function (box) {
+        if (self.hasClass(box, 'u-selected')) self.removeClass(box, 'u-selected');
+      });
       $(data.holder).removeClass('multi');
+    }
+
   }
 
   function addBox(boxElem, boxType) {
@@ -254,6 +259,7 @@
       boxes.push(_deleteBox(data.boxes[idx]));
     });
     self.notifyChanged(boxes, 'deleted');
+    bsHide();
   }
 
   function recoverBox(box, unNotify) {
