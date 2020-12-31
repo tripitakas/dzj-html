@@ -161,6 +161,11 @@ $('#toggle-right').on('click', function () {
   $('#right-region').toggleClass('hide', !$(this).hasClass('active'));
 });
 
+// 下拉菜单
+$('#btn-image').hover(function () {
+  $(this).addClass('open');
+});
+
 // 显隐图片
 $('#toggle-image').on('click', function () {
   $(this).toggleClass('active');
