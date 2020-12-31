@@ -266,8 +266,8 @@
   function setLink(a, b) {
     let r = data.ratio;
     let boxType = a.boxType;
-    let p = {column: 'block_no', char: 'column_no'};
-    if (a[p[boxType]] !== b[p[boxType]]) {
+    if ((boxType === 'char' && (a['block_no'] !== b['block_no'] || a['column_no'] !== b['column_no'])) ||
+        (boxType === 'column' && a['block_no'] !== b['block_no'])) {
       deleteLink(a.outLink, 'out');
       deleteLink(b.inLink, 'in');
       return false;
@@ -281,6 +281,7 @@
     }
     a.outLink && a.outLink.elem && a.outLink.elem.remove();
     b.inLink && b.inLink.elem && b.inLink.elem.remove();
+    let p = {column: 'block_no', char: 'column_no'};
     let even = a[p[boxType]] % 2 ? ' odd' : ' even';
     let link = createLink(ap, bp, 'link ln-' + boxType + even).attr({'id': a.idx + '#' + b.idx});
     a.outLink = b.inLink = {elem: link, out: a, in: b};
