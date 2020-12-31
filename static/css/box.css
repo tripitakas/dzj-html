@@ -94,7 +94,7 @@
 }
 
 .multi .box.hover {
-  fill-opacity: 0.15 !important;
+  fill-opacity: 0.15; !important;
 }
 
 .multi .handle {
