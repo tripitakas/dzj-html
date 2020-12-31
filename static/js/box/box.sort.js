@@ -32,12 +32,12 @@
     let cover1 = boxesOutOfBoxes(b.chars, b.columns, 0.1);
     if (cover1.outBoxes.length)
       return {status: false, msg: '字框不在列框内', outBoxes: cover1.outBoxes};
-    // let cover2 = boxesOutOfBoxes(b.chars, b.blocks, 0.2);
-    // if (cover2.outBoxes.length)
-    //   return {status: false, msg: '字框不在栏框内', outBoxes: cover2.outBoxes};
-    let cover3 = boxesOutOfBoxes(b.columns, b.blocks, 0.2);
-    if (cover3.outBoxes.length)
-      return {status: false, msg: '列框不在栏框内', outBoxes: cover3.outBoxes};
+    let cover2 = boxesOutOfBoxes(b.columns, b.blocks, 0.2);
+    if (cover2.outBoxes.length)
+      return {status: false, msg: '列框不在栏框内', outBoxes: cover2.outBoxes};
+    // let cover3 = boxesOutOfBoxes(b.chars, b.blocks, 0.2);
+    // if (cover3.outBoxes.length)
+    //   return {status: false, msg: '字框不在栏框内', outBoxes: cover3.outBoxes};
     return {status: true};
   }
 
@@ -46,11 +46,11 @@
     let boxes = self.getBoxes();
     boxes.blocks.forEach((b) => {
       let p = getOuterRange(boxes.chars.filter((ch) => ch.block_no === b.block_no));
-      b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
+      if (p.x) b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
     });
     boxes.columns.forEach((b) => {
       let p = getOuterRange(boxes.chars.filter((ch) => ch.block_no === b.block_no && ch.column_no === b.column_no));
-      b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
+      if (p.x) b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
     });
   }
 

@@ -460,7 +460,6 @@
     data.boxes.forEach((b) => self.removeClass(b, 'highlight'));
     let r = $.box.checkBoxCover();
     if (!r.status) {
-      debugger;
       r.outBoxes.forEach((b) => self.addClass(b, 'highlight'));
       let boxIdxes = r.outBoxes.map((b) => b.idx);
       let tips = `检测到<b style="color:red">${r.msg}</b>并高亮显示，请修正。`;
