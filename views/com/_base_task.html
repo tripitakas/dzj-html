@@ -11,7 +11,7 @@
   var from = decodeFrom();
   var mode = '{{handler.mode}}';
   var taskId = '{{handler.task_id}}';
-  var taskType = '{{handler.task_type}}';
+  var taskType_ = '{{handler.task_type}}';
   var steps = decodeJSON('{{handler.steps}}');
   var step = '{{handler.steps.get("current") or ""}}';
   var readonly = '{{handler.readonly}}' === 'True';
@@ -70,7 +70,7 @@
     if (from) {
       window.location = from;
     } else if (mode === 'update' || mode === 'do') {
-      window.location = '/task/my/' + taskType;
+      window.location = '/task/my/' + taskType_;
     } else {
       window.history.back();
     }
@@ -99,7 +99,7 @@
     var autoPick = localStorage.getItem('autoPick') || '是';
     if (mode === 'do' && autoPick === '是') {
       showSuccess('成功', '已成功提交！将自动领取下一个任务。', 3000);
-      pick('/task/pick/' + taskType);
+      pick('/task/pick/' + taskType_);
     } else {
       window.leave();
     }
@@ -154,8 +154,8 @@
     $this.text('进行中...');
     postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
       showSuccess('成功', '任务已退回成功。', 1000);
-      if ($this.hasClass('modal-next')) pick('/task/pick/' + taskType);
-      else goto('/task/lobby/' + taskType, 1000);
+      if ($this.hasClass('modal-next')) pick('/task/pick/' + taskType_);
+      else goto('/task/lobby/' + taskType_, 1000);
     });
   });
 
@@ -166,13 +166,13 @@
   //
   // 前一个任务
   $('#task-prev').on('click', function () {
-    var path = '/task/browse/' + taskType + '/' + taskId;
+    var path = '/task/browse/' + taskType_ + '/' + taskId;
     location.href = path + setQueryString('to', 'prev', true);
   });
 
   // 后一个任务
   $('#task-next').on('click', function () {
-    var path = '/task/browse/' + taskType + '/' + taskId;
+    var path = '/task/browse/' + taskType_ + '/' + taskId;
     location.href = path + setQueryString('to', 'next', true);
   });
 
