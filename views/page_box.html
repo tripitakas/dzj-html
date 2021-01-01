@@ -7,87 +7,88 @@
   <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <style>
+    .m-toolbar.order-mode .cut,
+    .m-toolbar.cut-mode .order {
+      display: none !important;
+    }
+
+    .m-toolbar .task {
+      display: none;
+    }
+
+    .m-toolbar.m-my-task .my-task,
+    .m-toolbar.m-nav-task .nav-task,
+    .m-toolbar.m-admin-task .admin-task {
+      display: block;
+    }
+
+    .m-toolbar .s-count {
+      font-size: 75%;
+      color: var(--Brown_Darker);
+    }
+
+    .m-toolbar .btn-txt.active {
+      color: green;
+    }
+
+    .h-toolbar {
+      width: 40px;
+      height: 100%;
+      overflow-y: auto;
+      padding: 15px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--Grey_Lighter);
+    }
+
+    .h-toolbar .btn-txt {
+      margin: 5px 5px;
+    }
+
+    .h-toolbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .h-toolbar::-webkit-scrollbar-thumb {
+      -webkit-box-shadow: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .h-toolbar::-webkit-scrollbar-track {
+      -webkit-box-shadow: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .m-footer {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .m-footer .hint > span {
+      margin-left: 10px;
+    }
+
+    .m-footer .symbol {
+      font-size: 12px;
+      margin-right: 12px;
+    }
+
+    .m-footer .added {
+      color: #A0522D;
+    }
+
+    .m-footer .changed {
+      color: red;
+    }
+
+    .m-footer .deleted {
+      color: black;
+    }
+
+  </style>
 </head>
-<style>
-  .m-toolbar.order-mode .cut,
-  .m-toolbar.cut-mode .order {
-    display: none !important;
-  }
-
-  .m-toolbar .task {
-    display: none;
-  }
-
-  .m-toolbar.m-my-task .my-task,
-  .m-toolbar.m-nav-task .nav-task,
-  .m-toolbar.m-admin-task .admin-task {
-    display: block;
-  }
-
-  .m-toolbar .s-count {
-    font-size: 75%;
-    color: var(--Brown_Darker);
-  }
-
-  .m-toolbar .btn-txt.active {
-    color: green;
-  }
-
-  .h-toolbar {
-    width: 40px;
-    height: 100%;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background: var(--Grey_Lighter);
-  }
-
-  .h-toolbar .btn-txt {
-    margin: 5px 5px;
-  }
-
-  .h-toolbar::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .h-toolbar::-webkit-scrollbar-thumb {
-    -webkit-box-shadow: rgba(0, 0, 0, 0.2);
-    background: rgba(0, 0, 0, 0.2);
-  }
-
-  .h-toolbar::-webkit-scrollbar-track {
-    -webkit-box-shadow: rgba(0, 0, 0, 0.2);
-    background: rgba(0, 0, 0, 0.1);
-  }
-
-  .m-footer {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .m-footer .hint > span {
-    margin-left: 10px;
-  }
-
-  .m-footer .symbol {
-    font-size: 12px;
-    margin-right: 12px;
-  }
-
-  .m-footer .added {
-    color: #A0522D;
-  }
-
-  .m-footer .changed {
-    color: red;
-  }
-
-  .m-footer .deleted {
-    color: black;
-  }
-
-</style>
 
 <body class="widescreen" style="overflow: hidden">
 <div class="app-main">
@@ -116,13 +117,6 @@
           <button id="toggle-small" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐小字框[w]">小<sup class="s-count"></sup></button>
           <button id="toggle-narrow" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐窄字框[e]">窄<sup class="s-count"></sup></button>
           <button id="toggle-flat" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐扁字框[r]">扁<sup class="s-count"></sup></button>
-        </div>
-        <div id="toggle-order-more" class="btn-txt icon-more order" title="更多"></div>
-        <div id="order-op" class="btn-group more-group order hide">
-          <button id="toggle-link-column" class="btn btn-default btn-sm toggle-link" type="button" title="显隐列框序线">列序线</button>
-          <button id="toggle-no-column" class="btn btn-default btn-sm toggle-no" type="button" title="显隐列框序号">列序号</button>
-          <button id="toggle-link-block" class="btn btn-default btn-sm toggle-link" type="button" title="显隐栏框序线">栏序线</button>
-          <button id="toggle-no-block" class="btn btn-default btn-sm toggle-no" type="button" title="显隐栏框序号">栏序号</button>
         </div>
       </div><!--center-->
       <div class="right">
@@ -155,13 +149,13 @@
         <div class="up">
           <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="left" title="恢复初始设置[esc]"></div>
           <div id="btn-check" class="btn-txt icon-check" data-toggle="tooltip" data-placement="left" title="检查、应用修改[c]"></div>
-          <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no" data-toggle="tooltip" data-placement="left" title="显隐字框序号[n]"></div>
           <div id="toggle-char" class="btn-txt icon-chars toggle-box cut active" data-toggle="tooltip" data-placement="left" title="显隐字框[j]"></div>
           <div id="toggle-column" class="btn-txt icon-columns toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐列框[k]"></div>
           <div id="toggle-block" class="btn-txt icon-blocks toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐栏框[l]"></div>
           <div id="toggle-all" class="btn-txt icon-three toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐所有[;]"></div>
+          <div id="toggle-back-box" class="btn-txt icon-box1 order" data-toggle="tooltip" data-placement="left" title="显隐底框[b]"></div>
+          <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no" data-toggle="tooltip" data-placement="left" title="显隐字框序号[n]"></div>
           <div id="toggle-link-char" class="btn-txt icon-char-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐字框序线[j]"></div>
-          <div id="toggle-back-box" class="btn-txt icon-box1 order active" data-toggle="tooltip" data-placement="left" title="显隐底框[b]"></div>
         </div>
         <div class="down">
           <div id="undo" class="btn-txt icon-undo disabled cut" data-toggle="tooltip" data-placement="left" title="撤销[z]"></div>
@@ -170,6 +164,10 @@
           <div id="adjust-blocks" class="btn-txt icon-blocks2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整栏框"></div>
           <div id="adjust-columns" class="btn-txt icon-columns2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整列框"></div>
           <div id="cut-config" class="btn-txt icon-config cut" data-toggle="tooltip" data-placement="left" title="易错字配置"></div>
+          <div id="toggle-no-column" class="btn-txt icon-column-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐列框序号"></div>
+          <div id="toggle-link-column" class="btn-txt icon-column-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐列框序线"></div>
+          <div id="toggle-no-block" class="btn-txt icon-block-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐栏框序号"></div>
+          <div id="toggle-link-block" class="btn-txt icon-block-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐栏框序线"></div>
           <div id="reset-order" class="btn-txt icon-sort2 order" data-toggle="tooltip" data-placement="left" title="算法重新排序"></div>
           <div id="load-user-order" class="btn-txt icon-swap order" data-toggle="tooltip" data-placement="left" title="加载用户序线"></div>
         </div>

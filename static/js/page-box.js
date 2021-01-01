@@ -18,7 +18,7 @@ $('#btn-reset').on('click', function () {
     $.page.toggleNo('', false);
     $('.toggle-no').removeClass('active');
     if (!$('#toggle-link-char').hasClass('active')) $('#toggle-link-char').click();
-    if (!$('#toggle-back-box').hasClass('active')) $('#toggle-back-box').click();
+    if ($('#toggle-back-box').hasClass('active')) $('#toggle-back-box').click();
   }
 });
 

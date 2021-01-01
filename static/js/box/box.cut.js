@@ -117,13 +117,16 @@
       cStatus.dragPt = self.getPoint(e);
       if (cStatus.handleIndex !== -1) { // 1.修改字框
         self.removeClass(status.curBox, 'on-drag');
-        if (self.getDistance(cStatus.downPt, cStatus.dragPt) > 1) { // 1.1.应用修改
+        if (self.getDistance(cStatus.downPt, cStatus.dragPt) > data.ratio) { // 1.1.应用修改
           updateBox(status.curBox, cStatus.dragElem);
         } else { // 1.2.放弃很小的移动
           cStatus.dragElem && cStatus.dragElem.remove();
           self.switchCurBox(status.curBox);
         }
       } else { // 2.画新字框或选择字框
+        if (self.getDistance(cStatus.downPt, cStatus.dragPt) < 10 * data.ratio) { // 2.1.删除很小的框
+          return cStatus.dragElem && cStatus.dragElem.remove();
+        }
         if (cStatus.isMulti) selectBoxes(cStatus.dragElem, e.shiftKey);
         else addBox(cStatus.dragElem);
       }

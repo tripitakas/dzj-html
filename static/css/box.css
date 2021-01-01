@@ -67,7 +67,7 @@
 
 .handle {
   stroke: red;
-  stroke-width: 0.75;
+  stroke-width: 1;
 }
 
 .handle.active {
@@ -178,11 +178,11 @@
 }
 
 .no-char {
-  font-size: 14px !important;
+  font-size: 16px !important;
 }
 
 .no-column {
-  font-size: 20px !important;;
+  font-size: 24px !important;;
 }
 
 .no-block {
@@ -244,11 +244,11 @@
 }
 
 .ln-char {
-  stroke-width: 1.25;
+  stroke-width: 1.5;
 }
 
 .ln-column {
-  stroke-width: 1.5;
+  stroke-width: 1.75;
 }
 
 .ln-block {
