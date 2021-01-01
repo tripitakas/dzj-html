@@ -13,7 +13,8 @@
   height: unset !important;;
 }
 
-.box-holder .char {
+.box-holder .char,
+.box-holder .column {
   cursor: default;
 }
 
@@ -94,7 +95,8 @@
 }
 
 .multi .box.hover {
-  fill-opacity: 0.15; !important;
+  fill-opacity: 0.15;
+!important;
 }
 
 .multi .handle {

@@ -28,7 +28,7 @@ $('#btn-check').on('click', function () {
     let r = $.box.checkBoxes();
     if (r.status) {
       if ($.box.cStatus.hasChanged) $.box.reorderBoxes();
-      bsShow('成功', '检查无误!', 'info', 1500);
+      bsShow('成功', '检查无误!', 'info', 500);
     }
   } else { // 检查序线，并更新序号
     let r = $.box.checkLinks();
@@ -36,7 +36,7 @@ $('#btn-check').on('click', function () {
       $.page.toggleLink(r.errorBoxType, true);
     } else {
       if ($.box.oStatus.hasChanged) $.box.updateNoByLinks(r.links);
-      bsShow('成功', '检查无误', 'info', 1500);
+      bsShow('成功', '检查无误', 'info', 500);
     }
   }
 });
@@ -62,7 +62,7 @@ $('.m-footer .char-name').on('click', function () {
   let charName = $(this).text();
   if ($(this).hasClass('disabled') || charName === '未选中') return;
   if (!/b\dc\d+c\d+/.test(charName))
-    return showTips('提示', '当前不是字框，无法查看', 3000);
+    return bsShow('提示', '当前不是字框，无法查看', 'warning', 1000);
   if (charName.indexOf('#') > -1) {
     let pageName = $('.m-footer .page-name').text();
     charName = pageName + '_' + charName.split('#')[1];
@@ -144,8 +144,8 @@ $('#adjust-blocks').on('click', function () {
   if (!$('#toggle-block').hasClass('active')) $('#toggle-block').click();
   setTimeout(() => {
     $.box.adjustBoxes('blocks');
-    bsShow('成功', '已重新调整', 'info', 1000);
-  }, 1000);
+    bsShow('成功', '已重新调整', 'info', 500);
+  }, 500);
 });
 
 // 自适应调整列框
@@ -154,8 +154,8 @@ $('#adjust-columns').on('click', function () {
   if (!$('#toggle-column').hasClass('active')) $('#toggle-column').click();
   setTimeout(() => {
     $.box.adjustBoxes('columns');
-    bsShow('成功', '已重新调整', 'info', 1000);
-  }, 1000);
+    bsShow('成功', '已重新调整', 'info', 500);
+  }, 500);
 });
 
 // 撤销
@@ -210,7 +210,7 @@ $('#hint-list #cmb-hint').on('click', function () {
 $('#hint-list #play-hint').on('click', function () {
   if (!$.box.isCutMode()) return;
   if (!$.box.eStatus.times.length)
-    return showTips('提示', '没有修改历史', 1000);
+    return bsShow('提示', '没有修改历史', 'warning', 800);
   !$('#toggle-all').hasClass('active') && $('#toggle-all').click();
   $('#op-hint').removeClass('open');
   let play = (i) => {
@@ -268,7 +268,7 @@ $('#reset-order').on('click', function () {
   $.box.updateUserLinks();
   $.box.reorderBoxes();
   $.box.drawLink(true);
-  bsShow('成功', '已重新排序', 'info', 1000);
+  bsShow('成功', '已重新排序', 'info', 500);
 });
 
 // 加载用户字序
@@ -276,9 +276,9 @@ $('#load-user-order').on('click', function () {
   if (!$.box.isOrderMode()) return;
   $.box.updateUserLinks();
   if (!Object.keys($.box.oStatus.userLinks).length)
-    return bsShow('提示', '当前无用户字序', 'info', 1000);
+    return bsShow('提示', '当前无用户字序', 'warning', 800);
   $.box.reorderBoxes();
   $.box.loadUserLinks();
   $.box.drawLink(true);
-  bsShow('成功', '已加载用户字序', 'info', 1000);
+  bsShow('成功', '已加载用户字序', 'info', 500);
 });

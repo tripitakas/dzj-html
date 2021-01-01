@@ -37,6 +37,9 @@
     width: 40px;
     height: 100%;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     background: var(--Grey_Lighter);
   }
 
@@ -98,14 +101,11 @@
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助[h]"></div>
-        <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="bottom" title="恢复初始设置[esc]"></div>
-        <div id="toggle-char" class="btn-txt icon-chars toggle-box cut active" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
-        <div id="toggle-column" class="btn-txt icon-columns toggle-box cut" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-        <div id="toggle-block" class="btn-txt icon-blocks toggle-box cut" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-        <div id="toggle-all" class="btn-txt icon-three toggle-box cut" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
-        <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no" data-toggle="tooltip" data-placement="bottom" title="显隐字框序号[n]"></div>
-        <div id="undo" class="btn-txt icon-undo disabled cut" data-toggle="tooltip" data-placement="bottom" title="撤销[z]"></div>
-        <div id="redo" class="btn-txt icon-redo disabled cut" data-toggle="tooltip" data-placement="bottom" title="重做[v]"></div>
+        <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="left" title="显隐图片[p]"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="left" title="模糊图片[m]"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="left" title="放大图片[+]"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="left" title="原始大小[1]"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="left" title="缩小图片[-]"></div>
         <div id="toggle-box-more" class="btn-txt icon-more cut hide" title="更多"></div>
         <div id="box-op" class="btn-group more-group cut" style="margin-left: 5px">
           <button id="toggle-white" class="btn btn-default btn-sm toggle-shape" type="button" title="蒙白所有字框[a]">蒙白<sup class="s-count"></sup></button>
@@ -117,8 +117,6 @@
           <button id="toggle-narrow" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐窄字框[e]">窄<sup class="s-count"></sup></button>
           <button id="toggle-flat" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐扁字框[r]">扁<sup class="s-count"></sup></button>
         </div>
-        <div id="toggle-link-char" class="btn-txt icon-char-order order toggle-link" data-toggle="tooltip" data-placement="bottom" title="显隐字框序线[l]"></div>
-        <div id="toggle-back-box" class="btn-txt icon-box1 order active" data-toggle="tooltip" data-placement="bottom" title="显隐底框[b]"></div>
         <div id="toggle-order-more" class="btn-txt icon-more order" title="更多"></div>
         <div id="order-op" class="btn-group more-group order hide">
           <button id="toggle-link-column" class="btn btn-default btn-sm toggle-link" type="button" title="显隐列框序线">列序线</button>
@@ -128,7 +126,6 @@
         </div>
       </div><!--center-->
       <div class="right">
-        <div id="btn-check" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="检查、应用修改[c]"></div>
         <div id="toggle-my-hint" class="btn-txt icon-users hint cut" data-toggle="tooltip" data-placement="bottom" title="我的修改[i]"></div>
         <div id="op-hint" class="btn-group cut" title="修改历史">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
@@ -141,32 +138,41 @@
         </div>
         <div id="task-my-remark" class="btn-txt icon-edit2 task my-task" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit task admin-task" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
-        <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存[u]"></div>
-        <div id="task-return" class="btn-txt icon-return-task task my-task" data-toggle="tooltip" data-placement="bottom" title="退回任务[k]"></div>
+        <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存[ctrl+s]"></div>
+        <div id="task-return" class="btn-txt icon-return-task task my-task" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
         <div id="task-prev" class="btn-txt icon-arrow-left task nav-task" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]"></div>
         <div id="task-next" class="btn-txt icon-arrow-right task nav-task" data-toggle="tooltip" data-placement="bottom" title="后一个任务[]"></div>
         <div id="toggle-order" class="btn-txt icon-next-step cut toggle-mode" data-toggle="tooltip" data-placement="bottom" title="字序[/]"></div>
         <div id="toggle-cut" class="btn-txt icon-prev-step order toggle-mode" data-toggle="tooltip" data-placement="bottom" title="切分[.]"></div>
         <div id="task-submit-back" class="btn-txt icon-check-outline2 task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
         <div id="task-submit" class="btn-txt icon-submit task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
-
       </div><!--right-->
     </div><!--m-header-->
 
     <div class="m-body flex">
       <div class="m-content box-holder cut-mode show-char"></div>
       <div class="m-toolbar h-toolbar cut-mode">
-        <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="left" title="显隐图片[p]"></div>
-        <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="left" title="模糊图片[m]"></div>
-        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="left" title="放大图片[+]"></div>
-        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="left" title="原始大小[1]"></div>
-        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="left" title="缩小图片[-]"></div>
-        <div id="cut-config" class="btn-txt icon-config cut" data-toggle="tooltip" data-placement="left" title="易错字配置"></div>
-        <div id="toggle-multi" class="btn-txt icon-multi cut" data-toggle="tooltip" data-placement="left" title="多选模式[g]"></div>
-        <div id="adjust-blocks" class="btn-txt icon-blocks2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整栏框"></div>
-        <div id="adjust-columns" class="btn-txt icon-columns2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整列框"></div>
-        <div id="reset-order" class="btn-txt icon-sort2 order" data-toggle="tooltip" data-placement="left" title="算法重新排序"></div>
-        <div id="load-user-order" class="btn-txt icon-swap order" data-toggle="tooltip" data-placement="left" title="加载用户序线"></div>
+        <div class="up">
+          <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="left" title="恢复初始设置[esc]"></div>
+          <div id="btn-check" class="btn-txt icon-check" data-toggle="tooltip" data-placement="left" title="检查、应用修改[c]"></div>
+          <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no" data-toggle="tooltip" data-placement="left" title="显隐字框序号[n]"></div>
+          <div id="toggle-char" class="btn-txt icon-chars toggle-box cut active" data-toggle="tooltip" data-placement="left" title="显隐字框[j]"></div>
+          <div id="toggle-column" class="btn-txt icon-columns toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐列框[k]"></div>
+          <div id="toggle-block" class="btn-txt icon-blocks toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐栏框[l]"></div>
+          <div id="toggle-all" class="btn-txt icon-three toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐所有[;]"></div>
+          <div id="toggle-link-char" class="btn-txt icon-char-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐字框序线[l]"></div>
+          <div id="toggle-back-box" class="btn-txt icon-box1 order active" data-toggle="tooltip" data-placement="left" title="显隐底框[b]"></div>
+        </div>
+        <div class="down">
+          <div id="undo" class="btn-txt icon-undo disabled cut" data-toggle="tooltip" data-placement="left" title="撤销[z]"></div>
+          <div id="redo" class="btn-txt icon-redo disabled cut" data-toggle="tooltip" data-placement="left" title="重做[v]"></div>
+          <div id="toggle-multi" class="btn-txt icon-multi cut" data-toggle="tooltip" data-placement="left" title="多选模式[g]"></div>
+          <div id="adjust-blocks" class="btn-txt icon-blocks2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整栏框"></div>
+          <div id="adjust-columns" class="btn-txt icon-columns2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整列框"></div>
+          <div id="cut-config" class="btn-txt icon-config cut" data-toggle="tooltip" data-placement="left" title="易错字配置"></div>
+          <div id="reset-order" class="btn-txt icon-sort2 order" data-toggle="tooltip" data-placement="left" title="算法重新排序"></div>
+          <div id="load-user-order" class="btn-txt icon-swap order" data-toggle="tooltip" data-placement="left" title="加载用户序线"></div>
+        </div>
       </div>
     </div><!--m-body-->
 

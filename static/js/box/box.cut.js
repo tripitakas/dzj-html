@@ -171,7 +171,7 @@
     boxType = boxType || status.curBoxType;
     if (!boxType || typeof boxType !== 'string') {
       boxElem.remove();
-      return bsShow('错误', '请选择一种且仅一种切分框类型', 'warning', 5000);
+      return bsShow('错误', '请选择一种且仅一种切分框类型', 'warning', 2000);
     }
     let box = {
       boxType: boxType, idx: data.boxes.length, cid: self.getMaxCid(boxType) + 1,
@@ -448,7 +448,7 @@
     // 设置curHandles
     let zoom = {char: 1, column: 1.5, block: 2};
     let boxType = box.boxType || status.curBoxType;
-    let r = Math.min(2.2 * data.ratio, 8) * (zoom[boxType] || 1);
+    let r = Math.min(2.2 * data.ratio, 6) * (zoom[boxType] || 1);
     for (let i = 0; i < 8; i++) {
       let pt = self.getHandlePt(box.elem, i);
       let h = data.paper.circle(pt.x, pt.y, r).attr({'class': 'handle ' + boxType});

@@ -140,16 +140,16 @@
       // 3.检查栏列号，跳过新增的字框（未分配栏列号）
       if (a.boxType === 'char' && a.block_no && b.block_no && a.column_no && b.column_no && (
           a.block_no !== b.block_no || a.column_no !== b.column_no)) {
-        bsShow('提示', '两个字框不在同一列，禁止连接', 'warning', 5000);
+        bsShow('提示', '两个字框不在同一列，禁止连接', 'warning', 2000);
         return false;
       } else if (a.boxType === 'column' && a.block_no && b.block_no && a.block_no !== b.block_no) {
-        bsShow('提示', '两个列框不在同一栏，禁止连接', 'warning', 5000);
+        bsShow('提示', '两个列框不在同一栏，禁止连接', 'warning', 2000);
         return false;
       }
       // 4.检查目标框的连线
       let sideB = isUpdate ? sideA : {in: 'out', out: 'in'}[sideA];
       if (b[sideB + 'Link']) {
-        bsShow('提示', '目标框' + {in: '入', out: '出'}[sideB] + '点已有连线', 'warning', 5000);
+        bsShow('提示', '目标框' + {in: '入', out: '出'}[sideB] + '点已有连线', 'warning', 2000);
         return false;
       }
       return true;
@@ -446,29 +446,29 @@
     let name = {block: '栏框', column: '列框', char: '字框'}[boxType];
     let pName = {block: '页面', column: '栏框', char: '列框'}[boxType];
     if (none.length) {
-      bsShow('错误', name + '没有任何连线', 'warning', 5000);
+      bsShow('错误', name + '没有任何连线', 'warning', 2000);
       none.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false;
     } else if (start.length > 1) {
-      bsShow('错误', pName + '内有多个开始' + name, 'warning', 5000);
+      bsShow('错误', pName + '内有多个开始' + name, 'warning', 2000);
       start.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false
     } else if (end.length > 1) {
-      bsShow('错误', pName + '内有多个结束' + name, 'warning', 5000);
+      bsShow('错误', pName + '内有多个结束' + name, 'warning', 2000);
       end.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false
     } else if (!start.length) {
-      bsShow('错误', '没有找到开始' + name, 'warning', 5000);
+      bsShow('错误', '没有找到开始' + name, 'warning', 2000);
       boxes.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false
     } else if (!end.length) {
-      bsShow('错误', '没有找到结束' + name, 'warning', 5000);
+      bsShow('错误', '没有找到结束' + name, 'warning', 2000);
       boxes.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false
     }
     let orders = _traverseLink(start[0]);
     if (orders.length !== boxes.length) {
-      bsShow('错误', '连线有中断及环路，不能从开始框依次走到结束框', 'warning', 5000);
+      bsShow('错误', '连线有中断及环路，不能从开始框依次走到结束框', 'warning', 2000);
       boxes.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false;
     }

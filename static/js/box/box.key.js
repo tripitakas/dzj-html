@@ -33,10 +33,10 @@
       on('y', () => {
         if (self.isOrderMode()) $('#task-submit-back').click();
       });
-      on('u', () => {
+      on('ctrl+s', () => {
         $('#save').click();
       });
-      on('k', () => {
+      on('ctrl+r', () => {
         $('#task-return').click();
       });
       on('.', () => {
@@ -94,6 +94,20 @@
       });
 
       // 框操作
+      on('j', () => {
+        if (self.isCutMode())
+          $('#toggle-block').click();
+      });
+      on('k', () => {
+        if (self.isCutMode()) $('#toggle-column').click();
+      });
+      on('l', () => {
+        if (self.isCutMode()) $('#toggle-char').click();
+        else $('#toggle-link-char').click();
+      });
+      on(";", () => {
+        if (self.isCutMode()) $('#toggle-all').click();
+      });
       on('shift+a', () => {
         self.moveBox('left');
       });
@@ -165,13 +179,9 @@
       });
 
       // 序操作
-      on('l', () => {
-        if (self.isOrderMode()) $('#toggle-link-char').click();
-      });
       on('b', () => {
         if (self.isOrderMode()) $('#toggle-back-box').click();
       });
-
 
     },
   });
