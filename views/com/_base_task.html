@@ -5,7 +5,7 @@
   let from = decodeFrom();
   let mode = '{{handler.mode}}';
   let taskId = '{{handler.task_id}}';
-  let taskType = '{{handler.task_type}}';
+  let taskType_ = '{{handler.task_type}}';
   let steps = decodeJSON('{{handler.steps}}');
   let step = '{{handler.steps.get("current") or ""}}';
   let readonly = '{{handler.readonly}}' === 'True';
@@ -42,7 +42,7 @@
     if (from) {
       window.location = from;
     } else if (mode === 'update' || mode === 'do') {
-      window.location = '/task/my/' + taskType;
+      window.location = '/task/my/' + taskType_;
     } else {
       window.history.back();
     }
@@ -85,20 +85,20 @@
     postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
       $this.removeClass('disabled').text($txt);
       showSuccess('成功', '任务已退回成功。', 1000);
-      if ($this.hasClass('modal-next')) pick(taskType);
-      else goto('/task/lobby/' + taskType, 1000);
+      if ($this.hasClass('modal-next')) pick(taskType_);
+      else goto('/task/lobby/' + taskType_, 1000);
     });
   });
 
   // 前一个任务
   $('#task-prev').on('click', function () {
-    let url = '/task/browse/' + taskType + '/' + taskId;
+    let url = '/task/browse/' + taskType_ + '/' + taskId;
     location.href = url + setQueryString('to', 'prev', true);
   });
 
   // 后一个任务
   $('#task-next').on('click', function () {
-    let url = '/task/browse/' + taskType + '/' + taskId;
+    let url = '/task/browse/' + taskType_ + '/' + taskId;
     location.href = url + setQueryString('to', 'next', true);
   });
 
