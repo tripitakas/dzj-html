@@ -94,14 +94,14 @@
       });
 
       // 框操作
-      on('j', () => {
+      on('l', () => {
         if (self.isCutMode())
           $('#toggle-block').click();
       });
       on('k', () => {
         if (self.isCutMode()) $('#toggle-column').click();
       });
-      on('l', () => {
+      on('j', () => {
         if (self.isCutMode()) $('#toggle-char').click();
         else $('#toggle-link-char').click();
       });
