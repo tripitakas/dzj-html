@@ -26,7 +26,7 @@
     isDragging: false,                              // 鼠标是否在点击拖拽
     isMulti: false,                                 // 是否为多选模式
     downPt: null,                                   // 点击的坐标
-    curHandles: [],                                // 当前box的控制点
+    curHandles: [],                                 // 当前box的控制点
     handleIndex: -1,                                // 鼠标拖拽哪个控制点，-1表示没有任何控制点，据此判断是新增还是修改
     sensitiveGap: 8,                                // 控制点的敏感距离
     dragPt: null,                                   // 当前拖拽的坐标
@@ -124,9 +124,6 @@
           self.switchCurBox(status.curBox);
         }
       } else { // 2.画新字框或选择字框
-        if (self.getDistance(cStatus.downPt, cStatus.dragPt) < 10 * data.ratio) { // 2.1.删除很小的框
-          return cStatus.dragElem && cStatus.dragElem.remove();
-        }
         if (cStatus.isMulti) selectBoxes(cStatus.dragElem, e.shiftKey);
         else addBox(cStatus.dragElem);
       }
@@ -451,7 +448,7 @@
     // 设置curHandles
     let zoom = {char: 1, column: 1.5, block: 2};
     let boxType = box.boxType || status.curBoxType;
-    let r = Math.min(2.2 * data.ratio, 6) * (zoom[boxType] || 1);
+    let r = Math.min(2 * data.ratio, 5) * (zoom[boxType] || 1);
     for (let i = 0; i < 8; i++) {
       let pt = self.getHandlePt(box.elem, i);
       let h = data.paper.circle(pt.x, pt.y, r).attr({'class': 'handle ' + boxType});

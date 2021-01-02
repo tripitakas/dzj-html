@@ -20,13 +20,11 @@
 
 .box.odd {
   stroke: green;
-  stroke-width: 1pt;
   stroke-opacity: 0.7;
 }
 
 .box.even {
   stroke: blue;
-  stroke-width: 1pt;
   stroke-opacity: 0.7;
 }
 
@@ -127,18 +125,6 @@
 }
 
 /*-字框、列框、栏框-*/
-.box.char {
-  stroke-width: 1pt;
-}
-
-.box.column {
-  stroke-width: 1.5pt;
-}
-
-.box.block {
-  stroke-width: 2pt;
-}
-
 .show-char .char,
 .show-block .block,
 .show-column .column {
