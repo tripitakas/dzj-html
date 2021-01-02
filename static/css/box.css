@@ -65,7 +65,7 @@
 
 .handle {
   stroke: red;
-  stroke-width: 1;
+  /*stroke-width: 0.75;*/
 }
 
 .handle.active {

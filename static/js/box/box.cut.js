@@ -448,10 +448,10 @@
     // 设置curHandles
     let zoom = {char: 1, column: 1.5, block: 2};
     let boxType = box.boxType || status.curBoxType;
-    let r = Math.min(2 * data.ratio, 5) * (zoom[boxType] || 1);
+    let r = Math.min(2.2 * data.ratio, 5) * (zoom[boxType] || 1);
     for (let i = 0; i < 8; i++) {
       let pt = self.getHandlePt(box.elem, i);
-      let h = data.paper.circle(pt.x, pt.y, r).attr({'class': 'handle ' + boxType});
+      let h = data.paper.circle(pt.x, pt.y, r).attr({'class': 'handle ' + boxType, 'stroke-width': r * 0.35});
       cStatus.curHandles.push(h);
     }
   }
