@@ -358,7 +358,7 @@
    */
   function createRect(pt1, pt2, cls, transPos, force, boxType) {
     let r = transPos ? data.ratio : 1;
-    let s = {char: 1.5, column: 2, block: 2.5};
+    let s = {char: 1.3, column: 2, block: 2.5};
     let x = Math.min(pt1.x, pt2.x) / r, y = Math.min(pt1.y, pt2.y) / r;
     let w = Math.abs(pt1.x - pt2.x) / r, h = Math.abs(pt1.y - pt2.y) / r;
     if (w >= 3 && h >= 3 && w * h >= 10 || (force && w && h)) { // 检查字框面积、宽高最小值，以避免误点出碎块
