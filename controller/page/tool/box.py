@@ -84,7 +84,7 @@ class Box(BoxOrder):
         ret = []
         for c in columns:
             c_chars = [ch for ch in chars if ch.get('block_no') and ch.get('column_no') and
-                       str(ch['block_no']) == str(c['block_no']) and str(ch['column_no']) == str(c['column_no'])]
+                       str(ch['block_no']) == str(c.get('block_no')) and str(ch['column_no']) == str(c.get('column_no'))]
             c_chars and c.update(cls.get_outer_range(c_chars))
             ret.append(c)
         return ret
