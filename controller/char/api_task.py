@@ -20,7 +20,7 @@ class CharTaskPublishApi(CharHandler):
             self.validate(self.data, rules)
             if not self.db.char.count_documents({'source': self.data['source']}):
                 self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
-            log = self.publish_cluster_task()
+            log = self.publish_char_task()
             return self.send_data_response(log)
 
         except self.DbError as error:
@@ -46,7 +46,7 @@ class CharTaskPublishApi(CharHandler):
         not is_oriented and task.pop('is_oriented', 0)
         return task
 
-    def publish_cluster_task(self):
+    def publish_char_task(self):
         """ 发布聚类校对、审定任务 """
 
         log = []
@@ -106,8 +106,8 @@ class CharTaskPublishApi(CharHandler):
 
 
 class CharTaskClusterApi(CharHandler):
-    URL = ['/api/task/do/@cluster_task/@task_id',
-           '/api/task/update/@cluster_task/@task_id']
+    URL = ['/api/task/do/@char_task/@task_id',
+           '/api/task/update/@char_task/@task_id']
 
     def post(self, task_type, task_id):
         """ 提交聚类校对任务"""

@@ -1,41 +1,178 @@
 {% extends "com/_list.html" %}
 
 {% block custom-css %}
-<style>
-  .disabled {
-    display: none;
-  }
-
-  .point {
-    color: #B8906F;
-    margin-left: 10px;
-  }
-</style>
+<link href="{{static_url('assets/flatpickr/flatpickr.min.css')}}" rel="stylesheet"/>
+<link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
 {% end %}
 
-{% block operation %}
-{% if point %}
-<div class="point">我的积分：{{point}}</div>
-{% end %}
+{% block custom-modal %}
+<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">帮助文档</h4>
+      </div>
+      <div class="modal-body">
+        <div class="title">一、简介</div>
+        <div class="intro">
+          任务管理模块提供管理员对任务进行操作，包括批量删除、批量指派、更新批次、综合检索、结果统计等，针对
+          每个任务，还可以浏览、查看详情、查看历程、删除任务以及重新发布。<br/>
+          注：浏览指的是针对检索结果的浏览，浏览时可以对任务进行具体的操作。
+        </div>
+        <div class="title">二、操作</div>
+        <table class="table">
+          <tr>
+            <td>批量删除</td>
+            <td>可以删除「已发布未完成」「等待前置任务」「已退回」的任务。管理发布任务有误时，可以批量删除后再进行发布。
+              如果需要删除「进行中」的任务，请先选择重新发布，然后再删除。
+            </td>
+          </tr>
+          <tr>
+            <td>批量指派</td>
+            <td>将「已发布」的任务指派给某个特定的用户</td>
+          </tr>
+          <tr>
+            <td>更新批次</td>
+            <td>批量更新选中任务的批次。批次是一种很好的任务分类方式</td>
+          </tr>
+          <tr>
+            <td>综合检索</td>
+            <td>可以针对任务的各个字段进行检索。比如检索某批次的任务，或者某人领取的任务等。</td>
+          </tr>
+          <tr>
+            <td>结果统计</td>
+            <td>可以针对检索结果，按照用户、任务类型、任务状态等三个角度进行统计。</td>
+          </tr>
+          <tr>
+            <td>浏览</td>
+            <td>逐条浏览检索结果，在浏览任务时，可以对任务进行备注等</td>
+          <tr>
+            <td>详情</td>
+            <td>查看任务详情</td>
+          <tr>
+            <td>历程</td>
+            <td>任务相关的页面发布的所有任务</td>
+          </tr>
+          <tr>
+            <td>删除</td>
+            <td>可以删除「已发布未完成」「等待前置任务」「已退回」的任务。如果需要删除「进行中」的任务，请先选择重新发布，然后再删除。</td>
+          </tr>
+          <tr>
+            <td>重新发布</td>
+            <td>重新发布指的是对于「进行中」的任务，从用户处撤回后重新发布。</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">综合检索</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">批次</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="请输入批次">
+            </div>
+            <h4 class="col-sm-2 control-label">页编码</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control doc_id" value="{{params.get('doc_id') or ''}}" placeholder="请输入页编码">
+            </div>
+            <h4 class="col-sm-2 control-label">领取时间</h4>
+            <div class="col-sm-10 picked_time">
+              <input type="text" class="form-control flatpickr picked_start" value="{{params.get('picked_start') or ''}}" data-enable-time=true data-enable-seconds=true placeholder="请选择开始时间"
+                     style="float: left;width: 45%">
+              <span style="margin-left: 4%; line-height: 25px">~</span>
+              <input type="text" class="form-control flatpickr picked_end" value="{{params.get('picked_end') or ''}}" data-enable-time=true data-enable-seconds=true placeholder="请选择结束时间"
+                     style="float: right;width: 45%">
+            </div>
+            <h4 class="col-sm-2 control-label">完成时间</h4>
+            <div class="col-sm-10 finished_time">
+              <input type="text" class="form-control flatpickr finished_start" value="{{params.get('finished_start') or ''}}" data-enable-time=true data-enable-seconds=true placeholder="请选择开始时间"
+                     style="float: left;width: 45%">
+              <span style="margin-left: 4%; line-height: 25px">~</span>
+              <input type="text" class="form-control flatpickr finished_end" value="{{params.get('finished_end') or ''}}" data-enable-time=true data-enable-seconds=true placeholder="请选择结束时间"
+                     style="float: right;width: 45%">
+            </div>
+            <h4 class="col-sm-2 control-label">我的备注</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control remark" value="{{params.get('my_remark') or ''}}" placeholder="请输入我的备注">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect reset">重置</button>
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% end %}
 
 {% block custom-js %}
+<script src="{{static_url('assets/flatpickr/flatpickr.js')}}"></script>
+<script src="{{static_url('assets/flatpickr/zh.js')}}"></script>
 <script>
+  let taskType = '{{task_type}}';
   // 查看
-  $('.action .my-task-view').click(function () {
-    let data = getData($(this).parent().parent().attr('id'));
-    location.href = '/task/' + data.task_type + '/' + data._id + '?from=' + encodeFrom();
-  });
-  // 继续
-  $('.action .my-task-do').click(function () {
-    let data = getData($(this).parent().parent().attr('id'));
-    if (data.status === 'finished') return showTips('提示', '只能继续进行中的任务，已完成的任务，请直接修改。', 5000);
-    location.href = '/task/do/' + data.task_type + '/' + data._id;
+  $('.action .my-task-view').on('click', function () {
+    let taskId = $(this).parent().parent().attr('id');
+    location.href = `/task/${taskType}/${taskId}?from=` + encodeFrom();
   });
   // 修改
-  $('.action .my-task-update').click(function () {
-    let data = getData($(this).parent().parent().attr('id'));
-    location.href = '/task/update/' + data.task_type + '/' + data._id + '?from=' + encodeFrom();
+  $('.action .my-task-update').on('click', function () {
+    let taskId = $(this).parent().parent().attr('id');
+    location.href = `/task/update/${taskType}/${taskId}?from=` + encodeFrom();
+  });
+  // 浏览
+  $('.operation .btn-browse').on('click', function () {
+    if (!$('tbody tr').first()) return;
+    let taskId = $('tbody tr').first().attr('id');
+    location.href = `/task/browse/${taskType}/${taskId}?from=` + encodeFrom();
+  });
+  // 备注
+  $('.action .my-task-remark').on('click', function () {
+    let taskId = $(this).parent().parent().attr('id');
+    let myRemark = $(this).parent().parent().find('.my_remark');
+    Swal2.fire({title: '请输入备注', input: 'text', inputValue: myRemark.text().trim()}).then((result) => {
+      if (result.dismiss) return;
+      postApi('/task/my_remark/' + taskId, {data: {my_remark: result.value}}, function () {
+        myRemark.text(result.value);
+        showSuccess('备注成功', '', 1000);
+      });
+    });
+  });
+
+  //---综合检索---
+  let searchFields = [
+    {id: 'batch'}, {id: 'doc_id'}, {id: 'picked_start'}, {id: 'picked_end'},
+    {id: 'finished_start'}, {id: 'finished_end'}, {id: 'my_remark'}
+  ];
+  // 设置时间选择器
+  $("#searchModal .picked_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  $("#searchModal .picked_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  $("#searchModal .finished_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  $("#searchModal .finished_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  // 提交
+  $("#searchModal .modal-confirm").on('click', function () {
+    let data = getModal($("#searchModal"), searchFields);
+    let search = $.map(data, (v, k) => '&' + k + '=' + v).join('');
+    if (!search.length) return showTips('提示', '请输入查询条件', 1000);
+    location.href = location.pathname + '?' + search.substr(1);
+  });
+  // 重置
+  $("#searchModal .reset").on('click', function () {
+    $("#searchModal .picked_user_id").val(null).trigger('change');
+    resetModal($("#searchModal"), searchFields);
   });
 </script>
 {% end %}

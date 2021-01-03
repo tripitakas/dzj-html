@@ -13,7 +13,6 @@ class PageTaskListHandler(PageHandler):
     URL = '/page/task/list'
 
     page_title = '页任务管理'
-    search_tips = '请搜索页编码、批次号或备注'
     table_fields = [
         {'id': '_id', 'name': '主键'},
         {'id': 'batch', 'name': '批次号'},
@@ -37,6 +36,7 @@ class PageTaskListHandler(PageHandler):
         {'id': 'picked_time', 'name': '领取时间'},
         {'id': 'picked_by', 'name': '领取人'},
         {'id': 'finished_time', 'name': '完成时间'},
+        {'id': 'used_time', 'name': '执行时间'},
         {'id': 'remark', 'name': '备注'},
     ]
     search_fields = ['doc_id', 'batch', 'remark']

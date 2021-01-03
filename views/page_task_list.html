@@ -214,8 +214,8 @@
 <script src="{{static_url('assets/flatpickr/zh.js')}}"></script>
 <script src="{{static_url('js/task-admin.js')}}"></script>
 <script>
-  /*---公共设置---*/
-  $.fn.modal.Constructor.prototype.enforceFocus = function () {
+  // bootstrap modal with select2 focus
+  $.fn.modal.Constructor.prototype.enforceFocus = () => {
   };
 
   // 综合统计

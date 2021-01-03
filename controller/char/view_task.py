@@ -145,10 +145,10 @@ class CharTaskDashBoardHandler(CharHandler):
 
 
 class CharTaskClusterHandler(CharHandler):
-    URL = ['/task/@cluster_task/@task_id',
-           '/task/do/@cluster_task/@task_id',
-           '/task/browse/@cluster_task/@task_id',
-           '/task/update/@cluster_task/@task_id']
+    URL = ['/task/@char_task/@task_id',
+           '/task/do/@char_task/@task_id',
+           '/task/browse/@char_task/@task_id',
+           '/task/update/@char_task/@task_id']
 
     config_fields = [
         {'id': 'page-size', 'name': '每页显示条数'},

@@ -44,6 +44,7 @@ class Task(Model):
         {'id': 'picked_user_id', 'name': '领取人id'},
         {'id': 'picked_by', 'name': '领取人'},
         {'id': 'finished_time', 'name': '完成时间'},
+        {'id': 'used_time', 'name': '执行时间'},
         {'id': 'is_sample', 'name': '示例任务'},
         {'id': 'remark', 'name': '备注'},
         {'id': 'message', 'name': '日志'},
@@ -52,17 +53,7 @@ class Task(Model):
     # 任务类型定义
     task_types = {
         'import_image': {
-            'name': '导入图片', 'publishable': True,
-        },
-        'cut_proof': {
-            'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
-            'steps': [['box', '字框'], ['order', '字序']],
-            'num': [1, 2, 3, 4, 5, 6], 'publishable': True,
-        },
-        'cut_review': {
-            'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
-            'steps': [['box', '字框'], ['order', '字序']],
-            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_proof'], 'publishable': True,
+            'name': '导入图片', 'publishable': True, 'is_sys_task': True,
         },
         'upload_cloud': {
             'name': '上传云端', 'data': {'collection': 'page', 'id': 'name'},
@@ -76,9 +67,17 @@ class Task(Model):
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3, 4, 5, 6], 'publishable': True, 'is_sys_task': True,
         },
+        'cut_proof': {
+            'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['ocr_box'], 'publishable': True,
+        },
+        'cut_review': {
+            'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_proof'], 'publishable': True,
+        },
         'text_proof': {
             'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_review'], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['ocr_text'], 'publishable': True,
         },
         'text_review': {
             'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
@@ -90,7 +89,7 @@ class Task(Model):
         },
         'cluster_review': {
             'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True,
         },
     }
 

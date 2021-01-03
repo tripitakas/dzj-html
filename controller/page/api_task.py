@@ -162,8 +162,10 @@ class PageTaskCutApi(PageHandler):
             page = PageBoxApi.save_box(self, self.task['doc_id'], task_type)
             hint_no = self.get_user_hint_no(page, self.user_id)
             if self.data.get('submit') and self.task['status'] != self.STATUS_FINISHED:
+                used_time = int((self.now() - self.task['picked_time']).microseconds / 1000)
                 self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                    'status': self.STATUS_FINISHED, 'finished_time': self.now(), **hint_no}})
+                    'status': self.STATUS_FINISHED, 'finished_time': self.now(),
+                    'used_time': used_time, **hint_no}})
                 self.update_post_tasks(self.task)
                 self.update_page_status(self.STATUS_FINISHED, self.task)
             else:

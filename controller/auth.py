@@ -22,10 +22,10 @@ url_placeholder = {
     'tripitaka_code': r'[a-zA-Z]{2}',
     'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
     'metadata': r'tripitaka|sutra|volume|reel|variant',
+    'char_task': r'cluster_proof|cluster_review',
     'ocr_task': r'import_image|ocr_box|ocr_text|upload_cloud',
-    'page_task': r'cut_proof|cut_review|txt_match|find_cmp',
-    'cluster_task': r'cluster_proof|cluster_review|rare_proof|rare_review',
-    'task_type': r'ocr_\w+|cut_\w+|text_\w+|cluster_\w+|rare_\w+|txt_match|find_cmp',
+    'page_task': r'cut_proof|cut_review|text_proof|text_review',
+    'task_type': r'ocr_\w+|cut_\w+|text_\w+|cluster_\w+',
 }
 
 """ 
@@ -219,7 +219,7 @@ role_route_maps = {
         'routes': {
             '/char/task/list': ['GET'],
             '/api/user/list': ['POST'],
-            '/task/browse/@cluster_task/@task_id': ['GET'],
+            '/task/browse/@char_task/@task_id': ['GET'],
         }
     },
     '任务管理员': {

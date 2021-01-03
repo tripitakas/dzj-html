@@ -61,7 +61,7 @@
   // 备注我的任务
   $('#task-my-remark').on('click', function () {
     Swal2.fire({title: '请输入备注', input: 'text', inputValue: myRemark}).then((result) => {
-      if (result.dismiss === 'cancel') return;
+      if (result.dismiss) return;
       postApi('/task/my_remark/' + taskId, {data: {my_remark: result.value}}, function () {
         myRemark = result.value;
         showSuccess('备注成功', '', 1000);
