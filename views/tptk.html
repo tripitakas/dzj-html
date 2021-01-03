@@ -249,7 +249,7 @@
 
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'navigate') {
-      var curId = $.cut.getCurrentCharID(true);
+      let curId = $.cut.getCurrentCharID(true);
       if (curId) {
         $('.m-footer .char-name').text(curId);
         $('.m-footer .char-info').text((info.txt || info.ocr_txt || '') + (info['is_small'] ? '（小字）' : ''));
@@ -269,15 +269,15 @@
     setStorage('tptkRight', $(this).hasClass('active'));
   });
 
-  var volumeCode = '{{volume_code}}';
+  let volumeCode = '{{volume_code}}';
   $('.m-pager .btn-page:not(.to)').click(function () {
     window.location = '/tptk/' + volumeCode + '_' + $(this).attr('data-value');
   });
 
   $('.m-pager .btn-page.to').on('keydown', function (event) {
-    var keyCode = event.keyCode || event.which;
+    let keyCode = event.keyCode || event.which;
     if (keyCode === 13) {
-      var pageNo = $('.m-pager .btn-page.to input').val();
+      let pageNo = $('.m-pager .btn-page.to input').val();
       window.location = '/tptk/' + volumeCode + '_' + pageNo;
     }
   });
@@ -287,10 +287,10 @@
 
 
   // 快捷键缩放页面
-  var width, height;
+  let width, height;
 
   function zoomImg(ratio) {
-    var pageImg = $('.page-img img');
+    let pageImg = $('.page-img img');
     if (pageImg.length) {
       width = width || $('.page-img img').width();
       height = height || $('.page-img img').height();

@@ -280,9 +280,9 @@
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   // 公共参数
-  var chars = decodeJSON('{{dumps(chars)}}');
-  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
-  var taskType = "{{handler.task_type if hasattr(handler, 'task_type') else ''}}";
+  let chars = decodeJSON('{{dumps(chars)}}');
+  let txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
+  let taskType = "{{handler.task_type if hasattr(handler, 'task_type') else ''}}";
 
   // 初始化
   $('#taskConfigModal .page-size').val('{{handler.page_size}}');
@@ -302,8 +302,8 @@
 
   // 配置项
   $('#taskConfigModal .modal-confirm').on('click', function () {
-    var data = {};
-    var pageSize = $('#taskConfigModal .page-size').val();
+    let data = {};
+    let pageSize = $('#taskConfigModal .page-size').val();
     if (pageSize.length) {
       if (!/^\d+$/.test(pageSize)) {
         return showTips('提示', '每页条数中请输入数字', 3000);
@@ -313,7 +313,7 @@
         data['cluster_page_size'] = pageSize;
       }
     }
-    var showCharInfo = $('#taskConfigModal .show-char-info :checked');
+    let showCharInfo = $('#taskConfigModal .show-char-info :checked');
     if (showCharInfo) {
       data['cluster_char_info'] = showCharInfo.val();
       $('.char-info, .cc').toggleClass('hide', showCharInfo.val() !== '是');
@@ -328,13 +328,13 @@
 
   // 新增异体字
   $('#add-variant').on('click', function () {
-    var normalTxt = $('.txt-kind.current').attr('data-value'), currentName = $('.char-name').text();
+    let normalTxt = $('.txt-kind.current').attr('data-value'), currentName = $('.char-name').text();
     $('#variantModal .normal-txt').val(normalTxt);
     $('#variantModal .txt').val(currentName);
     $('#variantModal').modal();
   });
   $('#variantModal .modal-confirm').on('click', function () {
-    var data = {txt: $('#variantModal .txt').val(), normal_txt: $('#variantModal .normal-txt').val()};
+    let data = {txt: $('#variantModal .txt').val(), normal_txt: $('#variantModal .normal-txt').val()};
     if (!data.txt.length) {
       return showTips('提示', '请输入异体字文字或字图编码', 5000);
     } else if (!data.normal_txt.length) {
@@ -344,7 +344,7 @@
       postApi('/data/variant', {data: data}, function (res) {
         $("#variantModal").modal('hide');
         if (/[0-9a-zA-Z_]+/.test(data.txt)) {
-          var imgUrl = $('#' + data.txt).find('img').attr('src');
+          let imgUrl = $('#' + data.txt).find('img').attr('src');
           $('.variants').append(`<span class="variant variant-img txt-item" data-value="Y${res.doc.uid}"><img src="${imgUrl}"/></span>`);
         } else {
           $('.variants').append(`<span class="variant txt-item" data-value="${data.txt}">${data.txt}</span>`);
@@ -355,7 +355,7 @@
 
   // 删除异体字
   $(document).on('dblclick', '.variant-img', function () {
-    var $this = $(this);
+    let $this = $(this);
     showConfirm('提示', '确定删除该图片字吗？', function () {
       postApi('/variant/delete', {data: {uid: $this.attr('data-value')}}, function (res) {
         $this.remove();
@@ -365,12 +365,12 @@
 
   // 批量修改文字
   $('#bat-update-txt').on('click', function () {
-    var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
+    let names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
     if (!names.length)
       return showTips('请选择', '当前没有选中任何记录', 3000);
     Swal2.fire({title: '请输入文字', input: 'text', inputValue: $('.proof .txt').val()}).then((result) => {
       if (result.value) {
-        var data = {names: names, txt: result.value, task_type: taskType};
+        let data = {names: names, txt: result.value, task_type: taskType};
         postApi('/chars/txt', {data: data}, function (res) {
           if (res.data.level_unqualified || res.data.level_unqualified) {
             $('#resultModal .form-group').html($.map(res.data, function (value, key) {
@@ -387,12 +387,12 @@
 
   // 批量修改类型
   $('#bat-update-type').on('click', function () {
-    var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
+    let names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
     if (!names.length)
       return showTips('请选择', '当前没有选中任何记录', 3000);
     Swal2.fire({title: '请选择类型', input: 'radio', inputOptions: txtTypes}).then((result) => {
       if (result.value) {
-        var data = {names: names, txt_type: result.value, task_type: taskType};
+        let data = {names: names, txt_type: result.value, task_type: taskType};
         postApi('/chars/txt_type', {data: data}, function (res) {
           if (res.data.level_unqualified || res.data.level_unqualified) {
             $('#resultModal .form-group').html($.map(res.data, function (value, key) {
@@ -414,7 +414,7 @@
   // 提交当前页
   $('#page-submit').on("click", function () {
     $('#progress').removeClass('hide');
-    var charNames = $.map($('.char-item'), function (item) {
+    let charNames = $.map($('.char-item'), function (item) {
       return $(item).attr('data-id');
     });
     postApi(location.pathname, {data: {char_names: charNames}}, function () {

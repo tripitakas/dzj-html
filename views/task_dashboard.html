@@ -110,20 +110,20 @@
   $(".select-time .end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
 
   $('#last-week').on('click', function () {
-    var start = new Date();
-    var day = start.getDay() || 7;
+    let start = new Date();
+    let day = start.getDay() || 7;
     start.setDate(start.getDate() - day - 7);
     start = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     $(".select-time .start").val(start.format("yyyy-MM-dd hh:mm:ss"));
-    var end = new Date();
+    let end = new Date();
     end.setDate(end.getDate() - day - 1);
     end = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59);
     $(".select-time .end").val(end.format("yyyy-MM-dd hh:mm:ss"));
   });
 
   $('#this-week').on('click', function () {
-    var date = new Date();
-    var day = date.getDay() || 7;
+    let date = new Date();
+    let day = date.getDay() || 7;
     date.setDate(date.getDate() - day + 1);
     date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     $(".select-time .start").val(date.format("yyyy-MM-dd hh:mm:ss"));
@@ -131,18 +131,18 @@
   });
 
   $('#this-month').on('click', function () {
-    var date = new Date();
+    let date = new Date();
     date = new Date(date.getFullYear(), date.getMonth());
     $(".select-time .start").val(date.format("yyyy-MM-dd hh:mm:ss"));
     $(".select-time .end").val("");
   });
 
   $('#last-month').on('click', function () {
-    var date = new Date();
-    var start = new Date(date.getFullYear(), date.getMonth() - 1);
+    let date = new Date();
+    let start = new Date(date.getFullYear(), date.getMonth() - 1);
     if (date.getMonth() == 1) start = new Date(date.getFullYear() - 1, 12);
     $(".select-time .start").val(start.format("yyyy-MM-dd 00:00:00"));
-    var end = new Date(date.getFullYear(), date.getMonth());
+    let end = new Date(date.getFullYear(), date.getMonth());
     $(".select-time .end").val(end.format("yyyy-MM-dd 00:00:00"));
   });
 
@@ -153,7 +153,7 @@
   });
 
   $('#confirm').on('click', function () {
-    var search = '&';
+    let search = '&';
     if ($(".select-time .start").val())
       search = 'start=' + $(".select-time .start").val() + '&';
     if ($(".select-time .end").val())

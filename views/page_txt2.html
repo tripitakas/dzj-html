@@ -222,8 +222,8 @@
 <script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
   // 公共参数
-  var txtFields = decodeJSON('{{txt_fields}}');
-  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+  let txtFields = decodeJSON('{{txt_fields}}');
+  let txtDict = decodeJSON('{{dumps(txt_dict)}}');
 
   // 页面图和切分框
   $.cut.create({

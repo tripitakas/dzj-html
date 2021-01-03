@@ -114,8 +114,8 @@
 <script src="{{static_url('js/page-txt.js')}}"></script>
 <script>
   // 公共参数
-  var txtFields = decodeJSON('{{txt_fields}}');
-  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+  let txtFields = decodeJSON('{{txt_fields}}');
+  let txtDict = decodeJSON('{{dumps(txt_dict)}}');
 
   $.cut.create({
     readonly: true,
@@ -152,7 +152,7 @@
 
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'navigate') {
-      var curId = $.cut.getCurrentCharID(true);
+      let curId = $.cut.getCurrentCharID(true);
       if (curId) {
         $('.m-footer .char-name').text(curId);
         $('.m-footer .char-info').text((info.txt || '') + (info['is_small'] ? '（小字）' : ''));

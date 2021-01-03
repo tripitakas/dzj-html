@@ -119,9 +119,9 @@
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   // 公共参数
-  var taskType = '';
-  var chars = decodeJSON('{{dumps(chars)}}');
-  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
+  let taskType = '';
+  let chars = decodeJSON('{{dumps(chars)}}');
+  let txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
 
   $.cut.create({
     holder: 'holder',
@@ -136,8 +136,8 @@
   // 提交字框修改
   $('#submit-box').on('click', function () {
     if ($(this).hasClass('disabled')) return;
-    var box = $.cut.exportBoxes()[0];
-    var data = {pos: {x: box.x, y: box.y, w: box.w, h: box.h}};
+    let box = $.cut.exportBoxes()[0];
+    let data = {pos: {x: box.x, y: box.y, w: box.w, h: box.h}};
     postApi('/page/char/box/{{char["name"]}}', {data: data}, function (res) {
       location.reload();
     });

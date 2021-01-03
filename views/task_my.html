@@ -23,18 +23,18 @@
 <script>
   // 查看
   $('.action .my-task-view').click(function () {
-    var data = getData($(this).parent().parent().attr('id'));
+    let data = getData($(this).parent().parent().attr('id'));
     location.href = '/task/' + data.task_type + '/' + data._id + '?from=' + encodeFrom();
   });
   // 继续
   $('.action .my-task-do').click(function () {
-    var data = getData($(this).parent().parent().attr('id'));
+    let data = getData($(this).parent().parent().attr('id'));
     if (data.status === 'finished') return showTips('提示', '只能继续进行中的任务，已完成的任务，请直接修改。', 5000);
     location.href = '/task/do/' + data.task_type + '/' + data._id;
   });
   // 修改
   $('.action .my-task-update').click(function () {
-    var data = getData($(this).parent().parent().attr('id'));
+    let data = getData($(this).parent().parent().attr('id'));
     location.href = '/task/update/' + data.task_type + '/' + data._id + '?from=' + encodeFrom();
   });
 </script>

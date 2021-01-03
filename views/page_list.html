@@ -354,8 +354,8 @@
 <script>
   // 浏览
   $('.action .btn-nav').on('click', function () {
-    var name = $(this).parent().siblings('.name').text();
-    var symbol = location.search ? '&' : '?';
+    let name = $(this).parent().siblings('.name').text();
+    let symbol = location.search ? '&' : '?';
     location.href = '/page/browse/' + name + location.search + symbol + 'from=' + encodeFrom();
   });
 
@@ -382,7 +382,7 @@
   });
 
   $('#sourceModal .modal-confirm11').on('click', function () {
-    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+    let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     if (!ids.length)
       return showTips('请选择', '当前没有选中任何记录', 3000);
     Swal2.fire({title: '请输入分类', input: 'text'}).then((result) => {
@@ -393,26 +393,26 @@
   });
 
   $sourceModal.find('.modal-confirm').on('click', function () {
-    var source = $sourceModal.find('.source').val().trim();
+    let source = $sourceModal.find('.source').val().trim();
     if (!source.length) return showTips('请输入分类', '分类不允许为空', 3000);
-    var data = {'source': source};
+    let data = {'source': source};
 
-    var isFile = false;
-    var formData = new FormData();
-    var src = $sourceModal.find('.tab-pane.active').attr('id');
+    let isFile = false;
+    let formData = new FormData();
+    let src = $sourceModal.find('.tab-pane.active').attr('id');
     switch (src) {
       case 'src-search':
-        var searchParam = $sourceModal.find('#src-param').val();
+        let searchParam = $sourceModal.find('#src-param').val();
         if (!searchParam.length) return showTips('提示', '检索条件不允许为空', 3000);
         data['search'] = searchParam;
         break;
       case 'src-select':
-        var pageNames = $('#src-names').val().trim();
+        let pageNames = $('#src-names').val().trim();
         if (!pageNames.length) return showTips('提示', '请选择页码', 3000);
         data['page_names'] = pageNames.split(',');
         break;
       case 'src-file':
-        var idsFile = $('#src-upload')[0].files[0];
+        let idsFile = $('#src-upload')[0].files[0];
         if (typeof idsFile === "undefined") return showTips('提示', '请选择文件', 3000);
         if (!/\.(csv|txt|json)$/.test(idsFile.name)) return showTips('提示', '文件不是CSV或TXT类型', 3000);
         if (idsFile.size > (10 * 1024 * 1024)) return showTips('提示', '文件大小不能超过10M', 3000);
@@ -428,7 +428,7 @@
 
   // 生成字表
   $('.operation .bat-gen-chars').on('click', function () {
-    var pageNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.name').text().trim());
+    let pageNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.name').text().trim());
     if (!pageNames.length)
       return showTips('请选择', '当前没有选中任何记录', 3000);
     showConfirm('提示', `将对选中的${pageNames.length}条记录生成字表`, function () {
@@ -443,7 +443,7 @@
 
   // 删除
   $('.btn-delete').on('click', function () {
-    var name = $(this).parent().parent().find('.name').text().trim();
+    let name = $(this).parent().parent().find('.name').text().trim();
     showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
       postApi('/api/page/delete', {data: {page_name: name}}, function (res) {
         if (res.deleted_count) {
@@ -459,14 +459,14 @@
   });
   // 批量删除
   $('.operation .bat-delete').click(function () {
-    var names = $.map($('table tbody :checked'), function (item) {
+    let names = $.map($('table tbody :checked'), function (item) {
       return $(item).parent().parent().find('.name').text().trim();
     });
     if (!names.length)
       return showTips('请选择', '当前没有选中任何记录', 3000);
     showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
       postApi('/api/page/delete', {data: {page_names: names}}, function (res) {
-        var msg = `已删除${res.deleted_count}条数据。`;
+        let msg = `已删除${res.deleted_count}条数据。`;
         if (res.existed_count)
           msg += `${res.existed_count}条数据有关联任务，不能直接删除。`;
         showSuccess('成功', msg, 3000);
@@ -485,10 +485,10 @@
   });
   $('#checkModal .modal-confirm').on('click', function () {
     $(this).text('进行中...');
-    var field = $.map($('#checkModal .field :checked'), function (item) {
+    let field = $.map($('#checkModal .field :checked'), function (item) {
       return $(item).attr('title');
     });
-    var publishTask = $('#checkModal .publish_task :checked').val() === '是';
+    let publishTask = $('#checkModal .publish_task :checked').val() === '是';
     postApi('/page/start_check_match', {data: {field: field, publish_task: publishTask}}, (res) => {
       Swal0.fire({
         type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
@@ -499,29 +499,29 @@
 
   // 修改字框
   $('.btn-box').on('click', function () {
-    var name = $(this).parent().parent().find('.name').text();
-    var url = '/page/box/' + name;
+    let name = $(this).parent().parent().find('.name').text();
+    let url = '/page/box/' + name;
     location.href = url + '?from=' + encodeFrom();
   });
 
   // 修改字序
   $('.btn-order').on('click', function () {
-    var name = $(this).parent().parent().find('.name').text();
-    var url = '/page/order/' + name;
+    let name = $(this).parent().parent().find('.name').text();
+    let url = '/page/order/' + name;
     location.href = url + '?from=' + encodeFrom();
   });
 
   // 修改文字
   $('.btn-text').on('click', function () {
-    var name = $(this).parent().parent().find('.name').text();
-    var url = '/page/txt/' + name;
+    let name = $(this).parent().parent().find('.name').text();
+    let url = '/page/txt/' + name;
     location.href = url + '?from=' + encodeFrom();
   });
 
   // 文本匹配-OCR列文、比对文本、校对文本
   $('.op_text a').on('click', function () {
-    var name = $(this).parent().parent().find('.name').text();
-    var url = `/page/txt_match/${name}?field=${$(this).attr("title")}`;
+    let name = $(this).parent().parent().find('.name').text();
+    let url = `/page/txt_match/${name}?field=${$(this).attr("title")}`;
     location.href = url + '&from=' + encodeFrom();
   });
 
@@ -539,18 +539,18 @@
 
 <script>
   /*---综合检索---*/
-  var $searchModal = $("#searchModal");
-  var inputFields = ['name', 'source', 'txt', 'remark_box', 'remark_txt'];
-  var selectFields = ['task_type', 'num', 'task_status', 'match_field', 'match_status'];
+  let $searchModal = $("#searchModal");
+  let inputFields = ['name', 'source', 'txt', 'remark_box', 'remark_txt'];
+  let selectFields = ['task_type', 'num', 'task_status', 'match_field', 'match_status'];
   $searchModal.find('.modal-confirm').on('click', function () {
-    var search = '';
+    let search = '';
     inputFields.forEach(function (field) {
-      var value = $searchModal.find('.' + field).val();
+      let value = $searchModal.find('.' + field).val();
       if (value)
         search += '&' + field + '=' + value;
     });
     selectFields.forEach(function (field) {
-      var value = $searchModal.find('.' + field + ' :selected').val();
+      let value = $searchModal.find('.' + field + ' :selected').val();
       if (value)
         search += '&' + field + '=' + value;
     });
@@ -573,11 +573,11 @@
 
 <script>
   /*---发布任务---*/
-  var docs = [];
-  var taskType = '';
-  var $publishModal = $('#publishModal');
-  var taskTypes = decodeJSON('{{handler.task_types}}');
-  var publishFields = [
+  let docs = [];
+  let taskType = '';
+  let $publishModal = $('#publishModal');
+  let taskTypes = decodeJSON('{{handler.task_types}}');
+  let publishFields = [
     {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
     {id: 'steps', input_type: 'checkbox'}, {id: 'fields', input_type: 'checkbox'},
     {id: 'priority', input_type: 'radio'}, {id: 'is_oriented', input_type: 'radio'},
@@ -589,7 +589,7 @@
     $publishModal.find('.task_type').val(taskType);
     $publishModal.find('#task-name').text($(this).text());
     // 前置任务
-    var preTasks = taskTypes[taskType].pre_tasks || [];
+    let preTasks = taskTypes[taskType].pre_tasks || [];
     $.map($publishModal.find('.pre_tasks :checkbox'), function (item) {
       $(item).parent().toggleClass('hide', $(item).attr('title') === taskType);
       if (preTasks.indexOf($(item).attr('title')) > -1) {
@@ -599,13 +599,13 @@
       }
     });
     // 子步骤
-    var steps = taskTypes[taskType].steps || [];
+    let steps = taskTypes[taskType].steps || [];
     $publishModal.find('.label-steps').toggleClass('hide', !steps.length);
     $publishModal.find('.steps').html($.map(steps, function (item) {
       return `<label class="checkbox-inline"><input type="checkbox" title="${item[0]}" checked>${item[1]}</label>`;
     }).join(''));
     // 校次
-    var num = taskTypes[taskType].num || [];
+    let num = taskTypes[taskType].num || [];
     $publishModal.find('.num').toggleClass('hide', !num.length);
     $publishModal.find('.label-num').toggleClass('hide', !num.length);
     $publishModal.find('.num').html($.map(num, function (item) {
@@ -628,25 +628,25 @@
   });
   // 提交
   $publishModal.find('.modal-confirm').on('click', function () {
-    var isFile = false;
-    var formData = new FormData();
-    var data = getModal($publishModal, publishFields);
-    var source = $publishModal.find('.tab-pane.active').attr('id');
+    let isFile = false;
+    let formData = new FormData();
+    let data = getModal($publishModal, publishFields);
+    let source = $publishModal.find('.tab-pane.active').attr('id');
     switch (source) {
       case 'source-search':
-        var searchParam = $publishModal.find('#search-param').val();
+        let searchParam = $publishModal.find('#search-param').val();
         if (!searchParam.length)
           return showTips('提示', '检索条件不允许为空', 3000);
         data['search'] = searchParam;
         break;
       case 'source-select':
-        var pageNames = $('#page-names').val().trim();
+        let pageNames = $('#page-names').val().trim();
         if (!pageNames.length)
           return showTips('提示', '请选择页码', 3000);
         data['page_names'] = pageNames.split(',');
         break;
       case 'source-file':
-        var idsFile = $('#upload')[0].files[0];
+        let idsFile = $('#upload')[0].files[0];
         if (typeof idsFile === "undefined")
           return showTips('提示', '请选择文件', 3000);
         if (!/\.(csv|txt|json)$/.test(idsFile.name))
@@ -658,7 +658,7 @@
         isFile = true;
         break;
     }
-    var $this = $(this);
+    let $this = $(this);
     $this.text('进行中...');
     postApi('/page/task/publish', isFile ? formData : {data: data}, function (res) {
       $this.text('发布');

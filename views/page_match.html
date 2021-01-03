@@ -206,8 +206,8 @@
 <script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
   // 公共参数
-  var txtFields = decodeJSON('{{txt_fields}}');
-  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+  let txtFields = decodeJSON('{{txt_fields}}');
+  let txtDict = decodeJSON('{{dumps(txt_dict)}}');
 
   // 页面图和切分框
   $.cut.create({
@@ -235,7 +235,7 @@
 
   $('#check-mis-match').on('click', function () {
     bsLoading('检查中‧‧‧');
-    var data = {field: '{{field}}', content: getText('#cmp-html'), only_check: true};
+    let data = {field: '{{field}}', content: getText('#cmp-html'), only_check: true};
     postApi('/page/txt_match/{{page["name"]}}', {data: data}, function (res) {
       bsHide();
       if (res.data.status) {
@@ -278,7 +278,7 @@
   // 任务提交之后
   function afterSubmitted(submit, res, jumpUrl) {
     if (res.data.status) {
-      var autoPick = localStorage.getItem('autoPick') || '是';
+      let autoPick = localStorage.getItem('autoPick') || '是';
       if (mode === 'do' && autoPick === '是') {
         showSuccess('成功', '已成功提交！将自动领取下一个任务。', 2000);
         pick(taskType);

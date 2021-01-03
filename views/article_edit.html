@@ -145,14 +145,14 @@
 
 <!-- CUSTOM JS -->
 <script>
-  var articleId = '{{article_id}}';
-  var _id = '{{article.get("_id") or ""}}';
+  let articleId = '{{article_id}}';
+  let _id = '{{article.get("_id") or ""}}';
   initEditor('content-editor', decodeJSON('{{article.get("content", "").replace("\n", "")}}', true));
 
   // 提交
   $('#btn-submit').on('click', function () {
     if (!$('#article-id').val().length) return showTips('提示', '请填写文章标识', 3000);
-    var data = {
+    let data = {
       _id: _id,
       no: $('#no').val(),
       title: $('#article-title').val(),
@@ -162,7 +162,7 @@
       active: $('#article-active').val(),
       content: UM.getEditor('content-editor').getContent()
     };
-    var url = '/article/admin/' + (articleId ? 'update' : 'add');
+    let url = '/article/admin/' + (articleId ? 'update' : 'add');
     postApi(url, {data: data}, function () {
       window.location = '/article/update/' + $('#article-id').val();
     });

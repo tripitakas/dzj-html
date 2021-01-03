@@ -107,31 +107,31 @@
 <script type="text/javascript">
   $('.table-responsive').responsiveTable({addFocusBtn: false, addDisplayAllBtn: true});
 
-  var $roleModal = $('#roleModal');
+  let $roleModal = $('#roleModal');
 
   function modify(user) {
     user = decodeJSON(user);
     user.roles = user.roles || '';
     $roleModal.find('#_id').text(user._id);
     $roleModal.find('#name').text(user.name);
-    var account = (user.phone || '') + (user.phone && user.email ? ' / ' : '') + (user.email || '');
+    let account = (user.phone || '') + (user.phone && user.email ? ' / ' : '') + (user.email || '');
     $roleModal.find('#account').text(account);
     $roleModal.find('.roles-list').find('label').each(function (i, el) {
-      var label = $(el).text().replace(/\s/g, '');
+      let label = $(el).text().replace(/\s/g, '');
       $(el).find('input').prop('checked', user.roles.indexOf(label) >= 0);
     });
     $roleModal.modal();
   }
 
   $roleModal.find(".modal-confirm").click(function () {
-    var roles = $.map($roleModal.find(':checked'), function (item) {
+    let roles = $.map($roleModal.find(':checked'), function (item) {
       return $(item).attr('title');
     }).join(',');
     if (!roles.length) {
       roles = ' ';  // 避免API得到空串
     }
-    var name = $roleModal.find('#name').text();
-    var data = {_id: $roleModal.find('#_id').text(), roles: roles};
+    let name = $roleModal.find('#name').text();
+    let data = {_id: $roleModal.find('#_id').text(), roles: roles};
     postApi('/user/roles', {data: data}, function () {
       showSuccess('修改成功', name + ' 的信息已修改。', 2000);
       refresh(1000);

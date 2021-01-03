@@ -82,12 +82,12 @@
   });
 
   $('td.start_page').on('click', function () {
-    var volumeCode = $(this).parent().find('.start_volume').text();
+    let volumeCode = $(this).parent().find('.start_volume').text();
     window.open('/tptk/' + volumeCode + '_' + $(this).text().trim(), '_blank');
   });
 
   $('td.end_page').on('click', function () {
-    var volumeCode = $(this).parent().find('.end_volume').text();
+    let volumeCode = $(this).parent().find('.end_volume').text();
     window.open('/tptk/' + volumeCode + '_' + $(this).text().trim(), '_blank');
   });
 </script>

@@ -319,16 +319,16 @@
 {% if page %}
 <script>
   function initBoxes(boxesStr, className) {
-    var boxes = decodeJSON(boxesStr);
-    for (var i = 0; i < boxes.length; i++) {
+    let boxes = decodeJSON(boxesStr);
+    for (let i = 0; i < boxes.length; i++) {
       boxes[i]['class'] = className;
     }
     return boxes;
   }
 
-  var chars = initBoxes('{{page.get("chars", [])}}', 'char');
-  var columns = initBoxes('{{page.get("columns", [])}}', 'column');
-  var blocks = initBoxes('{{page.get("blocks", [])}}', 'block');
+  let chars = initBoxes('{{page.get("chars", [])}}', 'char');
+  let columns = initBoxes('{{page.get("columns", [])}}', 'column');
+  let blocks = initBoxes('{{page.get("blocks", [])}}', 'block');
 
   $.cut.create({
     readonly: true,
@@ -345,7 +345,7 @@
   $.cut.addCharOrderLinks(null);
 
   $.cut.state.canHitBox = function (el) {
-    var cls = el.data('class');
+    let cls = el.data('class');
     if ($('#toggle-char').hasClass('active') && cls === 'char') {
       return true;
     }

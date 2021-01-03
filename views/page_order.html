@@ -224,19 +224,19 @@
 
   // 跳转字框
   $('#btn-box').on('click', function () {
-    var from = decodeFrom() ? '?from=' + decodeFrom() : '';
+    let from = decodeFrom() ? '?from=' + decodeFrom() : '';
     location.href = '/page/box/{{page["name"]}}' + from;
   });
 
   // 获取提交数据
   function getPostData() {
-    var r = $.cut.getCharsCol();
-    var columnLen = parseInt('{{len(page["columns"])}}');
+    let r = $.cut.getCharsCol();
+    let columnLen = parseInt('{{len(page["columns"])}}');
     if (!r.error && r.chars_col.length !== columnLen) {
       r.error = `${r.chars_col.length}(字序列数) != ${columnLen}(字框列数)，请检查。`;
     }
     if (r.error) {
-      var tips = r.error;
+      let tips = r.error;
       if (location.pathname.indexOf('/task') > -1) {
         tips += `<a href="${setQueryString('step', 'box')}">上一步</a>`;
       }
@@ -248,7 +248,7 @@
 
   // 保存数据
   $('#save').on('click', function () {
-    var data = getPostData();
+    let data = getPostData();
     if (data && !data.error) {
       bsLoading('保存中‧‧‧');
       postApi(location.pathname, {data: data}, function () {

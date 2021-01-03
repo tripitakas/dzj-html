@@ -139,21 +139,21 @@
 <script src="{{static_url('js/page-txt.js')}}"></script>
 <script>
   // 公共参数
-  var info = decodeJSON('{{info}}');
-  var btnConfig = decodeJSON('{{btn_config}}');
-  var txtFields = decodeJSON('{{txt_fields}}');
-  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+  let info = decodeJSON('{{info}}');
+  let btnConfig = decodeJSON('{{btn_config}}');
+  let txtFields = decodeJSON('{{txt_fields}}');
+  let txtDict = decodeJSON('{{dumps(txt_dict)}}');
 
   // 初始化
   $(document).ready(function () {
     // 设置备注
-    var field = getStorage('pageRemarkField', '切分');
+    let field = getStorage('pageRemarkField', '切分');
     $('#remarkModal .fields :radio[value="' + field + '"]').prop('checked', true);
-    var remark_box = '{{page.get("remark_box") or ""}}';
-    var remark_txt = '{{page.get("remark_txt") or ""}}';
-    var remark = field === '切分' ? remark_box : remark_txt;
-    var remark1 = getStorage('pageRemark', '');
-    var options = $.map($('#remarkModal .options :radio'), (item) => $(item).val());
+    let remark_box = '{{page.get("remark_box") or ""}}';
+    let remark_txt = '{{page.get("remark_txt") or ""}}';
+    let remark = field === '切分' ? remark_box : remark_txt;
+    let remark1 = getStorage('pageRemark', '');
+    let options = $.map($('#remarkModal .options :radio'), (item) => $(item).val());
     if (remark.length) {
       $("#remarkModal .remark").val(remark);
     } else if (remark1.length && options.indexOf(remark1) < 0) {
@@ -179,8 +179,8 @@
 
   // 获取当前按钮状态
   function getConfig() {
-    var config = {};
-    var buttons = ['image', 'right', 'blur', 'block', 'column', 'char', 'order'];
+    let config = {};
+    let buttons = ['image', 'right', 'blur', 'block', 'column', 'char', 'order'];
     buttons.forEach((b) => config['toggle-' + b] = $('.m-header #toggle-' + b).hasClass('active') ? 1 : -1);
     config['fields'] = $('#remarkModal :radio[name="fields"]:checked').val() || '';
     if ($('.btn-show-txt.active').length) {
@@ -191,8 +191,8 @@
 
   // 跳转
   function go(to) {
-    var url = setQueryString('to', to).replace(location.pathname, '/page/browse/{{page["name"]}}');
-    var config = getConfig();
+    let url = setQueryString('to', to).replace(location.pathname, '/page/browse/{{page["name"]}}');
+    let config = getConfig();
     if (JSON.stringify(btnConfig) !== JSON.stringify(config)) {
       postApi('/session/config', {data: {page_browse_btn: config}}, function (res) {
         location.href = url;
@@ -213,8 +213,8 @@
   });
 
   // 修改基本信息
-  var $editModal = $('#editModal');
-  var fields = decodeJSON('{{edit_fields}}').concat({id: '_id'});
+  let $editModal = $('#editModal');
+  let fields = decodeJSON('{{edit_fields}}').concat({id: '_id'});
   $('#btn-update').on('click', function () {
     info['_id'] = '{{page["_id"]}}';
     setModal($editModal, info, fields);
@@ -222,7 +222,7 @@
   });
 
   $("#editModal .modal-confirm").on('click', function () {
-    var data = getModal($editModal, fields);
+    let data = getModal($editModal, fields);
     postApi('/page', {data: data}, function () {
       showSuccess('成功', '数据已提交。', 2000);
       refresh(1000);
@@ -237,15 +237,15 @@
     $('#remarkModal .remark').val($(this).val());
   });
   $('#remarkModal .modal-confirm').on('click', function () {
-    var remark = $('#remarkModal .remark').val();
+    let remark = $('#remarkModal .remark').val();
     if (!remark)
       return showTips('提示', '请输入备注内容', 3000);
-    var field = $('#remarkModal .fields :checked').val();
+    let field = $('#remarkModal .fields :checked').val();
     if (!field)
       return showTips('提示', '请选择备注字段', 3000);
     localStorage.setItem('pageRemark', remark);
     localStorage.setItem('pageRemarkField', field);
-    var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}'};
+    let data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}'};
     data[field === '切分' ? 'remark_box' : 'remark_txt'] = remark;
     $(this).text('进行中...');
     postApi('/page', {data: data}, function () {

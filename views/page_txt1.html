@@ -195,12 +195,12 @@
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script src="{{static_url('js/cut/char_txt.js') }}"></script>
 <script>
-  var taskType = '{{handler.task_type or ""}}';
-  var from = taskType ? '/task/lobby/' + taskType : decodeFrom();
-  var pageName = '{{page["name"]}}';
-  var chars = decodeJSON("{{dumps(chars)}}");
-  var columns = decodeJSON("{{dumps(columns)}}");
-  var txtTypes = decodeJSON('{{dumps(txt_types)}}');
+  let taskType = '{{handler.task_type or ""}}';
+  let from = taskType ? '/task/lobby/' + taskType : decodeFrom();
+  let pageName = '{{page["name"]}}';
+  let chars = decodeJSON("{{dumps(chars)}}");
+  let columns = decodeJSON("{{dumps(columns)}}");
+  let txtTypes = decodeJSON('{{dumps(txt_types)}}');
 
   // 显示页面图和切分框
   $.cut.createColumns({
@@ -219,13 +219,13 @@
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'navigate') {
       if (info.class === 'char') {
-        var ch = chars[pageName + '_' + info.cid];
+        let ch = chars[pageName + '_' + info.cid];
         updateCharTxtPanel(ch);
         $('.m-footer .char-info').text(ch.txt || ch.ocr_txt);
         $('.m-footer .char-name').text(ch.char_id + '#' + ch.cid);
       }
       if (info.class === 'column') {
-        var ch = columns[info.column_id] || {};
+        let ch = columns[info.column_id] || {};
         $('.m-footer .char-info').text(ch.txt || ch.ocr_txt);
         $('.m-footer .char-name').text(ch.column_id + '#' + ch.cid);
         info.shape.attr({'fill-opacity': 0.2});
@@ -236,7 +236,7 @@
   // 保存文本
   $.fn.addSvgClass = function (className) {
     return this.each(function () {
-      var attr = $(this).attr('class') || "";
+      let attr = $(this).attr('class') || "";
       if (!$(this).hasClass(className)) {
         $(this).attr('class', $.trim(attr + ' ' + className))
       }
@@ -245,9 +245,9 @@
 
   $('#submit-page-txt').on('click', function () {
     if ($(this).hasClass('disabled')) return;
-    var name = $('.char-edit .current-name').val();
-    var ch = chars[name];
-    var data = {
+    let name = $('.char-edit .current-name').val();
+    let ch = chars[name];
+    let data = {
       task_type: taskType || '',
       txt: $('.proof .txt').val() || '',
       nor_txt: $('.proof .nor-txt').val() || '',
@@ -291,7 +291,7 @@
   // 减少文本字号
   $('#reduce-txt-font').on('click', function () {
     $.map($('text'), function (item) {
-      var size = parseInt($(item).css('font-size')) - 2;
+      let size = parseInt($(item).css('font-size')) - 2;
       $(item).css('font-size', size + 'px');
     });
   });
@@ -299,7 +299,7 @@
   // 增加文本字号
   $('#enlarge-txt-font').on('click', function () {
     $.map($('text'), function (item) {
-      var size = parseInt($(item).css('font-size')) + 2;
+      let size = parseInt($(item).css('font-size')) + 2;
       $(item).css('font-size', size + 'px');
     });
   });

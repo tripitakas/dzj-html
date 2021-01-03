@@ -231,7 +231,7 @@
 
   // 选择第n个比对文本
   $(document).on('click', '#pagination a', function () {
-    var $this = $(this);
+    let $this = $(this);
     postApi('/page/find_cmp/{{page["name"]}}', {data: {num: $this.text()}}, function (res) {
       $('#pagination a').removeClass('cur');
       $this.addClass('cur').attr('title', res.cmp_page_code);
@@ -243,8 +243,8 @@
 
   // 加载前一页比对文本
   $(document).on('click', '.selectable #prev', function () {
-    var pageCode = $('#pagination a.cur').eq(0).attr('title');
-    var data = {cmp_page_code: pageCode, neighbor: 'prev'};
+    let pageCode = $('#pagination a.cur').eq(0).attr('title');
+    let data = {cmp_page_code: pageCode, neighbor: 'prev'};
     postApi('/page/find_cmp/neighbor', {data: data}, function (res) {
       if (res.txt.length) {
         $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
@@ -257,8 +257,8 @@
 
   // 加载后一页比对文本
   $(document).on('click', '.selectable #next', function () {
-    var pageCode = $('#pagination a.cur').eq(0).attr('title');
-    var data = {cmp_page_code: pageCode, neighbor: 'next'};
+    let pageCode = $('#pagination a.cur').eq(0).attr('title');
+    let data = {cmp_page_code: pageCode, neighbor: 'next'};
     postApi('/page/find_cmp/neighbor', {data: data}, function (res) {
       if (res.txt.length) {
         $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
@@ -271,13 +271,13 @@
 
   // 选中作为比对本
   $(document).on('click', '#select-txt', function () {
-    var $selected = $('#selected');
+    let $selected = $('#selected');
     $selected.val(($selected.val() + window.getSelection().toString()).trim());
     $selected.height($selected.prop('scrollHeight'));
   });
 
   $(document).on('change', '#selected', function () {
-    var $selected = $('#selected');
+    let $selected = $('#selected');
     $selected.height($selected.prop('scrollHeight'));
   });
 

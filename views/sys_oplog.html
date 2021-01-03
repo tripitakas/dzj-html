@@ -94,8 +94,8 @@
 
 {% include com/_base_js.html %}
 <script>
-  var interval = 3;
-  var status = "{{log.get('status') or ''}}";
+  let interval = 3;
+  let status = "{{log.get('status') or ''}}";
   setInterval(function () {
     if (status === 'ongoing') {
       postApi('/sys/oplog/status/{{log["_id"]}}', {data: {}}, function (res) {

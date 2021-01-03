@@ -124,9 +124,9 @@
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   // 公共参数
-  var taskType = "";
-  var chars = decodeJSON('{{dumps(chars)}}');
-  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
+  let taskType = "";
+  let chars = decodeJSON('{{dumps(chars)}}');
+  let txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
 
   // 初始化
   $(document).ready(function () {

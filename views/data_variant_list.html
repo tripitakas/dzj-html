@@ -48,12 +48,12 @@
 {% block custom-js %}
 <script>
   /*---综合检索---*/
-  var $searchModal = $("#searchModal");
-  var inputFields = ['uid', 'txt', 'img_name', 'normal_txt', 'remark'];
+  let $searchModal = $("#searchModal");
+  let inputFields = ['uid', 'txt', 'img_name', 'normal_txt', 'remark'];
   $searchModal.find('.modal-confirm').on('click', function () {
-    var search = '';
+    let search = '';
     inputFields.forEach(function (field) {
-      var value = $searchModal.find('.' + field).val();
+      let value = $searchModal.find('.' + field).val();
       if (value)
         search += '&' + field + '=' + value;
     });
@@ -73,10 +73,10 @@
   $('.operation .btn-merge').click(function () {
     if (!$('table tbody :checked').length)
       return showTips('提示', '当前没有选中任何记录', 5000);
-    var normalTxts = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.normal_txt').text().trim());
+    let normalTxts = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.normal_txt').text().trim());
     if ((normalTxts.filter((item) => item !== normalTxts[0])).length)
       return showTips('提示', '当前选中有多个正字。只能合并同一个正字下的字图！', 3000);
-    var imgNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.img_name div:last-child').text());
+    let imgNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.img_name div:last-child').text());
     if ((imgNames.filter((item) => item === "")).length)
       return showTips('提示', '有些选中项没有字图，无法合并！', 3000);
 
