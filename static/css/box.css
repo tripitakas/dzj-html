@@ -163,18 +163,6 @@
   fill: blue;
 }
 
-.no-char {
-  font-size: 16px !important;
-}
-
-.no-column {
-  font-size: 24px !important;;
-}
-
-.no-block {
-  font-size: 32px !important;;
-}
-
 .show-char-no .no-char,
 .show-block-no .no-block,
 .show-column-no .no-column {
@@ -227,18 +215,6 @@
 
 .order-mode .handle {
   display: none !important;
-}
-
-.ln-char {
-  stroke-width: 1.5;
-}
-
-.ln-column {
-  stroke-width: 1.75;
-}
-
-.ln-block {
-  stroke-width: 2;
 }
 
 .cap.out {

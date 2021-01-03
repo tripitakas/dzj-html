@@ -447,14 +447,14 @@
     if (!box || !(force || canHit(box))) return;
     // 设置curHandles
     let boxType = box.boxType || status.curBoxType;
-    let a = box.elem && Math.sqrt(box.elem.attrs.width * box.elem.attrs.height) || 25;
-    a = self.round(a * 0.075, 2);
-    a = a > 3 ? 3 : a < 1.5 ? 1.5 : a;
-    let t = {1: 1, 2: 1.5, 3: 2, 4: 2.5, 5: 3};
-    let r = a * (t[data.ratio] || 1);
+    let a = Math.sqrt(box.elem.attrs.width * box.elem.attrs.height);
+    a = a > 40 ? 40 : a < 10 ? 10 : a; // 面积从10~40，对应控制点半径从1.2到2.4
+    let r = (1.2 + (a - 10) * 0.04) * (0.5 + data.ratio * 0.5);
     for (let i = 0; i < 8; i++) {
       let pt = self.getHandlePt(box.elem, i);
-      let h = data.paper.circle(pt.x, pt.y, r).attr({'class': 'handle ' + boxType, 'stroke-width': r * 0.35});
+      let h = data.paper.circle(pt.x, pt.y, r).attr({
+        'class': 'handle ' + boxType, 'stroke-width': r * 0.5,
+      });
       cStatus.curHandles.push(h);
     }
   }

@@ -281,9 +281,15 @@
     }
     a.outLink && a.outLink.elem && a.outLink.elem.remove();
     b.inLink && b.inLink.elem && b.inLink.elem.remove();
+
+    let s = Math.sqrt(a.elem.attrs.width * a.elem.attrs.height);
+    s = s > 40 ? 40 : s < 10 ? 10 : s; // 面积从10~40，对应连线宽度从0.8到2
+    let w = (0.8 + (s - 10) * 0.04) * r;
     let p = {column: 'block_no', char: 'column_no'};
     let even = a[p[boxType]] % 2 ? ' odd' : ' even';
-    let link = createLink(ap, bp, 'link ln-' + boxType + even).attr({'id': a.idx + '#' + b.idx});
+    let link = createLink(ap, bp, 'link ln-' + boxType + even).attr({
+      'id': a.idx + '#' + b.idx, 'stroke-width': w,
+    });
     a.outLink = b.inLink = {elem: link, out: a, in: b};
     return true;
   }

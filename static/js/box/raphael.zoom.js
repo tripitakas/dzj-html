@@ -20,7 +20,7 @@ Raphael.fn.initZoom = function (zoom) {
   let elements = this.elements();
   this.zoom = zoom || 1;
 
-  for (let i = 0; i < elements.length; i++) {
+  for (let i = 0, len = elements.length; i < len; i++) {
     elements[i].initZoom();
   }
 
@@ -35,7 +35,7 @@ Raphael.fn.setZoom = function (zoom) {
   if (!this.zoom)
     this.initZoom();
 
-  for (let i = 0; i < elements.length; i++) {
+  for (let i = 0, len = elements.length; i < len; i++) {
     elements[i].setZoom(zoom);
   }
   this.zoom = zoom;
@@ -44,30 +44,27 @@ Raphael.fn.setZoom = function (zoom) {
 };
 
 // initialize zoom of element
-Raphael.el.initZoom = function (zoom) {
+Raphael.el.initZoom = function (zoom, textSpecial) {
   let sw = parseFloat(this.attr("stroke-width")) || 0;
   zoom = zoom || this.paper.zoom;
 
   if (this.type !== "text") sw /= zoom;
   this.zoom = zoom;
-  this.zoom_memory = {
-    "stroke-width": sw,
-    rotation: 360
-  };
+  this.zoom_memory = {"stroke-width": sw, rotation: 360};
 
   this.setStrokeWidth(sw / zoom);
 
-  if (this.type === "text") {
+  if (this.type === "text" && textSpecial) {
     let fs = parseFloat(this.attr("font-size")) || 0;
     this.zoom_memory["font-size"] = fs;
-    // this.zoom_memory["x"] = (parseFloat(this.attrs["x"]) || 0) / zoom;
-    // this.zoom_memory["y"] = (parseFloat(this.attrs["y"]) || 0) / zoom;
+    this.zoom_memory["x"] = (parseFloat(this.attrs["x"]) || 0) / zoom;
+    this.zoom_memory["y"] = (parseFloat(this.attrs["y"]) || 0) / zoom;
   }
   return this;
 };
 
 // zoom element preserving some original values
-Raphael.el.setZoom = function (zoom) {
+Raphael.el.setZoom = function (zoom, textSpecial) {
   if (!zoom) return;
   if (!this.zoom_memory)
     this.initZoom();
@@ -81,11 +78,11 @@ Raphael.el.setZoom = function (zoom) {
   this.zoom = zoom;
   this.setStrokeWidth(this.zoom_memory["stroke-width"]);
 
-  if (this.type === "text")
+  if (this.type === "text" && textSpecial)
     this.attr({
       "font-size": this.zoom_memory["font-size"] * zoom,
-      // "x": this.zoom_memory["x"] * zoom,
-      // "y": this.zoom_memory["y"] * zoom
+      "x": this.zoom_memory["x"] * zoom,
+      "y": this.zoom_memory["y"] * zoom
     });
 
   return this;

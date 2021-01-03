@@ -114,7 +114,7 @@
         {% set mode = globals().get('mode') or '' %}
         {% set readonly = globals().get('readonly') or False %}
         {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
-        <div id="toggle-my-hint" class="btn-txt icon-users hint cut{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="我的修改[i]"></div>
+        <div id="toggle-my-hint" class="btn-txt icon-users hint cut{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="我的修改[i]"></div>
         <div id="op-hint" class="btn-group cut" title="修改历史">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="hint-list" class="dropdown-menu pull-right" data-stopPropagation="true">

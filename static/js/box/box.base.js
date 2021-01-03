@@ -362,10 +362,9 @@
     let x = Math.min(pt1.x, pt2.x) / r, y = Math.min(pt1.y, pt2.y) / r;
     let w = Math.abs(pt1.x - pt2.x) / r, h = Math.abs(pt1.y - pt2.y) / r;
     if (w >= 4 && h >= 4 && w * h >= 25 || (force && w && h)) { // 检查字框面积、宽高最小值，以避免误点出碎块
-      let rect = data.paper.rect(x, y, w, h).setAttr({'class': cls});
-      let r = round(w * 0.05, 1);
-      r = r > 1.5 ? 1.5 : r < 0.75 ? 0.75 : r;
-      rect.attr({'stroke-width': r});
+      let a = Math.sqrt(w * h);
+      a = a > 40 ? 40 : a < 10 ? 10 : a; // 面积从10~40，对应线宽从0.75到1.5
+      let rect = data.paper.rect(x, y, w, h).attr({'class': cls, 'stroke-width': 0.75 + 0.025 * (a - 10)});
       if (data.ratio !== 1) rect.initZoom(1).setZoom(data.ratio);
       return rect;
     }
@@ -459,7 +458,11 @@
       let center = getHandlePt(b.elem, 8);
       let parentNo = b.boxType === 'column' ? b.block_no : b.column_no;
       let cls = 'no no-' + b.boxType + (parentNo % 2 ? ' odd' : ' even');
-      b.noElem = data.paper.text(center.x, center.y, no).attr({'class': cls, 'id': noId});
+      let a = Math.sqrt(b.elem.attrs.width * b.elem.attrs.height);
+      a = a > 40 ? 40 : a < 10 ? 10 : a; // 面积从10~40，对应字号从10到20
+      b.noElem = data.paper.text(center.x, center.y, no).attr({
+        'class': cls, 'id': noId, 'font-size': (10 + round((a - 10) / 3, 1)) * data.ratio
+      });
     });
   }
 
