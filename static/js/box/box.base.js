@@ -37,7 +37,6 @@
     curBox: null,                                   // 当前框
     curBoxType: 'char',                             // 当前显示框的类型
     curNoType: 'char',                              // 当前显示序号的类型
-    normalCharW: null,                              // 初始数据中正常字框的宽度
   };
 
   $.box = {
