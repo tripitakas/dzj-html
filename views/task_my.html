@@ -76,14 +76,16 @@
             <td>新增</td>
             <td>删除</td>
             <td>修改</td>
-            <td>执行时间</td>
+            <td>执行时间(分)</td>
+            <td>执行时间(时)</td>
           </tr>
           <tr>
             <td class="char_count"></td>
             <td class="added"></td>
             <td class="deleted"></td>
             <td class="changed"></td>
-            <td class="used_time"></td>
+            <td class="used_time1"></td>
+            <td class="used_time2"></td>
           </tr>
         </table>
       </div>
@@ -156,16 +158,18 @@
   $('.operation .btn-browse').on('click', function () {
     if (!$('tbody tr').first()) return;
     let taskId = $('tbody tr').first().attr('id');
-    location.href = `/task/browse/${taskType}/${taskId}?from=` + encodeFrom();
+    location.href = `/task/nav/${taskType}/${taskId}?my=true&from=` + encodeFrom();
   });
   // 统计
   $('.operation .btn-dashboard').on('click', function () {
+    let round = (num) => Math.round(num * 100) / 100;
     postApi('/task/statistic/' + taskType, {data: {query: location.search}}, function (r) {
       $('#statisticModal .char_count').text(r['char_count']);
       $('#statisticModal .added').text(r['added']);
       $('#statisticModal .deleted').text(r['deleted']);
       $('#statisticModal .changed').text(r['changed']);
-      $('#statisticModal .used_time').text(r['used_time']);
+      $('#statisticModal .used_time1').text(round(parseInt(r['used_time']) / (1000 * 60)));
+      $('#statisticModal .used_time2').text(round(parseInt(r['used_time']) / (1000 * 60 * 60)));
       $('#statisticModal').modal();
     });
   });

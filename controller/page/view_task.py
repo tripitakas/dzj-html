@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import re
+from abc import ABC
+
 from bson import json_util
 from datetime import datetime
 from controller import errors as e
@@ -98,7 +100,7 @@ class PageTaskListHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTaskStatHandler(PageHandler):
+class PageTaskStatisticHandler(PageHandler):
     URL = '/page/task/statistic'
 
     def get(self):
@@ -265,8 +267,9 @@ class PageTaskResumeHandler(PageHandler):
 class PageTaskCutHandler(PageHandler):
     URL = ['/task/(cut_proof|cut_review)/@task_id',
            '/task/do/(cut_proof|cut_review)/@task_id',
-           '/task/browse/(cut_proof|cut_review|ocr_box|ocr_text)/@task_id',
-           '/task/update/(cut_proof|cut_review)/@task_id']
+           '/task/nav/(cut_proof|cut_review)/@task_id',
+           '/task/update/(cut_proof|cut_review)/@task_id',
+           '/task/browse/(cut_proof|cut_review|ocr_box|ocr_text)/@task_id']
 
     def get(self, task_type, task_id):
         """ 切分校对、审定页面"""
@@ -274,10 +277,14 @@ class PageTaskCutHandler(PageHandler):
             page = self.db.page.find_one({'name': self.task['doc_id']})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
-
             self.pack_boxes(page)
             page['img_url'] = self.get_page_img(page)
-            self.render('page_box.html', page=page, readonly=self.readonly)
+
+            self.render('page_box.html', page=page, readonly=self.readonly, mode=self.mode,
+                        user_id=self.prop(self.task, 'picked_user_id', ''),
+                        username=self.prop(self.task, 'picked_by', ''),
+                        task_name=self.get_task_name(task_type))
+
         except Exception as error:
             return self.send_db_error(error)
 
@@ -285,6 +292,7 @@ class PageTaskCutHandler(PageHandler):
 class PageTaskTextHandler(PageHandler):
     URL = ['/task/(text_proof|text_review)/@task_id',
            '/task/do/(text_proof|text_review)/@task_id',
+           '/task/nav/(text_proof|text_review)/@task_id',
            '/task/browse/(text_proof|text_review)/@task_id',
            '/task/update/(text_proof|text_review)/@task_id']
 

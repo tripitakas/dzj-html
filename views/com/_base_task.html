@@ -3,12 +3,9 @@
 <script>
   // 公共参数
   let from = decodeFrom();
-  let mode = '{{handler.mode}}';
-  let taskId = '{{handler.task_id}}';
-  let taskType_ = '{{handler.task_type}}';
-  let steps = decodeJSON('{{handler.steps}}');
-  let step = '{{handler.steps.get("current") or ""}}';
-  let readonly = '{{handler.readonly}}' === 'True';
+  let gMode = '{{handler.mode}}';
+  let gTaskId = '{{handler.task_id}}';
+  let gTaskType = '{{handler.task_type}}';
   let myRemark = '{{handler.task.get("my_remark") or ""}}';
   let adminRemark = '{{handler.task.get("remark") or ""}}';
   let isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
@@ -36,8 +33,8 @@
   window.leave = function () {
     if (from) {
       window.location = from;
-    } else if (mode === 'update' || mode === 'do') {
-      window.location = '/task/my/' + taskType_;
+    } else if (gMode === 'update' || gMode === 'do') {
+      window.location = '/task/my/' + gTaskType;
     } else {
       window.history.back();
     }
@@ -50,11 +47,11 @@
     let remark = $('#remarkModal .remark').val().trim();
     remark && setStorage('taskRemark', remark);
     let isSample = $('#remarkModal .is_sample :checked').val() || '否';
-    $(this).addClass('disabled').text('进行中...');
-    let $this = $(this);
-    postApi('/task/remark', {data: {_id: taskId, remark: remark, is_sample: isSample}}, function () {
+    let $this = $(this), $txt = $this.text();
+    $this.addClass('disabled').text('进行中...');
+    postApi('/task/remark', {data: {_id: gTaskId, remark: remark, is_sample: isSample}}, function () {
       showSuccess('成功', '已备注', 2000);
-      $this.removeClass('disabled').text('确定');
+      $this.removeClass('disabled').text($txt);
     });
   });
 
@@ -62,7 +59,7 @@
   $('#task-my-remark').on('click', function () {
     Swal2.fire({title: '请输入备注', input: 'text', inputValue: myRemark}).then((result) => {
       if (result.dismiss) return;
-      postApi('/task/my_remark/' + taskId, {data: {my_remark: result.value}}, function () {
+      postApi('/task/my_remark/' + gTaskId, {data: {my_remark: result.value}}, function () {
         myRemark = result.value;
         showSuccess('备注成功', '', 1000);
       });
@@ -74,27 +71,37 @@
   $('#returnModal .modal-confirm, #returnModal .modal-next').on('click', function () {
     if ($(this).hasClass('disabled')) return;
     let reason = $('#returnModal .return_reason').val().trim();
-    if (!reason.length) return showTips('提示', '尚未填写退回理由', 3000);
+    if (!reason.length) return showTips('提示', '尚未填写退回理由', 2000);
     let $this = $(this), $txt = $this.text();
     $this.addClass('disabled').text('进行中...');
-    postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
+    postApi('/task/return/' + gTaskId, {data: {reason: reason}}, function () {
       $this.removeClass('disabled').text($txt);
-      showSuccess('成功', '任务已退回成功。', 1000);
-      if ($this.hasClass('modal-next')) pick(taskType_);
-      else goto('/task/lobby/' + taskType_, 1000);
+      showSuccess('成功', '任务已成功退回。', 1000);
+      if ($this.hasClass('modal-next')) pick(gTaskType);
+      else goto('/task/lobby/' + gTaskType, 500);
     });
   });
 
   // 前一个任务
   $('#task-prev').on('click', function () {
-    let url = '/task/browse/' + taskType_ + '/' + taskId;
-    location.href = url + setQueryString('to', 'prev', true);
+    let search = setQueryString('to', 'prev', true);
+    if ($(this).hasClass('nav')) {
+      search = setQueryString('my', 'true', true, search);
+      location.href = `/task/nav/${gTaskType}/${gTaskId}` + search;
+    } else {
+      location.href = `/task/browse/${gTaskType}/${gTaskId}` + search;
+    }
   });
 
   // 后一个任务
   $('#task-next').on('click', function () {
-    let url = '/task/browse/' + taskType_ + '/' + taskId;
-    location.href = url + setQueryString('to', 'next', true);
+    let search = setQueryString('to', 'next', true);
+    if ($(this).hasClass('nav')) {
+      search = setQueryString('my', 'true', true, search);
+      location.href = `/task/nav/${gTaskType}/${gTaskId}` + search;
+    } else {
+      location.href = `/task/browse/${gTaskType}/${gTaskId}` + search;
+    }
   });
 
 </script>

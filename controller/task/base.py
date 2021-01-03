@@ -62,6 +62,10 @@ class TaskHandler(BaseHandler, Task):
         # 查找目标任务。to为prev时，查找前一个任务，即_id比task_id大的任务
         condition = self.get_task_search_condition(self.request.query)[0]
         condition.update({'_id': {'$gt' if to == 'prev' else '$lt': ObjectId(task_id)}})
+        my = self.get_query_argument('my', '')
+        if my:
+            status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
+            condition.update({'task_type': task['task_type'], 'status': status, 'picked_user_id': self.user_id})
         to_task = self.db.task.find_one(condition, sort=[('_id', 1 if to == 'prev' else -1)])
         if not to_task:
             error = e.task_not_existed[0], '已是第一个任务' if to == 'prev' else '已是最后一个任务'
@@ -79,14 +83,14 @@ class TaskHandler(BaseHandler, Task):
         return s.group(1) if (s and '/task/' in self.request.uri) else ''
 
     def get_task_mode(self):
-        r = re.findall('/task/(do|update|browse)/', self.request.path)
+        r = re.findall('/task/(do|update|browse|nav)/', self.request.path)
         mode = r[0] if r else 'view' if self.get_task_id() else None
         return mode
 
     def get_task_type(self):
         """ 获取任务类型。子类可重载，以便prepare函数调用"""
         # eg. /task/do/cut_proof/5e3139c6a197150011d65e9d
-        s = re.search(r'/task/(do|update|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
+        s = re.search(r'/task/(do|update|nav|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
         s1 = re.search(r'/task/([^/]+?)/([0-9a-z]{24})', self.request.path)
         task_type = s.group(2) if s else s1.group(1) if s1 else ''
         return task_type
@@ -194,12 +198,10 @@ class TaskHandler(BaseHandler, Task):
                 error = e.task_not_existed
             elif not self.current_user:
                 error = e.need_login
+            elif task['status'] == self.STATUS_RETURNED:
+                error = e.task_status_error
             elif task.get('picked_user_id') != self.current_user.get('_id'):
                 error = e.task_has_been_picked
-            elif mode == 'do' and task['status'] != self.STATUS_PICKED:
-                error = e.task_can_only_do_picked
-            elif mode == 'update' and task['status'] != self.STATUS_FINISHED:
-                error = e.task_can_only_update_finished
         has_auth = error is None
         return has_auth, error
 

@@ -64,17 +64,15 @@
     // 3. 设置图片
     $.box.toggleImage(p.showImage || true);
     $.box.setImageOpacity(p.blurImage || 0.2);
-    if (!p.readonly) {
-      $.box.initCut();
-      $.box.initOrder();
-      $.box.oStatus.userLinks = p.userLinks || {};
-      $.box.eStatus.mayWrong = p.mayWrong || '';
-      // 4. 设置字框大小窄扁等属性
-      $.box.initCharKind();
-      updateHeadBoxKindNo();
-      // 5. 设置导航条中操作历史
-      initHeadHintList();
-    }
+    $.box.initCut();
+    $.box.initOrder();
+    $.box.oStatus.userLinks = p.userLinks || {};
+    $.box.eStatus.mayWrong = p.mayWrong || '';
+    // 4. 设置字框大小窄扁等属性
+    $.box.initCharKind();
+    updateHeadBoxKindNo();
+    // 5. 设置导航条中操作历史
+    initHeadHintList();
   }
 
   function checkAndExport() {

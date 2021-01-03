@@ -58,7 +58,7 @@ class MyPageTaskHandler(TaskHandler):
         {'id': 'deleted', 'name': '删除'},
         {'id': 'changed', 'name': '修改'},
         {'id': 'total', 'name': '所有'},
-        {'id': 'used_time', 'name': '执行时间'},
+        {'id': 'used_time', 'name': '执行时间(秒)'},
         {'id': 'picked_time', 'name': '领取时间'},
         {'id': 'finished_time', 'name': '完成时间'},
         {'id': 'my_remark', 'name': '我的备注'},
@@ -68,7 +68,7 @@ class MyPageTaskHandler(TaskHandler):
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},
-        {'operation': 'btn-dashboard', 'label': '统计'},
+        {'operation': 'btn-dashboard', 'label': '结果统计'},
     ]
     actions = [
         {'action': 'my-task-view', 'label': '查看'},
@@ -99,8 +99,8 @@ class MyPageTaskHandler(TaskHandler):
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             cond, params = self.get_task_search_condition(self.request.query, 'page')
-            cond.update({'task_type': task_type, 'status': {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]},
-                         'picked_user_id': self.user_id})
+            status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
+            cond.update({'task_type': task_type, 'status': status, 'picked_user_id': self.user_id})
             docs, pager, q, order = self.find_by_page(self, cond, default_order='-picked_time')
             self.render('task_my.html', task_type=task_type, docs=docs, pager=pager, q=q, order=order,
                         params=params, format_value=self.format_value, **kwargs)

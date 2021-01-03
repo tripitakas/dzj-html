@@ -135,11 +135,11 @@ class PageListHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageStatHandler(PageHandler):
+class PageStatisticHandler(PageHandler):
     URL = '/page/statistic'
 
     def get(self):
-        """ 根据页数据分类"""
+        """ 统计页数据的分类"""
         try:
             counts = list(self.db.page.aggregate([
                 {'$group': {'_id': '$source', 'count': {'$sum': 1}}},
@@ -167,7 +167,6 @@ class PageBrowseHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            print(self.request.query)
             condition = self.get_page_search_condition(self.request.query)[0]
             order = self.get_query_argument('order', '_id')
             to = self.get_query_argument('to', '')

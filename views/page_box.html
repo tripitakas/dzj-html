@@ -13,16 +13,6 @@
       display: none !important;
     }
 
-    .m-toolbar .task {
-      display: none;
-    }
-
-    .m-toolbar.m-my-task .my-task,
-    .m-toolbar.m-nav-task .nav-task,
-    .m-toolbar.m-admin-task .admin-task {
-      display: block;
-    }
-
     .m-toolbar .s-count {
       font-size: 75%;
       color: var(--Brown_Darker);
@@ -90,10 +80,11 @@
   </style>
 </head>
 
+
 <body class="widescreen" style="overflow: hidden">
 <div class="app-main">
   <div class="main">
-    <div class="m-header m-toolbar cut-mode m-my-task">
+    <div class="m-header m-toolbar cut-mode">
       <div class="left">
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
@@ -120,7 +111,10 @@
         </div>
       </div><!--center-->
       <div class="right">
-        <div id="toggle-my-hint" class="btn-txt icon-users hint cut" data-toggle="tooltip" data-placement="bottom" title="我的修改[i]"></div>
+        {% set mode = globals().get('mode') or '' %}
+        {% set readonly = globals().get('readonly') or False %}
+        {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
+        <div id="toggle-my-hint" class="btn-txt icon-users hint cut{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="我的修改[i]"></div>
         <div id="op-hint" class="btn-group cut" title="修改历史">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="hint-list" class="dropdown-menu pull-right" data-stopPropagation="true">
@@ -130,16 +124,16 @@
             <li id="play-hint" class="hint"><a href="#">播放修改</a></li>
           </ul>
         </div>
-        <div id="task-my-remark" class="btn-txt icon-edit2 task my-task" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
-        <div id="task-admin-remark" class="btn-txt icon-edit task admin-task" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
-        <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存[ctrl+s]"></div>
-        <div id="task-return" class="btn-txt icon-return-task task my-task" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
-        <div id="task-prev" class="btn-txt icon-arrow-left task nav-task" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]"></div>
-        <div id="task-next" class="btn-txt icon-arrow-right task nav-task" data-toggle="tooltip" data-placement="bottom" title="后一个任务[]"></div>
+        <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
+        <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
+        <div id="save" class="btn-txt icon-save{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存[ctrl+s]"></div>
+        <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
         <div id="toggle-order" class="btn-txt icon-next-step cut toggle-mode" data-toggle="tooltip" data-placement="bottom" title="字序[/]"></div>
         <div id="toggle-cut" class="btn-txt icon-prev-step order toggle-mode" data-toggle="tooltip" data-placement="bottom" title="切分[.]"></div>
-        <div id="task-submit-back" class="btn-txt icon-check-outline2 task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
-        <div id="task-submit" class="btn-txt icon-submit task my-task order" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
+        <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
+        <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
+        <div id="task-prev" class="btn-txt icon-arrow-left {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]]"></div>
+        <div id="task-next" class="btn-txt icon-arrow-right {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="后一个任务[[]"></div>
       </div><!--right-->
     </div><!--m-header-->
 
@@ -181,7 +175,12 @@
 
     <div class="m-footer">
       <span>
-        页编码：<span class="page-name">{{page['name']}}</span><span class="page-info"></span>
+        <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
+        {% if hasattr(handler, 'task_type') and handler.task_type %}
+        <span class="task-info">
+          {{task_name}} <span id="{{user_id}}" class="task-user{{'' if username else ' hide'}}">@ {{username}}</span>
+        </span>
+        {% end %}
       </span>
       <span class="hint-info hide">
         <span class="added">新增(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
@@ -309,9 +308,9 @@
       bsShow('成功!', '已保存。', 'info', 1000);
       $this.removeClass('disabled');
       if (id === 'task-submit') {
-        pick(taskType);
+        pick(gTaskType);
       } else if (id === 'task-submit-back') {
-        location.href = '/task/lobby/' + taskType;
+        location.href = '/task/lobby/' + gTaskType;
       }
     });
   });

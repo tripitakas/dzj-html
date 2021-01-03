@@ -42,9 +42,14 @@
       on('.', () => {
         if (self.isOrderMode()) $('#toggle-cut').click();
       });
-
       on('/', () => {
         if (self.isCutMode()) $('#toggle-order').click();
+      });
+      on(']', () => {
+        $('#task-next').click();
+      });
+      on('[', () => {
+        $('#task-prev').click();
       });
 
       // 图片操作

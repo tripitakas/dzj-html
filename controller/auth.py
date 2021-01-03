@@ -79,14 +79,15 @@ role_route_maps = {
         'routes': {
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
+            '/task/nav/@task_type/@task_id': ['GET'],
             '/api/task/statistic/@task_type': ['POST'],
             '/api/task/(return|my_remark)/@task_id': ['POST'],
             '/api/variant/delete': ['POST'],
-            '/page/@page_name': ['GET'],
-            '/page/box/@page_name': ['GET'],
-            '/api/page/box/@page_name': ['POST'],
-            '/page/block/@page_name': ['GET'],
-            '/api/page/block/@page_name': ['POST'],
+            # '/page/@page_name': ['GET'],
+            # '/page/box/@page_name': ['GET'],
+            # '/api/page/box/@page_name': ['POST'],
+            # '/page/block/@page_name': ['GET'],
+            # '/api/page/block/@page_name': ['POST'],
             '/api/page/txt_match/diff': ['POST'],
             '/api/page/find_cmp/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
@@ -164,31 +165,9 @@ role_route_maps = {
             '/api/data/variant': ['POST'],
         }
     },
-    '生僻校对员': {
-        'is_assignable': False,
-        'roles': ['工作人员'],
-        'routes': {
-            '/task/(lobby|my)/rare_proof': ['GET'],
-            '/api/task/pick/rare_proof': ['POST'],
-            '/task/(do|update)/rare_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/rare_proof/@task_id': ['POST'],
-            '/api/data/variant': ['POST'],
-        }
-    },
-    '生僻审定员': {
-        'is_assignable': False,
-        'roles': ['工作人员'],
-        'routes': {
-            '/task/(lobby|my)/rare_review': ['GET'],
-            '/api/task/pick/rare_review': ['POST'],
-            '/task/(do|update)/rare_review/@task_id': ['GET'],
-            '/api/task/(do|update)/rare_review/@task_id': ['POST'],
-            '/api/data/variant': ['POST'],
-        }
-    },
     '文字专家': {
         'is_assignable': True,
-        'roles': ['工作人员', '文字预处理员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],
+        'roles': ['工作人员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员'],
         'routes': {}
     },
     'OCR加工员': {
@@ -257,14 +236,14 @@ role_route_maps = {
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/(delete|upload)': ['POST'],
             '/api/variant/(delete|merge)': ['POST'],
+            '/api/page': ['POST'],
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
-            '/api/page': ['POST'],
             '/page/(box|txt|txt_match|find_cmp)/@page_name': ['GET'],
             '/api/page/(delete|source|start_gen_chars|start_check_match)': ['POST'],
             '/api/page/(box|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
-            '/char/(list|browse|statistic|consistent)': ['GET'],
             '/api/char/(delete|source|extract_img)': ['POST'],
+            '/char/(list|browse|statistic|consistent)': ['GET'],
         }
     },
     '文章管理员': {
@@ -306,13 +285,6 @@ role_route_maps = {
             '/api/sys/oplog/status/@oid': ['POST'],
             '/api/sys/(oplog|log)/delete': ['POST'],
             '/api/sys/upload_oss/(char|column)': ['POST'],
-        }
-    },
-    '数据导出': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/api/data/page/export/@page_name': ['GET'],
         }
     },
 }
