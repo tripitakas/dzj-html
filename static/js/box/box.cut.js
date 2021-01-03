@@ -446,9 +446,12 @@
     cStatus.curHandles = [];
     if (!box || !(force || canHit(box))) return;
     // 设置curHandles
-    let zoom = {char: 1, column: 1.5, block: 2};
     let boxType = box.boxType || status.curBoxType;
-    let r = Math.min(2.2 * data.ratio, 5) * (zoom[boxType] || 1);
+    let a = box.elem && Math.sqrt(box.elem.attrs.width * box.elem.attrs.height) || 25;
+    a = self.round(a * 0.075, 2);
+    a = a > 3 ? 3 : a < 1.5 ? 1.5 : a;
+    let t = {1: 1, 2: 1.5, 3: 2, 4: 2.5, 5: 3};
+    let r = a * (t[data.ratio] || 1);
     for (let i = 0; i < 8; i++) {
       let pt = self.getHandlePt(box.elem, i);
       let h = data.paper.circle(pt.x, pt.y, r).attr({'class': 'handle ' + boxType, 'stroke-width': r * 0.35});

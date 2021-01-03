@@ -7,8 +7,7 @@
 
 // get all elements in the paper
 Raphael.fn.elements = function () {
-  var b = this.bottom,
-      r = [];
+  let b = this.bottom, r = [];
   while (b) {
     r.push(b);
     b = b.next;
@@ -18,10 +17,10 @@ Raphael.fn.elements = function () {
 
 // initialize zoom of paper
 Raphael.fn.initZoom = function (zoom) {
-  var elements = this.elements();
+  let elements = this.elements();
   this.zoom = zoom || 1;
 
-  for (var i = 0; i < elements.length; i++) {
+  for (let i = 0; i < elements.length; i++) {
     elements[i].initZoom();
   }
 
@@ -29,15 +28,15 @@ Raphael.fn.initZoom = function (zoom) {
 };
 
 // set the zoom of all elements
-Raphael.fn.setZoom = function (zoom, textSpecial) {
+Raphael.fn.setZoom = function (zoom) {
   if (!zoom) return;
 
-  var elements = this.elements();
+  let elements = this.elements();
   if (!this.zoom)
     this.initZoom();
 
-  for (var i = 0; i < elements.length; i++) {
-    elements[i].setZoom(zoom, textSpecial);
+  for (let i = 0; i < elements.length; i++) {
+    elements[i].setZoom(zoom);
   }
   this.zoom = zoom;
 
@@ -46,10 +45,10 @@ Raphael.fn.setZoom = function (zoom, textSpecial) {
 
 // initialize zoom of element
 Raphael.el.initZoom = function (zoom) {
-  var sw = parseFloat(this.attr("stroke-width")) || 0;
+  let sw = parseFloat(this.attr("stroke-width")) || 0;
   zoom = zoom || this.paper.zoom;
 
-  if (this.type != "text") sw /= zoom;
+  if (this.type !== "text") sw /= zoom;
   this.zoom = zoom;
   this.zoom_memory = {
     "stroke-width": sw,
@@ -58,23 +57,23 @@ Raphael.el.initZoom = function (zoom) {
 
   this.setStrokeWidth(sw / zoom);
 
-  if (this.type == "text") {
-    var fs = parseFloat(this.attr("font-size")) || 0;
+  if (this.type === "text") {
+    let fs = parseFloat(this.attr("font-size")) || 0;
     this.zoom_memory["font-size"] = fs;
-    this.zoom_memory["x"] = (parseFloat(this.attrs["x"]) || 0) / zoom;
-    this.zoom_memory["y"] = (parseFloat(this.attrs["y"]) || 0) / zoom;
+    // this.zoom_memory["x"] = (parseFloat(this.attrs["x"]) || 0) / zoom;
+    // this.zoom_memory["y"] = (parseFloat(this.attrs["y"]) || 0) / zoom;
   }
   return this;
 };
 
 // zoom element preserving some original values
-Raphael.el.setZoom = function (zoom, textSpecial) {
+Raphael.el.setZoom = function (zoom) {
   if (!zoom) return;
   if (!this.zoom_memory)
     this.initZoom();
 
   // scale to zoom
-  var new_zoom = zoom / this.zoom;
+  let new_zoom = zoom / this.zoom;
   this.scale(new_zoom, new_zoom, 0, 0);
   this.applyScale();
 
@@ -82,11 +81,11 @@ Raphael.el.setZoom = function (zoom, textSpecial) {
   this.zoom = zoom;
   this.setStrokeWidth(this.zoom_memory["stroke-width"]);
 
-  if (this.type == "text" && textSpecial)
+  if (this.type === "text")
     this.attr({
       "font-size": this.zoom_memory["font-size"] * zoom,
-      "x": this.zoom_memory["x"] * zoom,
-      "y": this.zoom_memory["y"] * zoom
+      // "x": this.zoom_memory["x"] * zoom,
+      // "y": this.zoom_memory["y"] * zoom
     });
 
   return this;
@@ -94,14 +93,14 @@ Raphael.el.setZoom = function (zoom, textSpecial) {
 
 // set element zoomed attributes
 Raphael.el.setAttr = function () {
-  var attr = {};
-  if (typeof arguments[0] == "string") {
+  let attr = {};
+  if (typeof arguments[0] === "string") {
     attr[arguments[0]] = arguments[1];
   } else {
     attr = arguments[0];
   }
 
-  for (var key in attr) {
+  for (let key in attr) {
     switch (key) {
       case "stroke-width":
         this.setStrokeWidth(attr[key]);
@@ -111,7 +110,7 @@ Raphael.el.setAttr = function () {
         break;
       case "x":
       case "y":
-        if (this.type == "text")
+        if (this.type === "text")
           this.zoom_memory[key] = attr[key] / this.zoom;
         this.attr(key, attr[key]);
         break;
@@ -125,7 +124,7 @@ Raphael.el.setAttr = function () {
 
 // set element translation
 Raphael.el.setTranslation = function (x, y) {
-  if (this.type == "text")
+  if (this.type === "text")
     this.setAttr({
       x: this.attrs["x"] + x,
       y: this.attrs["y"] + y
@@ -139,7 +138,7 @@ Raphael.el.setTranslation = function (x, y) {
 // set element rotation
 Raphael.el.setRotation = function (angle, x, y) {
   if (!this.zoom_memory) this.initZoom();
-  if (angle == 0)
+  if (angle === 0)
     angle = 360;
   this.rotate(angle, x, y);
   this.zoom_memory.rotation = angle;
@@ -151,8 +150,8 @@ Raphael.el.setRotation = function (angle, x, y) {
 
 // set element zoomed stroke width
 Raphael.el.setStrokeWidth = function (value) {
-  if (value == 0 || (value = parseFloat(value))) {
-    var zoom = Math.min(this.zoom, Raphael.maxStrokeWidthZoom || 100);
+  if (value === 0 || (value = parseFloat(value))) {
+    let zoom = Math.min(this.zoom, Raphael.maxStrokeWidthZoom || 100);
     this.attr({"stroke-width": value * zoom});
     this.zoom_memory["stroke-width"] = value;
   }
@@ -162,7 +161,7 @@ Raphael.el.setStrokeWidth = function (value) {
 
 // set element font size
 Raphael.el.setFontSize = function (value) {
-  if (value == 0 || (value = parseFloat(value))) {
+  if (value === 0 || (value = parseFloat(value))) {
     this.attr({"font-size": value * this.zoom});
     this.zoom_memory["font-size"] = value;
   }

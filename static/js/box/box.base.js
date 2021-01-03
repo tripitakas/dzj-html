@@ -37,6 +37,7 @@
     curBox: null,                                   // 当前框
     curBoxType: 'char',                             // 当前显示框的类型
     curNoType: 'char',                              // 当前显示序号的类型
+    normalCharW: null,                              // 初始数据中正常字框的宽度
   };
 
   $.box = {
@@ -155,11 +156,12 @@
     return !out;
   }
 
-  function setBoxes(param) {
+  function setBoxes(param, reset) {
     // reset boxes
-    if (param.reset) {
+    if (reset) {
       data.boxes.forEach((b) => b.elem.remove());
       data.boxes = [];
+      1
     }
     // set boxType
     if (param.boxes) {
@@ -358,12 +360,11 @@
    */
   function createRect(pt1, pt2, cls, transPos, force, boxType) {
     let r = transPos ? data.ratio : 1;
-    let s = {char: 1.3, column: 2, block: 2.5};
     let x = Math.min(pt1.x, pt2.x) / r, y = Math.min(pt1.y, pt2.y) / r;
     let w = Math.abs(pt1.x - pt2.x) / r, h = Math.abs(pt1.y - pt2.y) / r;
-    if (w >= 3 && h >= 3 && w * h >= 10 || (force && w && h)) { // 检查字框面积、宽高最小值，以避免误点出碎块
+    if (w >= 4 && h >= 4 && w * h >= 25 || (force && w && h)) { // 检查字框面积、宽高最小值，以避免误点出碎块
       let rect = data.paper.rect(x, y, w, h).setAttr({'class': cls});
-      rect.attr({'stroke-width': s[boxType] || 2});
+      rect.attr({'stroke-width': Math.min(parseInt(w * 0.5) * 0.1, 2)});
       if (data.ratio !== 1) rect.initZoom(1).setZoom(data.ratio);
       return rect;
     }
