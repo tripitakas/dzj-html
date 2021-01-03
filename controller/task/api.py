@@ -293,3 +293,25 @@ class InitTasksForOPTestApi(TaskHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
+
+
+class PageTaskStatisticApi(TaskHandler):
+    URL = '/api/task/statistic/@page_task'
+
+    def post(self, task_type):
+        """ 统计页任务数据"""
+        try:
+            query = self.data.get('query') or ''
+            cond = query and self.get_task_search_condition(query)[0] or {}
+            cond.update({'task_type': task_type, 'status': {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]},
+                         'picked_user_id': self.user_id})
+            counts = list(self.db.task.aggregate([{'$match': cond}, {'$group': {
+                '_id': None, 'char_count': {'$sum': '$char_count'}, 'added': {'$sum': '$added'},
+                'deleted': {'$sum': '$deleted'}, 'changed': {'$sum': '$changed'},
+                'used_time': {'$sum': '$used_time'},
+            }}]))
+            ret = counts and counts[0] or {}
+            return self.send_data_response(ret)
+
+        except self.DbError as error:
+            return self.send_db_error(error)

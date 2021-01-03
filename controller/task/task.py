@@ -196,7 +196,7 @@ class Task(Model):
                 value = int(value) if field == 'priority' else value
                 value = None if field == 'is_oriented' and not value else value
                 condition.update({field: value})
-        for field in ['batch', 'doc_id', 'remark']:
+        for field in ['batch', 'doc_id', 'remark', 'my_remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

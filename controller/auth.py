@@ -79,8 +79,8 @@ role_route_maps = {
         'routes': {
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
-            '/api/task/return/@task_id': ['POST'],
-            '/api/task/my_remark/@task_id': ['POST'],
+            '/api/task/statistic/@task_type': ['POST'],
+            '/api/task/(return|my_remark)/@task_id': ['POST'],
             '/api/variant/delete': ['POST'],
             '/page/@page_name': ['GET'],
             '/page/box/@page_name': ['GET'],

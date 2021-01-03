@@ -66,9 +66,9 @@ class MyPageTaskHandler(TaskHandler):
     search_fields = ['batch', 'doc_id', 'my_remark']
     search_tips = '请搜索批次、页编码和我的备注'
     operations = [
-        {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},
+        {'operation': 'btn-dashboard', 'label': '统计'},
     ]
     actions = [
         {'action': 'my-task-view', 'label': '查看'},

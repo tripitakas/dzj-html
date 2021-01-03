@@ -9,4 +9,5 @@ handlers = [
     api.PickTaskApi, api.ReturnTaskApi, api.UpdateTaskApi, api.RepublishTaskApi,
     api.DeleteTasksApi, api.AssignTasksApi, api.FinishTaskApi,
     api.UpdateTaskMyRemarkApi, api.InitTasksForOPTestApi,
+    api.PageTaskStatisticApi,
 ]
