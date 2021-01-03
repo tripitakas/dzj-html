@@ -25,16 +25,16 @@
       });
 
       // w a s d：移动当前字框
-      on('ctrl+a', function () {
+      on('shift+a', function () {
         self.moveBox('left');
       });
-      on('ctrl+d', function () {
+      on('shift+d', function () {
         self.moveBox('right');
       });
-      on('ctrl+w', function () {
+      on('shift+w', function () {
         self.moveBox('up');
       });
-      on('ctrl+s', function () {
+      on('shift+s', function () {
         self.moveBox('down');
       });
 
@@ -169,7 +169,7 @@
       });
 
       // insert/n 增加字框
-      on('insert', function () {
+      on('ctrl+v', function () {
         self.addBox();
       });
     },
