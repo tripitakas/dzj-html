@@ -363,7 +363,9 @@
     let w = Math.abs(pt1.x - pt2.x) / r, h = Math.abs(pt1.y - pt2.y) / r;
     if (w >= 4 && h >= 4 && w * h >= 25 || (force && w && h)) { // 检查字框面积、宽高最小值，以避免误点出碎块
       let rect = data.paper.rect(x, y, w, h).setAttr({'class': cls});
-      rect.attr({'stroke-width': Math.min(parseInt(w * 0.5) * 0.1, 2)});
+      let r = round(w * 0.05, 1);
+      r = r > 1.5 ? 1.5 : r < 0.75 ? 0.75 : r;
+      rect.attr({'stroke-width': r});
       if (data.ratio !== 1) rect.initZoom(1).setZoom(data.ratio);
       return rect;
     }
