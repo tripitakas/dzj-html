@@ -280,10 +280,13 @@ class PageTaskCutHandler(PageHandler):
             self.pack_boxes(page)
             page['img_url'] = self.get_page_img(page)
 
+            tasks = list(self.db.task.find({'doc_id': page['name']}, {
+                k: 1 for k in ['task_type', 'picked_by', 'picked_user_id']}))
+            tasks = [t for t in tasks if t['picked_user_id'] and t['picked_user_id'] != self.user_id]
+            task_names = dict(cut_proof='校对', cut_review='审定')
+
             self.render('page_box.html', page=page, readonly=self.readonly, mode=self.mode,
-                        user_id=self.prop(self.task, 'picked_user_id', ''),
-                        username=self.prop(self.task, 'picked_by', ''),
-                        task_name=self.get_task_name(task_type))
+                        task_type=task_type, tasks=tasks, task_names=task_names)
 
         except Exception as error:
             return self.send_db_error(error)

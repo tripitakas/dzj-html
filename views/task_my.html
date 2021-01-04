@@ -24,6 +24,10 @@
     color: var(--Brown_Dark);
     margin-left: 100px !important;
   }
+
+  body.modal-open, body.swal2-shown {
+    padding-right: 15px !important;
+  }
 </style>
 {% end %}
 
@@ -112,7 +116,7 @@
             </div>
             <h4 class="col-sm-2 control-label">我的备注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark" value="{{params.get('my_remark') or ''}}" placeholder="请输入我的备注">
+              <input type="text" class="form-control my_remark" value="{{params.get('my_remark') or ''}}" placeholder="请输入我的备注">
             </div>
             <h4 class="col-sm-2 control-label">领取时间</h4>
             <div class="col-sm-10 time picked_time">
@@ -200,7 +204,7 @@
   $("#searchModal .modal-confirm").on('click', function () {
     let data = getModal($("#searchModal"), searchFields);
     let search = $.map(data, (v, k) => '&' + k + '=' + v).join('');
-    if (!search.length) return showTips('提示', '请输入查询条件', 1000);
+    if (!search.length) return showTips('提示', '请输入查询条件');
     location.href = location.pathname + '?' + search.substr(1);
   });
   // 重置

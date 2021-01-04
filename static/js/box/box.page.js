@@ -179,8 +179,11 @@
     setStorage('toggleCutBox', show ? boxType : '');
   }
 
-  function toggleHint(type, value) {
-    if (type === 'ini') $.box.showIniHint();
+  function toggleHint(type, value, hide) {
+    if (hide) {
+      toggleCurBoxType(pStatus.cut.boxType, true);
+      $.box.hideAllHint();
+    } else if (type === 'ini') $.box.showIniHint();
     else if (type === 'cmb') $.box.showCmbHint();
     else if (type === 'usr') $.box.showUsrHint(value);
     else if (type === 'time') $.box.showTimeHint(value);

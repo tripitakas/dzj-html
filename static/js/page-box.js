@@ -232,6 +232,12 @@ $('#hint-list #play-hint').on('click', function () {
   }, 2000);
 });
 
+// 操作历史-底部状态栏
+$('.m-footer .task-user').on('click', function () {
+  $(this).toggleClass('active');
+  $.page.toggleHint('usr', $(this).attr('id'), !$(this).hasClass('active'));
+});
+
 
 //----------------------字序操作----------------------
 // 更多框序操作

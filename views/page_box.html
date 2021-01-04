@@ -53,6 +53,7 @@
 
     .m-footer {
       display: flex;
+      user-select: none;
       justify-content: space-between;
     }
 
@@ -75,6 +76,15 @@
 
     .m-footer .deleted {
       color: black;
+    }
+
+    .m-footer .task-name {
+      margin-left: -12px;
+      margin-right: 20px;
+    }
+
+    .m-footer .task-user {
+      cursor: pointer;
     }
 
   </style>
@@ -124,9 +134,9 @@
             <li id="play-hint" class="hint"><a href="#">播放修改</a></li>
           </ul>
         </div>
+        <div id="save" class="btn-txt icon-save{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存[ctrl+s]"></div>
         <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
-        <div id="save" class="btn-txt icon-save{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存[ctrl+s]"></div>
         <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
         <div id="toggle-order" class="btn-txt icon-next-step cut toggle-mode" data-toggle="tooltip" data-placement="bottom" title="字序[/]"></div>
         <div id="toggle-cut" class="btn-txt icon-prev-step order toggle-mode" data-toggle="tooltip" data-placement="bottom" title="切分[.]"></div>
@@ -148,20 +158,20 @@
           <div id="toggle-block" class="btn-txt icon-blocks toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐栏框[l]"></div>
           <div id="toggle-all" class="btn-txt icon-three toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐所有[;]"></div>
           <div id="toggle-back-box" class="btn-txt icon-box1 order" data-toggle="tooltip" data-placement="left" title="显隐底框[b]"></div>
-          <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no" data-toggle="tooltip" data-placement="left" title="显隐字框序号[n]"></div>
           <div id="toggle-link-char" class="btn-txt icon-char-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐字框序线[j]"></div>
+          <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no" data-toggle="tooltip" data-placement="left" title="显隐字框序号[n]"></div>
         </div>
         <div class="down">
           <div id="undo" class="btn-txt icon-undo disabled cut" data-toggle="tooltip" data-placement="left" title="撤销[z]"></div>
           <div id="redo" class="btn-txt icon-redo disabled cut" data-toggle="tooltip" data-placement="left" title="重做[v]"></div>
           <div id="toggle-multi" class="btn-txt icon-multi cut" data-toggle="tooltip" data-placement="left" title="多选模式[g]"></div>
-          <div id="adjust-blocks" class="btn-txt icon-blocks2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整栏框"></div>
           <div id="adjust-columns" class="btn-txt icon-columns2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整列框"></div>
+          <div id="adjust-blocks" class="btn-txt icon-blocks2 cut" data-toggle="tooltip" data-placement="left" title="自适应调整栏框"></div>
           <div id="cut-config" class="btn-txt icon-config cut" data-toggle="tooltip" data-placement="left" title="易错字配置"></div>
-          <div id="toggle-no-column" class="btn-txt icon-column-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐列框序号"></div>
           <div id="toggle-link-column" class="btn-txt icon-column-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐列框序线"></div>
-          <div id="toggle-no-block" class="btn-txt icon-block-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐栏框序号"></div>
+          <div id="toggle-no-column" class="btn-txt icon-column-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐列框序号"></div>
           <div id="toggle-link-block" class="btn-txt icon-block-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐栏框序线"></div>
+          <div id="toggle-no-block" class="btn-txt icon-block-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐栏框序号"></div>
           <div id="reset-order" class="btn-txt icon-sort2 order" data-toggle="tooltip" data-placement="left" title="算法重新排序"></div>
           <div id="load-user-order" class="btn-txt icon-swap order" data-toggle="tooltip" data-placement="left" title="加载用户序线"></div>
         </div>
@@ -176,9 +186,12 @@
     <div class="m-footer">
       <span>
         <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
-        {% if hasattr(handler, 'task_type') and handler.task_type %}
+        {% if globals().get('task_type') %}
         <span class="task-info">
-          {{task_name}} <span id="{{user_id}}" class="task-user{{'' if username else ' hide'}}">@ {{username}}</span>
+          <span class="task-name">#切分{{task_names.get(task_type)}}</span>
+          {% for t in globals().get('tasks', []) %}
+          <span id="{{t['picked_user_id']}}" class="task-user">{{task_names.get(t['task_type'])}}@{{t['picked_by']}}</span>
+          {% end %}
         </span>
         {% end %}
       </span>
@@ -193,7 +206,7 @@
 </div>
 
 <div class="panel-body" style="padding: 0">
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
