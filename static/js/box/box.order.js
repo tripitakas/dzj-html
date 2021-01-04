@@ -50,7 +50,7 @@
   function initOrder(p) {
     if (p && p.userLinks) oStatus.userLinks = p.userLinks;
     // bind event
-    $(data.holder).find('svg').on('mousedown', mouseDown).mouseup(mouseUp).mousemove(function (e) {
+    $(data.holder).on('mousedown', mouseDown).mouseup(mouseUp).mousemove(function (e) {
       if (!oStatus.isMouseDown) mouseHover(e);
       else if (self.getDistance(self.getPoint(e), oStatus.downPt) > data.ratio) //仅当拖拽距离大于1时才触发拖拽函数
         mouseDrag(e);

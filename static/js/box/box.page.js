@@ -67,7 +67,7 @@
     $.box.initCut();
     $.box.initOrder();
     $.box.oStatus.userLinks = p.userLinks || {};
-    $.box.eStatus.mayWrong = p.mayWrong || '';
+    $.box.eStatus.mayWrong = p.mayWrong || 0;
     // 4. 设置字框大小窄扁等属性
     $.box.initCharKind();
     updateHeadBoxKindNo();
@@ -170,7 +170,7 @@
   }
 
   function toggleCurBoxType(boxType, show) {
-    boxType = boxType || '';
+    boxType = boxType || 0;
     $('.toggle-box').removeClass('active');
     show && $('#toggle-' + boxType).addClass('active');
     $.box.switchBoxType(boxType, show);
@@ -205,14 +205,15 @@
 
   function updateHeadBoxKindNo() {
     let no = $.box.getBoxKindNo();
-    $('#toggle-white .s-count').text(no.total || '');
-    $('#toggle-opacity .s-count').text(no.total || '');
-    $('#toggle-large .s-count').text(no.large || '');
-    $('#toggle-small .s-count').text(no.small || '');
-    $('#toggle-narrow .s-count').text(no.narrow || '');
-    $('#toggle-flat .s-count').text(no.flat || '');
-    $('#toggle-overlap .s-count').text(no.overlap || '');
-    $('#toggle-mayWrong .s-count').text(no.mayWrong || '');
+    let or = $.box.status.curBoxType === 'char' ? '0' : '';
+    $('#toggle-white .s-count').text(no.total || or);
+    $('#toggle-opacity .s-count').text(no.total || or);
+    $('#toggle-large .s-count').text(no.large || or);
+    $('#toggle-small .s-count').text(no.small || or);
+    $('#toggle-narrow .s-count').text(no.narrow || or);
+    $('#toggle-flat .s-count').text(no.flat || or);
+    $('#toggle-overlap .s-count').text(no.overlap || or);
+    $('#toggle-mayWrong .s-count').text(no.mayWrong || or);
   }
 
   function initHeadHintList() {
@@ -251,8 +252,8 @@
   function updateFootCharInfo(box) {
     if (box) {
       let t = {char: '字框', column: '列框', block: '栏框'};
-      $('.m-footer .char-name').text(`${t[box.boxType]}#${box.cid}#${box[box.boxType + '_id'] || ''}`);
-      let info = `${box.txt || box['ocr_txt'] || ''}${box['is_small'] ? '' : ''}${box.readonly ? '/只读' : ''}`;
+      $('.m-footer .char-name').text(`${t[box.boxType]}#${box.cid}#${box[box.boxType + '_id'] || 0}`);
+      let info = `${box.txt || box['ocr_txt'] || 0}${box['is_small'] ? '' : ''}${box.readonly ? '/只读' : ''}`;
       $('.m-footer .char-info').text(info);
     } else {
       $('.m-footer .char-name').text('未选中');

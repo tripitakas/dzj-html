@@ -357,7 +357,7 @@
    * 根据两个对角点创建字框图形
    * transPos为真时，pt1、pt2是相对于当前画布的坐标，因此需要将坐标转换为相对于初始画布的坐标，然后再zoom至当前画布
    */
-  function createRect(pt1, pt2, cls, transPos, force, boxType) {
+  function createRect(pt1, pt2, cls, transPos, force) {
     let r = transPos ? data.ratio : 1;
     let x = Math.min(pt1.x, pt2.x) / r, y = Math.min(pt1.y, pt2.y) / r;
     let w = Math.abs(pt1.x - pt2.x) / r, h = Math.abs(pt1.y - pt2.y) / r;
@@ -386,7 +386,7 @@
     // 注：box的坐标始终是根据初始画布设置的，然后根据data.ratio转换至当前画布显示
     let r = data.initRatio;
     return createRect({x: box.x * r, y: box.y * r}, {x: box.x * r + box.w * r, y: box.y * r + box.h * r},
-        cls || getCls(box), false, true, box.boxType);
+        cls || getCls(box), false, true);
   }
 
   function getMaxCid(boxType) {
@@ -484,7 +484,7 @@
     let image = data.image;
     let img = $(data.holder).find('.page-img img');
     if (image.elem) { // svg画布模式
-      Raphael.maxStrokeWidthZoom = 3;
+      Raphael.maxStrokeWidthZoom = 0.5 + data.ratio * 0.5;
       data.paper.setZoom(data.ratio);
       let r = data.initRatio * data.ratio;
       data.paper.setSize(data.image.width * r, data.image.height * r);

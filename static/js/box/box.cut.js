@@ -27,10 +27,11 @@
     hasChanged: false,                              // 用户是否已修改
     isMouseDown: false,                             // 鼠标左键是否按下
     isDragging: false,                              // 鼠标是否在点击拖拽
+    dragMode: null,                                 // 鼠标拖拽模式，1表示修改，2表示新增
+    dragHandleIndex: -1,                            // 鼠标拖拽哪个控制点
     isMulti: false,                                 // 是否为多选模式
     downPt: null,                                   // 点击的坐标
     curHandles: [],                                 // 当前box的控制点
-    handleIndex: -1,                                // 鼠标拖拽哪个控制点，-1表示没有任何控制点，据此判断是新增还是修改
     sensitiveGap: 8,                                // 控制点的敏感距离
     dragPt: null,                                   // 当前拖拽的坐标
     dragElem: null,                                 // 当前拖拽box的Raphael元素
@@ -61,7 +62,7 @@
   }
 
   function initCut() {
-    $(data.holder).on('dblclick', dblclick).mousedown(mouseDown).mouseup(mouseUp).mousemove(function (e) {
+    $(data.holder).find('svg').on('dblclick', dblclick).mousedown(mouseDown).mouseup(mouseUp).mousemove(function (e) {
       if (!cStatus.isMouseDown) mouseHover(e);
       else if (self.getDistance(self.getPoint(e), cStatus.downPt) > data.ratio) //仅当拖拽距离大于1时才触发拖拽函数
         mouseDrag(e);
@@ -83,30 +84,29 @@
   function mouseDown(e) {
     if (!isCutMode() || status.readonly) return;
     e.preventDefault();
+
     if (e.button === 2) return; // 鼠标右键
     cStatus.isDragging = false;
     cStatus.isMouseDown = true;
     cStatus.downPt = self.getPoint(e);
-    let box = self.findBoxByPoint(cStatus.downPt, status.curBoxType, canHit);
-    if (cStatus.isMulti) { // 多选模式，设置选中
-      box && self.toggleClass(box, 'u-selected');
-    } else { // 单选模式，设置当前字框
-      self.switchCurBox(box);
-    }
-    // 注：在设置curBox之后设置activeHandle
-    cStatus.handleIndex = setActiveHandle(cStatus.downPt);
   }
 
   function mouseDrag(e) {
     if (!isCutMode() || status.readonly) return;
     e.preventDefault();
+
+    let pt = self.getPoint(e);
+    cStatus.dragPt = pt;
     cStatus.isDragging = true;
-    cStatus.dragPt = self.getPoint(e);
     cStatus.dragElem && cStatus.dragElem.remove();
-    if (cStatus.handleIndex !== -1) { // 修改字框
+    if (!cStatus.dragMode) {
+      cStatus.dragMode = (status.curBox && self.isInRect(pt, status.curBox, 3)) ? 1 : 2;
+      cStatus.dragHandleIndex = setActiveHandle(pt);
+    }
+    if (cStatus.dragMode === 1) { // 1.修改字框
       cStatus.dragElem = dragHandle(cStatus.dragPt);
       self.addClass(status.curBox, 'on-drag');
-    } else { // 新增字框
+    } else { // 2.新增字框
       cStatus.dragElem = self.createRect(cStatus.downPt, cStatus.dragPt, 'box dragging', true);
     }
     switchCurHandles(cStatus.dragElem, true);
@@ -115,31 +115,44 @@
   function mouseUp(e) {
     if (!isCutMode() || status.readonly) return;
     e.preventDefault();
-    cStatus.isMouseDown = false;
-    if (cStatus.isDragging) { // 拖拽弹起
+
+    let pt = self.getPoint(e);
+    if (cStatus.isDragging) { // 1.拖拽弹起
       cStatus.dragPt = self.getPoint(e);
-      if (cStatus.handleIndex !== -1) { // 1.修改字框
+      if (cStatus.dragMode === 1) { // 1.1.修改字框
         self.removeClass(status.curBox, 'on-drag');
-        if (self.getDistance(cStatus.downPt, cStatus.dragPt) > data.ratio) { // 1.1.应用修改
+        if (self.getDistance(cStatus.downPt, cStatus.dragPt) > data.ratio) { // 1.1.1.应用修改
           updateBox(status.curBox, cStatus.dragElem);
-        } else { // 1.2.放弃很小的移动
+        } else { // 1.1.2.放弃很小的移动
           cStatus.dragElem && cStatus.dragElem.remove();
           self.switchCurBox(status.curBox);
+          setActiveHandle(pt);
         }
-      } else { // 2.画新字框或选择字框
+      } else { // 1.2.新增字框
         if (cStatus.isMulti) selectBoxes(cStatus.dragElem, e.shiftKey);
         else addBox(cStatus.dragElem);
       }
-    } else {
-      cStatus.dragElem && cStatus.dragElem.remove();
+    } else { // 2.点击弹起
+      cStatus.downPt = pt;
+      let box = self.findBoxByPoint(pt, status.curBoxType, canHit);
+      if (cStatus.isMulti) { // 2.1.多选模式，设置选中
+        box && self.toggleClass(box, 'u-selected');
+      } else { // 2.2.单选模式，设置当前字框
+        cStatus.dragElem && cStatus.dragElem.remove();
+        self.switchCurBox(box);
+        setActiveHandle(pt);
+      }
     }
+    cStatus.dragMode = null;
     cStatus.dragElem = null;
     cStatus.isDragging = false;
+    cStatus.isMouseDown = false;
   }
 
   function mouseHover(e) {
     if (!isCutMode() || status.readonly) return;
     e.preventDefault();
+
     let pt = self.getPoint(e);
     let box = self.findBoxByPoint(pt, status.curBoxType, canHit);
     if (box && (!cStatus.hoverElem || (cStatus.hoverElem.id !== box.elem.id))) {
@@ -414,7 +427,7 @@
   }
 
   function dragHandle(pt) {
-    let index = cStatus.handleIndex;
+    let index = cStatus.dragHandleIndex;
     if (index === -1) return;
     let pt1 = pt, b = status.curBox.elem.getBBox();
     // 4<=index<8，拖动四条边
@@ -447,12 +460,12 @@
     // 清空curHandles
     cStatus.curHandles.forEach((h) => h.remove());
     cStatus.curHandles = [];
-    if (!box || !(force || canHit(box))) return;
+    if (!box || !box.elem || !(force || canHit(box))) return;
     // 设置curHandles
     let boxType = box.boxType || status.curBoxType;
     let w = box.elem.attrs.width;
-    w = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应控制点半径从1.2到2.4
-    let r = (1.2 + (w - 6) * 0.035) * (0.5 + data.ratio * 0.5);
+    w = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应控制点半径从1.2到2.0
+    let r = (1.2 + (w - 6) * 0.024) * (0.6 + data.ratio * 0.4);
     for (let i = 0; i < 8; i++) {
       let pt = self.getHandlePt(box.elem, i);
       let h = data.paper.circle(pt.x, pt.y, r).attr({
