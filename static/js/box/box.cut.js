@@ -15,6 +15,9 @@
     if (reason === 'switch') {
       switchCurHandles(box);
     }
+    if (reason === 'zoom') {
+      switchCurHandles($.box.status.curBox);
+    }
   });
 
   let self = $.box;
@@ -447,9 +450,9 @@
     if (!box || !(force || canHit(box))) return;
     // 设置curHandles
     let boxType = box.boxType || status.curBoxType;
-    let a = Math.sqrt(box.elem.attrs.width * box.elem.attrs.height);
-    a = a > 40 ? 40 : a < 10 ? 10 : a; // 面积从10~40，对应控制点半径从1.2到2.4
-    let r = (1.2 + (a - 10) * 0.04) * (0.5 + data.ratio * 0.5);
+    let w = box.elem.attrs.width;
+    w = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应控制点半径从1.2到2.4
+    let r = (1.2 + (w - 6) * 0.035) * (0.5 + data.ratio * 0.5);
     for (let i = 0; i < 8; i++) {
       let pt = self.getHandlePt(box.elem, i);
       let h = data.paper.circle(pt.x, pt.y, r).attr({

@@ -79,7 +79,7 @@
     e.preventDefault();
     if (e.button === 2) return; // 鼠标右键
     oStatus.downPt = self.getPoint(e);
-    let box = self.findBoxByPoint(oStatus.downPt, status.curBoxType, notDeleted);
+    let box = self.findBoxByPoint(oStatus.downPt, oStatus.curLinkType, notDeleted);
     self.switchCurBox(box);
     switchCurLink(oStatus.downPt);
     oStatus.isDragging = false;
@@ -282,9 +282,9 @@
     a.outLink && a.outLink.elem && a.outLink.elem.remove();
     b.inLink && b.inLink.elem && b.inLink.elem.remove();
 
-    let s = Math.sqrt(a.elem.attrs.width * a.elem.attrs.height);
-    s = s > 40 ? 40 : s < 10 ? 10 : s; // 面积从10~40，对应连线宽度从0.8到2
-    let w = (0.8 + (s - 10) * 0.04) * r;
+    let w = a.elem.attrs.width;
+    w = w > 40 ? 40 : w < 6 ? 6 : w; // 线宽从6~40，对应连线宽度从1到2.2
+    w = (1 + (w - 6) * 0.035) * (0.5 + data.ratio * 0.5);
     let p = {column: 'block_no', char: 'column_no'};
     let even = a[p[boxType]] % 2 ? ' odd' : ' even';
     let link = createLink(ap, bp, 'link ln-' + boxType + even).attr({

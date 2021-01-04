@@ -362,9 +362,8 @@
     let x = Math.min(pt1.x, pt2.x) / r, y = Math.min(pt1.y, pt2.y) / r;
     let w = Math.abs(pt1.x - pt2.x) / r, h = Math.abs(pt1.y - pt2.y) / r;
     if (w >= 2 && h >= 2 && w * h >= 9 || (force && w && h)) { // 检查字框面积、宽高最小值，以避免误点出碎块
-      let a = boxType === 'char' ? Math.sqrt(w * h) : w;
-      a = a > 40 ? 40 : a < 10 ? 10 : a; // 面积从10~40，对应线宽从0.75到1.5
-      let rect = data.paper.rect(x, y, w, h).attr({'class': cls, 'stroke-width': 0.75 + 0.025 * (a - 10)});
+      let a = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应线宽从0.75到1.5
+      let rect = data.paper.rect(x, y, w, h).attr({'class': cls, 'stroke-width': 0.75 + 0.022 * (a - 6)});
       if (data.ratio !== 1) rect.initZoom(1).setZoom(data.ratio);
       return rect;
     }
@@ -458,10 +457,10 @@
       let center = getHandlePt(b.elem, 8);
       let parentNo = b.boxType === 'column' ? b.block_no : b.column_no;
       let cls = 'no no-' + b.boxType + (parentNo % 2 ? ' odd' : ' even');
-      let a = b.boxType === 'char' ? Math.sqrt(b.elem.attrs.width * b.elem.attrs.height) : b.elem.attrs.width;
-      a = a > 40 ? 40 : a < 6 ? 6 : a; // 面积从6~40，对应字号从6到22
+      let w = b.elem.attrs.width;
+      w = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应字号从8到22
       b.noElem = data.paper.text(center.x, center.y, no).attr({
-        'class': cls, 'id': noId, 'font-size': (6 + round((a - 10) * 0.47, 1)) * data.ratio
+        'class': cls, 'id': noId, 'font-size': (8 + round((w - 10) * 0.42, 1)) * data.ratio
       });
     });
   }
@@ -494,6 +493,7 @@
       img.width(r).height(r);
     }
     status.curBox && scrollToVisible(status.curBox, true);
+    notifyChanged(null, 'zoom');
   }
 
   function toggleImage(show) {
