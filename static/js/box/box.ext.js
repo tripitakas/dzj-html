@@ -16,7 +16,7 @@
       let boxes = Array.isArray(box) ? box : [box];
       boxes.forEach(function (box) {
         $.box.updateCharShape(box);
-        $.box.updateCharOverlap(box);
+        $.box.updateBoxOverlap(box);
       });
     }
   });
@@ -53,7 +53,7 @@
     initCharKind: initCharKind,
     updateMayWrong: updateMayWrong,
     updateCharShape: updateCharShape,
-    updateCharOverlap: updateCharOverlap,
+    updateBoxOverlap: updateBoxOverlap,
   });
 
   //-------1.操作痕迹-------
@@ -193,11 +193,12 @@
   // 初始化计算字框的各种属性
   // 易错字列表：一二三士土王五夫去七十千不示入人八上下卜于干子今令雷電目岱支生品卷雲竺巨公金世甲
   function initCharKind() {
-    // 1.大小窄扁、易错字
+    // init param
     let sizes = data.boxes.filter((b) => b.boxType === 'char' && !b.deleted && b.w && b.h)
         .map((b) => b.w * b.h).sort((a, b) => b - a);
     eStatus.charMeanA = sizes.length > 5 ? sizes[4] : sizes[0];
 
+    // 1.大小窄扁、易错字
     data.boxes.forEach(function (b, i) {
       if (b.boxType === 'char' && !self.isDeleted(b)) {
         let shape = getCharShape(b, true);
@@ -208,13 +209,14 @@
         }
       }
     });
+
     // 2.重叠
     for (let i = 0, len = data.boxes.length; i < len; i++) {
       let b = data.boxes[i];
-      if (b.boxType !== 'char' || self.isDeleted(b)) continue;
+      if (self.isDeleted(b)) continue;
       for (let j = i + 1; j < len; j++) {
         let b1 = data.boxes[j];
-        if (b1.boxType !== 'char' || self.isDeleted(b1)) continue;
+        if (self.isDeleted(b1) || b1.boxType !== b.boxType) continue;
         if (self.isOverlap(b, b1)) {
           b.overlap = (b.overlap || []).concat([b1.idx]);
           b1.overlap = (b1.overlap || []).concat([b.idx]);
@@ -261,22 +263,22 @@
     box.elem.attr({'class': $.trim(cls + ' ' + (getCharShape(box) || ''))});
   }
 
-  function updateCharOverlap(b) {
-    let len = data.boxes.length;
-    if (b.boxType !== 'char' || self.isDeleted(b)) return;
-    for (let i = 0; i < len; i++) {
+  function updateBoxOverlap(b) {
+    if (self.isDeleted(b)) return;
+    b.overlap = [];
+    for (let i = 0, len = data.boxes.length; i < len; i++) {
       let b1 = data.boxes[i];
-      if (b1.boxType !== 'char' || self.isDeleted(b1) || b1.idx === b.idx) continue;
+      if (self.isDeleted(b1) || b1.boxType !== b.boxType || b1.idx === b.idx) continue;
       if (self.isOverlap(b, b1)) {
-        b.overlap = (b.overlap || []).concat([b1.idx]);
+        b.overlap = b.overlap.concat([b1.idx]);
         b1.overlap = (b1.overlap || []).concat([b.idx]);
-        self.addClass(b, 's-overlap');
         self.addClass(b1, 's-overlap');
       } else if (b1.overlap && b1.overlap.indexOf(b.idx) > -1) {
         b1.overlap = b1.overlap.filter((j) => j !== b.idx);
         if (!b1.overlap.length) self.removeClass(b1, 's-overlap');
       }
     }
+    self.toggleClass(b, 's-overlap', b.overlap.length);
   }
 
   function updateMayWrong(mayWrong) {

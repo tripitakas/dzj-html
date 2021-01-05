@@ -205,14 +205,14 @@
 
   function updateHeadBoxKindNo() {
     let no = $.box.getBoxKindNo();
-    let or = $.box.status.curBoxType === 'char' ? '0' : '';
-    $('#toggle-white .s-count').text(no.total || or);
-    $('#toggle-opacity .s-count').text(no.total || or);
+    let or = $.box.status.curBoxType === 'char' ? 0 : '';
+    $('#toggle-white .s-count').text(no.total || 0);
+    $('#toggle-opacity .s-count').text(no.total || 0);
+    $('#toggle-overlap .s-count').text(no.overlap || 0);
     $('#toggle-large .s-count').text(no.large || or);
     $('#toggle-small .s-count').text(no.small || or);
     $('#toggle-narrow .s-count').text(no.narrow || or);
     $('#toggle-flat .s-count').text(no.flat || or);
-    $('#toggle-overlap .s-count').text(no.overlap || or);
     $('#toggle-mayWrong .s-count').text(no.mayWrong || or);
   }
 

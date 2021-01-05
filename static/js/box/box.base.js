@@ -556,8 +556,11 @@
     return elem;
   }
 
-  function toggleClass(elem, className) {
-    hasClass(elem, className) ? removeClass(elem, className) : addClass(elem, className);
+  function toggleClass(elem, className, op) {
+    if (op !== undefined)
+      op ? addClass(elem, className) : removeClass(elem, className);
+    else
+      hasClass(elem, className) ? removeClass(elem, className) : addClass(elem, className);
   }
 
   // 注册回调函数: function callback(box, reason, param)
