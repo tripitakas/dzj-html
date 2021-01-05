@@ -143,7 +143,7 @@ def migrate_txt_to_char(db, source, fields=None):
 
 def migrate_txt_to_page(db, source):
     """ 从char表中将文本同步回page表"""
-    size = 1000
+    size = 100
     cond = {'source': source}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
@@ -158,9 +158,10 @@ def migrate_txt_to_page(db, source):
             page_dict[page_name] = page_dict.get(page_name) or dict()
             page_dict[page_name][cid] = c['txt']
         for p in pages:
+            print(p['name'])
             for c in p['chars']:
                 c['txt'] = page_dict[p['name']].get(str(c['cid'])) or c.get('txt') or ''
-            db.page.find_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
+            db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
