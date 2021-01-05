@@ -69,13 +69,13 @@
   }
 
   function mouseHover(e) {
-    if (!isOrderMode() || status.readonly) return;
+    if (!isOrderMode() || !oStatus.curLinkType || status.readonly) return;
     e.preventDefault();
     switchCurLink(self.getPoint(e));
   }
 
   function mouseDown(e) {
-    if (!isOrderMode() || status.readonly) return;
+    if (!isOrderMode() || !oStatus.curLinkType || status.readonly) return;
     e.preventDefault();
     if (e.button === 2) return; // 鼠标右键
     oStatus.downPt = self.getPoint(e);
@@ -87,7 +87,7 @@
   }
 
   function mouseDrag(e) {
-    if (!isOrderMode() || status.readonly) return;
+    if (!isOrderMode() || !oStatus.curLinkType || status.readonly) return;
     e.preventDefault();
     if (!oStatus.curCap) return;
     // init
@@ -162,7 +162,7 @@
       oStatus.hasChanged = true;
     }
 
-    if (!isOrderMode() || status.readonly) return;
+    if (!isOrderMode() || !oStatus.curLinkType || status.readonly) return;
     e.preventDefault();
     oStatus.isMouseDown = false;
     if (!oStatus.isDragging) return onQuit();

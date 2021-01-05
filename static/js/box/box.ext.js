@@ -159,18 +159,20 @@
 
   // 获取增删改操作的数量
   function getHintNo() {
-    let box = status.curBoxType || 'box';
+    let boxType = status.curBoxType;
+    if (!boxType) return {};
+    if (boxType === 'all') boxType = 'box';
     if (['usr', 'time'].indexOf(eStatus.hint.type) > -1) // 某个用户、时间操作
       return {
-        deleted: $('.' + box + '.h-deleted').length,
-        added: $('.' + box + '.h-added:not(.h-deleted)').length,
-        changed: $('.' + box + '.h-changed:not(.h-added):not(.h-deleted)').length
+        deleted: $('.' + boxType + '.h-deleted').length,
+        added: $('.' + boxType + '.h-added:not(.h-deleted)').length,
+        changed: $('.' + boxType + '.h-changed:not(.h-added):not(.h-deleted)').length
       };
     else if (eStatus.hint.type === 'cmb')  // 总的字框操作
       return {
-        added: $('.' + box + '.b-added').length,
-        deleted: $('.' + box + '.b-deleted:not(.b-added)').length,
-        changed: $('.' + box + '.b-changed:not(.b-added):not(.b-deleted)').length
+        added: $('.' + boxType + '.b-added').length,
+        deleted: $('.' + boxType + '.b-deleted:not(.b-added)').length,
+        changed: $('.' + boxType + '.b-changed:not(.b-added):not(.b-deleted)').length
       };
     else
       return {};
@@ -182,7 +184,7 @@
     let holder = $($.box.data.holder);
     holder.removeClass('hide-all show-all show-block show-column show-char');
     if (show && boxType) {
-      $.box.setCurBoxType(boxType === 'all' ? '' : boxType);
+      $.box.setCurBoxType(boxType);
       holder.addClass('show-' + boxType);
     } else {
       $.box.setCurBoxType('');

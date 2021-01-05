@@ -205,7 +205,7 @@
 
   function updateHeadBoxKindNo() {
     let no = $.box.getBoxKindNo();
-    let or1 = $.box.status.curBoxType ? 0 : '';
+    let or1 = $.box.status.curBoxType === 'all' ? '' : 0;
     $('#toggle-white .s-count').text(no.total || or1);
     $('#toggle-opacity .s-count').text(no.total || or1);
     $('#toggle-overlap .s-count').text(no.overlap || or1);

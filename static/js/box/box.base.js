@@ -200,14 +200,13 @@
 
   /**
    * 显示字框
-   * @param boxType 显示哪个boxType的字框。可选, 如果为空，则显示所有
+   * @param boxType 显示哪个boxType的字框。如果为all，则显示所有
    * @param cids 显示哪些cid对应的字框。可选, 如果为空，则显示所有
    * @param reset 是否隐藏其它字框，可选
    */
   function showBoxes(boxType, cids, reset) {
-    if (boxType && typeof boxType === 'string') boxType = [boxType];
     data.boxes.forEach(function (b, i) {
-      if ((!boxType || boxType.indexOf(b.boxType) > -1) && (!cids || cids.indexOf(b.cid) > -1)) {
+      if ((boxType === 'all' || boxType === b.boxType) && (!cids || cids.indexOf(b.cid) > -1)) {
         if (b.elem) {
           removeClass(b.elem, 'hide');
         } else {
@@ -225,9 +224,8 @@
   }
 
   function highlightBoxes(boxType, cids, reset) {
-    if (typeof boxType === 'string') boxType = [boxType];
     data.boxes.forEach(function (b) {
-      if ((!boxType || boxType.indexOf(b.boxType) > -1) && (!cids || cids.indexOf(b.cid) > -1)) {
+      if ((boxType === 'all' || boxType === b.boxType) && (!cids || cids.indexOf(b.cid) > -1)) {
         if (!b.elem) showBoxes(b.boxType, [b.cid]);
         addClass(b.elem, 'highlight');
       } else if (reset) {
@@ -262,13 +260,15 @@
 
   function navigate(direction, boxType) {
     boxType = boxType || status.curBoxType;
-    if (status.isMulti) return;
+    if (!boxType || status.isMulti) return;
+
     if (!status.curBox) {
       for (let i = 0, len = data.boxes.length; i < len; i++) {
-        if (!boxType || data.boxes[i].boxType === boxType)
+        if (boxType === 'all' || data.boxes[i].boxType === boxType)
           return switchCurBox(data.boxes[i]);
       }
     }
+
     let cur = status.curBox.elem.getBBox();
     let d, calc, ret = null, minDist = 1e8, invalid = 1e8;
     if (direction === 'left' || direction === 'right') {
@@ -292,7 +292,7 @@
     data.boxes.forEach(function (box) {
       let pt = box.elem && box.elem.getBBox();
       if (!pt || isDeleted(box) || equal(box, status.curBox)) return;
-      if (boxType && box.boxType !== boxType) return;
+      if (boxType !== 'all' && box.boxType !== boxType) return;
       d = calc(pt);
       if (d < minDist) {
         minDist = d;
@@ -305,7 +305,7 @@
       if (idx < 0) idx = 0;
       if (idx > data.boxes.length - 1) idx = data.boxes.length - 1;
       ret = data.boxes[idx];
-      if (boxType && ret.boxType !== boxType) ret = null;
+      if (boxType !== 'all' && ret.boxType !== boxType) ret = null;
     }
     ret && scrollToVisible(ret, true);
     switchCurBox(ret);
@@ -318,7 +318,8 @@
 
     let ret = null, dist = 1e5;
     data.boxes.forEach(function (box) {
-      if (box.elem && (!boxType || box.boxType === boxType) && isInRect(pt, box.elem, 3)) {
+      if (box.elem && (boxType === 'all' || box.boxType === boxType)
+          && isInRect(pt, box.elem, 3)) {
         if (func && !func(box)) return;
         for (let j = 0; j < 8; j++) {
           let d = getDistance(pt, getHandlePt(box.elem, j));
@@ -335,7 +336,7 @@
   function findFirstBox(boxType) {
     for (let i = 0, len = data.boxes.length; i < len; i++) {
       let b = data.boxes[i];
-      if (b.boxType === boxType && !isDeleted(b)) return b;
+      if ((boxType === 'all' || b.boxType === boxType) && !isDeleted(b)) return b;
     }
   }
 
@@ -391,9 +392,9 @@
 
   function getMaxCid(boxType) {
     let maxCid = 0;
-    data.boxes.forEach(function (box) {
-      if (box.cid && box.cid > maxCid && (!boxType || box.boxType.indexOf(boxType) > -1))
-        maxCid = box.cid;
+    data.boxes.forEach(function (b) {
+      if (b.cid && b.cid > maxCid && (boxType === 'all' || boxType === b.boxType))
+        maxCid = b.cid;
     });
     return maxCid;
   }

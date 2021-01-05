@@ -82,7 +82,7 @@
   }
 
   function mouseDown(e) {
-    if (!isCutMode() || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType || status.readonly) return;
     e.preventDefault();
 
     if (e.button === 2) return; // 鼠标右键
@@ -92,7 +92,7 @@
   }
 
   function mouseDrag(e) {
-    if (!isCutMode() || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType || status.readonly) return;
     e.preventDefault();
 
     let pt = self.getPoint(e);
@@ -100,7 +100,7 @@
     cStatus.isDragging = true;
     cStatus.dragElem && cStatus.dragElem.remove();
     if (!cStatus.dragMode) {
-      cStatus.dragMode = (status.curBox && self.isInRect(pt, status.curBox, 3)) ? 1 : 2;
+      cStatus.dragMode = (status.curBox && self.isInRect(pt, status.curBox, 5)) ? 1 : 2;
       cStatus.dragHandleIndex = setActiveHandle(pt);
     }
     if (cStatus.dragMode === 1) { // 1.修改字框
@@ -113,7 +113,7 @@
   }
 
   function mouseUp(e) {
-    if (!isCutMode() || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType || status.readonly) return;
     e.preventDefault();
 
     let pt = self.getPoint(e);
@@ -122,7 +122,7 @@
       if (cStatus.dragMode === 1) { // 1.1.修改字框
         self.removeClass(status.curBox, 'on-drag');
         if (self.getDistance(cStatus.downPt, cStatus.dragPt) > data.ratio) { // 1.1.1.应用修改
-          updateBox(status.curBox, cStatus.dragElem);
+          cStatus.dragElem && updateBox(status.curBox, cStatus.dragElem);
         } else { // 1.1.2.放弃很小的移动
           cStatus.dragElem && cStatus.dragElem.remove();
           self.switchCurBox(status.curBox);
@@ -150,7 +150,7 @@
   }
 
   function mouseHover(e) {
-    if (!isCutMode() || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType || status.readonly) return;
     e.preventDefault();
 
     let pt = self.getPoint(e);
@@ -185,9 +185,9 @@
   function addBox(boxElem, boxType) {
     if (!boxElem) return;
     boxType = boxType || status.curBoxType;
-    if (!boxType || typeof boxType !== 'string') {
+    if (!boxType || boxType === 'all') {
       boxElem.remove();
-      return bsShow('错误', '请选择一种且仅一种切分框类型', 'warning', 2000);
+      return bsShow('错误', `请选择${boxType ? '仅' : ''}一种切分框类型`, 'warning', 2000);
     }
     let box = {
       boxType: boxType, idx: data.boxes.length, cid: self.getMaxCid(boxType) + 1,
@@ -325,7 +325,7 @@
     if (cStatus.isMulti) {
       let boxes = [];
       data.boxes.forEach(function (box) {
-        if (self.hasClass(box, 'u-selected') && (!boxType || box.boxType === boxType))
+        if (self.hasClass(box, 'u-selected') && (boxType === 'all' || box.boxType === boxType))
           boxes.push(_moveBox(box, direction, unit));
       });
       if (self.hasClass(status.curBox, 'u-selected')) self.switchCurBox(status.curBox);
@@ -357,7 +357,7 @@
     if (cStatus.isMulti) {
       let boxes = [];
       data.boxes.forEach(function (box) {
-        if (self.hasClass(box, 'u-selected') && (!boxType || box.boxType === boxType))
+        if (self.hasClass(box, 'u-selected') && (boxType === 'all' || box.boxType === boxType))
           boxes.push(_resizeBox(box, direction, unit));
       });
       if (self.hasClass(status.curBox, 'u-selected')) self.switchCurBox(status.curBox);
@@ -399,7 +399,7 @@
 
   function canHit(box) {
     if (status.readonly || !box || !box.elem || !box.elem.attrs) return false;
-    if (status.curBoxType && status.curBoxType !== box.boxType) return false;
+    if (status.curBoxType !=='all' && status.curBoxType !== box.boxType) return false;
     return !self.hasClass(box, 'hide')
         && !self.hasClass(box, 'hint')
         && !self.hasClass(box, 'readonly')
@@ -413,7 +413,7 @@
     let ret = null, dist = 1e5;
     data.boxes.forEach(function (box) {
       let elem = box.hint && box.hint.elem;
-      if (elem && (!boxType || box.boxType === boxType) && self.isInRect(pt, elem, ext)) {
+      if (elem && (boxType === 'all' || box.boxType === boxType) && self.isInRect(pt, elem, ext)) {
         for (let j = 0; j < 8; j++) {
           let d = self.getDistance(pt, self.getHandlePt(elem, j));
           if (d < dist) {
@@ -504,9 +504,6 @@
         x: self.round(b.x / r), y: self.round(b.y / r),
         w: self.round(b.width / r), h: self.round(b.height / r)
       });
-      if (box.cid === 202) {
-        debugger;
-      }
       if (box.op === 'changed' && box.x === p.x && box.y === p.y && box.w === p.w && box.h === p.h) return;
       op[box.boxType + 's'].push(p);
     });

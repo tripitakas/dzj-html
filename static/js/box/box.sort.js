@@ -44,11 +44,11 @@
   function adjustBoxes(boxType) {
     // 根据字框调整栏框、列框边界
     let boxes = self.getBoxes();
-    (!boxType || boxType === 'blocks') && boxes.blocks.forEach((b) => {
+    (boxType === 'all' || boxType === 'blocks') && boxes.blocks.forEach((b) => {
       let p = getOuterRange(boxes.chars.filter((ch) => ch.block_no === b.block_no));
       if (p.x) b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
     });
-    (!boxType || boxType === 'columns') && boxes.columns.forEach((b) => {
+    (boxType === 'all' || boxType === 'columns') && boxes.columns.forEach((b) => {
       let p = getOuterRange(boxes.chars.filter((ch) => ch.block_no === b.block_no && ch.column_no === b.column_no));
       if (p.x) b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
     });
