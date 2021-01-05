@@ -162,6 +162,28 @@ class VariantMergeApi(BaseHandler):
             return self.send_db_error(error)
 
 
+class VariantSourceApi(BaseHandler):
+    URL = '/api/variant/source'
+
+    def post(self):
+        """ 更新分类"""
+        try:
+            rules = [(v.not_both_empty, '_id', '_ids'), (v.not_empty, 'source')]
+            self.validate(self.data, rules)
+
+            update = {'$set': {'source': self.data['source']}}
+            if self.data.get('_id'):
+                r = self.db.variant.update_one({'_id': ObjectId(self.data['_id'])}, update)
+                self.add_log('update_variant', target_id=self.data['_id'])
+            else:
+                r = self.db.variant.update_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}, update)
+                self.add_log('update_variant', target_id=self.data['_ids'])
+            self.send_data_response(dict(count=r.matched_count))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'
 

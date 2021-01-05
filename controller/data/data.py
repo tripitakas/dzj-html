@@ -182,6 +182,7 @@ class Variant(Model):
     collection = 'variant'
     fields = [
         {'id': 'uid', 'name': '编码'},
+        {'id': 'source', 'name': '分类'},
         {'id': 'txt', 'name': '异体字'},
         {'id': 'img_name', 'name': '异体字图'},
         {'id': 'normal_txt', 'name': '所属正字'},
@@ -249,9 +250,10 @@ class Variant(Model):
             if value:
                 params[field] = value
                 condition.update({field: value})
-        for field in ['img_name', 'remark']:
+        for field in ['source', 'img_name', 'remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field: {'$regex': value, '$options': '$i'}})
+                m = re.match(r'["\'](.*)["\']', value)
+                condition.update({field: m.group(1) if m else {'$regex': value}})
         return condition, params

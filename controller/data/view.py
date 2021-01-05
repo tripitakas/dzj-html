@@ -113,6 +113,7 @@ class VariantListHandler(BaseHandler, Variant):
     page_title = '异体字管理'
     table_fields = [
         {'id': 'uid', 'name': '编码'},
+        {'id': 'source', 'name': '分类'},
         {'id': 'txt', 'name': '异体字'},
         {'id': 'img_name', 'name': '异体字图'},
         {'id': 'normal_txt', 'name': '所属正字'},
@@ -124,15 +125,14 @@ class VariantListHandler(BaseHandler, Variant):
     info_fields = ['uid', 'txt', 'img_name', 'normal_txt', 'remark']
     operations = [
         {'operation': 'btn-add', 'label': '新增记录'},
-        {'operation': 'btn-merge', 'label': '合并字图'},
         {'operation': 'bat-remove', 'label': '批量删除'},
+        {'operation': 'bat-source', 'label': '更新分类'},
+        {'operation': 'btn-merge', 'label': '合并字图'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
     ]
     update_fields = [
         {'id': 'uid', 'name': '编码', 'readonly': True},
-        {'id': 'txt', 'name': '异体字'},
-        {'id': 'img_name', 'name': '异体字图'},
-        {'id': 'normal_txt', 'name': '所属正字'},
+        {'id': 'normal_txt', 'name': '正字'},
         {'id': 'remark', 'name': '备注'},
     ]
 
