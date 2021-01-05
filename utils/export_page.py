@@ -9,9 +9,6 @@ import pymongo
 from glob import glob
 from bson import json_util
 from os import path, makedirs
-from wand.image import Image as wImage
-from wand.color import Color
-from wand.drawing import Drawing
 from PIL import Image as Image, ImageDraw
 
 BASE_DIR = path.dirname(path.dirname(__file__))
@@ -37,6 +34,9 @@ def export_page_txt(db, source='', dst_dir='', txt_field='adapt'):
 
 
 def export_box_by_wand(db):
+    from wand.color import Color
+    from wand.drawing import Drawing
+    from wand.image import Image as wImage
     big_dir = '/data/T/big'
     dst_dir = '/data/T/标注数据/10000张切分标注/vis'
     cond = {'remark_box': '10000张切分标注'}
