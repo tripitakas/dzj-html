@@ -154,7 +154,7 @@ class MyCharTaskHandler(TaskHandler):
             condition = {'task_type': task_type, 'status': status, 'picked_user_id': self.user_id}
             docs, pager, q, order = self.find_by_page(self, condition, default_order='-picked_time')
             self.render('task_my.html', docs=docs, pager=pager, q=q, order=order,
-                        point=self.get_points(task_type), format_value=self.format_value, **kwargs)
+                        format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
