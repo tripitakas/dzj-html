@@ -282,7 +282,7 @@ class PageTaskCutHandler(PageHandler):
 
             tasks = list(self.db.task.find({'doc_id': page['name']}, {
                 k: 1 for k in ['task_type', 'picked_by', 'picked_user_id']}))
-            tasks = [t for t in tasks if t['picked_user_id'] and t['picked_user_id'] != self.user_id]
+            tasks = [t for t in tasks if t.get('picked_user_id') and t['picked_user_id'] != self.user_id]
             task_names = dict(cut_proof='校对', cut_review='审定')
 
             self.render('page_box.html', page=page, readonly=self.readonly, mode=self.mode,
