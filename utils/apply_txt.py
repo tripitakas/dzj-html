@@ -133,13 +133,34 @@ def migrate_txt_to_char(db, source, fields=None):
     print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        project = ['name', 'chars']
-        pages = list(db.page.find(cond, {k: 1 for k in project}).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(cond, {k: 1 for k in ['name', 'chars']}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             for c in page['chars']:
                 update = {f: c[f] for f in fields if c.get(f)}
                 update and db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
+
+
+def migrate_txt_to_page(db, source):
+    """ 从char表中将文本同步回page表"""
+    size = 1000
+    cond = {'source': source}
+    item_count = db.page.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        pages = list(db.page.find(cond, {k: 1 for k in ['name', 'chars']}).sort('_id', 1).skip(i * size).limit(size))
+        page_dict = dict()
+        chars = list(db.char.find({'page_name': {'$in': [p['name'] for p in pages]}}, {k: 1 for k in ['name', 'txt']}))
+        for c in chars:
+            page_name, cid = c['name'].rsplit('_', 1)
+            page_dict[page_name] = page_dict.get(page_name) or dict()
+            page_dict[page_name][cid] = c['txt']
+        for p in pages:
+            for c in p['chars']:
+                c['txt'] = page_dict[p['name']].get(str(c['cid'])) or c.get('txt') or ''
+            db.page.find_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
