@@ -392,9 +392,9 @@
 
   function getMaxCid(boxType) {
     let maxCid = 0;
-    data.boxes.forEach(function (b) {
-      if (b.cid && b.cid > maxCid && (boxType === 'all' || boxType === b.boxType))
-        maxCid = b.cid;
+    data.boxes.forEach(function (box) {
+      if (box.cid && box.cid > maxCid && (boxType === 'all' || boxType === box.boxType))
+        maxCid = box.cid;
     });
     return maxCid;
   }
@@ -457,6 +457,7 @@
       b.noElem && b.noElem.remove();
       let center = getHandlePt(b.elem, 8);
       let parentNo = b.boxType === 'column' ? b.block_no : b.column_no;
+      // let cls = 'no no-char' + (parentNo % 2 ? ' odd' : ' even');
       let cls = 'no no-' + b.boxType + (parentNo % 2 ? ' odd' : ' even');
       let w = b.elem.attrs.width;
       w = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应字号从8到22

@@ -152,7 +152,7 @@
 
 /*-框序-*/
 .no {
-  display: none;
+  visibility: hidden;
 }
 
 .no.odd {
@@ -166,7 +166,7 @@
 .show-char-no .no-char,
 .show-block-no .no-block,
 .show-column-no .no-column {
-  display: block;
+  visibility: visible;
 }
 
 /*-框线-*/

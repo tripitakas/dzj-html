@@ -144,6 +144,7 @@ $('#adjust-blocks').on('click', function () {
   if (!$('#toggle-block').hasClass('active')) $('#toggle-block').click();
   setTimeout(() => {
     $.box.adjustBoxes('blocks');
+    $.box.resetOverlap('blocks');
     bsShow('成功', '已重新调整', 'info', 500);
   }, 500);
 });
@@ -154,6 +155,7 @@ $('#adjust-columns').on('click', function () {
   if (!$('#toggle-column').hasClass('active')) $('#toggle-column').click();
   setTimeout(() => {
     $.box.adjustBoxes('columns');
+    $.box.resetOverlap('columns');
     bsShow('成功', '已重新调整', 'info', 500);
   }, 500);
 });

@@ -254,7 +254,7 @@
     if (box) {
       let t = {char: '字框', column: '列框', block: '栏框'};
       $('.m-footer .char-name').text(`${t[box.boxType]}#${box.cid}#${box[box.boxType + '_id'] || 0}`);
-      let info = `${box.txt || box['ocr_txt'] || 0}${box['is_small'] ? '' : ''}${box.readonly ? '/只读' : ''}`;
+      let info = `${box.txt || box['ocr_txt'] || ''}${box.readonly ? '/只读' : ''}`;
       $('.m-footer .char-info').text(info);
     } else {
       $('.m-footer .char-name').text('未选中');

@@ -48,9 +48,10 @@
     hideAllHint: hideAllHint,
     showTimeHint: showTimeHint,
     initUserAndTime: initUserAndTime,
-    switchBoxType: switchBoxType,
+    resetOverlap: resetOverlap,
     getBoxKindNo: getBoxKindNo,
     initCharKind: initCharKind,
+    switchBoxType: switchBoxType,
     updateMayWrong: updateMayWrong,
     updateCharShape: updateCharShape,
     updateBoxOverlap: updateBoxOverlap,
@@ -218,6 +219,29 @@
       if (self.isDeleted(b)) continue;
       for (let j = i + 1; j < len; j++) {
         let b1 = data.boxes[j];
+        if (self.isDeleted(b1) || b1.boxType !== b.boxType) continue;
+        if (self.isOverlap(b, b1)) {
+          b.overlap = (b.overlap || []).concat([b1.idx]);
+          b1.overlap = (b1.overlap || []).concat([b.idx]);
+          self.addClass(b, 's-overlap');
+          self.addClass(b1, 's-overlap');
+        }
+      }
+    }
+  }
+
+  // 重置overlap属性
+  function resetOverlap(boxType) {
+    let boxes = self.getBoxes()[boxType];
+    boxes.forEach((b) => {
+      b.overlap = [];
+      self.removeClass(b, 's-overlap');
+    });
+    for (let i = 0, len = boxes.length; i < len; i++) {
+      let b = boxes[i];
+      if (self.isDeleted(b)) continue;
+      for (let j = i + 1; j < len; j++) {
+        let b1 = boxes[j];
         if (self.isDeleted(b1) || b1.boxType !== b.boxType) continue;
         if (self.isOverlap(b, b1)) {
           b.overlap = (b.overlap || []).concat([b1.idx]);
