@@ -205,15 +205,16 @@
 
   function updateHeadBoxKindNo() {
     let no = $.box.getBoxKindNo();
-    let or = $.box.status.curBoxType === 'char' ? 0 : '';
-    $('#toggle-white .s-count').text(no.total || 0);
-    $('#toggle-opacity .s-count').text(no.total || 0);
-    $('#toggle-overlap .s-count').text(no.overlap || 0);
-    $('#toggle-large .s-count').text(no.large || or);
-    $('#toggle-small .s-count').text(no.small || or);
-    $('#toggle-narrow .s-count').text(no.narrow || or);
-    $('#toggle-flat .s-count').text(no.flat || or);
-    $('#toggle-mayWrong .s-count').text(no.mayWrong || or);
+    let or1 = $.box.status.curBoxType ? 0 : '';
+    $('#toggle-white .s-count').text(no.total || or1);
+    $('#toggle-opacity .s-count').text(no.total || or1);
+    $('#toggle-overlap .s-count').text(no.overlap || or1);
+    let or2 = $.box.status.curBoxType === 'char' ? 0 : '';
+    $('#toggle-flat .s-count').text(no.flat || or2);
+    $('#toggle-large .s-count').text(no.large || or2);
+    $('#toggle-small .s-count').text(no.small || or2);
+    $('#toggle-narrow .s-count').text(no.narrow || or2);
+    $('#toggle-mayWrong .s-count').text(no.mayWrong || or2);
   }
 
   function initHeadHintList() {
