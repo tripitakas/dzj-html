@@ -454,21 +454,29 @@
 
   function showNo() {
     data.boxes.forEach(function (b, i) {
-      if (isDeleted(b))
+      if (isDeleted(b) || b.boxType === 'image')
         return addClass(b.noElem, 'hide');
       let no = b[b.boxType + '_no'] || '0';
       let noId = 'no-' + b.boxType + b.cid;
       if (b.noElem && (b.op || '') !== 'changed')
         return $('#' + noId + ' tspan').text(no);
+
+      let w = b.elem.attrs.width, fs = 0;
+      if (b.boxType !== 'char') { // 宽度从6~80，对应字号从6到32
+        w = w > 80 ? 80 : w < 6 ? 6 : w;
+        fs = 6 + round((w - 6) * 0.35, 1);
+      } else { // 对角线从6~40，对应字号从6到20
+        let a = Math.sqrt(w * b.elem.attrs.height);
+        a = a > 40 ? 40 : a < 6 ? 6 : a;
+        fs = Math.min(6 + round((a - 6) * 0.5, 1), 20);
+      }
+
       b.noElem && b.noElem.remove();
       let center = getHandlePt(b.elem, 8);
       let parentNo = b.boxType === 'column' ? b.block_no : b.column_no;
       let cls = 'no no-' + b.boxType + (parentNo % 2 ? ' odd' : ' even');
-      let w = b.elem.attrs.width;
-      w = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应字号从12到20
-      let r1 = {char: 1, column: 1.2, block: 2};
       b.noElem = data.paper.text(center.x, center.y, no).attr({
-        'class': cls, 'id': noId, 'font-size': (12 + round((w - 6) * 0.235, 1)) * r1[b.boxType] * data.ratio
+        'class': cls, 'id': noId, 'font-size': fs * data.ratio
       });
     });
   }
