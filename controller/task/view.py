@@ -58,7 +58,7 @@ class MyPageTaskHandler(TaskHandler):
         {'id': 'deleted', 'name': '删除'},
         {'id': 'changed', 'name': '修改'},
         {'id': 'total', 'name': '所有'},
-        {'id': 'used_time', 'name': '执行时间(秒)'},
+        {'id': 'used_time', 'name': '执行时间(分)'},
         {'id': 'picked_time', 'name': '领取时间'},
         {'id': 'finished_time', 'name': '完成时间'},
         {'id': 'my_remark', 'name': '我的备注'},
@@ -87,7 +87,7 @@ class MyPageTaskHandler(TaskHandler):
 
     def format_value(self, value, key=None, doc=None):
         if key == 'used_time' and value:
-            return value / 1000
+            return round(value / 60.0, 2)
         return super().format_value(value, key, doc)
 
     def get(self, task_type):
@@ -137,14 +137,6 @@ class MyCharTaskHandler(TaskHandler):
     update_fields = []
     img_operations = []
     info_fields = ['my_remark']
-
-    def get_points(self, task_type):
-        counts = list(self.db.task.aggregate([
-            {'$match': {'task_type': task_type, 'status': self.STATUS_FINISHED, 'picked_user_id': self.user_id}},
-            {'$group': {'_id': None, 'count': {'$sum': '$char_count'}}},
-        ]))
-        points = counts and counts[0]['count']
-        return points
 
     def get(self, task_type):
         """ 我的任务"""

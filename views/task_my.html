@@ -172,8 +172,8 @@
       $('#statisticModal .added').text(r['added']);
       $('#statisticModal .deleted').text(r['deleted']);
       $('#statisticModal .changed').text(r['changed']);
-      $('#statisticModal .used_time1').text(round(parseInt(r['used_time']) / (1000 * 60)));
-      $('#statisticModal .used_time2').text(round(parseInt(r['used_time']) / (1000 * 60 * 60)));
+      $('#statisticModal .used_time1').text(round(r['used_time'] / 60));
+      $('#statisticModal .used_time2').text(round(r['used_time'] / (60 * 60)));
       $('#statisticModal').modal();
     });
   });
