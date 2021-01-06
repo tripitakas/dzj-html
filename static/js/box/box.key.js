@@ -116,6 +116,9 @@
       on(";", () => {
         if (self.isCutMode()) $('#toggle-all').click();
       });
+      on("ctrl+v", () => {
+        if (self.isCutMode()) $.box.copyBox();
+      });
       on('shift+a', () => {
         self.moveBox('left');
       });
