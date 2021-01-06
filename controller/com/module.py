@@ -248,7 +248,8 @@ class PageConfigModal(UIModule):
     def render(self):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
         modal_fields = [
-            {'id': 'may_wrong', 'name': '易错字列表', 'input_type': 'textarea'}
+            {'id': 'may_wrong', 'name': '易错字列表', 'input_type': 'textarea'},
+            {'id': 'img_opacity', 'name': '图片模糊度'}
         ]
         return self.render_string('com/_modal.html', modal_fields=modal_fields, id='pageConfigModal', title='配置',
                                   buttons=buttons)

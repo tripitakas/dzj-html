@@ -71,6 +71,7 @@
     zoomImg: zoomImg,
     toggleImage: toggleImage,
     initImgRatio: initImgRatio,
+    getImageOpacity: getImageOpacity,
     setImageOpacity: setImageOpacity,
     round: round,
     hasClass: hasClass,
@@ -512,6 +513,15 @@
       let img = $(data.holder).find('.page-img img');
       show = show || img.hasClass('hide');
       show ? img.removeClass('hide') : img.addClass('hide');
+    }
+  }
+
+  function getImageOpacity() {
+    let image = data.image;
+    if (image.elem) {
+      return data.image.elem.node.style.opacity;
+    } else {
+      return $(data.holder).find('.page-img img').attr('opacity');
     }
   }
 

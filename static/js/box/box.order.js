@@ -422,11 +422,13 @@
 
 
   function toggleLink(boxType, show) {
-    oStatus.curLinkType = boxType;
     $(data.holder).removeClass('show-block-link show-column-link show-char-link');
     if (boxType && show) {
+      oStatus.curLinkType = boxType;
       $(data.holder).addClass('show-' + boxType + '-link');
       drawLink();
+    } else {
+      oStatus.curLinkType = null;
     }
   }
 

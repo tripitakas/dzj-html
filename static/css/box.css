@@ -217,20 +217,28 @@
   display: none !important;
 }
 
+.cap {
+  display: none;
+}
+
+.show-char-link .cap,
+.show-block-link .cap,
+.show-column-link .cap {
+  display: block;
+}
+
 .cap.out {
   fill: blue;
   stroke: none;
+  cursor: default;
   fill-opacity: 0.6;
 }
 
 .cap.in {
   fill: red;
   stroke: none;
+  cursor: default;
   fill-opacity: 0.6;
-}
-
-.cut-mode .cap {
-  display: none;
 }
 
 /*-操作痕迹-*/

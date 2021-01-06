@@ -118,22 +118,36 @@ $('#toggle-box-more').on('click', function () {
 
 // 显隐栏框、列框、字框、图框、所有
 $('.toggle-box').on('click', function () {
-  if (!$.box.isCutMode()) return;
   $(this).toggleClass('active');
   $.page.toggleCurBoxType($(this).attr('id').replace('toggle-', ''), $(this).hasClass('active'));
 });
 
-// 易错字系统配置
+// 系统配置
 $('#cut-config').on('click', function () {
-  if (!$.box.isCutMode()) return;
+  $('#pageConfigModal .may_wrong').text($.box.eStatus.mayWrong);
+  $('#pageConfigModal .img_opacity').val($.box.getImageOpacity());
   $('#pageConfigModal').modal();
 });
 
 $('#pageConfigModal .modal-confirm').on('click', function () {
-  if (!$('#toggle-mayWrong').hasClass('active')) $('#toggle-mayWrong').click();
-  $.box.updateMayWrong($('#pageConfigModal .may_wrong').val());
-  setStorage('mayWrong', $.box.eStatus.mayWrong);
   $('#pageConfigModal').modal('hide');
+  // 易错字列表
+  let mayWrong = $('#pageConfigModal .may_wrong').val().trim();
+  if ($.box.eStatus.mayWrong !== mayWrong) {
+    if (!$('#toggle-mayWrong').hasClass('active')) $('#toggle-mayWrong').click();
+    $.box.updateMayWrong(mayWrong);
+    setStorage('mayWrong', mayWrong);
+  }
+  // 图片模糊
+  let imgOpacity = $('#pageConfigModal .img_opacity').val().trim();
+  if (imgOpacity) {
+    if (imgOpacity !== '1' && !/0.\d+/.test(imgOpacity))
+      return showError('错误', '请输入0-1之间的数字', 1000);
+    if (imgOpacity !== $.box.getImageOpacity()) {
+      $.box.setImageOpacity(imgOpacity);
+      setStorage('imgOpacity', imgOpacity);
+    }
+  }
 });
 
 // 自适应调整栏框

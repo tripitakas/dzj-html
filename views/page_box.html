@@ -152,13 +152,12 @@
         <div class="up">
           <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="left" title="恢复初始设置[esc]"></div>
           <div id="btn-check" class="btn-txt icon-check hide" data-toggle="tooltip" data-placement="left" title="检查、应用修改[alt+c]"></div>
-          <div id="toggle-char" class="btn-txt icon-chars toggle-box cut active" data-toggle="tooltip" data-placement="left" title="显隐字框[j]"></div>
-          <div id="toggle-column" class="btn-txt icon-columns toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐列框[k]"></div>
-          <div id="toggle-block" class="btn-txt icon-blocks toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐栏框[l]"></div>
+          <div id="toggle-char" class="btn-txt icon-chars toggle-box active" data-toggle="tooltip" data-placement="left" title="显隐字框[j]"></div>
+          <div id="toggle-column" class="btn-txt icon-columns toggle-box" data-toggle="tooltip" data-placement="left" title="显隐列框[k]"></div>
+          <div id="toggle-block" class="btn-txt icon-blocks toggle-box" data-toggle="tooltip" data-placement="left" title="显隐栏框[l]"></div>
           <div id="toggle-image" class="btn-txt icon-images toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐图框[o]"></div>
           <div id="toggle-all" class="btn-txt icon-three toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐所有[;]"></div>
-          <div id="toggle-back-box" class="btn-txt icon-box1 order" data-toggle="tooltip" data-placement="left" title="显隐底框[b]"></div>
-          <div id="toggle-link-char" class="btn-txt icon-char-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐字框序线[j]"></div>
+          <div id="toggle-link-char" class="btn-txt icon-char-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐字框序线[u]"></div>
           <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no" data-toggle="tooltip" data-placement="left" title="显隐字框序号[n]"></div>
         </div>
         <div class="down">
@@ -167,13 +166,13 @@
           <div id="toggle-multi" class="btn-txt icon-multi cut" data-toggle="tooltip" data-placement="left" title="多选模式[g]"></div>
           <div id="adjust-columns" class="btn-txt icon-columns2 cut hide" data-toggle="tooltip" data-placement="left" title="自适应调整列框"></div>
           <div id="adjust-blocks" class="btn-txt icon-blocks2 cut hide" data-toggle="tooltip" data-placement="left" title="自适应调整栏框"></div>
-          <div id="cut-config" class="btn-txt icon-config cut" data-toggle="tooltip" data-placement="left" title="易错字配置"></div>
           <div id="toggle-link-column" class="btn-txt icon-column-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐列框序线"></div>
           <div id="toggle-no-column" class="btn-txt icon-column-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐列框序号"></div>
           <div id="toggle-link-block" class="btn-txt icon-block-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐栏框序线"></div>
           <div id="toggle-no-block" class="btn-txt icon-block-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐栏框序号"></div>
           <div id="reset-order" class="btn-txt icon-sort2 order" data-toggle="tooltip" data-placement="left" title="算法重新排序"></div>
           <div id="load-user-order" class="btn-txt icon-swap order" data-toggle="tooltip" data-placement="left" title="加载用户序线"></div>
+          <div id="cut-config" class="btn-txt icon-config" data-toggle="tooltip" data-placement="left" title="系统配置"></div>
         </div>
       </div>
     </div><!--m-body-->
@@ -304,10 +303,9 @@
     columns: decodeJSON('{{page.get("columns") or []}}'),
     userLinks: decodeJSON('{{page.get("user_links") or "{}"}}'),
     showImage: $('#toggle-image').hasClass('active'),
-    blurImage: $('#toggle-blur').hasClass('active') ? 0.2 : 1,
+    blurImage: $('#toggle-blur').hasClass('active') ? getStorage('imgOpacity', 0.2) : 1,
     mayWrong: getStorage('mayWrong') || '一二三士土王五七十千不示入人八',
   });
-  $('#pageConfigModal .may_wrong').text($.box.eStatus.mayWrong);
 
   // 保存数据、提交任务
   $('#save,#task-submit,#task-submit-back').on('click', function () {

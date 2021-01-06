@@ -100,15 +100,13 @@
 
       // 框操作
       on('l', () => {
-        if (self.isCutMode())
-          $('#toggle-block').click();
+        $('#toggle-block').click();
       });
       on('k', () => {
-        if (self.isCutMode()) $('#toggle-column').click();
+        $('#toggle-column').click();
       });
       on('j', () => {
-        if (self.isCutMode()) $('#toggle-char').click();
-        else $('#toggle-link-char').click();
+        $('#toggle-char').click();
       });
       on("o", () => {
         if (self.isCutMode()) $('#toggle-image').click();
@@ -190,8 +188,8 @@
       });
 
       // 序操作
-      on('b', () => {
-        if (self.isOrderMode()) $('#toggle-back-box').click();
+      on('u', () => {
+        if (self.isOrderMode()) $('#toggle-link-char').click();
       });
 
     },

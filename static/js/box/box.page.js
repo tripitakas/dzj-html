@@ -116,6 +116,7 @@
       $('#toggle-order').addClass('hide');
       $('#toggle-cut').removeClass('hide');
       $('.m-header .left .title').text('字序');
+      toggleCurBoxType(null,false);
       toggleNo(pStatus.order.noType, true);
       toggleLink(pStatus.order.linkType || 'char', true, true);
     } else { // 从字序校对切换为切分校对
@@ -154,7 +155,6 @@
     show && $('#toggle-link-' + boxType).addClass('active');
     $.box.toggleLink(boxType, show);
     navFirst && $.box.switchCurBox($.box.findFirstBox(boxType));
-    $.page.toggleBackBox($('#toggle-back-box').hasClass('active'));
   }
 
   function toggleBackBox(show) {
