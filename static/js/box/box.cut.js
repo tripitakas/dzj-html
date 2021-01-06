@@ -300,7 +300,7 @@
     if (!unit) {
       // unit随时间改变：慢速启动，加速移动
       let now = new Date().getTime();
-      cStatus.step.unit = (cStatus.step.lastTime && ((now - cStatus.step.lastTime) < 200)) ? cStatus.step.unit + 1 : 1;
+      cStatus.step.unit = (cStatus.step.lastTime && ((now - cStatus.step.lastTime) < 200)) ? cStatus.step.unit + 3 : 1;
       cStatus.step.lastTime = now;
       unit = cStatus.step.unit;
     }
