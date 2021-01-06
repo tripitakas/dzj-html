@@ -27,7 +27,11 @@ $('#btn-check').on('click', function () {
   if ($.box.isCutMode()) { // 检查框外框
     let r = $.box.checkBoxes();
     if (r.status) {
-      if ($.box.cStatus.hasChanged) $.box.reorderBoxes();
+      if ($.box.cStatus.hasChanged) {
+        $.box.reorderBoxes();
+        $.box.loadUserLinks();
+        $.box.showNo();
+      }
       bsShow('成功', '检查无误!', 'info', 500);
     }
   } else { // 检查序线，并更新序号
