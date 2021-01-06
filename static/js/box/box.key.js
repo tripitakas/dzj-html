@@ -16,9 +16,7 @@
         $('#btn-reset').click();
       });
       on('h', () => $('#help').click());
-      on('alt+c', () => {
-        $('#btn-check').click();
-      });
+      on('c', () => $('#btn-check').click());
       on('z', () => {
         self.isCutMode() && self.undo();
       });
