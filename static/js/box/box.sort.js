@@ -243,7 +243,7 @@
       let size = 0, chWs = 0, chHs = 0, chAs = 0;
       chars.forEach((c) => {
         let cp = pos(c);
-        if (bigCh * 0.75 < cp.w <= bigCh) {
+        if (bigCh * 0.75 < cp.w && cp.w <= bigCh) {
           ++size;
           chWs += cp.w;
           chHs += cp.h;
@@ -259,7 +259,7 @@
       let size2 = 0, clWs = 0;
       columns.forEach((c) => {
         let cp = pos(c);
-        if (bigCl * 0.75 < cp.w <= bigCl) {
+        if (bigCl * 0.75 < cp.w && cp.w <= bigCl) {
           ++size2;
           clWs += cp.w;
         }

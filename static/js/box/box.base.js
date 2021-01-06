@@ -192,7 +192,7 @@
   }
 
   function getBoxes() {
-    let blocks = [], columns = [], chars = [], images=[];
+    let blocks = [], columns = [], chars = [], images = [];
     data.boxes.forEach((b) => {
       if (isDeleted(b)) return;
       if (b.boxType === 'char') chars.push(b);
@@ -464,9 +464,10 @@
       let parentNo = b.boxType === 'column' ? b.block_no : b.column_no;
       let cls = 'no no-' + b.boxType + (parentNo % 2 ? ' odd' : ' even');
       let w = b.elem.attrs.width;
-      w = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应字号从8到22
+      w = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应字号从12到20
+      let r1 = {char: 1, column: 1.2, block: 2};
       b.noElem = data.paper.text(center.x, center.y, no).attr({
-        'class': cls, 'id': noId, 'font-size': (8 + round((w - 10) * 0.42, 1)) * data.ratio
+        'class': cls, 'id': noId, 'font-size': (12 + round((w - 6) * 0.235, 1)) * r1[b.boxType] * data.ratio
       });
     });
   }
