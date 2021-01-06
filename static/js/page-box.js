@@ -35,7 +35,10 @@ $('#btn-check').on('click', function () {
     if (!r.status) {
       $.page.toggleLink(r.errorBoxType, true);
     } else {
-      if ($.box.oStatus.hasChanged) $.box.updateNoByLinks(r.links);
+      if ($.box.oStatus.hasChanged) {
+        $.box.updateNoByLinks(r.links);
+        $.box.showNo();
+      }
       bsShow('成功', '检查无误', 'info', 500);
     }
   }
