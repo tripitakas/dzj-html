@@ -107,7 +107,8 @@
       cStatus.dragElem = dragHandle(cStatus.dragPt);
       self.addClass(status.curBox, 'on-drag');
     } else { // 2.新增字框
-      cStatus.dragElem = self.createRect(cStatus.downPt, cStatus.dragPt, 'box dragging', true);
+      cStatus.dragElem = self.createRect(cStatus.downPt, cStatus.dragPt,
+          'box dragging ' + status.curBoxType, true);
     }
     switchCurHandles(cStatus.dragElem, true);
   }
@@ -399,7 +400,7 @@
 
   function canHit(box) {
     if (status.readonly || !box || !box.elem || !box.elem.attrs) return false;
-    if (status.curBoxType !=='all' && status.curBoxType !== box.boxType) return false;
+    if (status.curBoxType !== 'all' && status.curBoxType !== box.boxType) return false;
     return !self.hasClass(box, 'hide')
         && !self.hasClass(box, 'hint')
         && !self.hasClass(box, 'readonly')
@@ -436,7 +437,7 @@
     if (index === 6) pt1.x = b.x + b.width;
     if (index === 7) pt1.y = b.y + b.height;
     let pt2 = self.getHandlePt(status.curBox.elem, (index + 2) % 4);
-    return self.createRect(pt1, pt2, 'box dragging', true);
+    return self.createRect(pt1, pt2, 'box dragging ' + status.curBoxType, true);
   }
 
   function setActiveHandle(pt) {
@@ -492,8 +493,8 @@
 
   function exportSubmitData() {
     let r = data.initRatio;
-    let op = {blocks: [], columns: [], chars: []};
-    let order = {blocks: [], columns: [], chars: []};
+    let op = {blocks: [], columns: [], chars: [], images: []};
+    let order = {blocks: [], columns: [], chars: [], images: []};
     data.boxes.forEach(function (box) {
       // s-deleted是系统删除，无需传给后台
       if (self.hasClass(box, 's-deleted')) return;

@@ -133,8 +133,8 @@
   }
 
   function cmpBox(a, b) {
-    // 1. 栏框>列框>字框
-    let t = {block: 1, column: 2, char: 3};
+    // 1. 栏框>列框>字框>图框
+    let t = {block: 1, column: 2, char: 3, image: 4};
     if (a.boxType !== b.boxType) return t[a.boxType] - t[b.boxType];
     // 2. 依次比较栏号、列号、字号
     let bno1 = a.block_no || 0, bno2 = b.block_no || 0;
@@ -179,6 +179,10 @@
       param.chars.forEach((b) => b.boxType = 'char');
       data.boxes.push(...param.chars);
     }
+    if (param.images) {
+      param.images.forEach((b) => b.boxType = 'image');
+      data.boxes.push(...param.images);
+    }
     // set params and draw boxes
     data.boxes.sort(cmpBox).forEach(function (box, i) {
       box.idx = i;
@@ -188,14 +192,15 @@
   }
 
   function getBoxes() {
-    let blocks = [], columns = [], chars = [];
+    let blocks = [], columns = [], chars = [], images=[];
     data.boxes.forEach((b) => {
       if (isDeleted(b)) return;
       if (b.boxType === 'char') chars.push(b);
       if (b.boxType === 'block') blocks.push(b);
+      if (b.boxType === 'image') images.push(b);
       if (b.boxType === 'column') columns.push(b);
     });
-    return {blocks: blocks, columns: columns, chars: chars};
+    return {blocks: blocks, columns: columns, chars: chars, images: images};
   }
 
   /**

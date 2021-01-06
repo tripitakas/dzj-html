@@ -127,11 +127,14 @@
 /*-字框、列框、栏框-*/
 .show-char .char,
 .show-block .block,
+.show-image .image,
 .show-column .column {
   stroke-opacity: 0.9;
 }
 
-.show-all .char {
+.show-all .char,
+.show-all .image,
+.show-all .block {
   stroke-opacity: 0.5;
 }
 
@@ -139,14 +142,11 @@
   stroke-opacity: 0.7;
 }
 
-.show-all .block {
-  stroke-opacity: 0.5;
-}
-
-.show-char .block, .show-char .column,
-.show-block .char, .show-block .column,
-.show-column .block, .show-column .char,
-.hide-all .block, .hide-all .column, .hide-all .char {
+.hide-all .box,
+.show-char .box:not(.char),
+.show-block .box:not(.block),
+.show-image .box:not(.image),
+.show-column .box:not(.column) {
   display: none;
 }
 

@@ -58,6 +58,7 @@
       chars: p.chars || [],
       blocks: p.blocks || [],
       columns: p.columns || [],
+      images: p.images || [],
     });
     $.box.showBoxes(p.showBoxes || 'char');
     $.box.setCurBoxType(p.curBoxType || 'char');
@@ -170,13 +171,12 @@
   }
 
   function toggleCurBoxType(boxType, show) {
-    boxType = boxType || 0;
     $('.toggle-box').removeClass('active');
     show && $('#toggle-' + boxType).addClass('active');
-    $.box.switchBoxType(boxType, show);
+    $.box.switchBoxType(boxType || '', show);
+    show && $.box.switchCurBox(null);
     show && updateHeadBoxKindNo();
     updateFootHintNo();
-    setStorage('toggleCutBox', show ? boxType : '');
   }
 
   function toggleHint(type, value, hide) {
@@ -205,11 +205,12 @@
 
   function updateHeadBoxKindNo() {
     let no = $.box.getBoxKindNo();
-    let or1 = $.box.status.curBoxType === 'all' ? '' : 0;
+    let boxType = $.box.status.curBoxType;
+    let or1 = 'block,column,char'.indexOf(boxType) > -1 ? 0 : '';
     $('#toggle-white .s-count').text(no.total || or1);
     $('#toggle-opacity .s-count').text(no.total || or1);
     $('#toggle-overlap .s-count').text(no.overlap || or1);
-    let or2 = $.box.status.curBoxType === 'char' ? 0 : '';
+    let or2 = boxType === 'char' ? 0 : '';
     $('#toggle-flat .s-count').text(no.flat || or2);
     $('#toggle-large .s-count').text(no.large || or2);
     $('#toggle-small .s-count').text(no.small || or2);
@@ -252,8 +253,8 @@
 
   function updateFootCharInfo(box) {
     if (box) {
-      let t = {char: '字框', column: '列框', block: '栏框'};
-      $('.m-footer .char-name').text(`${t[box.boxType]}#${box.cid}#${box[box.boxType + '_id'] || 0}`);
+      let t = {char: '字框', column: '列框', block: '栏框', image: '图框'};
+      $('.m-footer .char-name').text(`${t[box.boxType]}#${box.cid}#${box[box.boxType + '_id'] || ''}`);
       let info = `${box.txt || box['ocr_txt'] || ''}${box.readonly ? '/只读' : ''}`;
       $('.m-footer .char-info').text(info);
     } else {

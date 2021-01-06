@@ -16,7 +16,7 @@
         $('#btn-reset').click();
       });
       on('h', () => $('#help').click());
-      on('c', () => {
+      on('alt+c', () => {
         $('#btn-check').click();
       });
       on('z', () => {
@@ -109,6 +109,9 @@
       on('j', () => {
         if (self.isCutMode()) $('#toggle-char').click();
         else $('#toggle-link-char').click();
+      });
+      on("o", () => {
+        if (self.isCutMode()) $('#toggle-image').click();
       });
       on(";", () => {
         if (self.isCutMode()) $('#toggle-all').click();

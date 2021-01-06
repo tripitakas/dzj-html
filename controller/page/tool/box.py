@@ -75,8 +75,11 @@ class Box(BoxOrder):
         for b in blocks:
             if not b.get('deleted'):
                 b_chars = [c for c in chars if c.get('block_no') and str(c['block_no']) == str(b['block_no'])]
-                b_chars and b.update(cls.get_outer_range(b_chars))
-            ret.append(b)
+                if b_chars:
+                    b.update(cls.get_outer_range(b_chars))
+                    ret.append(b)
+            else:
+                ret.append(b)
         return ret
 
     @classmethod
@@ -85,10 +88,14 @@ class Box(BoxOrder):
         ret = []
         for c in columns:
             if not c.get('deleted'):
-                c_chars = [ch for ch in chars if ch.get('block_no') and ch.get('column_no') and
-                           str(ch['block_no']) == str(c.get('block_no')) and str(ch['column_no']) == str(c.get('column_no'))]
-                c_chars and c.update(cls.get_outer_range(c_chars))
-            ret.append(c)
+                c_chars = [ch for ch in chars if ch.get('block_no') and ch.get('column_no')
+                           and str(ch['column_no']) == str(c.get('column_no'))
+                           and str(ch['block_no']) == str(c.get('block_no'))]
+                if c_chars:
+                    c.update(cls.get_outer_range(c_chars))
+                    ret.append(c)
+            else:
+                ret.append(c)
         return ret
 
     @classmethod

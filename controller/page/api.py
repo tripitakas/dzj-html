@@ -162,6 +162,7 @@ class PageBoxApi(PageHandler):
             gen_chars(db=self.db, page_names=page_name, username=self.username)
             script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img_%s.log 2>&1 &'
             script = script % (h.BASE_DIR, self.username, 1, h.get_date_time(fmt='%Y%m%d%H%M%S'))
+            print(script)
             os.system(script)
 
         return page

@@ -108,16 +108,19 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def pack_boxes(cls, page, log=True, alternatives=False):
-        fields = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'added', 'deleted', 'changed']
+        fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed']
         log and fields.extend(['box_logs', 'txt_logs'])
         if page.get('blocks'):
-            cls.pick_fields(page['blocks'], fields + ['block_id'])
+            cls.pick_fields(page['blocks'], fields + ['block_no', 'block_id'])
         if page.get('columns'):
-            cls.pick_fields(page['columns'], fields + ['column_no', 'column_id'])
+            cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id'])
         if page.get('chars'):
-            fields3 = fields + ['column_no', 'char_no', 'char_id', 'is_small', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
+            fields3 = fields + ['block_no', 'column_no', 'char_no', 'char_id', 'is_small',
+                                'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
             alternatives and fields3.extend(['alternatives'])
             cls.pick_fields(page['chars'], fields3)
+        if page.get('images'):
+            cls.pick_fields(page['images'], fields + ['image_id'])
 
     @classmethod
     def filter_symbol(cls, txt):
@@ -289,7 +292,7 @@ class PageHandler(TaskHandler, Page, Box):
         user_level = self.get_user_box_level(self, task_type)
         meta = {'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
         for box_type, ops in submit_data.get('op', {}).items():
-            boxes = page[box_type] or []
+            boxes = page.get(box_type) or []
             for op in ops or []:
                 # prepare
                 pos = {k: op.get(k) for k in ['x', 'y', 'w', 'h']}
@@ -352,7 +355,7 @@ class PageHandler(TaskHandler, Page, Box):
         # 保存用户序线
         if 'user_links' in submit_data:
             page['user_links'] = submit_data['user_links']
-        return {k: page.get(k) for k in ['blocks', 'columns', 'chars', 'user_links'] if k in page}
+        return {k: page.get(k) for k in ['blocks', 'columns', 'chars', 'images', 'user_links'] if k in page}
 
     @classmethod
     def get_txt(cls, page, key):

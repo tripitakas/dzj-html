@@ -48,8 +48,7 @@ class PageListHandler(PageHandler):
         ]},
     ]
     actions = [
-        {'action': 'btn-box', 'label': '字框'},
-        {'action': 'btn-order', 'label': '字序'},
+        {'action': 'btn-box', 'label': '切分'},
         {'action': 'btn-text', 'label': '文字'},
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},

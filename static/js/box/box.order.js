@@ -254,7 +254,7 @@
     if (oStatus.hasInit && !reset) return;
     let prev = {block: null, column: null, char: null};
     data.boxes.forEach(function (b, i) {
-      if (self.isDeleted(b)) return deleteLink(b.inLink);
+      if (self.isDeleted(b) || b.boxType === 'image') return deleteLink(b.inLink);
       let a = prev[b.boxType];
       if (a) a.iniOutCid = setLink(a, b) ? b.cid : null;
       if (!a || !a.iniOutCid) deleteLink(b.inLink); // b是第一个框

@@ -73,19 +73,17 @@ $('.m-footer .char-name').on('click', function () {
 
 //----------------------图片操作----------------------
 // 显隐图片
-$('#toggle-image').on('click', function () {
+$('#toggle-img').on('click', function () {
   $(this).toggleClass('active');
-  $.box.toggleImage($('#toggle-image').hasClass('active'));
-  let key = $(this).parent().hasClass('order') ? 'toggleOrderImage' : 'toggleCutImage';
-  setStorage(key, $(this).hasClass('active') ? '1' : '-1');
+  $.box.toggleImage($('#toggle-img').hasClass('active'));
+  setStorage('toggleImg', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 模糊图片
 $('#toggle-blur').on('click', function () {
   $(this).toggleClass('active');
   $.box.setImageOpacity($(this).hasClass('active') ? 0.2 : 1);
-  let key = $(this).parent().hasClass('order') ? 'blurOrderImage' : 'blurCutImage';
-  setStorage(key, $(this).hasClass('active') ? '1' : '-1');
+  setStorage('blurImg', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 缩小图片
@@ -118,7 +116,7 @@ $('#toggle-box-more').on('click', function () {
   $('#box-op').toggleClass('hide');
 });
 
-// 显隐栏框、列框、字框、所有
+// 显隐栏框、列框、字框、图框、所有
 $('.toggle-box').on('click', function () {
   if (!$.box.isCutMode()) return;
   $(this).toggleClass('active');
