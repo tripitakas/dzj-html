@@ -6,7 +6,9 @@
       return this.status.boxMode === mode;
     },
     bindKey: function (key, func) {
-      key.split(',').forEach((k) => {
+      if (key.trim() === ',')
+        $.mapKey(',', func, {direction: 'down'});
+      else key.split(',').forEach((k) => {
         $.mapKey(k.trim(), func, {direction: 'down'});
       });
     },
@@ -14,6 +16,7 @@
       let self = this;
       let on = self.bindKey;
 
+      // 图片操作
       on('h', () => $('#help').click());
       on('m', () => $('#toggle-blur').click());
       on('p', () => $('#toggle-img').click());
@@ -30,6 +33,7 @@
       on('8', () => self.zoomImg(0.8));
       on('9', () => self.zoomImg(0.9));
 
+      // 框操作
       on('l', () => {
         $('#toggle-block').click();
       });
@@ -42,7 +46,6 @@
       on('n', () => {
         $('#toggle-no-char').click();
       });
-
       on('left', () => {
         let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
         self.navigate('left', navType);
@@ -59,7 +62,48 @@
         let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
         self.navigate('down', navType);
       });
-
+      on('back,del,x', () => {
+        self.isMode('cut') ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
+      });
+      on("ctrl+v", () => {
+        if (self.isMode('cut')) $.box.copyBox();
+      });
+      on('shift+a', () => {
+        self.moveBox('left');
+      });
+      on('shift+d', () => {
+        self.moveBox('right');
+      });
+      on('shift+w', () => {
+        self.moveBox('up');
+      });
+      on('shift+s', () => {
+        self.moveBox('down');
+      });
+      on('alt+left', () => {
+        if (self.isMode('cut')) self.resizeBox('left', false);
+      });
+      on('alt+right', () => {
+        if (self.isMode('cut')) self.resizeBox('right', false);
+      });
+      on('alt+up', () => {
+        if (self.isMode('cut')) self.resizeBox('up', false);
+      });
+      on('alt+down', () => {
+        if (self.isMode('cut')) self.resizeBox('down', false);
+      });
+      on('shift+left', () => {
+        if (self.isMode('cut')) self.resizeBox('left', true);
+      });
+      on('shift+right', () => {
+        if (self.isMode('cut')) self.resizeBox('right', true);
+      });
+      on('shift+up', () => {
+        if (self.isMode('cut')) self.resizeBox('up', true);
+      });
+      on('shift+down', () => {
+        if (self.isMode('cut')) self.resizeBox('down', true);
+      });
     },
 
     bindFullKeys: function () {
@@ -95,10 +139,10 @@
         if (!$('#task-return').hasClass('hide'))
           $('#task-return').click();
       });
-      on('.', () => {
+      on(',', () => {
         if (self.isMode('order')) $('#toggle-cut').click();
       });
-      on('/', () => {
+      on('.', () => {
         if (self.isMode('cut')) $('#toggle-order').click();
       });
       on(']', () => {
@@ -147,24 +191,6 @@
       on(";", () => {
         if (self.isMode('cut')) $('#toggle-all').click();
       });
-      on("ctrl+v", () => {
-        if (self.isMode('cut')) $.box.copyBox();
-      });
-      on('shift+a', () => {
-        self.moveBox('left');
-      });
-      on('shift+d', () => {
-        self.moveBox('right');
-      });
-      on('shift+w', () => {
-        self.moveBox('up');
-      });
-      on('shift+s', () => {
-        self.moveBox('down');
-      });
-      on('back,del,x', () => {
-        self.isMode('cut') ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
-      });
       on('i', () => {
         if (self.isMode('cut')) $('#toggle-my-hint').click();
       });
@@ -174,31 +200,6 @@
       on('space', () => {
         if (self.isMode('cut') && self.cStatus.isMulti)
           self.toggleClass(self.status.curBox, 'u-selected');
-      });
-
-      on('alt+left', () => {
-        if (self.isMode('cut')) self.resizeBox('left', false);
-      });
-      on('alt+right', () => {
-        if (self.isMode('cut')) self.resizeBox('right', false);
-      });
-      on('alt+up', () => {
-        if (self.isMode('cut')) self.resizeBox('up', false);
-      });
-      on('alt+down', () => {
-        if (self.isMode('cut')) self.resizeBox('down', false);
-      });
-      on('shift+left', () => {
-        if (self.isMode('cut')) self.resizeBox('left', true);
-      });
-      on('shift+right', () => {
-        if (self.isMode('cut')) self.resizeBox('right', true);
-      });
-      on('shift+up', () => {
-        if (self.isMode('cut')) self.resizeBox('up', true);
-      });
-      on('shift+down', () => {
-        if (self.isMode('cut')) self.resizeBox('down', true);
       });
 
       // 序操作

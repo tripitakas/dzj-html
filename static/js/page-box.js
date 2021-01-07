@@ -1,8 +1,60 @@
 /**
  @desc 切分相关操作
  */
+//----------------------图片操作----------------------
+// 显隐图片
+$('#toggle-img').on('click', function () {
+  $(this).toggleClass('active');
+  $.box.toggleImage($('#toggle-img').hasClass('active'));
+});
 
-//----------------------公共操作----------------------
+// 模糊图片
+$('#toggle-blur').on('click', function () {
+  $(this).toggleClass('active');
+  $.box.setImageOpacity($(this).hasClass('active') ? 0.2 : 1);
+});
+
+// 缩小图片
+$('#zoom-out').on('click', function () {
+  $.box.zoomImg(null, 0.9);
+});
+
+// 放大图片
+$('#zoom-in').on('click', function () {
+  $.box.zoomImg(null, 1.1);
+});
+
+// 原始大小
+$('#zoom-reset').on('click', function () {
+  $.box.zoomImg(1);
+});
+
+
+//----------------------系统操作----------------------
+// 查看page
+$('.m-footer .page-name').on('click', function () {
+  if ($(this).hasClass('disabled')) return;
+  let url = '/tptk/' + $(this).text();
+  let charName = $('.m-footer .char-name').text();
+  if (charName && charName.length && charName !== '未选中') {
+    url += '?cid=' + charName.split('#')[1];
+  }
+  window.open(url, '_blank');
+});
+
+// 查看char
+$('.m-footer .char-name').on('click', function () {
+  let charName = $(this).text();
+  if ($(this).hasClass('disabled') || charName === '未选中') return;
+  if (!/b\dc\d+c\d+/.test(charName))
+    return bsShow('提示', '当前不是字框，无法查看', 'warning', 1000);
+  if (charName.indexOf('#') > -1) {
+    let pageName = $('.m-footer .page-name').text();
+    charName = pageName + '_' + charName.split('#')[1];
+  }
+  window.open('/char/' + charName, '_blank');
+});
+
 // 恢复初始设置
 $('#btn-reset').on('click', function () {
   $.box.zoomImg(1);
@@ -51,59 +103,6 @@ $('#btn-check').on('click', function () {
 // 切换切分、字序模式
 $('.toggle-mode').on('click', function () {
   $.page.toggleMode($(this).attr('id').replace('toggle-', ''));
-});
-
-// 查看page
-$('.m-footer .page-name').on('click', function () {
-  if ($(this).hasClass('disabled')) return;
-  let url = '/tptk/' + $(this).text();
-  let charName = $('.m-footer .char-name').text();
-  if (charName && charName.length && charName !== '未选中') {
-    url += '?cid=' + charName.split('#')[1];
-  }
-  window.open(url, '_blank');
-});
-
-// 查看char
-$('.m-footer .char-name').on('click', function () {
-  let charName = $(this).text();
-  if ($(this).hasClass('disabled') || charName === '未选中') return;
-  if (!/b\dc\d+c\d+/.test(charName))
-    return bsShow('提示', '当前不是字框，无法查看', 'warning', 1000);
-  if (charName.indexOf('#') > -1) {
-    let pageName = $('.m-footer .page-name').text();
-    charName = pageName + '_' + charName.split('#')[1];
-  }
-  window.open('/char/' + charName, '_blank');
-});
-
-
-//----------------------图片操作----------------------
-// 显隐图片
-$('#toggle-img').on('click', function () {
-  $(this).toggleClass('active');
-  $.box.toggleImage($('#toggle-img').hasClass('active'));
-});
-
-// 模糊图片
-$('#toggle-blur').on('click', function () {
-  $(this).toggleClass('active');
-  $.box.setImageOpacity($(this).hasClass('active') ? 0.2 : 1);
-});
-
-// 缩小图片
-$('#zoom-out').on('click', function () {
-  $.box.zoomImg(null, 0.9);
-});
-
-// 放大图片
-$('#zoom-in').on('click', function () {
-  $.box.zoomImg(null, 1.1);
-});
-
-// 原始大小
-$('#zoom-reset').on('click', function () {
-  $.box.zoomImg(1);
 });
 
 

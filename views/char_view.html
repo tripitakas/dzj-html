@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{char['name']}}</title>
   {% include com/_base_css.html %}
-  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/char.css')}}" rel="stylesheet">
   <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
@@ -49,7 +49,7 @@
     </div>
     <div class="m-body flex pfread">
       <div id="left-region" class="left bd">
-        <div id="holder"></div>
+        <div class="box-holder"></div>
         <button class="btn btn-primary{{'' if box_auth else ' disabled'}}" id="submit-box">确认</button>
       </div>
       <div id="right-region" class="right bd work-panel">
@@ -114,36 +114,53 @@
 </div>
 
 {% include com/_base_js.html %}
-{% include com/_base_cut.html %}
-<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/box/jquery.mapKey.js')}}"></script>
+<script src="{{static_url('js/box/raphael.js')}}"></script>
+<script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.cut.js')}}"></script>
+<script src="{{static_url('js/box/box.page.js')}}"></script>
+<script src="{{static_url('js/box/box.key.js')}}"></script>
+<script src="{{static_url('js/page-box.js')}}"></script>
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   // 公共参数
   let taskType = '';
-  let chars = decodeJSON('{{dumps(chars)}}');
+  let chars = decodeJSON('{{dumps({char["name"]: char})}}');
   let txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
 
-  $.cut.create({
-    holder: 'holder',
-    image: '{{img_url}}',
+  // initial
+  $.page.init({
+    readonly: false,
+    curBoxType: 'char',
+    holder: '.box-holder',
+    showMode: 'height-full',
+    imgUrl: '{{page["img_url"]}}',
     width: '{{page.get("width") or 0}}',
     height: '{{page.get("height") or 0}}',
-    chars: '{{[char["pos"]]}}',
-    scrollContainer: '#left-region',
+    chars: decodeJSON('{{[char]}}'),
+    showImage: true,
+    blurImage: 1,
   });
-  $.cut.bindKeys();
+  $.box.bindBaseKeys();
+  $.box.switchCurBox($.box.findFirstBox('char'));
+
+  $.box.onBoxChanged(function (box, reason, param) {
+    if (reason === 'added') $.box.deleteBox(box, true);
+    if (reason === 'deleted') $.box.recoverBox(box, true);
+  });
 
   // 提交字框修改
   $('#submit-box').on('click', function () {
     if ($(this).hasClass('disabled')) return;
-    let box = $.cut.exportBoxes()[0];
-    let data = {pos: {x: box.x, y: box.y, w: box.w, h: box.h}};
-    postApi('/page/char/box/{{char["name"]}}', {data: data}, function (res) {
-      location.reload();
+    let chars = $.box.exportSubmitData()['op']['chars'];
+    if (!chars.length) return bsShow('提示', '没有修改，无需提交', 'info', 1000);
+    console.log(chars);
+    postApi('/page/char/box/{{char["name"]}}', {data: {pos: chars[0]}}, function (res) {
+      // location.reload();
     });
   });
 
 </script>
-
 </body>
 </html>

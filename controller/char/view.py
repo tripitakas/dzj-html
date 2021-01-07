@@ -142,26 +142,19 @@ class CharViewHandler(CharHandler):
             page_name, cid = char_name.rsplit('_', 1)
             if not char:
                 char = {'name': char_name, 'page_name': page_name, 'cid': int(cid), 'error': True}
-                # return self.send_error_response(e.no_object, message='没有找到数据%s' % char_name)
-            projection = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
-            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, projection) or {}
+            project = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
+            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, project) or {}
             if page:
                 c = page['chars'][0]
-                c['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
-                for field in Char.fields:
-                    f = field['id']
-                    if not char.get(f) and c.get(f):
-                        char[f] = c[f]
+                char.update({k: c[k] for k in ['x', 'y', 'w', 'h', 'box_logs'] if c.get(k)})
             char['txt_level'] = char.get('txt_level') or 1
             char['box_level'] = char.get('box_level') or 1
             char['txt_point'] = self.get_required_type_and_point(char)
             char['box_point'] = PageHandler.get_required_type_and_point(page)
-            img_url = self.get_web_img(page_name, 'page', page.get('img_cloud_path'))
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
-            chars = {char['name']: char}
-            self.render('char_view.html', char=char, page=page, img_url=img_url, chars=chars,
-                        txt_auth=txt_auth, box_auth=box_auth, Char=Char)
+            page['img_url'] = self.get_web_img(page_name, 'page')
+            self.render('char_view.html', Char=Char, char=char, page=page, txt_auth=txt_auth, box_auth=box_auth)
 
         except Exception as error:
             return self.send_db_error(error)

@@ -16,8 +16,8 @@
       $.page.updateFootCharInfo(box);
     }
     if (['recovered', 'added', 'deleted', 'changed', 'redo', 'undo'].indexOf(reason) > -1) {
-      $.box.canRedo() ? $('#redo').removeClass('disabled') : $('#redo').addClass('disabled');
-      $.box.canUndo() ? $('#undo').removeClass('disabled') : $('#undo').addClass('disabled');
+      $.box.canRedo && $.box.canRedo() ? $('#redo').removeClass('disabled') : $('#redo').addClass('disabled');
+      $.box.canUndo && $.box.canUndo() ? $('#undo').removeClass('disabled') : $('#undo').addClass('disabled');
     }
     if (['redo', 'undo'].indexOf(reason) > -1) {
       let boxBtn = $('#toggle-' + box.boxType);

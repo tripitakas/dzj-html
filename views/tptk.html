@@ -111,8 +111,8 @@
     </div>
     <div class="m-body flex pfread">
       <div id="left-region" class="m-left bd">
-        <img class="pic-nav" id="pic-left" data-toggle="tooltip" data-placement="right" title="上一页[.]" src="{{static_url('imgs/icon_left.png')}}"/>
-        <img class="pic-nav" id="pic-right" data-toggle="tooltip" data-placement="left" title="下一页[/]" src="{{static_url('imgs/icon_right.png')}}"/>
+        <img class="pic-nav" id="pic-left" data-toggle="tooltip" data-placement="right" title="上一页[,]" src="{{static_url('imgs/icon_left.png')}}"/>
+        <img class="pic-nav" id="pic-right" data-toggle="tooltip" data-placement="left" title="下一页[.]" src="{{static_url('imgs/icon_right.png')}}"/>
         <div class="box-holder hide-all"></div>
       </div>
       <div id="right-region" class="m-right bd wide-txt hide">
@@ -252,8 +252,8 @@
   });
   $('#pic-left').on('click', () => $('.btn-page.prev').click());
   $('#pic-right').on('click', () => $('.btn-page.next').click());
-  $.mapKey('.', () => $('#pic-left').click());
-  $.mapKey('/', () => $('#pic-right').click());
+  $.mapKey(',', () => $('#pic-left').click());
+  $.mapKey('.', () => $('#pic-right').click());
 
 </script>
 </body>
