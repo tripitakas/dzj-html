@@ -294,6 +294,7 @@
         if (boxType === 'all' || data.boxes[i].boxType === boxType)
           return switchCurBox(data.boxes[i]);
       }
+      return;
     }
 
     let cur = status.curBox.elem.getBBox();
@@ -363,7 +364,7 @@
   function findFirstBox(boxType, cid) {
     for (let i = 0, len = data.boxes.length; i < len; i++) {
       let b = data.boxes[i];
-      if ((boxType === 'all' || b.boxType === boxType) && !isDeleted(b) && (!cid || cid === b.cid))
+      if ((boxType === 'all' || b.boxType === boxType) && !isDeleted(b) && (!cid || cid == b.cid))
         return b;
     }
   }

@@ -61,7 +61,7 @@
     });
     if (p.curBoxType) {
       $.box.setCurBoxType(p.curBoxType);
-      $.box.showBoxes(p.curBoxType);
+      $.box.switchBoxType(p.curBoxType, true);
     }
     // 3. 设置图片
     $.box.toggleImage(p.showImage || true);

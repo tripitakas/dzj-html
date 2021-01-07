@@ -10,50 +10,11 @@
         $.mapKey(k.trim(), func, {direction: 'down'});
       });
     },
-    bindKeys: function () {
+    bindBaseKeys: function () {
       let self = this;
       let on = self.bindKey;
 
-      // 系统操作
-      on('esc', () => {
-        $('#btn-reset').click();
-      });
       on('h', () => $('#help').click());
-      on('c', () => $('#btn-check').click());
-      on('z', () => {
-        self.isMode('cut') && self.undo();
-      });
-      on('v', () => {
-        self.isMode('cut') && self.redo();
-      });
-
-      // 任务与步骤
-      on('t', () => {
-        if (self.isMode('order')) $('#task-submit').click();
-      });
-      on('y', () => {
-        if (self.isMode('order')) $('#task-submit-back').click();
-      });
-      on('ctrl+s', () => {
-        $('#save').click();
-      });
-      on('ctrl+r', () => {
-        $('#task-return').click();
-      });
-      on('.', () => {
-        if (self.isMode('order')) $('#toggle-cut').click();
-      });
-      on('/', () => {
-        if (self.isMode('cut')) $('#toggle-order').click();
-      });
-      on(']', () => {
-        $('#task-next').click();
-      });
-      on('[', () => {
-        $('#task-prev').click();
-      });
-
-      // 图片操作
       on('m', () => $('#toggle-blur').click());
       on('p', () => $('#toggle-img').click());
       on('+', () => self.zoomImg(self.data.ratio * 1.2));
@@ -68,6 +29,86 @@
       on('7', () => self.zoomImg(0.7));
       on('8', () => self.zoomImg(0.8));
       on('9', () => self.zoomImg(0.9));
+
+      on('l', () => {
+        $('#toggle-block').click();
+      });
+      on('k', () => {
+        $('#toggle-column').click();
+      });
+      on('j', () => {
+        $('#toggle-char').click();
+      });
+      on('n', () => {
+        $('#toggle-no-char').click();
+      });
+
+      on('left', () => {
+        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
+        self.navigate('left', navType);
+      });
+      on('right', () => {
+        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
+        self.navigate('right', navType);
+      });
+      on('up', () => {
+        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
+        self.navigate('up', navType);
+      });
+      on('down', () => {
+        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
+        self.navigate('down', navType);
+      });
+
+    },
+
+    bindFullKeys: function () {
+      let self = this;
+      let on = self.bindKey;
+      self.bindBaseKeys();
+
+      // 系统操作
+      on('esc', () => {
+        $('#btn-reset').click();
+      });
+      on('c', () => $('#btn-check').click());
+      on('z', () => {
+        self.isMode('cut') && self.undo();
+      });
+      on('v', () => {
+        self.isMode('cut') && self.redo();
+      });
+
+      // 任务与步骤
+      on('t', () => {
+        if (self.isMode('order') && !$('#task-submit').hasClass('hide'))
+          $('#task-submit').click();
+      });
+      on('y', () => {
+        if (self.isMode('order') && !$('#task-submit-back').hasClass('hide'))
+          $('#task-submit-back').click();
+      });
+      on('ctrl+s', () => {
+        $('#save').click();
+      });
+      on('ctrl+r', () => {
+        if (!$('#task-return').hasClass('hide'))
+          $('#task-return').click();
+      });
+      on('.', () => {
+        if (self.isMode('order')) $('#toggle-cut').click();
+      });
+      on('/', () => {
+        if (self.isMode('cut')) $('#toggle-order').click();
+      });
+      on(']', () => {
+        if (!$('#task-next').hasClass('hide'))
+          $('#task-next').click();
+      });
+      on('[', () => {
+        if (!$('#task-prev').hasClass('hide'))
+          $('#task-prev').click();
+      });
 
       // 框提示
       on('a', () => {
@@ -100,15 +141,6 @@
       });
 
       // 框操作
-      on('l', () => {
-        $('#toggle-block').click();
-      });
-      on('k', () => {
-        $('#toggle-column').click();
-      });
-      on('j', () => {
-        $('#toggle-char').click();
-      });
       on("o", () => {
         if (self.isMode('cut')) $('#toggle-image').click();
       });
@@ -133,9 +165,6 @@
       on('back,del,x', () => {
         self.isMode('cut') ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
       });
-      on('n', () => {
-        $('#toggle-no-char').click();
-      });
       on('i', () => {
         if (self.isMode('cut')) $('#toggle-my-hint').click();
       });
@@ -145,22 +174,6 @@
       on('space', () => {
         if (self.isMode('cut') && self.cStatus.isMulti)
           self.toggleClass(self.status.curBox, 'u-selected');
-      });
-      on('left', () => {
-        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
-        self.navigate('left', navType);
-      });
-      on('right', () => {
-        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
-        self.navigate('right', navType);
-      });
-      on('up', () => {
-        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
-        self.navigate('up', navType);
-      });
-      on('down', () => {
-        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
-        self.navigate('down', navType);
       });
 
       on('alt+left', () => {
@@ -195,7 +208,5 @@
 
     },
   });
-
-  $.box.bindKeys();
 
 }());

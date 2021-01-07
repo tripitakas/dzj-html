@@ -83,14 +83,12 @@ $('.m-footer .char-name').on('click', function () {
 $('#toggle-img').on('click', function () {
   $(this).toggleClass('active');
   $.box.toggleImage($('#toggle-img').hasClass('active'));
-  setStorage('toggleImg', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 模糊图片
 $('#toggle-blur').on('click', function () {
   $(this).toggleClass('active');
   $.box.setImageOpacity($(this).hasClass('active') ? 0.2 : 1);
-  setStorage('blurImg', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 缩小图片

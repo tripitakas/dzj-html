@@ -91,7 +91,7 @@
         <div id="toggle-char" class="btn-txt icon-chars toggle-box{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框[j]"></div>
         <div id="toggle-column" class="btn-txt icon-columns toggle-box{{'' if page.get('columns') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框[k]"></div>
         <div id="toggle-block" class="btn-txt icon-blocks toggle-box{{'' if page.get('blocks') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框[l]"></div>
-        <div id="toggle-no-char" class="btn-txt icon-char-order toggle-no{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序[n]"></div>
+        <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序[n]"></div>
         <div class="btn-group m-pager">
           <div class="btn-page first{{'' if nav.get('first') else ' hide'}}" data-value="{{nav.get('first')}}">首页</div>
           <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" data-value="{{nav.get('prev')}}"><</div>
@@ -111,8 +111,8 @@
     </div>
     <div class="m-body flex pfread">
       <div id="left-region" class="m-left bd">
-        <img class="pic-nav" id="pic-left" src="{{static_url('imgs/icon_left.png')}}"/>
-        <img class="pic-nav" id="pic-right" src="{{static_url('imgs/icon_right.png')}}"/>
+        <img class="pic-nav" id="pic-left" data-toggle="tooltip" data-placement="right" title="上一页[.]" src="{{static_url('imgs/icon_left.png')}}"/>
+        <img class="pic-nav" id="pic-right" data-toggle="tooltip" data-placement="left" title="下一页[/]" src="{{static_url('imgs/icon_right.png')}}"/>
         <div class="box-holder hide-all"></div>
       </div>
       <div id="right-region" class="m-right bd wide-txt hide">
@@ -203,18 +203,37 @@
   $.page.init({
     readonly: true,
     holder: '.box-holder',
-    imgUrl: '{{page["img_url"]}}',
     showMode: 'height-full',
+    imgUrl: '{{page["img_url"]}}',
+    curBoxType: getStorage('tptkBox', ''),
     width: '{{page.get("width") or 0}}',
     height: '{{page.get("height") or 0}}',
     chars: decodeJSON('{{page.get("chars") or []}}'),
     blocks: decodeJSON('{{page.get("blocks") or []}}'),
     columns: decodeJSON('{{page.get("columns") or []}}'),
     showImage: $('#toggle-img').hasClass('active'),
-    blurImage: $('#toggle-blur').hasClass('active') ? 0.2 : 1,
+    blurImage: getStorage('tptkBlur', false) ? 0.2 : 1,
   });
-  if ('{{cid}}') $.box.switchCurBox($.box.findFirstBox('char', '{{cid}}'));
+  $.box.bindBaseKeys();
+  $('#toggle-blur').toggleClass('active', getStorage('tptkBlur', false));
+  if ('{{cid}}'.length) $.box.switchCurBox($.box.findFirstBox('char', '{{cid}}'));
+  if (getStorage('tptkBox', '')) $('#toggle-' + getStorage('tptkBox')).addClass('active');
+  if (parseInt('{{len(txts)}}') && getStorage('tptkRight', false)) {
+    $('#toggle-right').addClass('active');
+    $('#right-region').removeClass('hide');
+  }
   window.onload = () => $.box.setRawImageRatio();
+
+  // 模糊图片
+  $('#toggle-blur').on('click', function () {
+    setStorage('tptkBlur', $(this).hasClass('active'));
+  });
+
+  // 显隐框
+  $('.toggle-box').on('click', function () {
+    let boxType = $(this).attr('id').replace('toggle-', '');
+    setStorage('tptkBox', $(this).hasClass('active') ? boxType : '');
+  });
 
   // 显隐右侧
   $('#toggle-right').on('click', function () {
@@ -222,8 +241,6 @@
     $('#right-region').toggleClass('hide', !$(this).hasClass('active'));
     setStorage('tptkRight', $(this).hasClass('active'));
   });
-  if (parseInt('{{len(txts)}}') && getStorage('tptkRight', false))
-    $('#toggle-right').click();
 
   // 图片导航
   $('.m-pager .btn-page:not(.to)').on('click', function () {
@@ -235,6 +252,8 @@
   });
   $('#pic-left').on('click', () => $('.btn-page.prev').click());
   $('#pic-right').on('click', () => $('.btn-page.next').click());
+  $.mapKey('.', () => $('#pic-left').click());
+  $.mapKey('/', () => $('#pic-right').click());
 
 </script>
 </body>

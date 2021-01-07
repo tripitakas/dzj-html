@@ -305,6 +305,7 @@
     blurImage: $('#toggle-blur').hasClass('active') ? getStorage('imgOpacity', 0.2) : 1,
     mayWrong: getStorage('mayWrong') || '一二三士土王五七十千不示入人八',
   });
+  $.box.bindFullKeys();
 
   // 保存数据、提交任务
   $('#save,#task-submit,#task-submit-back').on('click', function () {
