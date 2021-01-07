@@ -113,9 +113,9 @@ class CharTaskStatHandler(CharHandler):
 
             head, rows = [], []
             if kind == 'picked_user_id':
-                head = ['用户', '分组', '数量']
+                head = ['分组', '用户', '数量']
                 users = list(self.db.user.find({'_id': {'$in': [c['_id'] for c in counts]}}))
-                users = {u['_id']: [u.get('name'), u.get('group') or ''] for u in users}
+                users = {u['_id']: [u.get('group') or '', u.get('name')] for u in users}
                 rows = [[*users.get(c['_id'], ['', '']), c['count']] for c in counts]
                 rows.sort(key=itemgetter(1))
             elif kind == 'task_type':

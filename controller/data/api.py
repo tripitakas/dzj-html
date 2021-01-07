@@ -3,7 +3,6 @@
 
 import os
 import csv
-from abc import ABC
 from os import path
 from bson.objectid import ObjectId
 from utils.build_js import build_js

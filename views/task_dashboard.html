@@ -102,12 +102,8 @@
 <script src="{{static_url('assets/flatpickr/flatpickr.js')}}"></script>
 <script src="{{static_url('assets/flatpickr/zh.js')}}"></script>
 <script>
-  /*---公共设置---*/
-  $.fn.modal.Constructor.prototype.enforceFocus = function () {
-  };
-
-  $(".select-time .start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
-  $(".select-time .end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  $(".select-time .start").flatpickr({allowInput: true, defaultHour: 0, locale: 'zh', time_24hr: true});
+  $(".select-time .end").flatpickr({allowInput: true, defaultHour: 0, locale: 'zh', time_24hr: true});
 
   $('#last-week').on('click', function () {
     let start = new Date();

@@ -265,12 +265,12 @@
     {id: 'finished_start'}, {id: 'finished_end'}, {id: 'remark'}
   ];
   // 设置时间选择器
-  $("#searchModal .publish_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
-  $("#searchModal .publish_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
-  $("#searchModal .picked_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
-  $("#searchModal .picked_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
-  $("#searchModal .finished_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
-  $("#searchModal .finished_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  $("#searchModal .publish_start").flatpickr({allowInput: true, defaultHour: 0, locale: 'zh', time_24hr: true});
+  $("#searchModal .publish_end").flatpickr({allowInput: true, defaultHour: 0, locale: 'zh', time_24hr: true});
+  $("#searchModal .picked_start").flatpickr({allowInput: true, defaultHour: 0, locale: 'zh', time_24hr: true});
+  $("#searchModal .picked_end").flatpickr({allowInput: true, defaultHour: 0, locale: 'zh', time_24hr: true});
+  $("#searchModal .finished_start").flatpickr({allowInput: true, defaultHour: 0, locale: 'zh', time_24hr: true});
+  $("#searchModal .finished_end").flatpickr({allowInput: true, defaultHour: 0, locale: 'zh', time_24hr: true});
   // 设置领取人
   $searchModal.find('.picked_user_id').select2({
     dropdownParent: $searchModal,
