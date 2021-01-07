@@ -55,7 +55,7 @@
 
       // 图片操作
       on('m', () => $('#toggle-blur').click());
-      on('p', () => $('#toggle-image').click());
+      on('p', () => $('#toggle-img').click());
       on('+', () => self.zoomImg(self.data.ratio * 1.2));
       on('=', () => self.zoomImg(self.data.ratio * 1.2));
       on('-', () => self.zoomImg(self.data.ratio * 0.9));

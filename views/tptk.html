@@ -15,15 +15,6 @@
       font-size: 24px;
     }
 
-    .page-img {
-      height: 100%;
-      text-align: center;
-    }
-
-    .page-img img {
-      height: 100%;
-    }
-
     .m-pager .btn-page {
       float: left;
       margin: 0 3px;
@@ -31,7 +22,6 @@
       cursor: pointer;
       text-align: center;
       color: var(--Brown_Darker);
-      /*border-right: 1px dotted var(--Grey_Middle);*/
     }
 
     .m-pager .btn-page.to {
@@ -131,7 +121,7 @@
     </div>
     <div class="m-footer">
       <span class="fl">
-        <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
+        <span class="page-info">页编码：<span>{{page['name']}}</span></span>
         <span class="book-meta">{{book_meta}}</span>
       </span>
       <span class="fr">
