@@ -5,8 +5,10 @@
   <title>{{page['name']}}</title>
   {% include com/_base_css.html %}
   <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
   <style>
     .m-toolbar.order-mode .cut,
     .m-toolbar.cut-mode .order {
@@ -88,7 +90,6 @@
 
   </style>
 </head>
-
 
 <body class="widescreen" style="overflow: hidden">
 <div class="app-main">
@@ -286,23 +287,21 @@
 <script src="{{static_url('js/page-box.js')}}"></script>
 {% include com/_base_task.html %}
 <script>
-  // initial
   $.page.init({
-    holder: '.box-holder',
-    imgUrl: '{{page["img_url"]}}',
-    showMode: 'no-scroll',
-    width: '{{page["width"]}}',
-    height: '{{page["height"]}}',
     readonly: false,
-    showBoxes: 'char',
     curBoxType: 'char',
+    holder: '.box-holder',
+    showMode: 'no-scroll',
     userId: currentUserId,
+    imgUrl: '{{page["img_url"]}}',
+    width: '{{page.get("width") or 0}}',
+    height: '{{page.get("height") or 0}}',
     chars: decodeJSON('{{page.get("chars") or []}}'),
     blocks: decodeJSON('{{page.get("blocks") or []}}'),
     images: decodeJSON('{{page.get("images") or []}}'),
     columns: decodeJSON('{{page.get("columns") or []}}'),
     userLinks: decodeJSON('{{page.get("user_links") or "{}"}}'),
-    showImage: $('#toggle-image').hasClass('active'),
+    showImage: $('#toggle-img').hasClass('active'),
     blurImage: $('#toggle-blur').hasClass('active') ? getStorage('imgOpacity', 0.2) : 1,
     mayWrong: getStorage('mayWrong') || '一二三士土王五七十千不示入人八',
   });

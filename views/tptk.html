@@ -2,9 +2,9 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{'%s-%s' % (tripitaka['name'], page_name)}}</title>
+  <title>{{'%s-%s' % (tripitaka['name'], page['name'])}}</title>
   {% include com/_base_css.html %}
-  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/page-txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -91,17 +91,17 @@
         </div>
       </div>
       <div class="center">
-        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-        <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助[h]"></div>
+        <div id="toggle-img" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片[p]"></div>
         <div id="toggle-right" class="btn-txt icon-txt" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
-        <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
-        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
-        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
-        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
-        <div id="toggle-block" class="btn-txt icon-blocks{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-        <div id="toggle-column" class="btn-txt icon-columns{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-        <div id="toggle-char" class="btn-txt icon-chars{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
-        <div id="toggle-order" class="btn-txt icon-char-order{{'' if page else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片[m]"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片[+]"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小[1]"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片[-]"></div>
+        <div id="toggle-char" class="btn-txt icon-chars toggle-box{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框[j]"></div>
+        <div id="toggle-column" class="btn-txt icon-columns toggle-box{{'' if page.get('columns') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框[k]"></div>
+        <div id="toggle-block" class="btn-txt icon-blocks toggle-box{{'' if page.get('blocks') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框[l]"></div>
+        <div id="toggle-no-char" class="btn-txt icon-char-order toggle-no{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序[n]"></div>
         <div class="btn-group m-pager">
           <div class="btn-page first{{'' if nav.get('first') else ' hide'}}" data-value="{{nav.get('first')}}">首页</div>
           <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" data-value="{{nav.get('prev')}}"><</div>
@@ -123,11 +123,7 @@
       <div id="left-region" class="m-left bd">
         <img class="pic-nav" id="pic-left" src="{{static_url('imgs/icon_left.png')}}"/>
         <img class="pic-nav" id="pic-right" src="{{static_url('imgs/icon_right.png')}}"/>
-        {% if page and page.get('chars') %}
-        <div id="holder"></div>
-        {% else %}
-        <div class="page-img"><img src="{{img_url}}" alt="图片不存在"/></div>
-        {% end %}
+        <div class="box-holder hide-all"></div>
       </div>
       <div id="right-region" class="m-right bd wide-txt hide">
         {% if txts %}{% module PageTxt(txts) %}{% end %}
@@ -135,11 +131,11 @@
     </div>
     <div class="m-footer">
       <span class="fl">
-        页编码：<span class="page-name disabled">{{page_name}}</span>
+        <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
         <span class="book-meta">{{book_meta}}</span>
       </span>
       <span class="fr">
-        字编码：<span class="char-name">未选中</span><span class="char-info"></span>
+        当前：<span class="char-name">未选中</span><span class="char-info"></span>
       </span>
     </div>
   </div>
@@ -205,112 +201,50 @@
 </div>
 
 {% include com/_base_js.html %}
-{% include com/_base_cut.html %}
-<script src="{{static_url('js/cut/char_order.js')}}"></script>
-<script src="{{static_url('js/cut/proof_keys.js')}}"></script>
-<script src="{{static_url('js/page-btn.js')}}"></script>
-<script src="{{static_url('js/page-txt.js')}}"></script>
-{% if page and page.get('chars') %}
+<script src="{{static_url('js/box/jquery.mapKey.js')}}"></script>
+<script src="{{static_url('js/box/raphael.js')}}"></script>
+<script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.page.js')}}"></script>
+<script src="{{static_url('js/box/box.key.js')}}"></script>
+<script src="{{static_url('js/page-box.js')}}"></script>
 <script>
-  // 公共参数
-  $.cut.create({
+  // initial
+  $.page.init({
     readonly: true,
-    holder: 'holder',
-    image: '{{img_url}}',
-    width: '{{page["width"]}}',
-    height: '{{page["height"]}}',
-    chars: '{{page["chars"]}}',
-    blocks: '{{page["blocks"]}}',
-    columns: '{{page["columns"]}}',
-    scrollContainer: '#left-region',
+    holder: '.box-holder',
+    imgUrl: '{{page["img_url"]}}',
+    showMode: 'height-full',
+    width: '{{page.get("width") or 0}}',
+    height: '{{page.get("height") or 0}}',
+    chars: decodeJSON('{{page.get("chars") or []}}'),
+    blocks: decodeJSON('{{page.get("blocks") or []}}'),
+    columns: decodeJSON('{{page.get("columns") or []}}'),
+    showImage: $('#toggle-img').hasClass('active'),
+    blurImage: $('#toggle-blur').hasClass('active') ? 0.2 : 1,
   });
-  $.cut.bindKeys();
-  $.cut.bindCharOrderKeys();
-  $.cut.switchCurrentBox(null);
-  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+  if ('{{cid}}') $.box.switchCurBox($.box.findFirstBox('char', '{{cid}}'));
+  window.onload = () => $.box.setRawImageRatio();
 
-  // 初始化设置
-  $.cut.setLink(false);
-  $.cut.toggleBox(false);
-  if (getStorage('tptkRight', false)) $('#toggle-right').click();
-  setTimeout(function () {
-    $.cut.switchCurrentBox('{{cur_cid}}');
-    $.cut.toggleClass(['{{cur_cid}}'], null, 'flash', true);
-  }, 500);
-
-  $.cut.state.canHitBox = function (el) {
-    if ($('#toggle-char').hasClass('active') && el.data('class') === 'char')
-      return true;
-    if ($('#toggle-column').hasClass('active') && el.data('class') === 'column')
-      return true;
-    if ($('#toggle-block').hasClass('active') && el.data('class') === 'block')
-      return true;
-  };
-
-  $.cut.onBoxChanged(function (info, box, reason) {
-    if (reason === 'navigate') {
-      let curId = $.cut.getCurrentCharID(true);
-      if (curId) {
-        $('.m-footer .char-name').text(curId);
-        $('.m-footer .char-info').text((info.txt || info.ocr_txt || '') + (info['is_small'] ? '（小字）' : ''));
-      } else {
-        $('.m-footer .char-name').text('未选中');
-        $('.m-footer .char-info').text('');
-      }
-    }
-  }, true);
-
-</script>
-{% end %}
-
-<script>
-  // 隐藏右侧区域-设置浏览器状态
-  $(document).on('click', '#toggle-right', function () {
+  // 显隐右侧
+  $('#toggle-right').on('click', function () {
+    $(this).toggleClass('active');
+    $('#right-region').toggleClass('hide', !$(this).hasClass('active'));
     setStorage('tptkRight', $(this).hasClass('active'));
   });
+  if (parseInt('{{len(txts)}}') && getStorage('tptkRight', false))
+    $('#toggle-right').click();
 
-  let volumeCode = '{{volume_code}}';
-  $('.m-pager .btn-page:not(.to)').click(function () {
-    window.location = '/tptk/' + volumeCode + '_' + $(this).attr('data-value');
+  // 图片导航
+  $('.m-pager .btn-page:not(.to)').on('click', function () {
+    window.location = '/tptk/{{volume_code}}_' + $(this).attr('data-value');
   });
-
-  $('.m-pager .btn-page.to').on('keydown', function (event) {
-    let keyCode = event.keyCode || event.which;
-    if (keyCode === 13) {
-      let pageNo = $('.m-pager .btn-page.to input').val();
-      window.location = '/tptk/' + volumeCode + '_' + pageNo;
-    }
+  $('.m-pager .btn-page.to').on('keydown', function (e) {
+    let keyCode = e.keyCode || e.which, pageNo = $('.m-pager .btn-page.to input').val();
+    if (keyCode === 13) window.location = '/tptk/{{volume_code}}_' + pageNo;
   });
-
   $('#pic-left').on('click', () => $('.btn-page.prev').click());
   $('#pic-right').on('click', () => $('.btn-page.next').click());
-
-
-  // 快捷键缩放页面
-  let width, height;
-
-  function zoomImg(ratio) {
-    let pageImg = $('.page-img img');
-    if (pageImg.length) {
-      width = width || $('.page-img img').width();
-      height = height || $('.page-img img').height();
-      pageImg.width(width * ratio);
-      pageImg.height(height * ratio);
-    } else {
-      // 在cut_keys.js中已进行缩放
-      // $.cut.setRatio($.cut.data.ratio * ratio);
-    }
-  }
-
-  $.mapKey('1', () => zoomImg(1));
-  $.mapKey('2', () => zoomImg(2));
-  $.mapKey('3', () => zoomImg(3));
-  $.mapKey('4', () => zoomImg(4));
-  $.mapKey('5', () => zoomImg(5));
-  $.mapKey('6', () => zoomImg(0.6));
-  $.mapKey('7', () => zoomImg(0.7));
-  $.mapKey('8', () => zoomImg(0.8));
-  $.mapKey('9', () => zoomImg(0.9));
 
 </script>
 </body>

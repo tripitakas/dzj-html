@@ -13,6 +13,11 @@
   height: unset !important;;
 }
 
+.box-holder .box {
+  fill: white;
+  fill-opacity: 0;
+}
+
 .box-holder .char,
 .box-holder .column {
   cursor: default;

@@ -51,7 +51,6 @@
     resetOverlap: resetOverlap,
     getBoxKindNo: getBoxKindNo,
     initCharKind: initCharKind,
-    switchBoxType: switchBoxType,
     updateMayWrong: updateMayWrong,
     updateCharShape: updateCharShape,
     updateBoxOverlap: updateBoxOverlap,
@@ -180,19 +179,6 @@
   }
 
   //-------2.框大小窄扁及重叠-------
-  // 切换显示框类型，包括all/block/column/char/image
-  function switchBoxType(boxType, show) {
-    let holder = $($.box.data.holder);
-    holder.removeClass('hide-all show-all show-block show-column show-char show-image');
-    if (show && boxType) {
-      $.box.setCurBoxType(boxType);
-      holder.addClass('show-' + boxType);
-    } else {
-      $.box.setCurBoxType('');
-      holder.addClass('hide-all');
-    }
-  }
-
   // 初始化计算字框的各种属性
   // 易错字列表：一二三士土王五夫去七十千不示入人八上下卜于干子今令雷電目岱支生品卷雲竺巨公金世甲
   function initCharKind() {
@@ -331,7 +317,7 @@
     let log = eStatus.doLogs.pop();
     let box = log[0], reason = log[1], param = log[2] || {};
     let boxes = Array.isArray(box) ? box : [box];
-    switchBoxType(boxes[0].boxType, true);
+    self.switchBoxType(boxes[0].boxType, true);
     if (reason === 'added') {
       self.addClass(box, 's-deleted'); // 标记而不实际删除
     }

@@ -58,6 +58,7 @@
     switchCurBox: switchCurBox,
     findFirstBox: findFirstBox,
     setCurBoxType: setCurBoxType,
+    switchBoxType: switchBoxType,
     highlightBoxes: highlightBoxes,
     findBoxByPoint: findBoxByPoint,
     scrollToVisible: scrollToVisible,
@@ -70,9 +71,9 @@
     toggleNo: toggleNo,
     zoomImg: zoomImg,
     toggleImage: toggleImage,
-    initImgRatio: initImgRatio,
     getImageOpacity: getImageOpacity,
     setImageOpacity: setImageOpacity,
+    setRawImageRatio: setRawImageRatio,
     round: round,
     hasClass: hasClass,
     addClass: addClass,
@@ -92,37 +93,44 @@
     // holder
     let hd = holder.substr(1);
     data.holder = holder.startsWith('#') ? document.getElementById(hd) : document.getElementsByClassName(hd)[0];
-    data.showMode = showMode;
     // svg画布模式 or 纯图片模式
-    if (!width) return initImg(imgUrl);
-    // ratio
-    let r = initRatio(width, height, showMode);
-    Object.assign(data.image, {width: width, height: height});
-    // paper and image
+    if (!width || width === '0') return initRawImage(showMode, imgUrl);
+    // init image param
+    let r = initImageRatio(showMode, width, height);
+    // set paper and image
     data.paper = Raphael(data.holder, width * r, height * r);
     Object.assign(data.image, {width: width, height: height});
     data.image.elem = imgUrl && imgUrl.indexOf('err=1') < 0 && data.paper.image(imgUrl, 0, 0, width * r, height * r);
     if ($.fn.mapKey) $.fn.mapKey.enabled = true;
   }
 
-  function initRatio(width, height, showMode) {
-    showMode = showMode || data.showMode;
-    let r = 1, rw = ($(data.holder).width() - 15) / width, rh = ($(data.holder).height() - 5) / height;
-    if (showMode === 'width-full') r = rw;
-    else if (showMode === 'height-full') r = rh;
-    else if (showMode === 'no-scroll') r = Math.min(rw, rh);
-    data.initRatio = r;
-    return r;
+  function initImageRatio(showMode, width, height) {
+    data.initRatio = 1;
+    data.showMode = showMode;
+    data.image.width = width;
+    data.image.height = height;
+    let w = $(data.holder).width(), h = $(data.holder).height();
+    let rw = (h < height ? w - 5 : w) / width, rh = (w < width ? h - 5 : h) / height;
+    if (showMode === 'width-full') {
+      data.initRatio = rw;
+    } else if (showMode === 'height-full') {
+      data.initRatio = rh;
+    } else if (showMode === 'no-scroll') {
+      data.initRatio = Math.min(rw, rh);
+    }
+    return data.initRatio;
   }
 
-  function initImg(imgUrl) {
+  function initRawImage(showMode, imgUrl) {
+    data.showMode = showMode;
     $(data.holder).html('<div class="box-holder"><div class="page-img"><img src="' + imgUrl + '" alt="图片不存在"/></div></div>')
   }
 
-  function initImgRatio() {
+  // 纯图片模式时，在windows.onload中设置缩放比例
+  function setRawImageRatio() {
     if (!data.image.width) {
       let img = $(data.holder).find('.page-img img');
-      initRatio(img.width(), img.height(), data.showMode);
+      initImageRatio(data.showMode, img.width(), img.height());
       zoomImg(1);
     }
   }
@@ -227,6 +235,19 @@
 
   function setCurBoxType(boxType) {
     status.curBoxType = boxType;
+  }
+
+  function switchBoxType(boxType, show) {
+    // 切换显示框类型，包括all/block/column/char/image
+    let holder = $($.box.data.holder);
+    holder.removeClass('hide-all show-all show-block show-column show-char show-image');
+    if (show && boxType) {
+      $.box.setCurBoxType(boxType);
+      holder.addClass('show-' + boxType);
+    } else {
+      $.box.setCurBoxType('');
+      holder.addClass('hide-all');
+    }
   }
 
   function highlightBoxes(boxType, cids, reset) {
@@ -339,10 +360,11 @@
     return ret;
   }
 
-  function findFirstBox(boxType) {
+  function findFirstBox(boxType, cid) {
     for (let i = 0, len = data.boxes.length; i < len; i++) {
       let b = data.boxes[i];
-      if ((boxType === 'all' || b.boxType === boxType) && !isDeleted(b)) return b;
+      if ((boxType === 'all' || b.boxType === boxType) && !isDeleted(b) && (!cid || cid === b.cid))
+        return b;
     }
   }
 
@@ -498,18 +520,18 @@
     data.ratio = ratio || data.ratio || 1; // 初始化比例
     if (factor) data.ratio *= factor;
     let image = data.image;
-    let img = $(data.holder).find('.page-img img');
     if (image.elem) { // svg画布模式
       Raphael.maxStrokeWidthZoom = 0.5 + data.ratio * 0.5;
       data.paper.setZoom(data.ratio);
       let r = data.initRatio * data.ratio;
       data.paper.setSize(data.image.width * r, data.image.height * r);
+      status.curBox && scrollToVisible(status.curBox, true);
+      notifyChanged(null, 'zoom');
     } else { // 纯图片模式
-      let r = (100 * data.initRatio * data.ratio) + '%';
-      img.width(r).height(r);
+      let img = $(data.holder).find('.page-img img');
+      let r = data.initRatio * data.ratio;
+      img.width(r * data.image.width).height(r * data.image.height);
     }
-    status.curBox && scrollToVisible(status.curBox, true);
-    notifyChanged(null, 'zoom');
   }
 
   function toggleImage(show) {

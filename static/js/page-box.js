@@ -129,6 +129,13 @@ $('.toggle-box').on('click', function () {
   $.page.toggleCurBoxType($(this).attr('id').replace('toggle-', ''), $(this).hasClass('active'));
 });
 
+// 点击框
+$(document).on('click', '.box', function () {
+  if ($(this).attr('class').split(' ').indexOf('current') > -1 || $.box.cStatus) return;
+  let idx = $(this).attr('id').split('#').pop();
+  $.box.switchCurBox($.box.data.boxes[idx]);
+});
+
 // 系统配置
 $('#cut-config').on('click', function () {
   $('#pageConfigModal .may_wrong').text($.box.eStatus.mayWrong);
@@ -265,13 +272,6 @@ $('.m-footer .task-user').on('click', function () {
 $('#toggle-order-more').on('click', function () {
   if (!$.box.isOrderMode()) return;
   $('#order-op').toggleClass('hide');
-});
-
-// 显隐底框
-$('#toggle-back-box').on('click', function () {
-  if (!$.box.isOrderMode()) return;
-  $(this).toggleClass('active');
-  $.page.toggleBackBox($(this).hasClass('active'));
 });
 
 // 显隐栏框、列框、字框序号

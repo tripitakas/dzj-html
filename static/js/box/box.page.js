@@ -36,7 +36,6 @@
     toggleNo: toggleNo,
     toggleLink: toggleLink,
     toggleMode: toggleMode,
-    toggleBackBox: toggleBackBox,
     toggleCurShape: toggleCurShape,
     toggleCurBoxType: toggleCurBoxType,
     toggleHint: toggleHint,
@@ -60,20 +59,24 @@
       columns: p.columns || [],
       images: p.images || [],
     });
-    $.box.showBoxes(p.showBoxes || 'char');
-    $.box.setCurBoxType(p.curBoxType || 'char');
+    if (p.curBoxType) {
+      $.box.setCurBoxType(p.curBoxType);
+      $.box.showBoxes(p.curBoxType);
+    }
     // 3. 设置图片
     $.box.toggleImage(p.showImage || true);
     $.box.setImageOpacity(p.blurImage || 0.2);
-    $.box.initCut();
-    $.box.initOrder();
-    $.box.oStatus.userLinks = p.userLinks || {};
-    $.box.eStatus.mayWrong = p.mayWrong || 0;
-    // 4. 设置字框大小窄扁等属性
-    $.box.initCharKind();
-    updateHeadBoxKindNo();
-    // 5. 设置导航条中操作历史
-    initHeadHintList();
+    $.box.initCut && $.box.initCut();
+    $.box.initOrder && $.box.initOrder();
+    if (p.mayWrong) $.box.eStatus.mayWrong = p.mayWrong;
+    if (p.userLinks) $.box.oStatus.userLinks = p.userLinks;
+    if ($.box.eStatus) {
+      // 4. 设置字框大小窄扁等属性
+      $.box.initCharKind && $.box.initCharKind();
+      updateHeadBoxKindNo();
+      // 5. 设置导航条中操作历史
+      initHeadHintList();
+    }
   }
 
   function checkAndExport() {
@@ -116,7 +119,7 @@
       $('#toggle-order').addClass('hide');
       $('#toggle-cut').removeClass('hide');
       $('.m-header .left .title').text('字序');
-      toggleCurBoxType(null,false);
+      toggleCurBoxType(null, false);
       toggleNo(pStatus.order.noType, true);
       toggleLink(pStatus.order.linkType || 'char', true, true);
     } else { // 从字序校对切换为切分校对
@@ -155,10 +158,6 @@
     show && $('#toggle-link-' + boxType).addClass('active');
     $.box.toggleLink(boxType, show);
     navFirst && $.box.switchCurBox($.box.findFirstBox(boxType));
-  }
-
-  function toggleBackBox(show) {
-    $.page.toggleCurBoxType($.box.oStatus.curLinkType, show);
   }
 
   function toggleCurShape(shape, show) {
@@ -204,8 +203,8 @@
   }
 
   function updateHeadBoxKindNo() {
-    let no = $.box.getBoxKindNo();
     let boxType = $.box.status.curBoxType;
+    let no = $.box.getBoxKindNo && $.box.getBoxKindNo() || {};
     let or1 = 'block,column,char'.indexOf(boxType) > -1 ? 0 : '';
     $('#toggle-white .s-count').text(no.total || or1);
     $('#toggle-opacity .s-count').text(no.total || or1);
@@ -240,7 +239,7 @@
   }
 
   function updateFootHintNo() {
-    if ($.box.eStatus.hint.type) {
+    if ($.box.eStatus && $.box.eStatus.hint.type) {
       let no = $.box.getHintNo();
       $('.m-footer .hint-info .added .s-no').text(no.added || 0);
       $('.m-footer .hint-info .deleted .s-no').text(no.deleted || 0);
