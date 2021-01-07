@@ -204,13 +204,12 @@
   }
 
   function copyBox() {
-    let box = status.curBox || (data.boxes && data.boxes[0]);
-    if (box) {
-      let _box = addBox(box.elem.clone(), box.boxType);
-      _moveBox(_box, 'right', 10);
-      _moveBox(_box, 'down', 10);
-      self.switchCurBox(_box);
-      return _box;
+    if (status.curBox) {
+      let box = addBox(status.curBox.elem.clone(), status.curBox.boxType);
+      _moveBox(box, 'right', 10);
+      _moveBox(box, 'down', 10);
+      self.switchCurBox(box);
+      return box;
     }
   }
 

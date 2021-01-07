@@ -155,9 +155,9 @@
     if ($(this).hasClass('disabled')) return;
     let chars = $.box.exportSubmitData()['op']['chars'];
     if (!chars.length) return bsShow('提示', '没有修改，无需提交', 'info', 1000);
-    console.log(chars);
     postApi('/page/char/box/{{char["name"]}}', {data: {pos: chars[0]}}, function (res) {
-      // location.reload();
+      bsShow('', '保存成功！', 'info', 1000);
+      location.reload();
     });
   });
 

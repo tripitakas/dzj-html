@@ -65,8 +65,8 @@
       on('back,del,x', () => {
         self.isMode('cut') ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
       });
-      on("ctrl+v", () => {
-        if (self.isMode('cut')) $.box.copyBox();
+      on('ctrl+v', () => {
+        if (self.isMode('cut') && !$.box.status.isMulti) $.box.copyBox();
       });
       on('shift+a', () => {
         self.moveBox('left');
