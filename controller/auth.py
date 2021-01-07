@@ -83,7 +83,7 @@ role_route_maps = {
             '/api/task/statistic/@task_type': ['POST'],
             '/api/task/(return|my_remark)/@task_id': ['POST'],
             '/api/variant/delete': ['POST'],
-            # '/page/@page_name': ['GET'],
+            '/page/@page_name': ['GET'],
             # '/page/box/@page_name': ['GET'],
             # '/api/page/box/@page_name': ['POST'],
             # '/page/block/@page_name': ['GET'],

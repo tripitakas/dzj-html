@@ -368,7 +368,7 @@ class PageTxtHandler(PageHandler):
         if not page:
             self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
 
-        self.pack_boxes(page, pop_char_logs=False)
+        self.pack_boxes(page)
         # 设置class属性
         self.set_char_class(page['chars'])
         # 设置name、txt以及ratio
