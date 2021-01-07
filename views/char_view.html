@@ -143,11 +143,14 @@
     blurImage: 1,
   });
   $.box.bindBaseKeys();
-  $.box.switchCurBox($.box.findFirstBox('char'));
+  let char = $.box.data.boxes[0];
+  $.box.switchCurBox(char);
 
   $.box.onBoxChanged(function (box, reason, param) {
     if (reason === 'added') $.box.deleteBox(box, true);
     if (reason === 'deleted') $.box.recoverBox(box, true);
+    if (reason === 'zoom' && !$.box.hasClass(char, 'current'))
+      $.box.switchCurBox(char);
   });
 
   // 提交字框修改

@@ -94,7 +94,7 @@
     let hd = holder.substr(1);
     data.holder = holder.startsWith('#') ? document.getElementById(hd) : document.getElementsByClassName(hd)[0];
     // svg画布模式 or 纯图片模式
-    if (!width || width === '0') return initRawImage(showMode, imgUrl);
+    if (!width) return initRawImage(showMode, imgUrl);
     // init image param
     let r = initImageRatio(showMode, width, height);
     // set paper and image
@@ -110,7 +110,8 @@
     data.image.width = width;
     data.image.height = height;
     let w = $(data.holder).width(), h = $(data.holder).height();
-    let rw = (h < height ? w - 5 : w) / width, rh = (w < width ? h - 5 : h) / height;
+    let rw = (h * width / w < height ? w - 15 : w) / width;
+    let rh = (w * height / h < width ? h - 20 : h - 5) / height;
     if (showMode === 'width-full') {
       data.initRatio = rw;
     } else if (showMode === 'height-full') {
@@ -335,7 +336,6 @@
       ret = data.boxes[idx];
       if (boxType !== 'all' && ret.boxType !== boxType) ret = null;
     }
-    ret && scrollToVisible(ret, true);
     switchCurBox(ret);
   }
 
@@ -374,6 +374,7 @@
       if (!equal(box, status.curBox)) {
         removeClass(status.curBox, 'current');
         addClass(box, 'current');
+        scrollToVisible(box, true);
         status.curBox = box;
       }
     } else {

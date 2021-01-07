@@ -50,7 +50,7 @@
 
   function init(p) {
     // 1. 初始化
-    $.box.initSvg(p.holder, p.imgUrl, p.width, p.height, p.showMode);
+    $.box.initSvg(p.holder, p.imgUrl, parseInt(p.width || 0), parseInt(p.height || 0), p.showMode);
     $.box.setParam({userId: p.userId, readonly: p.readonly});
     // 2. 设置boxes
     $.box.setBoxes({
