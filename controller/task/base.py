@@ -19,9 +19,6 @@ from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
 
-from datetime import datetime
-from controller import helper as hp
-
 
 class TaskHandler(BaseHandler, Task):
     def __init__(self, application, request, **kwargs):

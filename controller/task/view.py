@@ -128,7 +128,7 @@ class TaskInfoHandler(TaskHandler):
         try:
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
             if not task:
-                self.send_error_response(e.no_object, message='没有找到该任务')
+                return self.send_error_response(e.no_object, message='没有找到该任务')
             self.render('task_info.html', task=task)
 
         except Exception as error:

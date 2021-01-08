@@ -79,7 +79,7 @@ class UpdateTaskApi(TaskHandler):
     URL = '/api/task/(batch|remark)'
 
     def post(self, field):
-        """批量更新任务批次或备注"""
+        """批量更新任务批次或管理备注"""
         try:
             rules = [(v.not_both_empty, '_ids', '_id')]
             field == 'batch' and rules.append((v.not_empty, 'batch'))
@@ -106,7 +106,7 @@ class UpdateTaskMyRemarkApi(TaskHandler):
     URL = '/api/task/my_remark/@task_id'
 
     def post(self, task_id):
-        """批量更新任务批次或备注"""
+        """更新我的备注"""
         try:
             rules = [(v.not_none, 'my_remark')]
             self.validate(self.data, rules)
@@ -132,26 +132,25 @@ class RepublishTaskApi(TaskHandler):
             ids = [task_id] if task_id else self.data['ids']
             if not ids:
                 return self.send_error_response(e.no_object, message='没有指定任务id参数')
-            tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(i) for i in ids]}},
-                                           {'status': 1, 'task_type': 1, 'doc_id': 1}))
+            project = {'status': 1, 'task_type': 1, 'doc_id': 1}
+            tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(i) for i in ids]}}, project))
             if not tasks:
                 return self.send_error_response(e.no_object, message='没有找到任务')
             statuses = [self.STATUS_PICKED, self.STATUS_FAILED, self.STATUS_RETURNED]
             if not [t for t in tasks if t.get('status') in statuses]:
                 return self.send_error_response(e.task_status_error, message='只能重新发布进行中、退回或失败的任务')
-            task_ids = [t['_id'] for t in tasks if t['status'] in statuses]
-            r = self.db.task.update_many({'_id': {'$in': task_ids}, 'status': {'$in': statuses}},
-                                         {'$set': {'status': self.STATUS_PUBLISHED, 'result': {}},
-                                          '$unset': {k: '' for k in [
-                                              'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time',
-                                              'return_reason', 'message'
-                                          ]}})  # pre_tasks 不用再改变?
 
+            task_ids = [t['_id'] for t in tasks if t['status'] in statuses]
+            un_fields = ['steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason', 'message']
+            r = self.db.task.update_many(
+                {'_id': {'$in': task_ids}, 'status': {'$in': statuses}},
+                {'$set': {'status': self.STATUS_PUBLISHED, 'result': {}}, '$unset': {k: '' for k in un_fields}}
+            )
             if task_id:
                 self.update_page_status(self.STATUS_PUBLISHED)
-            self.add_log('republish_task', target_id=tasks[0]['_id'],
-                         content=dict(task_type=tasks[0]['task_type'], doc_id=tasks[0].get('doc_id') or ''),
-                         remark='%d tasks' % r.modified_count)
+            content = dict(task_type=tasks[0]['task_type'], doc_id=tasks[0].get('doc_id') or '')
+            self.add_log('republish_task', target_id=task_ids, content=content, remark='%d tasks' % r.modified_count)
+
             return self.send_data_response(published_count=r.modified_count)
 
         except self.DbError as error:
@@ -171,7 +170,7 @@ class DeleteTasksApi(TaskHandler):
             status = [self.STATUS_PUBLISHED, self.STATUS_FETCHED, self.STATUS_PENDING, self.STATUS_RETURNED]
             tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(t) for t in _ids]}, 'status': {'$in': status}}))
             r = self.db.task.delete_many({'_id': {'$in': [t['_id'] for t in tasks]}})
-            self.add_log('delete_task', target_id=_ids)
+            self.add_log('delete_task', target_id=[t['_id'] for t in tasks])
 
             for task in tasks:
                 self.update_page_status(None, task)
@@ -191,8 +190,8 @@ class AssignTasksApi(TaskHandler):
 
     def post(self):
         """ 批量指派已发布的任务给某用户，一次只能指派一种任务类型
-        :param tasks, 格式为 [[_id, task_type, doc_id], ]
-        :return dict, 如{'un_existed':[], 'un_published':[], 'lock_failed':[], 'assigned':[]}
+        @param tasks, 格式为 [[_id, task_type, doc_id], ]
+        @return dict, 如{'un_existed':[], 'un_published':[], 'lock_failed':[], 'assigned':[]}
         """
         try:
             rules = [(v.not_empty, 'tasks', 'user_id')]
@@ -250,8 +249,7 @@ class FinishTaskApi(TaskHandler):
         """完成任务，供测试用例使用"""
         try:
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                'status': self.STATUS_FINISHED, 'finished_time': self.now()
-            }})
+                'status': self.STATUS_FINISHED, 'finished_time': self.now()}})
             self.update_post_tasks(self.task)
             self.send_data_response()
 
@@ -264,10 +262,10 @@ class InitTasksForOPTestApi(TaskHandler):
 
     def post(self):
         """初始化数据处理任务，以便OP平台进行测试。注意：该API仅仅是配合OP平台测试使用"""
-        rules = [(v.not_empty, 'page_names', 'import_dirs', 'layout')]
-        self.validate(self.data, rules)
-
         try:
+            rules = [(v.not_empty, 'page_names', 'import_dirs', 'layout')]
+            self.validate(self.data, rules)
+
             tasks, task_types = [], ['import_image', 'ocr_box', 'ocr_text', 'upload_cloud']
             # 清空数据处理任务
             self.db.task.delete_many({'task_type': {'$in': task_types}})
