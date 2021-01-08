@@ -15,41 +15,6 @@ class Task(Model):
     """数据库定义"""
     primary = '_id'
     collection = 'task'
-    fields = {
-        '_id': {'name': '主键'},
-        'batch': {'name': '批次号'},
-        'task_type': {'name': '类型'},
-        'num': {'name': '校次'},
-        'collection': {'name': '数据表'},
-        'id_name': {'name': '主键名'},
-        'doc_id': {'name': '数据ID'},
-        'status': {'name': '状态'},
-        'priority': {'name': '优先级'},
-        'steps': {'name': '步骤'},
-        'pre_tasks': {'name': '前置任务'},
-        'is_oriented': {'name': '是否定向'},
-        'params': {'name': '输入参数'},
-        'result': {'name': '输出结果'},
-        'txt_kind': {'name': '字种'},
-        'char_count': {'name': '单字数量'},
-        'required_count': {'name': '需要校对数量'},
-        'type_tips': {'name': '类型说明'},
-        'return_reason': {'name': '退回理由'},
-        'create_time': {'name': '创建时间'},
-        'updated_time': {'name': '更新时间'},
-        'publish_time': {'name': '发布时间'},
-        'publish_user_id': {'name': '发布人id'},
-        'publish_by': {'name': '发布人'},
-        'picked_time': {'name': '领取时间'},
-        'picked_user_id': {'name': '领取人id'},
-        'picked_by': {'name': '领取人'},
-        'finished_time': {'name': '完成时间'},
-        'used_time': {'name': '执行时间'},
-        'remark': {'name': '管理备注'},
-        'my_remark': {'name': '我的备注'},
-        'is_sample': {'name': '是否示例任务'},
-        'message': {'name': '日志'},
-    }
 
     # 任务类型定义
     task_types = {
@@ -108,9 +73,44 @@ class Task(Model):
         STATUS_FINISHED: '已完成',
     }
 
-    # 任务优先级
     yes_no = {True: '是', False: '否'}
     priorities = {3: '高', 2: '中', 1: '低'}
+
+    fields = {
+        '_id': {'name': '主键'},
+        'batch': {'name': '批次号'},
+        'task_type': {'name': '类型'},
+        'num': {'name': '校次'},
+        'collection': {'name': '数据表'},
+        'id_name': {'name': '主键名'},
+        'doc_id': {'name': '数据ID'},
+        'status': {'name': '状态', 'filter': task_statuses},
+        'priority': {'name': '优先级', 'filter': priorities},
+        'steps': {'name': '步骤'},
+        'pre_tasks': {'name': '前置任务'},
+        'is_oriented': {'name': '是否定向', 'filter': yes_no},
+        'params': {'name': '输入参数'},
+        'result': {'name': '输出结果'},
+        'txt_kind': {'name': '字种'},
+        'char_count': {'name': '单字数量'},
+        'required_count': {'name': '需要校对数量'},
+        'type_tips': {'name': '类型说明'},
+        'return_reason': {'name': '退回理由'},
+        'create_time': {'name': '创建时间'},
+        'updated_time': {'name': '更新时间'},
+        'publish_time': {'name': '发布时间'},
+        'publish_user_id': {'name': '发布人id'},
+        'publish_by': {'name': '发布人'},
+        'picked_time': {'name': '领取时间'},
+        'picked_user_id': {'name': '领取人id'},
+        'picked_by': {'name': '领取人'},
+        'finished_time': {'name': '完成时间'},
+        'used_time': {'name': '执行时间'},
+        'remark': {'name': '管理备注'},
+        'my_remark': {'name': '我的备注'},
+        'is_sample': {'name': '是否示例任务'},
+        'message': {'name': '日志'},
+    }
 
     @classmethod
     def has_num(cls, task_type):

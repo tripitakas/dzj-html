@@ -67,8 +67,10 @@ class Model(object):
         fields = fields or ['page_title', 'search_fields', 'hide_fields', 'info_fields',
                             'operations', 'img_operations', 'actions']
         kwargs = {f: getattr(cls, f) for f in fields}
-        kwargs['table_fields'] = cls.get_field_list(cls.table_fields)
-        kwargs['update_fields'] = cls.get_field_list(cls.update_fields)
+        if cls.table_fields and isinstance(cls.table_fields[0], str):
+            kwargs['table_fields'] = cls.get_field_list(cls.table_fields)
+        if cls.update_fields and isinstance(cls.update_fields[0], str):
+            kwargs['update_fields'] = cls.get_field_list(cls.update_fields)
         kwargs['search_tips'] = cls.search_tips or cls.get_search_tips()
         return kwargs
 
