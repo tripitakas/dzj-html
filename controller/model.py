@@ -4,7 +4,6 @@
 @desc: 数据模型定义类
 数据库字段(fields)定义格式如下:
 {
-    'id': '',  # 字段id
     'name': '',  # 字段名称
     'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
     'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
@@ -23,16 +22,20 @@ from bson.objectid import ObjectId
 
 class Model(object):
     """ 数据库参数"""
-    collection = ''  # 数据库表名
-    fields = [  # 数据库字段定义
-        {'id': 'id1', 'name': 'name1', 'type': 'str', 'input_type': 'text'},
-        {'id': 'id2', 'name': 'name2', 'type': 'int', 'input_type': 'radio', 'options': []},
-    ]
     primary = ''  # 主键
     rules = []  # 校验规则
+    collection = ''  # 数据库表名
+    fields = {  # 数据库字段定义
+        'id1': {'name': 'name1', 'type': 'str', 'input_type': 'text'},
+        'id2': {'name': 'name2', 'type': 'int', 'input_type': 'radio', 'options': []},
+    }
+    com_fields = {
+        'create_time': {'name': '创建时间'},
+        'updated_time': {'name': '修改时间'},
+    }
 
     """ 前端列表页面参数"""
-    page_size = None  # 每页显示多少条
+    page_size = 0  # 每页显示多少条
     page_title = ''  # 页面title
     search_tips = ''  # 查询提示
     search_fields = []  # 查询哪些字段
@@ -43,25 +46,28 @@ class Model(object):
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
-    img_operations = ['config', 'help']
+    img_operations = ['config', 'help']  # 图标操作
     actions = [  # 单条记录包含哪些操作
         {'action': 'btn-view', 'label': '查看'},
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
     update_fields = [dict(id='', name='', input_type='', options=[])]  # update模态框包含哪些字段
-    com_fields = [
-        {'id': 'create_time', 'name': '创建时间'},
-        {'id': 'updated_time', 'name': '修改时间'},
-    ]
+
+    @classmethod
+    def get_search_tips(cls):
+        return '请搜索' + ''.join([cls.get_field_name(f) for f in cls.search_fields])
 
     @classmethod
     def get_template_kwargs(cls, fields=None):
+        """ 获取前端模板参数"""
         fields = fields if fields else [
             'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
             'info_fields', 'operations', 'img_operations', 'actions', 'update_fields'
         ]
-        return {f: getattr(cls, f) for f in fields}
+        kwargs = {f: getattr(cls, f) for f in fields}
+        kwargs['search_tips'] = kwargs['search_tips'] or cls.get_search_tips()
+        return kwargs
 
     @staticmethod
     def prop(obj, key, default=None):
@@ -74,55 +80,50 @@ class Model(object):
 
     @classmethod
     def get_fields(cls):
-        return [f['id'] for f in cls.fields + cls.com_fields]
+        return list(cls.fields.keys()) + list(cls.com_fields.keys())
 
     @classmethod
     def get_need_fields(cls):
         # 设置必须字段，新增数据或批量上传时使用
-        return [f['id'] for f in cls.fields]
+        return list(cls.fields.keys())
 
     @classmethod
     def field_names(cls):
-        return {f['id']: f['name'] for f in cls.fields}
-
-    @classmethod
-    def get_field_name(cls, field):
-        for f in cls.fields:
-            if f['id'] == field:
-                return f['name']
-        for f in cls.com_fields:
-            if f['id'] == field:
-                return f['name']
-        return field
+        return {k: v['name'] for k, v in cls.fields.items()}
 
     @classmethod
     def get_field_type(cls, field):
-        for f in cls.fields:
-            if f['id'] == field:
-                return f.get('type') or 'str'
+        return cls.prop(cls.fields, field + '.type', 'str')
+
+    @classmethod
+    def get_field_name(cls, field):
+        if cls.fields.get(field):
+            return cls.fields.get(field)['name']
+        elif cls.com_fields.get(field):
+            return cls.com_fields.get(field)['name']
+        else:
+            return field
 
     @classmethod
     def get_field_by_name(cls, name):
         if re.match(r'[0-9a-zA-Z_]+', name):
             return name
-        for f in cls.fields:
-            if f['name'] == name:
-                return f['id']
+        for k, v in cls.fields.items():
+            if v['name'] == name:
+                return k
+        for k, v in cls.com_fields.items():
+            if v['name'] == name:
+                return k
         return name
 
     @classmethod
     def pack_doc(cls, doc, self=None, exclude_none=False):
-        d = {f['id']: cls.prop(doc, f['id']) for f in cls.fields}
+        d = {f: cls.prop(doc, f) for f in cls.fields}
         if exclude_none:
             d = {k: v for k, v in d.items() if v is not None}
         if doc.get('_id'):
             d['_id'] = ObjectId(str(doc['_id']))
         return d
-
-    @classmethod
-    def reset_order(cls, order):
-        """ 重置order排序"""
-        return order
 
     @classmethod
     def find_by_page(cls, self, condition=None, search_fields=None, default_order='', projection=None):
@@ -132,21 +133,21 @@ class Model(object):
         search_fields = search_fields or cls.search_fields
         if q and search_fields:
             m = re.match(r'["\'](.*)["\']', q)
-            condition['$or'] = [{k: m.group(1) if m else {'$regex': q, '$options': '$i'}} for k in search_fields]
+            condition['$or'] = [{k: m.group(1) if m else {'$regex': q}} for k in search_fields]
+
         query = self.db[cls.collection].find(condition)
         if projection:
             query = self.db[cls.collection].find(condition, projection)
         order = self.get_query_argument('order', default_order)
         if order:
             o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort(cls.reset_order(o), asc)
-
+            query.sort(o, asc)
         if condition:
             doc_count = self.db[cls.collection].count_documents(condition)
         else:
             doc_count = self.db[cls.collection].estimated_document_count(filter=condition)
         cur_page = int(self.get_query_argument('page', 1))
-        page_size = int(self.get_query_argument('page_size', 0) or hasattr(self, 'page_size') and self.page_size
+        page_size = int(self.get_query_argument('page_size', 0) or getattr(self, 'page_size')
                         or self.get_config('pager.page_size'))
         max_page = math.ceil(doc_count / page_size)
         cur_page = max_page if max_page and max_page < cur_page else cur_page
@@ -161,7 +162,7 @@ class Model(object):
         aggregates = aggregates or []
         q = self.get_query_argument('q', '')
         if q and cls.search_fields:
-            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
+            condition['$or'] = [{k: {'$regex': q}} for k in cls.search_fields]
         aggregates.append({'$match': condition})
         if projection:
             aggregates.append({'$project': projection})
@@ -187,19 +188,13 @@ class Model(object):
 
     @classmethod
     def save_one(cls, db, collection, doc, rules=None, self=None):
-        """ 插入或更新一条记录
-        :param db 数据库连接
-        :param collection: 准备插入哪个集合
-        :param doc: 准备插入哪条数据
-        :param rules: 数据验证规则
-        :param self: 调用函数的handler
-        """
+        """ 新增或修改一条记录"""
         doc = cls.pack_doc(doc, self)
         errs = cls.validate(doc, rules)
         if errs:
             return dict(status='failed', errors=errs)
 
-        if doc.get('_id'):  # 更新
+        if doc.get('_id'):  # 修改
             item = db[collection].find_one({'_id': doc.get('_id')})
             if item:
                 r = db[collection].update_one({'_id': doc.get('_id')}, {'$set': doc})
