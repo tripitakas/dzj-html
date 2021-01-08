@@ -64,8 +64,8 @@ class Model(object):
     @classmethod
     def get_template_kwargs(cls, fields=None):
         """获取前端模板参数"""
-        fields = fields or ['page_title', 'search_fields', 'hide_fields', 'info_fields',
-                            'operations', 'img_operations', 'actions']
+        fields = fields or ['page_title', 'table_fields', 'update_fields', 'hide_fields', 'info_fields',
+                            'search_fields', 'operations', 'img_operations', 'actions']
         kwargs = {f: getattr(cls, f) for f in fields}
         if cls.table_fields and isinstance(cls.table_fields[0], str):
             kwargs['table_fields'] = cls.get_field_list(cls.table_fields)
@@ -144,7 +144,7 @@ class Model(object):
         else:
             doc_count = self.db[cls.collection].estimated_document_count(filter=condition)
         cur_page = int(self.get_query_argument('page', 1))
-        page_size = int(self.get_query_argument('page_size', 0) or getattr(self, 'page_size')
+        page_size = int(self.get_query_argument('page_size', 0) or getattr(self, 'page_size', 0)
                         or self.get_config('pager.page_size'))
         max_page = math.ceil(doc_count / page_size)
         cur_page = max_page if max_page and max_page < cur_page else cur_page

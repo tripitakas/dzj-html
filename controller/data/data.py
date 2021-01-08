@@ -29,7 +29,7 @@ class Tripitaka(Model):
 
     page_title = '藏数据管理'
     search_fields = ['name', 'tripitaka_code']
-    table_fields = ['name', 'short_name', 'tripitaka_code', 'store_pattern', 'first_page', 'img_available', 'remark']
+    table_fields = ['tripitaka_code', 'name', 'short_name', 'store_pattern', 'first_page', 'img_available', 'remark']
     update_fields = table_fields
 
     @classmethod
@@ -140,8 +140,8 @@ class Volume(Model):
 
     page_title = '册数据管理'
     search_fields = ['volume_code', 'category']
-    table_fields = ['tripitaka_code', 'volume_code', 'category', 'envelop_no', 'volume_no', 'content_page_count',
-                    'content_pages', 'front_cover_pages', 'back_cover_pages', 'remark']
+    table_fields = ['tripitaka_code', 'volume_code', 'category', 'envelop_no', 'volume_no',
+                    'content_page_count', 'remark']
     update_fields = table_fields
 
     @classmethod
@@ -178,6 +178,7 @@ class Variant(Model):
     collection = 'variant'
     fields = {
         'uid': {'name': '编码'},
+        'source': {'name': '分类'},
         'txt': {'name': '异体字'},
         'img_name': {'name': '异体字图'},
         'normal_txt': {'name': '所属正字'},
@@ -224,11 +225,11 @@ class Variant(Model):
 
     @classmethod
     def get_variant_search_condition(cls, request_query):
-        # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(), dict()
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:
-            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
+            m = re.match(r'["\'](.*)["\']', q)
+            condition['$or'] = [{k: m.group(1) if m else {'$regex': q}} for k in cls.search_fields]
         for field in ['uid']:
             value = h.get_url_param(field, request_query)
             if value:
@@ -243,5 +244,6 @@ class Variant(Model):
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field: {'$regex': value, '$options': '$i'}})
+                m = re.match(r'["\'](.*)["\']', value)
+                condition.update({field: m.group(1) if m else {'$regex': value}})
         return condition, params

@@ -59,12 +59,11 @@ class Char(Model):
         def c2int(c):
             return int(float(c) * 1000)
 
-        # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(), dict()
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:
             m = re.match(r'["\'](.*)["\']', q)
-            condition['$or'] = [{k: m.group(1) if m else {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
+            condition['$or'] = [{k: m.group(1) if m else {'$regex': q}} for k in cls.search_fields]
         if 'txt_type' in request_query and not h.get_url_param('txt_type', request_query):
             params['txt_type'] = ''
             condition.update({'txt_type': None})
@@ -80,7 +79,7 @@ class Char(Model):
             if value:
                 params[field] = value
                 m = re.match(r'["\'](.*)["\']', value)
-                condition.update({field: m.group(1) if m else {'$regex': value, '$options': '$i'}})
+                condition.update({field: m.group(1) if m else {'$regex': value}})
         for field in ['cc', 'sc']:
             value = h.get_url_param(field, request_query)
             if value:

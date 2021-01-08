@@ -77,7 +77,7 @@ class PageTaskPublishApi(PageHandler):
             log['un_existed'] = set(page_names) - set([page['name'] for page in pages])
             page_names = [page['name'] for page in pages]
         elif self.data.get('prefix'):
-            condition = {'name': {'$regex': self.data['prefix'], '$options': '$i'}}
+            condition = {'name': {'$regex': self.data['prefix']}}
             page_names = [page['name'] for page in list(self.db.page.find(condition, {'name': 1}))]
         elif self.data.get('search'):
             condition = Page.get_page_search_condition(self.data['search'])[0]

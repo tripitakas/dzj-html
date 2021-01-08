@@ -100,9 +100,10 @@ class VariantListHandler(BaseHandler, Variant):
     URL = '/data/variant'
 
     page_title = '异体字管理'
-    search_fields = ['txt', 'img_name', 'normal_txt', 'remark']
-    update_fields = ['txt', 'img_name', 'normal_txt', 'remark']
-    table_fields = ['uid', 'txt', 'img_name', 'normal_txt', 'remark', 'create_by', 'create_time', 'updated_time']
+    search_fields = ['txt', 'source', 'img_name', 'normal_txt', 'remark']
+    update_fields = ['txt', 'source', 'img_name', 'normal_txt', 'remark']
+    table_fields = ['uid', 'source', 'txt', 'img_name', 'normal_txt', 'remark', 'create_by', 'create_time',
+                    'updated_time']
     operations = [
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'btn-merge', 'label': '合并字图'},
@@ -122,8 +123,8 @@ class VariantListHandler(BaseHandler, Variant):
         try:
             kwargs = self.get_template_kwargs()
             kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
-            cond, params = Variant.get_variant_search_condition(self.request.query)
-            docs, pager, q, order = Variant.find_by_page(self, cond, default_order='_id')
+            cond, params = self.get_variant_search_condition(self.request.query)
+            docs, pager, q, order = self.find_by_page(self, cond, default_order='_id')
             self.render('data_variant_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         format_value=self.format_value, **kwargs)
 

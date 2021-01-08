@@ -88,13 +88,13 @@ class Page(Model):
         q = h.get_url_param('q', request_query)
         if q and cls.search_fields:
             m = re.match(r'["\'](.*)["\']', q)
-            condition['$or'] = [{k: m.group(1) if m else {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
+            condition['$or'] = [{k: m.group(1) if m else {'$regex': q}} for k in cls.search_fields]
         for field in ['name', 'source', 'txt', 'remark_box', 'remark_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 m = re.match(r'["\'](.*)["\']', value)
-                condition.update({field: m.group(1) if m else {'$regex': value, '$options': '$i'}})
+                condition.update({field: m.group(1) if m else {'$regex': value}})
         task_type = h.get_url_param('task_type', request_query)
         if task_type:
             params['task_type'] = task_type

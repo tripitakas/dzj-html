@@ -145,7 +145,7 @@ class TaskHandler(BaseHandler, Task):
         condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
         field = self.get_data_field(task_type)
         if q:
-            condition.update({field: {'$regex': q, '$options': '$i'}})
+            condition.update({field: {'$regex': q}})
         if batch:
             batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
             condition.update({'batch': batch})
