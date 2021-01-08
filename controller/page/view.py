@@ -50,9 +50,9 @@ class PageListHandler(PageHandler):
     actions = [
         {'action': 'btn-box', 'label': '切分'},
         {'action': 'btn-text', 'label': '文字'},
+        {'action': 'btn-my-view', 'label': '查看'},
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
-        {'action': 'btn-my-view', 'label': '查看'},
         {'action': 'btn-update', 'label': '更新', 'url': '/api/page'},
         {'action': 'btn-delete', 'label': '删除'},
     ]

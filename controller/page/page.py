@@ -30,20 +30,17 @@ class Page(Model):
         {'id': 'cmp_txt', 'name': '比对文本'},
         {'id': 'txt', 'name': '审定文本'},
         {'id': 'box_ready', 'name': '切分就绪'},
-        {'id': 'has_gen_chars', 'name': '已生成字表'},
-        {'id': 'chars_col', 'name': '字序'},
-        {'id': 'tasks', 'name': '任务'},
         {'id': 'txt_match', 'name': '文本匹配'},
+        {'id': 'has_gen_chars', 'name': '是否已生成字数据'},
+        {'id': 'user_links', 'name': '用户序线'},
+        {'id': 'tasks_status', 'name': '任务状态'},
+        {'id': 'tasks_info', 'name': '任务信息'},
         {'id': 'remark_box', 'name': '切分备注'},
         {'id': 'remark_txt', 'name': '文本备注'},
     ]
     rules = [
         (v.not_empty, 'name'),
         (v.is_page, 'name'),
-        (v.is_sutra, 'uni_sutra_code'),
-        (v.is_sutra, 'sutra_code'),
-        (v.is_reel, 'reel_code'),
-        (v.is_digit, 'reel_page_no')
     ]
     primary = 'name'
     search_tips = '请搜索页编码、分类、页面结构、统一经编码、卷编码'
