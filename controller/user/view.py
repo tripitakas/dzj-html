@@ -39,17 +39,16 @@ class UsersAdminHandler(BaseHandler, User):
     URL = '/user/admin'
 
     page_title = '用户管理'
-    table_fields = [dict(id=f['id'], name=f['name']) for f in User.fields if f['id'] not in ['password']]
-    info_fields = ['name', 'gender', 'email', 'phone', 'password', 'group', 'task_batch', 'agent']
+    info_fields = list(User.fields.keys())
     hide_fields = ['agent', 'create_time', 'updated_time']
-    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'), options=f.get('options'))
-                     for f in User.fields if f['id'] not in ['img', 'create_time', 'updated_time', 'task_batch']]
-    operations = [  # 列表包含哪些批量操作
+    table_fields = User.get_field_list(exclude=['password'])
+    update_fields = User.get_field_list(exclude=['img', 'create_time', 'updated_time', 'task_batch'])
+    operations = [
         {'operation': 'btn-add', 'label': '新增用户'},
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
     img_operations = ['config']
-    actions = [  # 列表单条记录包含哪些操作
+    actions = [
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
         {'action': 'btn-reset-pwd', 'label': '重置密码'},
@@ -70,6 +69,7 @@ class UsersAdminHandler(BaseHandler, User):
         """ 用户管理页面 """
         try:
             kwargs = self.get_template_kwargs()
+            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
             docs, pager, q, order = self.find_by_page(self)
             self.render('user_list.html', docs=docs, pager=pager, q=q, order=order,
                         format_value=self.format_value, **kwargs)
@@ -83,11 +83,7 @@ class UserRolesHandler(BaseHandler, User):
 
     def get_template_kwargs(self, fields=None):
         kwargs = super().get_template_kwargs(fields)
-        kwargs.update({
-            'operations': [],
-            'img_operations': [],
-            'page_title': '授权管理',
-        })
+        kwargs.update({'operations': [], 'img_operations': [], 'page_title': '授权管理'})
         return kwargs
 
     def get(self):
@@ -98,6 +94,7 @@ class UserRolesHandler(BaseHandler, User):
             init_roles = self.prop(self.config, 'role.init')
             disabled_roles = self.prop(self.config, 'role.disabled', [])
             roles = [r for r in auth.get_assignable_roles() if r not in disabled_roles]
+            # 系统管理员可以给其它人授权系统管理员
             if '系统管理员' in self.current_user['roles'] and '系统管理员' not in roles:
                 roles.append('系统管理员')
 

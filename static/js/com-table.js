@@ -6,7 +6,7 @@
 // 排序
 $('.sty-table .sort').on('click', function () {
   let direction = $(this).find('span').hasClass('icon-triangle-up') ? '-' : '';
-  location.href = setQueryString('order', direction + $(this).attr('title'));
+  location.href = setQueryString('order', direction + $(this).attr('title').trim());
 });
 
 // 过滤
@@ -16,41 +16,31 @@ $('.btn-filter').on('click', function () {
 });
 
 // 搜索
-$('#search-input').on("keydown", function (event) {
-  let keyCode = event.keyCode || event.which;
+$('#search-input').on("keydown", function (e) {
+  let keyCode = e.keyCode || e.which;
   if (keyCode === 13) {
     let q = $(this).val().trim();
-    location = location.pathname + (q === '' ? '' : "?q=" + q);
+    location = location.pathname + (q.length ? '?q=' + q : '');
   }
 });
 
 // 全选
 $('#check-all').on('click', function () {
   let $items = $("tr [type='checkbox']");
-  if (!this.checked)
-    $items.removeAttr('checked');
-  else
-    $items.prop('checked', 'true');
+  this.checked ? $items.prop('checked', 'true') : $items.removeAttr('checked');
 });
 
 // 列表配置
 $('#configModal .modal-confirm').on('click', function () {
-  $.map($('#configModal :checkbox:not(:checked)'), function (item) {
-    $('.sty-table .' + $(item).attr('title')).addClass('hide');
-  });
-  $.map($('#configModal :checkbox:checked'), function (item) {
-    $('.sty-table .' + $(item).attr('title')).removeClass('hide');
-  });
-  let data = {};
-  let key = location.pathname.substr(1).replace(/[\/\-]/g, '_');
-  data[key] = $.map($('#configModal :not(:checked)'), function (item) {
-    return $(item).attr('title');
-  });
+  $.map($('#configModal :checkbox(:checked)'), (item) => $('.sty-table .' + $(item).attr('title')).removeClass('hide'));
+  $.map($('#configModal :checkbox:not(:checked)'), (item) => $('.sty-table .' + $(item).attr('title')).addClass('hide'));
+  let data = {}, key = location.pathname.substr(1).replace(/[\/\-]/g, '_');
+  data[key] = $.map($('#configModal :checkbox:not(:checked)'), (item) => $(item).attr('title').trim());
   postApi('/session/config', {data: data});
 });
 
 
-/*---Modal相关代码---*/
+//---Modal相关代码---
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
     if (info[item.id]) { // 如果值为空，则不予设置
@@ -174,10 +164,10 @@ $('.btn-update').on('click', function () {
 $("#updateModal .modal-confirm").on('click', function () {
   let data = getModal($modal, fields);
   postApi($modal.find('.update-url').val().trim(), {data: data}, function () {
-    showSuccess('成功', '数据已提交。', 2000);
-    refresh(2000);
+    showSuccess('成功', '数据已保存', 1000);
+    location.reload();
   }, function (error) {
-    showError('提交失败', error.message, 5000);
+    showError('失败', error.message, 3000);
   });
 });
 
@@ -190,35 +180,32 @@ $('.btn-remove').on('click', function () {
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_id: data._id}}, function (res) {
       if (res.count) {
-        showSuccess('成功', '数据' + name + '已删除', 2000);
-        refresh(2000);
+        showSuccess('成功', '数据' + name + '已删除', 1000);
+        location.reload();
       } else {
         showError('失败', '数据未删除', 3000);
       }
     }, function (err) {
-      showError('删除失败', err.message, 5000);
+      showError('失败', err.message, 3000);
     });
   });
 });
 
 // 批量删除
 $('.operation .bat-remove').on('click', function () {
-  let ids = $.map($('table tbody :checked'), function (item) {
-    return $(item).parent().parent().attr('id');
-  });
-  if (!ids.length)
-    return showTips('提示', '当前没有选中任何记录', 3000);
+  let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+  if (!ids.length) return showTips('提示', '当前没有选中任何记录', 3000);
   let url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_ids: ids}}, function (res) {
       if (res.count) {
-        showSuccess('成功', '选中' + ids.length + '条记录，已删除' + res.count + '条记录。', 2000);
-        refresh(2000);
+        showSuccess('成功', '选中' + ids.length + '条记录，已删除' + res.count + '条记录', 1000);
+        refresh(1000);
       } else {
         showTips('提示', '删除0条数据', 3000);
       }
     }, function (err) {
-      showError('删除失败', err.message, 5000);
+      showError('失败', err.message, 3000);
     });
   });
 });

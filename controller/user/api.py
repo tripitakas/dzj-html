@@ -3,11 +3,10 @@
 """
 @time: 2018/10/23
 """
-
+import re
 import random
 import logging
 import smtplib
-import re
 from os import path
 from bson import json_util
 from bson.objectid import ObjectId
@@ -29,7 +28,7 @@ class LoginApi(BaseHandler):
     URL = '/api/user/login'
 
     def post(self):
-        """ 登录 """
+        """ 登录"""
         try:
             rules = [(v.not_empty, 'login_id', 'password')]
             self.validate(self.data, rules)
@@ -102,7 +101,7 @@ class LogoutApi(BaseHandler):
     URL = '/api/user/logout'
 
     def post(self):
-        """ 注销 """
+        """ 注销"""
         if self.current_user:
             self.clear_cookie('user')
             self.current_user = None
@@ -114,7 +113,7 @@ class RegisterApi(BaseHandler):
     URL = '/api/user/register'
 
     def post(self):
-        """ 注册 """
+        """ 注册"""
         try:
             rules = [
                 (v.not_empty, 'name', 'password'),
@@ -165,8 +164,7 @@ class ForgetPasswordApi(BaseHandler):
     URL = '/api/user/forget_pwd'
 
     def post(self):
-        """将密码发送到注册时的邮箱或手机上"""
-
+        """ 将密码发送到注册时的邮箱或手机上"""
         rules = [
             (v.not_empty, 'phone_or_email', 'name'),
             (v.is_phone_or_email, 'phone_or_email'),
@@ -194,7 +192,7 @@ class ChangeMyPasswordApi(BaseHandler):
     URL = '/api/user/my/pwd'
 
     def post(self):
-        """ 修改我的密码 """
+        """ 修改我的密码"""
         try:
             rules = [
                 (v.not_empty, 'password', 'old_password'),
@@ -219,7 +217,7 @@ class ChangeMyProfileApi(BaseHandler):
     URL = '/api/user/my/profile'
 
     def post(self):
-        """ 修改我的个人信息，包括姓名、性别等 """
+        """ 修改我的个人信息，包括姓名、性别等"""
         try:
             rules = [
                 (v.not_empty, 'name'),
@@ -252,7 +250,7 @@ class UploadUserAvatarApi(BaseHandler):
     URL = '/api/user/my/avatar'
 
     def post(self):
-        """上传用户头像"""
+        """ 上传用户头像"""
         try:
             upload_img = self.request.files.get('img')
             img_name = str(self.user_id) + path.splitext(upload_img[0]['filename'])[-1]
@@ -274,7 +272,7 @@ class SendUserEmailCodeApi(BaseHandler):
     URL = '/api/user/email_code'
 
     def post(self):
-        """用户注册时，发送邮箱验证码"""
+        """ 用户注册时，发送邮箱验证码"""
 
         try:
             rules = [(v.not_empty, 'email')]
@@ -295,7 +293,6 @@ class SendUserEmailCodeApi(BaseHandler):
     @staticmethod
     def send_email(self, receiver, code, subject="如是我闻古籍数字化平台"):
         """ email_list邮件列表，content邮件内容，subject发送标题 """
-
         try:
             html = "<html><span style='font-size:16px;margin-right:10px'>您的验证码是：%s</span></html>" % code
             content = code if '<html' in code else html
@@ -341,7 +338,7 @@ class SendUserPhoneCodeApi(BaseHandler):
 
     @staticmethod
     def send_sms(self, phone, code):
-        """发送手机验证码"""
+        """ 发送手机验证码"""
         try:
             account = self.config['phone']['accessKey']
             key = self.config['phone']['accessKeySecret']

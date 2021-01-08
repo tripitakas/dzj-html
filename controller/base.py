@@ -313,6 +313,10 @@ class BaseHandler(CorsMixin, RequestHandler):
     def get_config(self, key):
         return self.prop(self.config, key)
 
+    def get_hide_fields(self):
+        key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
+        return json_util.loads(self.get_secure_cookie(key) or '[]')
+
     def add_log(self, op_type, target_id=None, target_name=None, content=None, remark=None):
         logging.info('%s,username=%s,id=%s,context=%s' % (op_type, self.username, target_id, content))
         try:

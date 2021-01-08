@@ -29,10 +29,6 @@ class Model(object):
         'id1': {'name': 'name1', 'type': 'str', 'input_type': 'text'},
         'id2': {'name': 'name2', 'type': 'int', 'input_type': 'radio', 'options': []},
     }
-    com_fields = {
-        'create_time': {'name': '创建时间'},
-        'updated_time': {'name': '修改时间'},
-    }
 
     """ 前端列表页面参数"""
     page_size = 0  # 每页显示多少条
@@ -61,7 +57,7 @@ class Model(object):
     @classmethod
     def get_template_kwargs(cls, fields=None):
         """ 获取前端模板参数"""
-        fields = fields if fields else [
+        fields = fields or [
             'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
             'info_fields', 'operations', 'img_operations', 'actions', 'update_fields'
         ]
@@ -80,7 +76,15 @@ class Model(object):
 
     @classmethod
     def get_fields(cls):
-        return list(cls.fields.keys()) + list(cls.com_fields.keys())
+        return list(cls.fields.keys())
+
+    @classmethod
+    def get_field_list(cls, include=None, exclude=None):
+        if include:
+            return [dict(id=k, **v) for k, v in cls.fields.items() if k in include]
+        if exclude:
+            return [dict(id=k, **v) for k, v in cls.fields.items() if k not in exclude]
+        return [dict(id=k, **v) for k, v in cls.fields.items()]
 
     @classmethod
     def get_need_fields(cls):
@@ -92,26 +96,14 @@ class Model(object):
         return {k: v['name'] for k, v in cls.fields.items()}
 
     @classmethod
-    def get_field_type(cls, field):
-        return cls.prop(cls.fields, field + '.type', 'str')
-
-    @classmethod
     def get_field_name(cls, field):
-        if cls.fields.get(field):
-            return cls.fields.get(field)['name']
-        elif cls.com_fields.get(field):
-            return cls.com_fields.get(field)['name']
-        else:
-            return field
+        return cls.prop(cls.fields, field + '.name', field)
 
     @classmethod
     def get_field_by_name(cls, name):
         if re.match(r'[0-9a-zA-Z_]+', name):
             return name
         for k, v in cls.fields.items():
-            if v['name'] == name:
-                return k
-        for k, v in cls.com_fields.items():
             if v['name'] == name:
                 return k
         return name
