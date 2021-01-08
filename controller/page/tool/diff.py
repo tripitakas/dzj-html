@@ -22,7 +22,7 @@ class Diff(object):
 
     @classmethod
     def pre_base(cls, base, keep_line=True, filter_junk=True):
-        """ base预处理"""
+        """base预处理"""
         # 平台中用|表示换行，因此先恢复换行
         base = base.replace('|', '\n').rstrip('\n')
         # 根据参数决定是否保留换行
@@ -33,7 +33,7 @@ class Diff(object):
 
     @classmethod
     def pre_cmp(cls, cmp):
-        """ 比对本预处理，过滤换行符以及非中文字符"""
+        """比对本预处理，过滤换行符以及非中文字符"""
         return re.sub(Diff.cmp_junk_char, '', cmp)
 
     @classmethod
@@ -69,7 +69,7 @@ class Diff(object):
 
     @classmethod
     def _diff_one(cls, base, filter_junk):
-        """ 将单独一份文本按照_diff_two的格式输出"""
+        """将单独一份文本按照_diff_two的格式输出"""
         base = Diff.pre_base(base, True, filter_junk)
         ret, line_no = [], 1
         for line in base.split('\n'):

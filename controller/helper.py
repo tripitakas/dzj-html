@@ -158,7 +158,7 @@ def calc_ms(start_time):
 
 
 def my_framer():
-    """ 出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者 """
+    """出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者"""
     f0 = f = old_framer()
     if f is not None:
         until = [s[1] for s in inspect.stack() if re.search(r'controller/(view|api)', s[1])]

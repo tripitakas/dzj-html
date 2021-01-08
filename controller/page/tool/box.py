@@ -19,7 +19,7 @@ class Box(BoxOrder):
 
     @classmethod
     def filter_box(cls, page, width, height):
-        """ 过滤掉页面之外的切分框"""
+        """过滤掉页面之外的切分框"""
 
         def valid(box):
             page_box = dict(x=0, y=0, w=width, h=height)
@@ -41,7 +41,7 @@ class Box(BoxOrder):
 
     @classmethod
     def check_box_cover(cls, page, width=None, height=None):
-        """ 检查页面字框覆盖情况"""
+        """检查页面字框覆盖情况"""
         width = width or page.get('width')
         height = height or page.get('height')
         blocks, columns, chars = cls.filter_box(page, width, height)
@@ -58,7 +58,7 @@ class Box(BoxOrder):
 
     @classmethod
     def reorder_boxes(cls, chars=None, columns=None, blocks=None, page=None, direction=None):
-        """ 针对页面的切分框重新排序"""
+        """针对页面的切分框重新排序"""
         if not chars and page:
             blocks = page.get('blocks') or []
             columns = page.get('columns') or []
@@ -70,7 +70,7 @@ class Box(BoxOrder):
 
     @classmethod
     def adjust_blocks(cls, blocks, chars):
-        """ 根据字框调整栏框边界，去掉没有字框的栏框"""
+        """根据字框调整栏框边界，去掉没有字框的栏框"""
         ret = []
         for b in blocks:
             if not b.get('deleted'):
@@ -84,7 +84,7 @@ class Box(BoxOrder):
 
     @classmethod
     def adjust_columns(cls, columns, chars):
-        """ 根据字框调整列框边界，去掉没有字框的列框"""
+        """根据字框调整列框边界，去掉没有字框的列框"""
         ret = []
         for c in columns:
             if not c.get('deleted'):
@@ -100,7 +100,7 @@ class Box(BoxOrder):
 
     @classmethod
     def get_chars_col(cls, chars):
-        """ 按照column_no对chars分组并设置cid。假定chars已排序"""
+        """按照column_no对chars分组并设置cid。假定chars已排序"""
         if not chars:
             return []
         ret = []
@@ -119,7 +119,7 @@ class Box(BoxOrder):
 
     @classmethod
     def merge_chars_col(cls, algorithm_chars_col, user_chars_col):
-        """ 合并算法字序和用户校对字序。如果某一列二者cid不一致，则以算法字序为准，如果一致，则以用户字序为准"""
+        """合并算法字序和用户校对字序。如果某一列二者cid不一致，则以算法字序为准，如果一致，则以用户字序为准"""
         ret = []
         len1 = len(algorithm_chars_col)
         len2 = len(user_chars_col)
@@ -145,7 +145,7 @@ class Box(BoxOrder):
 
     @classmethod
     def update_char_order(cls, chars, chars_col):
-        """ 按照chars_col重排chars"""
+        """按照chars_col重排chars"""
         for col_cid in chars_col:
             col_chars = [c for c in chars if c['cid'] in col_cid]
             if not col_chars:
@@ -195,7 +195,7 @@ class Box(BoxOrder):
 
     @staticmethod
     def merge_narrow_columns(columns):
-        """ 合并两个连续的窄列。假定columns已分栏并排好序"""
+        """合并两个连续的窄列。假定columns已分栏并排好序"""
         if len(columns) < 3:
             return columns
         ws = sorted([c['w'] for c in columns], reverse=True)
@@ -216,7 +216,7 @@ class Box(BoxOrder):
 
     @classmethod
     def deduplicate_columns(cls, columns):
-        """ 删除冗余的列。假定columns已分栏并排序"""
+        """删除冗余的列。假定columns已分栏并排序"""
         if len(columns) < 3:
             return columns
         ws = sorted([c['w'] for c in columns], reverse=True)

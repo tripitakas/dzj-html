@@ -15,7 +15,7 @@ class CharDeleteApi(CharHandler):
     URL = '/api/(char)/delete'
 
     def post(self, collection):
-        """ 批量删除 """
+        """批量删除"""
         try:
             rules = [(v.not_both_empty, '_id', '_ids')]
             self.validate(self.data, rules)
@@ -36,7 +36,7 @@ class CharExtractImgApi(CharHandler):
     URL = '/api/char/extract_img'
 
     def post(self):
-        """ 批量生成字图"""
+        """批量生成字图"""
         try:
             rules = [(v.not_empty, 'type'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
@@ -65,7 +65,7 @@ class CharTxtApi(CharHandler):
     URL = '/api/char/txt/@char_name'
 
     def post(self, char_name):
-        """ 更新字符的txt"""
+        """更新字符的txt"""
 
         try:
             rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt_type, 'txt_type')]
@@ -104,7 +104,7 @@ class CharsTxtApi(CharHandler):
     URL = '/api/chars/(txt|txt_type)'
 
     def post(self, field):
-        """ 批量更新txt"""
+        """批量更新txt"""
         try:
             rules = [(v.not_empty, 'names', field)]
             self.validate(self.data, rules)
@@ -160,7 +160,7 @@ class CharSourceApi(CharHandler):
     URL = '/api/char/source'
 
     def post(self):
-        """ 批量更新批次"""
+        """批量更新批次"""
         try:
             rules = [(v.not_empty, 'type', 'source'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)

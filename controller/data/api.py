@@ -24,7 +24,7 @@ class DataUpsertApi(BaseHandler):
     URL = '/api/data/@metadata'
 
     def post(self, metadata):
-        """ 新增或修改 """
+        """新增或修改"""
         try:
             model = eval(metadata.capitalize())
             r = model.save_one(self.db, metadata, self.data, self=self)
@@ -52,7 +52,7 @@ class DataUploadApi(BaseHandler):
         return '/static/upload/data/' + result
 
     def post(self, collection):
-        """ 批量上传 """
+        """批量上传"""
         assert collection in ['tripitaka', 'volume', 'sutra', 'reel', 'page']
         model = eval(collection.capitalize())
         upload_file = self.request.files.get('csv')
@@ -76,7 +76,7 @@ class DataDeleteApi(BaseHandler):
     URL = '/api/data/@metadata/delete'
 
     def post(self, collection):
-        """ 批量删除 """
+        """批量删除"""
 
         def pre_variant():
             if self.data.get('_id'):
@@ -117,7 +117,7 @@ class VariantDeleteApi(BaseHandler):
     URL = '/api/variant/delete'
 
     def post(self):
-        """ 删除图片异体字"""
+        """删除图片异体字"""
         try:
             rules = [(v.not_empty, 'uid'), (v.is_char_uid, 'uid')]
             self.validate(self.data, rules)
@@ -139,7 +139,7 @@ class VariantMergeApi(BaseHandler):
     URL = '/api/variant/merge'
 
     def post(self):
-        """ 合并图片异体字"""
+        """合并图片异体字"""
         try:
             rules = [(v.not_empty, 'img_names', 'main')]
             self.validate(self.data, rules)
@@ -166,7 +166,7 @@ class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'
 
     def post(self):
-        """ build_js"""
+        """build_js"""
         try:
             rules = [(v.not_empty, 'collection', 'tripitaka_code')]
             self.validate(self.data, rules)
@@ -191,7 +191,7 @@ class PublishImportImageApi(TaskHandler):
     URL = r'/api/publish/import_image'
 
     def post(self):
-        """ 发布图片导入任务"""
+        """发布图片导入任务"""
         try:
             rules = [(v.not_empty, 'source', 'import_dir', 'priority', 'redo', 'layout')]
             self.validate(self.data, rules)

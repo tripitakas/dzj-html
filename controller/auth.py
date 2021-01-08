@@ -291,7 +291,7 @@ role_route_maps = {
 
 
 def get_assignable_roles():
-    """ 可分配给用户的角色"""
+    """可分配给用户的角色"""
     return [role for role, v in role_route_maps.items() if v.get('is_assignable')]
 
 

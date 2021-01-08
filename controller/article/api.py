@@ -18,7 +18,7 @@ class ArticleDeleteApi(BaseHandler):
     URL = '/api/article/admin/delete'
 
     def post(self):
-        """ 删除文章"""
+        """删除文章"""
         try:
             rules = [(v.not_both_empty, '_id', '_ids')]
             self.validate(self.data, rules)
@@ -39,7 +39,7 @@ class ArticleUpsertApi(BaseHandler):
     URL = '/api/article/admin/(add|update)'
 
     def post(self, mode):
-        """ 保存文章"""
+        """保存文章"""
         try:
             fields = ['title', 'title_link', 'article_id', 'category', 'active', 'content']
             info = {k: self.data[k].strip() for k in fields}
@@ -101,7 +101,7 @@ class UploadImageApi(BaseHandler):
         self.is_api = True
 
     def post(self):
-        """ 编辑器中的图片上传（url参数和返回值要适配editor）"""
+        """编辑器中的图片上传（url参数和返回值要适配editor）"""
         assert self.request.files and self.request.files['upfile']
         file = self.request.files['upfile'][0]
         if len(file['body']) > 1024 * 1024:

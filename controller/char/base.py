@@ -29,7 +29,7 @@ class CharHandler(TaskHandler, Char):
 
     @classmethod
     def get_user_txt_level(cls, self, task_type=None, user=None):
-        """ 获取用户的数据等级"""
+        """获取用户的数据等级"""
         user = user or self.current_user
         task_types = list(cls.txt_level['task'].keys())
         if task_type and task_type in task_types:
@@ -40,7 +40,7 @@ class CharHandler(TaskHandler, Char):
 
     @staticmethod
     def get_required_type_and_point(char):
-        """ 计算修改char的txt所需的积分"""
+        """计算修改char的txt所需的积分"""
         ratio = {'cluster_proof': 2000, 'cluster_review': 1000, 'rare_proof': 2000, 'rare_review': 1000}
         for task_type in ['rare_review', 'rare_proof', 'cluster_review', 'cluster_proof']:
             tasks = hp.prop(char, 'tasks.' + task_type, [])
@@ -50,14 +50,14 @@ class CharHandler(TaskHandler, Char):
 
     @staticmethod
     def get_user_point(self, task_type):
-        """ 针对指定的任务类型，获取用户积分"""
+        """针对指定的任务类型，获取用户积分"""
         condition = {'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED}
         tasks = list(self.db.task.find(condition, {'char_count': 1}))
         return sum([t['char_count'] for t in tasks])
 
     @classmethod
     def check_txt_level_and_point(cls, self, char, task_type=None, send_error_response=True):
-        """ 检查数据等级和积分"""
+        """检查数据等级和积分"""
         required_level = cls.get_required_txt_level(char)
         user_level = cls.get_user_txt_level(self, task_type)
         if int(user_level) < int(required_level):

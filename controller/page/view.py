@@ -82,7 +82,7 @@ class PageListHandler(PageHandler):
         return kwargs
 
     def format_value(self, value, key=None, doc=None):
-        """ 格式化page表的字段输出"""
+        """格式化page表的字段输出"""
 
         def format_txt(field, show_none=True):
             s = {True: '√', False: '×', None: ''}.get(self.prop(doc, 'txt_match.%s.status' % field))
@@ -113,7 +113,7 @@ class PageListHandler(PageHandler):
         return condition, params
 
     def get(self):
-        """ 页数据管理"""
+        """页数据管理"""
         try:
             kwargs = self.get_template_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
@@ -138,7 +138,7 @@ class PageStatisticHandler(PageHandler):
     URL = '/page/statistic'
 
     def get(self):
-        """ 统计页数据的分类"""
+        """统计页数据的分类"""
         try:
             counts = list(self.db.page.aggregate([
                 {'$group': {'_id': '$source', 'count': {'$sum': 1}}},
@@ -154,7 +154,7 @@ class PageBrowseHandler(PageHandler):
     URL = '/page/browse/@page_name'
 
     def get(self, page_name):
-        """ 浏览页面数据"""
+        """浏览页面数据"""
         edit_fields = [
             {'id': 'name', 'name': '页编码', 'readonly': True},
             {'id': 'source', 'name': '分　类'},
@@ -202,7 +202,7 @@ class PageViewHandler(PageHandler):
     URL = '/page/@page_name'
 
     def get(self, page_name):
-        """ 查看Page页面"""
+        """查看Page页面"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -231,13 +231,13 @@ class PageInfoHandler(PageHandler):
     URL = '/page/info/@page_name'
 
     def format_value(self, value, key=None, doc=None):
-        """ 格式化task表的字段输出"""
+        """格式化task表的字段输出"""
         if key in ['blocks', 'columns', 'chars'] and value:
             return '<div>%s</div>' % '</div><div>'.join([str(v) for v in value])
         return h.format_value(value, key, doc)
 
     def get(self, page_name):
-        """ 页面详情"""
+        """页面详情"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -262,7 +262,7 @@ class PageBlockHandler(PageHandler):
     URL = '/page/block/@page_name'
 
     def get(self, page_name):
-        """ 栏框校对页面"""
+        """栏框校对页面"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -278,7 +278,7 @@ class PageBoxHandler(PageHandler):
     URL = '/page/box/@page_name'
 
     def get(self, page_name):
-        """ 切分校对页面"""
+        """切分校对页面"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -296,7 +296,7 @@ class PageTxtMatchHandler(PageHandler):
     URL = '/page/txt_match/@page_name'
 
     def get(self, page_name):
-        """ 文字匹配页面"""
+        """文字匹配页面"""
         field = self.get_query_argument('field', '')
         assert field in ['txt', 'cmp_txt', 'ocr_col']
         self.txt_match(self, field, page_name)
@@ -336,7 +336,7 @@ class PageFindCmpHandler(PageHandler):
     URL = '/page/find_cmp/@page_name'
 
     def get(self, page_name):
-        """ 寻找比对文本页面"""
+        """寻找比对文本页面"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -354,7 +354,7 @@ class PageTxtHandler(PageHandler):
     URL = '/page/txt/@page_name'
 
     def get(self, page_name):
-        """ 单字修改页面"""
+        """单字修改页面"""
         try:
             self.page_title = '文字校对'
             self.page_txt(self, page_name)

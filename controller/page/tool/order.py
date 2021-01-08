@@ -36,7 +36,7 @@ class BoxOrder(object):
 
     @classmethod
     def get_outer_range(cls, boxes):
-        """ 获取boxes的外包络框"""
+        """获取boxes的外包络框"""
         x = sorted([b['x'] for b in boxes])[0]
         y = sorted([b['y'] for b in boxes])[0]
         w = sorted([b['x'] + b['w'] for b in boxes])[-1] - x
@@ -45,7 +45,7 @@ class BoxOrder(object):
 
     @staticmethod
     def line_overlap(line1, line2, only_check=False):
-        """ 计算两条线段的交叉长度和比例"""
+        """计算两条线段的交叉长度和比例"""
         p11, p12, w1 = line1[0], line1[1], line1[1] - line1[0]
         p21, p22, w2 = line2[0], line2[1], line2[1] - line2[0]
         if p11 > p22 or p21 > p12:
@@ -60,7 +60,7 @@ class BoxOrder(object):
 
     @staticmethod
     def box_overlap(box1, box2, only_check=False):
-        """ 计算两个框的交叉面积和比例。如果only_check为True，则只要交叉就返回True"""
+        """计算两个框的交叉面积和比例。如果only_check为True，则只要交叉就返回True"""
         x1, y1, w1, h1 = box1['x'], box1['y'], box1['w'], box1['h']
         x2, y2, w2, h2 = box2['x'], box2['y'], box2['w'], box2['h']
         if x1 > x2 + w2 or x2 > x1 + w1 or y1 > y2 + h2 or y2 > y1 + h1:
@@ -87,7 +87,7 @@ class BoxOrder(object):
 
     @classmethod
     def get_boxes_of_region(cls, boxes, region, ratio=0.0, set_ratio=False):
-        """ 从boxes中筛选region范围内的所有box"""
+        """从boxes中筛选region范围内的所有box"""
         ret = []
         for b in boxes:
             ratio1 = cls.box_overlap(b, region)[1]
@@ -99,7 +99,7 @@ class BoxOrder(object):
 
     @classmethod
     def boxes_out_of_boxes(cls, boxes1, boxes2, ratio=0.01, only_check=False):
-        """ 检查boxes1中所有不在boxes2的box。ratio越小，对交叉面积要求越低"""
+        """检查boxes1中所有不在boxes2的box。ratio越小，对交叉面积要求越低"""
         out_boxes, in_boxes = [], []
         for b1 in boxes1:
             if b1.get('deleted'):
@@ -120,7 +120,7 @@ class BoxOrder(object):
 
     @classmethod
     def cmp_up2down(cls, a, b):
-        """ 先整体从上到下，次局部从右到左 """
+        """先整体从上到下，次局部从右到左"""
         ry1, ry2 = cls.get_box_overlap(a, b, 'y')[1:]
         rx1, rx2 = cls.get_box_overlap(a, b, 'x')[1:]
         # 当二者在y轴上交叉且x轴几乎不交叉时，认为二者是水平邻居，则从右到左，即x值大的在前
@@ -132,7 +132,7 @@ class BoxOrder(object):
 
     @classmethod
     def cmp_right2left(cls, a, b):
-        """ 先整体从右到左，次局部从上到下"""
+        """先整体从右到左，次局部从上到下"""
         ry1, ry2 = cls.get_box_overlap(a, b, 'y')[1:]
         rx1, rx2 = cls.get_box_overlap(a, b, 'x')[1:]
         # 当二者在x轴上交叉且y轴几乎不交叉时，认为二者是上下邻居，则从上到下，即y值小的在前
@@ -144,7 +144,7 @@ class BoxOrder(object):
 
     @classmethod
     def calc_block_id(cls, blocks):
-        """ 计算并设置栏序号，包括block_no/block_id"""
+        """计算并设置栏序号，包括block_no/block_id"""
         cls.pop_fields(blocks, ['block_no', 'block_id'])
         blocks.sort(key=cmp_to_key(cls.cmp_up2down))
         for i, b in enumerate(blocks):
@@ -154,7 +154,7 @@ class BoxOrder(object):
 
     @classmethod
     def calc_column_id(cls, columns, blocks):
-        """ 计算和设置列序号，包括column_no/column_id。假定blocks已排好序"""
+        """计算和设置列序号，包括column_no/column_id。假定blocks已排好序"""
         cls.pop_fields(columns, ['block_no', 'column_no', 'column_id'])
         # 设置栏号
         for c in columns:
@@ -227,7 +227,7 @@ class BoxOrder(object):
             return ch_w, ch_h, ch_a, cl_w
 
         def get_side_and_ratio(ch, col_chars, col_range):
-            """ 计算字框的位置和列宽的占比"""
+            """计算字框的位置和列宽的占比"""
             nb_chars = [(c, abs(c['y'] - ch['y'])) for c in col_chars if c['hr_nbs']]
             if nb_chars:  # 先以最近的并排夹注小字的作为参照
                 nb_ch = sorted(nb_chars, key=itemgetter(1))[0][0]

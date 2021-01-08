@@ -72,13 +72,13 @@ class CharTaskListHandler(CharHandler):
         return kwargs
 
     def format_value(self, value, key=None, doc=None):
-        """ 格式化page表的字段输出"""
+        """格式化page表的字段输出"""
         if key == 'txt_kind' and value:
             return (value[:5] + '...') if len(value) > 5 else value
         return super().format_value(value, key, doc)
 
     def get(self):
-        """ 任务管理-字任务管理"""
+        """任务管理-字任务管理"""
         try:
             # 模板参数
             kwargs = self.get_template_kwargs()
@@ -99,7 +99,7 @@ class CharTaskStatHandler(CharHandler):
     URL = '/char/task/statistic'
 
     def get(self):
-        """ 根据用户、批次、任务类型或任务状态统计"""
+        """根据用户、批次、任务类型或任务状态统计"""
         try:
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
@@ -140,7 +140,7 @@ class CharTaskDashBoardHandler(CharHandler):
     URL = '/char/task/dashboard'
 
     def get(self):
-        """ 综合统计"""
+        """综合统计"""
         PageTaskDashBoardHandler.task_dashboard(self, 'char')
 
 
@@ -157,7 +157,7 @@ class CharTaskClusterHandler(CharHandler):
     ]
 
     def get(self, task_type, task_id):
-        """ 聚类校对页面"""
+        """聚类校对页面"""
 
         def c2int(c):
             return int(float(c) * 1000)

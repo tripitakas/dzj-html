@@ -13,7 +13,7 @@ class TripitakaListHandler(BaseHandler):
     URL = '/tripitaka/list'
 
     def get(self):
-        """ 藏经列表"""
+        """藏经列表"""
         tripitakas = list(self.db.tripitaka.find({'img_available': '是'}))
         self.render('tripitaka_list.html', tripitakas=tripitakas)
 
@@ -29,7 +29,7 @@ class TptkViewHandler(PageHandler):
 
     @staticmethod
     def pad_name(page_name, level=3):
-        """ 根据层次补齐page_name"""
+        """根据层次补齐page_name"""
         name_slice = page_name.split('_')
         gap = level - len(name_slice)
         for i in range(gap):
@@ -37,7 +37,7 @@ class TptkViewHandler(PageHandler):
         return '_'.join(name_slice)
 
     def get(self, page_name):
-        """ 藏经阅读"""
+        """藏经阅读"""
         try:
             m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_name)
             if not m:
@@ -88,7 +88,7 @@ class TptkMetaHandler(BaseHandler):
     URL = '/(sutra|reel|volume)/@tripitaka_code'
 
     def get(self, collection, tripitaka_code):
-        """ 数据管理"""
+        """数据管理"""
         try:
             tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code})
             if not tripitaka:
@@ -118,7 +118,7 @@ class TripitakaViewHandler(BaseHandler):
     URL = '/tripitaka/@page_prefix'
 
     def get(self, page_name='GL'):
-        """ 藏经阅读"""
+        """藏经阅读"""
         try:
             m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_name)
             if not m:

@@ -21,18 +21,18 @@ from bson.objectid import ObjectId
 
 
 class Model(object):
-    """ metadata"""
+    """metadata"""
     fields = {
         'id1': {'name': 'name1', 'input_type': 'text'},
         'id2': {'name': 'name2', 'filter': {}, 'input_type': 'radio', 'options': []},
     }
 
-    """ 数据库参数"""
+    """数据库参数"""
     primary = ''  # 主键
     rules = []  # 校验规则
     collection = ''  # 数据库表名
 
-    """ 前端列表页面参数"""
+    """前端列表页面参数"""
     page_size = 10  # 每页显示多少条
     page_title = ''  # 页面title
     search_tips = ''  # 查询提示
@@ -63,7 +63,7 @@ class Model(object):
 
     @classmethod
     def get_template_kwargs(cls, fields=None):
-        """ 获取前端模板参数"""
+        """获取前端模板参数"""
         fields = fields or ['page_title', 'search_fields', 'hide_fields', 'info_fields',
                             'operations', 'img_operations', 'actions']
         kwargs = {f: getattr(cls, f) for f in fields}
@@ -122,7 +122,7 @@ class Model(object):
 
     @classmethod
     def find_by_page(cls, self, condition=None, search_fields=None, default_order='', projection=None):
-        """ 查找数据库中的记录，按页返回结果"""
+        """查找数据库中的记录，按页返回结果"""
         condition = condition or {}
         q = self.get_query_argument('q', '')
         search_fields = search_fields or cls.search_fields
@@ -152,7 +152,7 @@ class Model(object):
 
     @classmethod
     def aggregate_by_page(cls, self, condition=None, aggregates=None, default_order='', projection=None):
-        """ 聚合数据库中的记录，按页返回结果"""
+        """聚合数据库中的记录，按页返回结果"""
         condition = condition or {}
         aggregates = aggregates or []
         q = self.get_query_argument('q', '')
@@ -178,12 +178,12 @@ class Model(object):
 
     @classmethod
     def ignore_existed_check(cls, doc):
-        """ 哪些情况忽略重复检查"""
+        """哪些情况忽略重复检查"""
         return False
 
     @classmethod
     def save_one(cls, db, collection, doc, rules=None, self=None):
-        """ 新增或修改一条记录"""
+        """新增或修改一条记录"""
         doc = cls.pack_doc(doc, self)
         errs = cls.validate(doc, rules)
         if errs:

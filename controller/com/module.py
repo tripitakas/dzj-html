@@ -266,7 +266,7 @@ class TaskConfigModal(UIModule):
 
 class TxtDiff(UIModule):
     def render(self, cmp_data):
-        """ 文字校对的文字区"""
+        """文字校对的文字区"""
         return self.render_string(
             'com/_txt_diff.html', blocks=cmp_data,
             sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0])
@@ -276,7 +276,7 @@ class TxtDiff(UIModule):
 class CharTxt(UIModule):
     @staticmethod
     def format_value(value, key=None, doc=None):
-        """ 格式化task表的字段输出"""
+        """格式化task表的字段输出"""
         if key in ['cc', 'sc'] and value:
             return value / 1000
         if key in ['pos', 'column'] and value:
@@ -291,7 +291,7 @@ class CharTxt(UIModule):
         return h.format_value(value, key, doc)
 
     def render(self, char, show_base=False, txt_fields=None, readonly=None, submit_id=None):
-        """ 单字校对区域"""
+        """单字校对区域"""
 
         txt_fields = txt_fields or ['txt', 'nor_txt']
         base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt', 'nor_txt',

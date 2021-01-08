@@ -30,7 +30,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def get_user_box_level(cls, self, task_type=None, user=None):
-        """ 获取用户的数据等级"""
+        """获取用户的数据等级"""
         user = user or self.current_user
         task_types = list(cls.box_level['task'].keys())
         if task_type and task_type in task_types:
@@ -55,14 +55,14 @@ class PageHandler(TaskHandler, Page, Box):
 
     @staticmethod
     def get_user_point(self, task_type):
-        """ 针对指定的任务类型，获取用户积分"""
+        """针对指定的任务类型，获取用户积分"""
         condition = {'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED}
         tasks = list(self.db.task.find(condition, {'char_count': 1}))
         return sum([t['char_count'] for t in tasks])
 
     @classmethod
     def check_box_level_and_point(cls, self, char, page, task_type=None, send_error_response=True):
-        """ 检查数据等级和积分"""
+        """检查数据等级和积分"""
         required_level = cls.get_required_box_level(char)
         user_level = cls.get_user_box_level(self, task_type)
         if int(user_level) < int(required_level):
@@ -98,7 +98,7 @@ class PageHandler(TaskHandler, Page, Box):
         return self.get_web_img(page_name, 'page', use_my_cloud)
 
     def set_box_access(self, page, task_type=None):
-        """ 设置切分框的读写权限"""
+        """设置切分框的读写权限"""
         for b in page.get('chars') or []:
             b['readonly'] = not self.can_write(b, page, task_type)
         for b in page.get('columns') or []:
@@ -124,7 +124,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def filter_symbol(cls, txt):
-        """ 过滤校勘符号"""
+        """过滤校勘符号"""
         return re.sub(r'[YMN]', '', txt)
 
     @classmethod
@@ -164,7 +164,7 @@ class PageHandler(TaskHandler, Page, Box):
         return match, txt2apply
 
     def merge_txt_logs(self, user_log, txt_logs):
-        """ 合并log至txt_logs中。如果用户已在txt_logs中，则更新用户已有的log；否则，新增一条log"""
+        """合并log至txt_logs中。如果用户已在txt_logs中，则更新用户已有的log；否则，新增一条log"""
         is_new = True
         txt_logs = txt_logs or []
         user_log['updated_time'] = self.now()
@@ -178,7 +178,7 @@ class PageHandler(TaskHandler, Page, Box):
         return txt_logs
 
     def merge_box_logs(self, user_log, box_logs):
-        """ 合并log至box_logs中。如果用户已在box_logs中，则更新用户已有的log；否则，新增一条log"""
+        """合并log至box_logs中。如果用户已在box_logs中，则更新用户已有的log；否则，新增一条log"""
         is_new = True
         box_logs = box_logs or []
         user_log['updated_time'] = self.now()
@@ -192,7 +192,7 @@ class PageHandler(TaskHandler, Page, Box):
         return box_logs
 
     def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
-        """ 合并用户提交和数据库中已有数据，过程中将进行权限检查"""
+        """合并用户提交和数据库中已有数据，过程中将进行权限检查"""
         user_level = self.get_user_box_level(self, task_type)
         post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
         page_cids = [b['cid'] for b in page[box_type] if b.get('cid')]
@@ -229,7 +229,7 @@ class PageHandler(TaskHandler, Page, Box):
         page[box_type] = boxes
 
     def get_box_update(self, post_data, page, task_type=None):
-        """ 获取切分校对的提交"""
+        """获取切分校对的提交"""
         # 预处理
         self.update_page_cid(page)
         self.update_page_cid(post_data)
@@ -287,7 +287,7 @@ class PageHandler(TaskHandler, Page, Box):
         return no
 
     def get_user_submit(self, submit_data, page, task_type=None):
-        """ 合并用户提交的数据修改和数据库中已有数据"""
+        """合并用户提交的数据修改和数据库中已有数据"""
         # 合并用户修改
         user_level = self.get_user_box_level(self, task_type)
         meta = {'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
@@ -376,7 +376,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def get_column_txt(cls, page, field='ocr_txt'):
-        """ 获取columns的文本"""
+        """获取columns的文本"""
 
         def get_txt(box):
             if box.get('sub_columns') and len(box['sub_columns']) > 1 and box['sub_columns'][1].get(field):
@@ -398,7 +398,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def get_char_txt(cls, page, field='ocr_txt'):
-        """ 获取chars的文本"""
+        """获取chars的文本"""
 
         def get_txt(box):
             if field == 'adapt':
@@ -458,7 +458,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def html2txt(cls, html):
-        """ 从html中获取txt文本，换行用|、换栏用||表示"""
+        """从html中获取txt文本，换行用|、换栏用||表示"""
         txt = ''
         html = re.sub('&nbsp;', '', html)
         regex1 = re.compile("<ul.*?>.*?</ul>", re.M | re.S)
@@ -477,7 +477,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def txt2html(cls, txt):
-        """ 把文本转换为html，文本以空行或者||为分栏"""
+        """把文本转换为html，文本以空行或者||为分栏"""
         if not txt:
             return ''
         if isinstance(txt, str) and re.match('<[a-z]+.*>.*</[a-z]+>', txt):
@@ -493,7 +493,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def check_match(cls, chars, txt):
-        """ 检查图文是否匹配，包括总行数和每行字数"""
+        """检查图文是否匹配，包括总行数和每行字数"""
         txt = cls.filter_symbol(txt)
         # 获取每列字框数
         column_char_num = []
@@ -533,7 +533,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def write_back_txt(cls, chars, txt, field):
-        """ 将txt回写到chars中。假定图文匹配"""
+        """将txt回写到chars中。假定图文匹配"""
         txt = re.sub(r'[\|\n]+', '', txt)
         char_txt = ''.join([c['ocr_txt'] for c in chars if c.get('ocr_txt')])
         if len(char_txt) != len(cls.filter_symbol(txt)):
@@ -552,7 +552,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def diff(cls, base, cmp1='', cmp2='', cmp3=''):
-        """ 生成文字校对的segment"""
+        """生成文字校对的segment"""
         # 1.生成segments
         segments = []
         pre_empty_line_no = 0

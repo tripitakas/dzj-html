@@ -84,7 +84,7 @@ class PageTaskListHandler(PageHandler):
         return condition, params
 
     def get(self):
-        """ 任务管理-页任务管理"""
+        """任务管理-页任务管理"""
         try:
             kwargs = self.get_template_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
@@ -103,7 +103,7 @@ class PageTaskStatisticHandler(PageHandler):
     URL = '/page/task/statistic'
 
     def get(self):
-        """ 根据用户、任务类型或任务状态统计页任务"""
+        """根据用户、任务类型或任务状态统计页任务"""
         try:
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
@@ -144,7 +144,7 @@ class PageTaskDashBoardHandler(PageHandler):
     URL = '/page/task/dashboard'
 
     def get(self):
-        """ 综合统计"""
+        """综合统计"""
         self.task_dashboard(self, 'page')
 
     @staticmethod
@@ -157,17 +157,18 @@ class PageTaskDashBoardHandler(PageHandler):
 
         def get_params(field):
             cnd = {}
-            start and cnd.update({field.replace('_time', '_start'): start.strftime('%Y-%m-%d %H:%M:%S')})
-            end and cnd.update({field.replace('_time', '_end'): end.strftime('%Y-%m-%d %H:%M:%S')})
+            start and cnd.update({field.replace('_time', '_start'): start.strftime(fmt)})
+            end and cnd.update({field.replace('_time', '_end'): end.strftime(fmt)})
             return cnd
 
         try:
+            fmt = '%Y-%m-%d %H:%M:%S'
             start = self.get_query_argument('start', 0)
             if start:
-                start = datetime.strptime(start, '%Y-%m-%d %H:%M:%S')
+                start = datetime.strptime(start, fmt)
             end = self.get_query_argument('end', 0)
             if end:
-                end = datetime.strptime(end, '%Y-%m-%d %H:%M:%S')
+                end = datetime.strptime(end, fmt)
             task_types = [k for k, t in self.task_types.items() if self.prop(t, 'data.collection') == collection]
             # 本阶段发布
             this_publish = list(self.db.task.aggregate([
@@ -261,7 +262,7 @@ class PageTaskResumeHandler(PageHandler):
     ]
 
     def get(self, page_name):
-        """ 页任务简历"""
+        """页任务简历"""
         from functools import cmp_to_key
         try:
             page = self.db.page.find_one({'name': page_name}) or dict(name=page_name)
@@ -281,7 +282,7 @@ class PageTaskCutHandler(PageHandler):
            '/task/browse/(cut_proof|cut_review|ocr_box|ocr_text)/@task_id']
 
     def get(self, task_type, task_id):
-        """ 切分校对、审定页面"""
+        """切分校对、审定页面"""
         try:
             page = self.db.page.find_one({'name': self.task['doc_id']})
             if not page:
@@ -309,7 +310,7 @@ class PageTaskTextHandler(PageHandler):
            '/task/update/(text_proof|text_review)/@task_id']
 
     def get(self, task_type, task_id):
-        """ 文字校对、审定页面"""
+        """文字校对、审定页面"""
         try:
             self.page_title = '文字审定' if task_type == 'text_review' else '文字校对'
             PageTxtHandler.page_txt(self, self.task['doc_id'])

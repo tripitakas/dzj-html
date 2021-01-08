@@ -14,7 +14,7 @@ class PickTaskApi(TaskHandler):
     URL = '/api/task/pick/@task_type'
 
     def post(self, task_type):
-        """ 领取任务"""
+        """领取任务"""
         try:
             # 检查是否有未完成的任务
             uncompleted = self.find_mine(task_type, 1, status=self.STATUS_PICKED)
@@ -55,7 +55,7 @@ class ReturnTaskApi(TaskHandler):
     URL = '/api/task/return/@task_id'
 
     def post(self, task_id):
-        """ 退回任务"""
+        """退回任务"""
         try:
             if self.task['picked_user_id'] != self.user_id:
                 return self.send_error_response(e.task_unauthorized, message='您没有该任务的权限')
@@ -79,7 +79,7 @@ class UpdateTaskApi(TaskHandler):
     URL = '/api/task/(batch|remark)'
 
     def post(self, field):
-        """ 批量更新任务批次或备注"""
+        """批量更新任务批次或备注"""
         try:
             rules = [(v.not_both_empty, '_ids', '_id')]
             field == 'batch' and rules.append((v.not_empty, 'batch'))
@@ -106,7 +106,7 @@ class UpdateTaskMyRemarkApi(TaskHandler):
     URL = '/api/task/my_remark/@task_id'
 
     def post(self, task_id):
-        """ 批量更新任务批次或备注"""
+        """批量更新任务批次或备注"""
         try:
             rules = [(v.not_none, 'my_remark')]
             self.validate(self.data, rules)
@@ -127,7 +127,7 @@ class RepublishTaskApi(TaskHandler):
     URL = ['/api/task/republish', '/api/task/republish/@task_id']
 
     def post(self, task_id=None):
-        """ 重新发布任务"""
+        """重新发布任务"""
         try:
             ids = [task_id] if task_id else self.data['ids']
             if not ids:
@@ -162,7 +162,7 @@ class DeleteTasksApi(TaskHandler):
     URL = '/api/task/delete'
 
     def post(self):
-        """ 删除任务(只能删除已发布未领取、已获取、等待前置任务、已退回的任务)"""
+        """删除任务(只能删除已发布未领取、已获取、等待前置任务、已退回的任务)"""
         try:
             rules = [(v.not_both_empty, '_ids', '_id')]
             self.validate(self.data, rules)
@@ -247,7 +247,7 @@ class FinishTaskApi(TaskHandler):
     URL = '/api/task/finish/@oid'
 
     def post(self, task_id):
-        """ 完成任务，供测试用例使用"""
+        """完成任务，供测试用例使用"""
         try:
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
                 'status': self.STATUS_FINISHED, 'finished_time': self.now()
@@ -263,7 +263,7 @@ class InitTasksForOPTestApi(TaskHandler):
     URL = '/api/task/init4op'
 
     def post(self):
-        """ 初始化数据处理任务，以便OP平台进行测试。注意：该API仅仅是配合OP平台测试使用"""
+        """初始化数据处理任务，以便OP平台进行测试。注意：该API仅仅是配合OP平台测试使用"""
         rules = [(v.not_empty, 'page_names', 'import_dirs', 'layout')]
         self.validate(self.data, rules)
 
@@ -299,7 +299,7 @@ class PageTaskStatisticApi(TaskHandler):
     URL = '/api/task/statistic/@page_task'
 
     def post(self, task_type):
-        """ 统计页任务数据"""
+        """统计页任务数据"""
         try:
             query = self.data.get('query') or ''
             cond = query and self.get_task_search_condition(query)[0] or {}

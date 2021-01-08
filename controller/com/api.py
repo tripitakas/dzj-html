@@ -27,7 +27,7 @@ class PunctuationApi(BaseHandler):
     URL = '/api/com/punctuate'
 
     def post(self):
-        """ 自动标点"""
+        """自动标点"""
         try:
             q, res = self.data.get('q', '').strip(), ''
             if q:
@@ -44,7 +44,7 @@ class CbetaSearchApi(BaseHandler):
     URL = '/api/com/search'
 
     def post(self):
-        """ CBETA检索"""
+        """CBETA检索"""
 
         def merge_kw(txt):
             # 将<kw>一</kw>，<kw>二</kw>格式替换为<kw>一，二</kw>
@@ -75,7 +75,7 @@ class SessionConfigApi(BaseHandler):
     URL = '/api/session/config'
 
     def post(self):
-        """ 配置后台cookie"""
+        """配置后台cookie"""
         blacklist = ['user']
         try:
             for k, v in self.data.items():

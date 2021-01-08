@@ -28,7 +28,7 @@ class ArticleAdminHandler(BaseHandler, Article):
     ]
 
     def get(self):
-        """ 文章管理"""
+        """文章管理"""
         try:
             kwargs = self.get_template_kwargs()
             kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
@@ -44,7 +44,7 @@ class ArticleUpsertHandler(BaseHandler):
     URL = ['/article/add', '/article/update/@article_id']
 
     def get(self, article_id=None):
-        """ 新建或修改文章"""
+        """新建或修改文章"""
         try:
             article = article_id and self.db.article.find_one({'article_id': article_id}) or {}
             if article_id and not article:
@@ -58,7 +58,7 @@ class ArticleViewHandler(BaseHandler):
     URL = '/article/@article_id'
 
     def get(self, article_id):
-        """ 查看文章"""
+        """查看文章"""
         try:
             article = self.db.article.find_one({'article_id': article_id})
             if not article:
@@ -89,7 +89,7 @@ class ArticleListHandler(BaseHandler, Article):
         return kwargs
 
     def get(self, category):
-        """ 帮助、通知中心"""
+        """帮助、通知中心"""
         try:
             kwargs = self.get_template_kwargs()
             kwargs['page_title'] = '帮助中心' if category == 'help' else '通知中心'

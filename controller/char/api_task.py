@@ -14,7 +14,7 @@ class CharTaskPublishApi(CharHandler):
     URL = r'/api/char/task/publish'
 
     def post(self):
-        """ 发布字任务"""
+        """发布字任务"""
         try:
             rules = [(v.not_empty, 'batch', 'task_type', 'source')]
             self.validate(self.data, rules)
@@ -28,7 +28,7 @@ class CharTaskPublishApi(CharHandler):
 
     @staticmethod
     def get_txt(task, field):
-        """ 获取任务相关的文字"""
+        """获取任务相关的文字"""
         return ''.join([str(p[field]) for p in task.get('params', [])])
 
     def task_meta(self, task_type, params, cnt, field):
@@ -47,7 +47,7 @@ class CharTaskPublishApi(CharHandler):
         return task
 
     def publish_char_task(self):
-        """ 发布聚类校对、审定任务 """
+        """发布聚类校对、审定任务"""
 
         log = []
         source = self.data['source']
@@ -110,7 +110,7 @@ class CharTaskClusterApi(CharHandler):
            '/api/task/update/@char_task/@task_id']
 
     def post(self, task_type, task_id):
-        """ 提交聚类校对任务"""
+        """提交聚类校对任务"""
         try:
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'tasks.' + task_type: {'$ne': self.task['_id']}, 'txt_level': {'$lte': user_level}}

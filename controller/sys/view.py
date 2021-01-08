@@ -21,7 +21,7 @@ class SysScriptHandler(BaseHandler):
     URL = '/sys/script'
 
     def get(self):
-        """ 系统脚本"""
+        """系统脚本"""
         try:
             tripitakas = ['所有'] + self.db.tripitaka.find().distinct('tripitaka_code')
             self.render('sys_script.html', tripitakas=tripitakas)
@@ -55,7 +55,7 @@ class SysLogListHandler(BaseHandler, Log):
         return h.format_value(value, key, doc)
 
     def get(self):
-        """ 操作日志"""
+        """操作日志"""
         try:
             kwargs = self.get_template_kwargs()
             value = h.get_url_param('op_type', self.request.uri)
@@ -72,7 +72,7 @@ class SysLogHandler(BaseHandler, Log):
     URL = '/sys/log/@oid'
 
     def get(self, oid):
-        """ 查看操作日志"""
+        """查看操作日志"""
         try:
             log = self.db.log.find_one({'_id': ObjectId(oid)})
             if not log:
@@ -87,7 +87,7 @@ class SysUploadOssHandler(BaseHandler, Log):
     URL = '/sys/upload_oss'
 
     def get(self):
-        """ 上传图片至OSS"""
+        """上传图片至OSS"""
         try:
             char_names, column_names = [], []
             img_root = path.join(h.BASE_DIR, 'static', 'img')
@@ -135,7 +135,7 @@ class SysOplogListHandler(BaseHandler, Oplog):
         return h.format_value(value, key, doc)
 
     def get(self):
-        """ 运维日志"""
+        """运维日志"""
         try:
             kwargs = self.get_template_kwargs()
             condition = dict()
@@ -156,7 +156,7 @@ class SysOplogHandler(BaseHandler, Oplog):
            '/sys/oplog/latest/@op_type']
 
     def get(self, id_or_type=None):
-        """ 查看运维日志"""
+        """查看运维日志"""
         try:
             if 'latest' in self.request.path:
                 condition = {'op_type': id_or_type} if id_or_type else {}
@@ -176,7 +176,7 @@ class ApiTableHandler(BaseHandler):
     URL = '/api'
 
     def get(self):
-        """ 显示后端API和前端路由"""
+        """显示后端API和前端路由"""
 
         def get_doc():
             assert func.__doc__, str(func) + ' no comment'
@@ -219,7 +219,7 @@ class ApiSourceHandler(BaseHandler):
     URL = '/api/code/(.+)'
 
     def get(self, name):
-        """ 显示后端API的源码 """
+        """显示后端API的源码"""
         for cls in self.application.handlers:
             handler = cls(self.application, self.request)
             for method in handler._get_methods().split(','):

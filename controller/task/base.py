@@ -31,7 +31,7 @@ class TaskHandler(BaseHandler, Task):
         self.my_tasks = []
 
     def prepare(self):
-        """ 根据url参数，检查任务是否存在并设置任务，检查任务权限，设置任务相关参数"""
+        """根据url参数，检查任务是否存在并设置任务，检查任务权限，设置任务相关参数"""
         super().prepare()
         if not self.get_task_id():
             return
@@ -51,7 +51,7 @@ class TaskHandler(BaseHandler, Task):
         self.readonly = self.mode in ['view', 'browse', '', None]
 
     def get_task(self, task_id):
-        """ 根据task_id/to以及相关条件查找任务"""
+        """根据task_id/to以及相关条件查找任务"""
         # 查找当前任务
         task = self.db.task.find_one({'_id': ObjectId(task_id)})
         if not task:
@@ -88,7 +88,7 @@ class TaskHandler(BaseHandler, Task):
         return mode
 
     def get_task_type(self):
-        """ 获取任务类型。子类可重载，以便prepare函数调用"""
+        """获取任务类型。子类可重载，以便prepare函数调用"""
         # eg. /task/do/cut_proof/5e3139c6a197150011d65e9d
         s = re.search(r'/task/(do|update|nav|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
         s1 = re.search(r'/task/([^/]+?)/([0-9a-z]{24})', self.request.path)
@@ -102,7 +102,7 @@ class TaskHandler(BaseHandler, Task):
         return self.get_step_name(self.steps.get('current')) or ''
 
     def find_many(self, task_type=None, status=None, size=None, order=None):
-        """ 查找任务"""
+        """查找任务"""
         condition = dict()
         if task_type:
             condition.update({'task_type': task_type})
@@ -117,7 +117,7 @@ class TaskHandler(BaseHandler, Task):
         return list(query)
 
     def find_mine(self, task_type=None, page_size=None, order=None, status=None, user_id=None, project=None):
-        """ 查找我的任务"""
+        """查找我的任务"""
         assert status in [None, self.STATUS_PICKED, self.STATUS_FINISHED]
         condition = {'picked_user_id': user_id or self.user_id}
         if task_type:
@@ -135,7 +135,7 @@ class TaskHandler(BaseHandler, Task):
         return list(query)
 
     def find_lobby(self, task_type, page_size=None, q=None, batch=None):
-        """ 按优先级排序后随机获取任务大厅的任务列表"""
+        """按优先级排序后随机获取任务大厅的任务列表"""
 
         def get_random_skip():
             n = 0
@@ -161,7 +161,7 @@ class TaskHandler(BaseHandler, Task):
         return tasks[:page_size], total_count
 
     def pick_one(self, task_type, batch=None):
-        """ 领取任务"""
+        """领取任务"""
         condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
         if batch:
             batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
@@ -177,7 +177,7 @@ class TaskHandler(BaseHandler, Task):
         return self.db.task.find_one(condition, sort=[('priority', 1)])
 
     def count_task(self, task_type=None, status=None, mine=False):
-        """ 统计任务数量"""
+        """统计任务数量"""
         condition = dict()
         if task_type:
             condition.update({'task_type': task_type})
@@ -190,7 +190,7 @@ class TaskHandler(BaseHandler, Task):
         return self.db.task.count_documents(condition)
 
     def check_task_auth(self, task, mode=None):
-        """ 检查当前用户是否拥有相应的任务权限"""
+        """检查当前用户是否拥有相应的任务权限"""
         mode = self.get_task_mode() if not mode else mode
         error = None
         if mode in ['do', 'update']:
@@ -251,7 +251,7 @@ class TaskHandler(BaseHandler, Task):
         )
 
     def update_page_status(self, status, task=None):
-        """ 更新任务相关的页面数据"""
+        """更新任务相关的页面数据"""
         task = task or self.task or {}
         if task.get('collection') == 'page' and task.get('doc_id'):
             field = 'tasks.%s.%s' % (task['task_type'], task['num'])
@@ -261,7 +261,7 @@ class TaskHandler(BaseHandler, Task):
                 self.db.page.update_one({'name': task['doc_id']}, {'$unset': {field: ''}})
 
     def update_post_tasks(self, task):
-        """ 更新后置任务。针对当前任务的后置任务，如果它们的状态为「已悬挂」，则检查它们的所有前置任务，如果都已完成，则修改其状态为「已发布」"""
+        """更新后置任务。针对当前任务的后置任务，如果它们的状态为「已悬挂」，则检查它们的所有前置任务，如果都已完成，则修改其状态为「已发布」"""
         cond = {'collection': task['collection'], 'id_name': task['id_name'], 'doc_id': task['doc_id']}
         tasks = list(self.db.task.find(cond, {'task_type': 1, 'pre_tasks': 1, 'status': 1}))
         to_publish = []

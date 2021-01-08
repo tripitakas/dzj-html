@@ -14,10 +14,10 @@ class HomeHandler(TaskHandler):
     URL = ['/', '/home']
 
     def get(self):
-        """ 首页"""
+        """首页"""
 
         def get_month_star():
-            """ 每种任务类型，选出前三名，作为上月校勘之星"""
+            """每种任务类型，选出前三名，作为上月校勘之星"""
             # 查找上月之星
             now = datetime.now()
             last_month = get_date_time('%Y-%m', now - timedelta(days=now.day + 1))
@@ -53,7 +53,7 @@ class HomeHandler(TaskHandler):
             return mt_stars[:10]
 
         def get_time_slot():
-            """ 当前时段"""
+            """当前时段"""
             hour = get_date_time('%H')
             time_map = [[0, '凌晨'], [5, '早上'], [8, '上午'], [11, '中午'], [13, '下午'], [19, '晚上']]
             for i, t in enumerate(time_map):
@@ -104,7 +104,7 @@ class CbetaSearchHandler(BaseHandler):
     URL = '/com/search'
 
     def get(self):
-        """ 检索cbeta"""
+        """检索cbeta"""
         self.render('com_search.html')
 
 
@@ -112,5 +112,5 @@ class PunctuationHandler(BaseHandler):
     URL = '/com/punctuate'
 
     def get(self):
-        """ 自动标点"""
+        """自动标点"""
         self.render('com_punctuate.html')

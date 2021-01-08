@@ -27,7 +27,7 @@ from controller.helper import get_date_time, prop, md5_encode, gen_id, BASE_DIR
 
 
 class BaseHandler(CorsMixin, RequestHandler):
-    """ 后端API响应类的基类"""
+    """后端API响应类的基类"""
 
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
@@ -102,7 +102,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error_response(e.unauthorized, message=message)
 
     def direct_login(self, login_id, password):
-        """ 直接登录，然后访问网站api"""
+        """直接登录，然后访问网站api"""
         # 检查是否多次登录失败
         if self.db.log.count_documents({'type': 'login-fail', 'content': login_id}) >= 12:
             self.db.user.update_one({'email': login_id}, {'$set': {'disabled': True}})
@@ -334,7 +334,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     @classmethod
     def add_op_log(cls, db, op_type, status, content, username):
-        """ 新增运维日志。运维日志指的是管理员的各种操作的日志记录"""
+        """新增运维日志。运维日志指的是管理员的各种操作的日志记录"""
         assert status in ['ongoing', 'finished', '', None]
         try:
             r = db.oplog.insert_one(dict(
@@ -355,7 +355,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         return not disabled_mods or mod not in disabled_mods
 
     def get_img_suffix(self, tripitaka_code):
-        """ 获取藏经图片的后缀名"""
+        """获取藏经图片的后缀名"""
         return self.prop(self.config, 'img_suffix.%s' % tripitaka_code) or 'jpg'
 
     def get_web_img(self, img_name, img_type='page', use_my_cloud=False):

@@ -26,7 +26,7 @@ class PageUploadApi(BaseHandler):
     URL = '/api/data/page/upload'
 
     def post(self):
-        """ 批量上传，供小欧调用"""
+        """批量上传，供小欧调用"""
         try:
             source = self.data.get('source')
             layout = self.data.get('layout')
@@ -61,7 +61,7 @@ class PageUpsertApi(PageHandler):
     URL = '/api/page'
 
     def post(self):
-        """ 新增或修改"""
+        """新增或修改"""
         try:
             r = Page.save_one(self.db, 'page', self.data)
             if r.get('status') == 'success':
@@ -78,7 +78,7 @@ class PageSourceApi(BaseHandler):
     URL = '/api/page/source'
 
     def post(self):
-        """ 更新分类"""
+        """更新分类"""
         try:
             if not self.data.get('source'):
                 return self.send_error_response(e.not_allowed_empty, message='分类不许为空')
@@ -114,7 +114,7 @@ class PageDeleteApi(BaseHandler):
     URL = '/api/page/delete'
 
     def post(self):
-        """ 批量删除"""
+        """批量删除"""
         try:
             rules = [(v.not_both_empty, 'page_name', 'page_names')]
             self.validate(self.data, rules)
@@ -138,7 +138,7 @@ class PageBoxApi(PageHandler):
     URL = ['/api/page/box/@page_name']
 
     def post(self, page_name):
-        """ 提交切分校对。切分数据以page表为准，box_level/box_logs等记录在page['chars']中，坐标信息同步更新char表"""
+        """提交切分校对。切分数据以page表为准，box_level/box_logs等记录在page['chars']中，坐标信息同步更新char表"""
         try:
             self.save_box(self, page_name)
             return self.send_data_response()
@@ -148,7 +148,7 @@ class PageBoxApi(PageHandler):
 
     @staticmethod
     def save_box(self, page_name, task_type=None):
-        """ 保存用户提交。包括框修改、框序和用户序线"""
+        """保存用户提交。包括框修改、框序和用户序线"""
         page = self.db.page.find_one({'name': page_name})
         if not page:
             self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
@@ -172,7 +172,7 @@ class PageBlocksApi(PageHandler):
     URL = ['/api/page/block/@page_name']
 
     def post(self, page_name):
-        """ 提交栏框校对"""
+        """提交栏框校对"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -191,7 +191,7 @@ class PageCharBoxApi(PageHandler):
     URL = '/api/page/char/box/@char_name'
 
     def post(self, char_name):
-        """ 修改字框的坐标"""
+        """修改字框的坐标"""
         try:
             rules = [(v.not_empty, 'pos')]
             self.validate(self.data, rules)
@@ -240,7 +240,7 @@ class PageCharTxtApi(PageHandler):
     URL = '/api/page/char/txt/@char_name'
 
     def post(self, char_name):
-        """ 更新字符的txt"""
+        """更新字符的txt"""
 
         try:
             rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt, 'txt'), (v.is_txt_type, 'txt_type')]
@@ -275,7 +275,7 @@ class PageTxtMatchApi(PageHandler):
     URL = ['/api/page/txt_match/@page_name']
 
     def post(self, page_name):
-        """ 提交文本匹配"""
+        """提交文本匹配"""
         try:
             r = self.save_txt_match(self, page_name)
             self.send_data_response(r)
@@ -304,7 +304,7 @@ class PageTxtMatchDiffApi(PageHandler):
     URL = '/api/page/txt_match/diff'
 
     def post(self):
-        """ 图文匹配文本比较"""
+        """图文匹配文本比较"""
         try:
             rules = [(v.not_empty, 'texts')]
             self.validate(self.data, rules)
@@ -322,7 +322,7 @@ class PageFindCmpTxtApi(PageHandler):
     URL = '/api/page/find_cmp/@page_name'
 
     def post(self, page_name):
-        """ 根据OCR文本从CBETA库中查找相似文本作为比对本"""
+        """根据OCR文本从CBETA库中查找相似文本作为比对本"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -345,7 +345,7 @@ class PageCmpTxtNeighborApi(PageHandler):
     URL = '/api/page/find_cmp/neighbor'
 
     def post(self):
-        """ 获取比对文本的前后页文本"""
+        """获取比对文本的前后页文本"""
         # param page_code: 当前cmp文本的page_code（对应于es库中的page_code）
         # param neighbor: prev/next，根据当前cmp文本的page_code往前或者往后找一条数据
         try:
@@ -366,7 +366,7 @@ class PageCmpTxtApi(PageHandler):
     URL = '/api/page/cmp_txt/@page_name'
 
     def post(self, page_name):
-        """ 提交比对文本"""
+        """提交比对文本"""
         try:
             rules = [(v.not_empty, 'cmp_txt')]
             self.validate(self.data, rules)
@@ -384,7 +384,7 @@ class PageDetectCharsApi(PageHandler):
     URL = '/api/page/txt/detect_chars'
 
     def post(self):
-        """ 根据文本行内容识别宽字符"""
+        """根据文本行内容识别宽字符"""
         try:
             mb4 = [[self.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
             self.send_data_response(mb4)
@@ -403,7 +403,7 @@ class PageTxtDiffApi(PageHandler):
     URL = '/api/page/txt/diff'
 
     def post(self):
-        """ 用户提交纯文本后重新比较，并设置修改痕迹"""
+        """用户提交纯文本后重新比较，并设置修改痕迹"""
         try:
             rules = [(v.not_empty, 'texts')]
             self.validate(self.data, rules)
@@ -434,7 +434,7 @@ class PageStartCheckMatchApi(BaseHandler):
     URL = '/api/page/start_check_match'
 
     def post(self):
-        """ 启动检查图文匹配脚本"""
+        """启动检查图文匹配脚本"""
         try:
             rules = [(v.not_empty, 'field', 'publish_task')]
             self.validate(self.data, rules)
@@ -459,7 +459,7 @@ class PageStartGenCharsApi(BaseHandler):
     URL = '/api/page/start_gen_chars'
 
     def post(self):
-        """ 批量生成字表"""
+        """批量生成字表"""
         try:
             rules = [(v.not_all_empty, 'page_names', 'search', 'all')]
             self.validate(self.data, rules)

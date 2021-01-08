@@ -15,7 +15,7 @@ class UserLoginHandler(BaseHandler):
     URL = '/user/login'
 
     def get(self):
-        """ 登录页面 """
+        """登录页面"""
         self.render('user_login.html', next=self.get_query_argument('next', '/'))
 
 
@@ -23,7 +23,7 @@ class UserRegisterHandler(BaseHandler):
     URL = '/user/register'
 
     def get(self):
-        """ 注册页面 """
+        """注册页面"""
         self.render('user_register.html', next=self.get_query_argument('next', '/'))
 
 
@@ -31,7 +31,7 @@ class UserProfileHandler(BaseHandler):
     URL = '/user/my/profile'
 
     def get(self):
-        """ 个人中心 """
+        """个人中心"""
         self.render('user_profile.html')
 
 
@@ -59,7 +59,7 @@ class UsersAdminHandler(BaseHandler, User):
 
     @staticmethod
     def format_value(value, key=None, doc=None):
-        """ 格式化page表的字段输出"""
+        """格式化page表的字段输出"""
         if key == 'img':
             ava = 'imgs/ava%s.png' % ({'男': 1, '女': 2}.get(doc.get('gender')) or 3)
             return '<img src="/static/%s" class="thumb-md img-circle" />' % (value or ava)
@@ -68,7 +68,7 @@ class UsersAdminHandler(BaseHandler, User):
         return h.format_value(value, key, doc)
 
     def get(self):
-        """ 用户管理页面 """
+        """用户管理页面"""
         try:
             kwargs = self.get_template_kwargs()
             kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
@@ -89,7 +89,7 @@ class UserRolesHandler(BaseHandler, User):
     search_fields = ['name', 'email', 'phone', 'group']
 
     def get(self):
-        """ 角色管理页面 """
+        """角色管理页面"""
         try:
             kwargs = self.get_template_kwargs()
             docs, pager, q, order = self.find_by_page(self)

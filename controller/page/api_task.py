@@ -14,7 +14,7 @@ class PageTasklistApi(PageHandler):
     URL = '/api/page/task/list'
 
     def post(self):
-        """ 获取页任务的页码"""
+        """获取页任务的页码"""
         try:
             rules = [(v.not_empty, 'search')]
             self.validate(self.data, rules)
@@ -36,7 +36,7 @@ class PageTaskPublishApi(PageHandler):
     }
 
     def post(self):
-        """ 发布任务"""
+        """发布任务"""
         try:
             log = dict()
             self.get_page_names(log)
@@ -56,7 +56,7 @@ class PageTaskPublishApi(PageHandler):
             return self.send_db_error(error)
 
     def get_page_names(self, log):
-        """ 获取页码"""
+        """获取页码"""
         page_names = self.data.get('page_names')
         if page_names:
             if isinstance(page_names, str):
@@ -90,7 +90,7 @@ class PageTaskPublishApi(PageHandler):
         self.data['page_names'] = page_names
 
     def check_and_publish(self, log):
-        """ 检查页码并发布任务"""
+        """检查页码并发布任务"""
         # 去掉已发布的页码
         page_names, task_type, num = self.data['page_names'], self.data['task_type'], self.data.get('num') or 1
         if page_names:
@@ -157,7 +157,7 @@ class PageTaskCutApi(PageHandler):
            '/api/task/update/(cut_proof|cut_review)/@task_id']
 
     def post(self, task_type, task_id):
-        """ 切分校对、审定页面"""
+        """切分校对、审定页面"""
         try:
             page = PageBoxApi.save_box(self, self.task['doc_id'], task_type)
             hint_no = self.get_user_hint_no(page, self.user_id)
@@ -181,7 +181,7 @@ class PageTaskTextApi(PageHandler):
            '/api/task/update/(text_proof|text_review)/@task_id']
 
     def post(self, task_type, task_id):
-        """ 文字校对、审定页面"""
+        """文字校对、审定页面"""
         try:
             if self.data.get('submit') and self.task['status'] != self.STATUS_FINISHED:
                 self.db.task.update_one({'_id': self.task['_id']}, {'$set': {

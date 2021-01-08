@@ -49,7 +49,7 @@ class DataImportImageHandler(TaskHandler):
     update_fields = []
 
     def get(self):
-        """ 数据管理/页图片导入"""
+        """数据管理/页图片导入"""
         try:
             # 模板参数
             kwargs = self.get_template_kwargs()
@@ -84,7 +84,7 @@ class DataListHandler(BaseHandler):
         return h.format_value(value, key, doc)
 
     def get(self, metadata):
-        """ 数据管理"""
+        """数据管理"""
         try:
             model = eval(metadata.capitalize())
             kwargs = model.get_template_kwargs()
@@ -137,13 +137,13 @@ class VariantListHandler(BaseHandler, Variant):
     ]
 
     def format_value(self, value, key=None, doc=None):
-        """ 格式化输出"""
+        """格式化输出"""
         if key == 'img_name' and value:
             return '<div><img src="%s"></div><div>%s</div>' % (self.get_web_img(value, 'char'), value)
         return h.format_value(value, key, doc)
 
     def get(self):
-        """ 数据管理"""
+        """数据管理"""
         try:
             kwargs = self.get_template_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))

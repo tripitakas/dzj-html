@@ -88,7 +88,7 @@ class CharListHandler(CharHandler):
         return condition, params
 
     def format_value(self, value, key=None, doc=None):
-        """ 格式化page表的字段输出"""
+        """格式化page表的字段输出"""
 
         def log2str(log):
             val = '|'.join(log[f] for f in ['txt', 'nor_txt', 'txt_type', 'remark', 'user_name'] if log.get(f))
@@ -113,7 +113,7 @@ class CharListHandler(CharHandler):
         return h.format_value(value, key, doc)
 
     def get(self):
-        """ 字数据管理"""
+        """字数据管理"""
         try:
             kwargs = self.get_template_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
@@ -136,7 +136,7 @@ class CharViewHandler(CharHandler):
     URL = '/char/@char_name'
 
     def get(self, char_name):
-        """ 查看Char页面"""
+        """查看Char页面"""
         try:
             char = self.db.char.find_one({'name': char_name})
             page_name, cid = char_name.rsplit('_', 1)
@@ -164,7 +164,7 @@ class CharStatHandler(CharHandler):
     URL = '/char/statistic'
 
     def get(self):
-        """ 统计字数据"""
+        """统计字数据"""
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
             kind = self.get_query_argument('kind', '')
@@ -184,7 +184,7 @@ class CharBrowseHandler(CharHandler):
     page_size = 50
 
     def get(self):
-        """ 浏览字图"""
+        """浏览字图"""
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
             docs, pager, q, order = Char.find_by_page(self, condition, default_order='_id')
@@ -202,7 +202,7 @@ class CharConsistentHandler(CharHandler):
     URL = '/char/consistent'
 
     def get(self):
-        """ 检查字数据中某页的数据和页数据中字框的数量是否一致"""
+        """检查字数据中某页的数据和页数据中字框的数量是否一致"""
         try:
 
             cond = self.get_char_search_condition(self.request.query)[0]
