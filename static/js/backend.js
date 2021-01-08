@@ -22,7 +22,7 @@ function ajaxApi(url, type, data, success_callback, error_callback, is_file) {
   data = data || {};
 
   url = url.substr(0, 4) === '/api' ? url : '/api' + url;
-  var args = {
+  let args = {
     url: url,
     type: type,
     cache: false,
@@ -37,7 +37,7 @@ function ajaxApi(url, type, data, success_callback, error_callback, is_file) {
       }
     },
     error: function (xhr) {
-      var code = xhr.status || xhr.code || 500;
+      let code = xhr.status || xhr.code || 500;
       if (code >= 200 && code <= 299) {
         success_callback && success_callback({});
       } else if (!window.unloading) {
@@ -93,10 +93,10 @@ function postFile(url, data, success, error) {
 
 $.ajaxSetup({
   beforeSend: function (jqXHR, settings) {
-    var type = settings.type;
+    let type = settings.type;
     if (type !== 'GET' && type !== 'HEAD' && type !== 'OPTIONS') {
-      var pattern = /(.+; *)?_xsrf *= *([^;" ]+)/;
-      var xsrf = pattern.exec(document.cookie);
+      let pattern = /(.+; *)?_xsrf *= *([^;" ]+)/;
+      let xsrf = pattern.exec(document.cookie);
       if (xsrf) {
         jqXHR.setRequestHeader('X-Xsrftoken', xsrf[2]);
       }
@@ -106,9 +106,9 @@ $.ajaxSetup({
 
 // 将tornado在网页中输出的对象串转为JSON对象，toHTML为true时只做网页解码
 function decodeJSON(s, toHTML) {
-  var HTML_DECODE = {'&lt;': '<', '&gt;': '>', '&nbsp;': ' ', '&amp;': '&', '&quot;': '"'};
+  let HTML_DECODE = {'&lt;': '<', '&gt;': '>', '&nbsp;': ' ', '&amp;': '&', '&quot;': '"'};
   s = s.replace(/&\w+;|&#(\d+);/g, function ($0, $1) {
-    var c = HTML_DECODE[$0];
+    let c = HTML_DECODE[$0];
     if (c === undefined) {
       if (!isNaN($1)) { // Entity Number
         c = String.fromCharCode(($1 === 160) ? 32 : $1);
@@ -129,7 +129,7 @@ function ObjectId(id) {
 }
 
 // parseJSON中eval函数需要调用datetime.datetime函数
-var datetime = {
+let datetime = {
   datetime: function (year, month, day, hour, minute, second, milli) {
     return year + '-' + (month + '-').padStart(3, '0') + (day + ' ').padStart(3, '0')
         + (hour + ':').padStart(3, '0') + (minute + ':').padStart(3, '0') + (second + '').padStart(2, '0');
@@ -161,7 +161,7 @@ $('.alert .close').on('click', function () {
 
 // 离开页面
 function leave() {
-  var url = typeof from === 'undefined' ? decodeFrom() : from;
+  let url = typeof from === 'undefined' ? decodeFrom() : from;
   url ? window.location = url : window.history.back();
 }
 

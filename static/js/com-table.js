@@ -5,28 +5,28 @@
 
 // 排序
 $('.sty-table .sort').click(function () {
-  var direction = $(this).find('span').hasClass('icon-triangle-up') ? '-' : '';
+  let direction = $(this).find('span').hasClass('icon-triangle-up') ? '-' : '';
   location.href = setQueryString('order', direction + $(this).attr('title'));
 });
 
 // 过滤
 $('.btn-filter').click(function () {
-  var title = $(this).attr('title').trim();
+  let title = $(this).attr('title').trim();
   location.href = setQueryString(title.split('=')[0], title.split('=')[1])
 });
 
 // 搜索
 $('#search-input').on("keydown", function (event) {
-  var keyCode = event.keyCode || event.which;
+  let keyCode = event.keyCode || event.which;
   if (keyCode === 13) {
-    var q = $(this).val().trim();
+    let q = $(this).val().trim();
     location = location.pathname + (q === '' ? '' : "?q=" + q);
   }
 });
 
 // 全选
 $('#check-all').click(function () {
-  var $items = $("tr [type='checkbox']");
+  let $items = $("tr [type='checkbox']");
   if (!this.checked)
     $items.removeAttr('checked');
   else
@@ -41,8 +41,8 @@ $('#configModal .modal-confirm').click(function () {
   $.map($('#configModal :checkbox:checked'), function (item) {
     $('.sty-table .' + $(item).attr('title')).removeClass('hide');
   });
-  var data = {};
-  var key = location.pathname.substr(1).replace(/[\/\-]/g, '_');
+  let data = {};
+  let key = location.pathname.substr(1).replace(/[\/\-]/g, '_');
   data[key] = $.map($('#configModal :not(:checked)'), function (item) {
     return $(item).attr('title');
   });
@@ -64,7 +64,7 @@ function setModal(modal, info, fields) {
             $(obj).removeAttr('checked');
         });
       } else {
-        var value = info[item.id];
+        let value = info[item.id];
         value = typeof value === 'object' ? JSON.stringify(value) : value;
         modal.find('.' + item.id).val(value);
       }
@@ -73,7 +73,7 @@ function setModal(modal, info, fields) {
 }
 
 function getModal(modal, fields) {
-  var info = {};
+  let info = {};
   fields.forEach(function (item) {
     if ('input_type' in item && item['input_type'] === 'checkbox') {
       info[item.id] = $.map(modal.find('.' + item.id + ' :checked'), function (item) {
@@ -126,13 +126,13 @@ function toggleModal(modal, fields, disabled) {
 }
 
 function getData(id) {
-  var data = parseJSON($('#' + id).find('.info').text());
+  let data = parseJSON($('#' + id).find('.info').text());
   data['_id'] = id;
   return data;
 }
 
-var $modal = $('#updateModal');
-var fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_id'});
+let $modal = $('#updateModal');
+let fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_id'});
 
 // 新增-弹框
 $('.btn-add').click(function () {
@@ -145,12 +145,12 @@ $('.btn-add').click(function () {
 
 // 查看-弹框
 $('.btn-view').click(function () {
-  var id = $(this).parent().parent().attr('id');
+  let id = $(this).parent().parent().attr('id');
   if ($(this).attr('url')) {
     location.href = $(this).attr('url').replace('@id', id);
   } else {
-    var data = getData(id);
-    var title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
+    let data = getData(id);
+    let title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
     $modal.find('.modal-title').html(title);
     toggleModal($modal, fields, true);
     setModal($modal, data, fields);
@@ -160,9 +160,9 @@ $('.btn-view').click(function () {
 
 // 修改-弹框
 $('.btn-update').click(function () {
-  var id = $(this).parent().parent().attr('id');
-  var data = getData(id);
-  var title = 'name' in data ? '修改数据/' + data.name : '修改数据';
+  let id = $(this).parent().parent().attr('id');
+  let data = getData(id);
+  let title = 'name' in data ? '修改数据/' + data.name : '修改数据';
   $modal.find('.update-url').val($(this).attr('url') || location.pathname);
   $modal.find('.modal-title').html(title);
   toggleModal($modal, fields, false);
@@ -172,7 +172,7 @@ $('.btn-update').click(function () {
 
 // 新增/修改-提交
 $("#updateModal .modal-confirm").click(function () {
-  var data = getModal($modal, fields);
+  let data = getModal($modal, fields);
   postApi($modal.find('.update-url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已提交。', 2000);
     refresh(2000);
@@ -183,10 +183,10 @@ $("#updateModal .modal-confirm").click(function () {
 
 // 删除
 $('.btn-remove').click(function () {
-  var id = $(this).parent().parent().attr('id');
-  var data = getData(id);
-  var name = 'name' in data ? data.name : '';
-  var url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
+  let id = $(this).parent().parent().attr('id');
+  let data = getData(id);
+  let name = 'name' in data ? data.name : '';
+  let url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_id: data._id}}, function (res) {
       if (res.count) {
@@ -203,12 +203,12 @@ $('.btn-remove').click(function () {
 
 // 批量删除
 $('.operation .bat-remove').click(function () {
-  var ids = $.map($('table tbody :checked'), function (item) {
+  let ids = $.map($('table tbody :checked'), function (item) {
     return $(item).parent().parent().attr('id');
   });
   if (!ids.length)
     return showTips('提示', '当前没有选中任何记录', 3000);
-  var url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
+  let url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_ids: ids}}, function (res) {
       if (res.count) {

@@ -4,8 +4,8 @@
  */
 // 更新文字校对历史
 function updateTxtLogs(logs) {
-  var html3 = (logs || []).map(function (log) {
-    var meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
+  let html3 = (logs || []).map(function (log) {
+    let meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
     meta += log.nor_txt ? `<label>正字</label><span>${log.nor_txt}</span><br/>` : '';
     meta += log.txt_type ? `<label>类型</label><span>${txtTypes[log.txt_type] || ''}</span><br/>` : '';
     meta += log.remark ? `<label>备注</label><span>${log.remark}</span><br/>` : '';
@@ -20,11 +20,11 @@ function updateTxtLogs(logs) {
 
 // 更新切分校对历史
 function updateBoxLogs(logs) {
-  var html2 = (logs || []).map(function (log) {
-    var pos = ['x', 'y', 'w', 'h'].map(function (item) {
+  let html2 = (logs || []).map(function (log) {
+    let pos = ['x', 'y', 'w', 'h'].map(function (item) {
       return item + ':' + (log[item] || log.pos[item] || '');
     }).join(', ');
-    var meta = log.pos ? `<label>坐标</label><span>${pos}</span><br/>` : '';
+    let meta = log.pos ? `<label>坐标</label><span>${pos}</span><br/>` : '';
     meta += log.username ? `<label>校对人</label><span>${log.username}</span><br/>` : '';
     meta += log.create_time ? `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>` : '';
     meta += log.updated_time ? `<label>更新时间</label><span>${toLocalTime(log.updated_time)}</span><br/>` : '';
@@ -46,7 +46,7 @@ function updateBaseInfo(ch) {
 // 更新字符编辑面板
 function updateCharTxtPanel(ch) {
   // 更新候选字列表
-  var html1 = ch.ocr_col && ch.ocr_col !== '■' ? `<span class="txt-item ocr-col${ch.ocr_col === ch.txt ? ' active' : ''}">${ch.ocr_col}</span>` : '';
+  let html1 = ch.ocr_col && ch.ocr_col !== '■' ? `<span class="txt-item ocr-col${ch.ocr_col === ch.txt ? ' active' : ''}">${ch.ocr_col}</span>` : '';
   html1 += ch.cmp_txt && ch.cmp_txt !== '■' ? `<span class="txt-item cmp-txt${ch.cmp_txt === ch.txt ? ' active' : ''}">${ch.cmp_txt}</span>` : '';
   html1 += (ch.alternatives || '').split('').map(function (c, n) {
     return `<span class="txt-item${n ? '' : ' ocr-char'}${c === ch.txt ? ' active' : ''}">${c}</span>`;
@@ -88,8 +88,8 @@ $(document).on('click', '.txt-item', function () {
 // 提交文字修改
 $('#submit-txt').on('click', function () {
   if ($(this).hasClass('disabled')) return;
-  var name = $('.char-edit .current-name').val();
-  var data = {
+  let name = $('.char-edit .current-name').val();
+  let data = {
     task_type: taskType || '',
     txt: $('.proof .txt').val() || '',
     nor_txt: $('.proof .nor-txt').val() || '',
@@ -110,11 +110,11 @@ $('#submit-txt').on('click', function () {
     updateTxtLogs(res.txt_logs);
     updateBaseInfo(chars[name]);
     // 更新字图列表
-    var $curItem = $('#' + name);
+    let $curItem = $('#' + name);
     if ($curItem.length) {
       $curItem.find('.txt').text(data.txt);
-      var index = $curItem.attr('class').search(/proof\d/);
-      var no = $curItem.attr('class').substr(index + 5, 1);
+      let index = $curItem.attr('class').search(/proof\d/);
+      let no = $curItem.attr('class').substr(index + 5, 1);
       $curItem.removeClass('proof' + no).addClass('proof' + res.txt_logs.length);
     }
   });

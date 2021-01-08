@@ -18,10 +18,10 @@ $('#btn-not-know').on('click', () => location.href = setQueryString('txt_type', 
 
 // 按置信度过滤
 $('#btn-filter').on('click', function () {
-  var start = $('#filter-start').val();
+  let start = $('#filter-start').val();
   if (start && start.match(/^(0\.\d+|0|1|1\.0)$/) === null)
     return showTips('提示', '起始值不符合要求', 3000);
-  var end = $('#filter-end').val();
+  let end = $('#filter-end').val();
   if (end && end.match(/^(0\.\d+|0|1|1\.0)$/) === null)
     return showTips('提示', '终止值不符合要求', 3000);
   if (!start.length && !end.length)
@@ -47,15 +47,15 @@ $('#bat-select').on('click', function () {
 
 // 检索异体字
 $('#search-variant').on('keydown', function (event) {
-  var keyCode = event.keyCode || event.which;
+  let keyCode = event.keyCode || event.which;
   if (keyCode === 13) {
-    var q = $(this).val().trim();
+    let q = $(this).val().trim();
     if (q.length)
       window.open('http://hanzi.lqdzj.cn/variant_search?q=' + q, '_blank');
   }
 });
 $('#icon-search').on('click', function () {
-  var q = $('#search-variant').val().trim();
+  let q = $('#search-variant').val().trim();
   if (q.length)
     window.open('http://hanzi.lqdzj.cn/variant_search?q=' + q, '_blank');
 });
@@ -84,7 +84,7 @@ $('#toggle-work-panel').on('click', function () {
 /** 左侧字图列表 */
 // 切换字种
 $('.txt-kind').on('click', function () {
-  var txt = $(this).attr('data-value') || $(this).text().trim();
+  let txt = $(this).attr('data-value') || $(this).text().trim();
   location.href = txt ? deleteParam(setQueryString('txt', txt), 'page') : location.pathname;
 });
 
@@ -92,8 +92,8 @@ $('.txt-kind').on('click', function () {
 $('.char-panel .char-img').on('click', function () {
   $('.char-items .current').removeClass('current');
   $(this).parent().addClass('current');
-  var id = $(this).parent().attr('data-id');
-  var ch = chars[id] || {};
+  let id = $(this).parent().attr('data-id');
+  let ch = chars[id] || {};
   updateColumnImg(ch);
   updateCharTxtPanel(ch);
 });
@@ -108,14 +108,14 @@ $('.char-check input').on('click', function (e) {
 
 /** 中间列图面板 */
 // 更新列图
-var paper, charBox, getBox;
+let paper, charBox, getBox;
 
 function updateColumnImg(ch) {
-  var column = ch.column; // 列框
-  var columnImg = $('#col-holder'); // 列框容器DIV
-  var ratio = Math.min(columnImg.height() / column.h, 108 / column.w);  // 列图显示比例
-  var imgName = ch['page_name'] + '_' + ch.column.cid;  // 列图文件名
-  var columnUrl = ch.column.img_url + '?t=' + (+new Date()); // 列图URL
+  let column = ch.column; // 列框
+  let columnImg = $('#col-holder'); // 列框容器DIV
+  let ratio = Math.min(columnImg.height() / column.h, 108 / column.w);  // 列图显示比例
+  let imgName = ch['page_name'] + '_' + ch.column.cid;  // 列图文件名
+  let columnUrl = ch.column.img_url + '?t=' + (+new Date()); // 列图URL
 
   if ($.cut) {
     $.cut.create({
@@ -130,7 +130,7 @@ function updateColumnImg(ch) {
     });
     $.cut.bindKeys();
     getBox = function () {
-      var c = $.cut.exportBoxes()[0];
+      let c = $.cut.exportBoxes()[0];
       ch._boxChanged = ch._boxChanged ||
           Math.abs(c.x + column.x - ch.pos.x) > 1 || Math.abs(c.y + column.y - ch.pos.y) > 1 ||
           Math.abs(ch.pos.w - c.w) > 1 || Math.abs(ch.pos.h - c.h) > 1;
@@ -161,13 +161,13 @@ function updateColumnImg(ch) {
 
 // 提交字框修改
 $('#submit-box').on('click', function () {
-  var name = $('.char-edit .current-name').val();
-  var data = {'pos': getBox()['pos'], 'task_type': taskType};
+  let name = $('.char-edit .current-name').val();
+  let data = {'pos': getBox()['pos'], 'task_type': taskType};
   postApi('/page/char/box/' + name, {data: data}, function (res) {
     bsShow('成功！', '已保存成功', 'success', 1000);
     updateBoxLogs(res.box_logs);
     if (res.img_url) {  // 已更新字图
-      var $img = $('.char-item#' + name + ' img');
+      let $img = $('.char-item#' + name + ' img');
       if ($img.length) {
         $img.attr('src', res.img_url);
       }
@@ -180,10 +180,10 @@ $('#submit-box').on('click', function () {
 $('.m-footer .page-name').on('click', function () {
   if ($(this).hasClass('disabled'))
     return;
-  var url = '/page/' + $(this).text() + '?txt=off';
-  var charName = $('.m-footer .char-name').text();
+  let url = '/page/' + $(this).text() + '?txt=off';
+  let charName = $('.m-footer .char-name').text();
   if (typeof charName !== 'undefined' && charName !== '未选中') {
-    var cid = charName.split('_').pop();
+    let cid = charName.split('_').pop();
     url += '&cid=' + cid;
   }
   window.open(url, '_blank');
@@ -191,12 +191,12 @@ $('.m-footer .page-name').on('click', function () {
 
 // 查看char页面
 $('.m-footer .char-name').on('click', function () {
-  var charName = $(this).text();
+  let charName = $(this).text();
   if ($(this).hasClass('disabled') || charName === '未选中')
     return;
   if (charName.indexOf('#') > -1) {
-    var cid = charName.split('#').pop();
-    var pageName = $('.m-footer .page-name').text();
+    let cid = charName.split('#').pop();
+    let pageName = $('.m-footer .page-name').text();
     charName = pageName + '_' + cid;
   }
   window.open('/char/' + charName, '_blank');

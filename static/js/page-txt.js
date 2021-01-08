@@ -5,20 +5,20 @@
 
 
 /** 1. 根据字框，高亮切分框、浮动面板，设置文本当前行*/
-var showText = false;                     // 是否显示字框对应文字
-var showOrder = false;                    // 是否显示字框对应序号
-var showBlockBox = false;                 // 是否显示栏框切分坐标
-var showColumnBox = false;                // 是否显示列框切分坐标
+let showText = false;                     // 是否显示字框对应文字
+let showOrder = false;                    // 是否显示字框对应序号
+let showBlockBox = false;                 // 是否显示栏框切分坐标
+let showColumnBox = false;                // 是否显示列框切分坐标
 $.cut.onBoxChanged(function (char, box, reason) {
   if (reason === 'navigate' && char.column_no) {
     // 按字序号浮动亮显当前行的字框
-    var $line = getLine(char.block_no, char.column_no);
-    var text = getLineText($line);
-    var all = $.cut.findCharsByLine(char.block_no, char.column_no);
+    let $line = getLine(char.block_no, char.column_no);
+    let text = getLineText($line);
+    let all = $.cut.findCharsByLine(char.block_no, char.column_no);
     // 如果字框对应的文本行不是当前行，则更新相关设置
-    var currentLineNo = getLineNo($('.current-span').parent());
+    let currentLineNo = getLineNo($('.current-span').parent());
     if (currentLineNo !== char.column_no) {
-      var $firstSpan = $line.find('span:first-child');
+      let $firstSpan = $line.find('span:first-child');
       currentSpan = [$firstSpan, true];
     }
     $.cut.removeBandNumber(0, true);
@@ -26,10 +26,10 @@ $.cut.onBoxChanged(function (char, box, reason) {
     $.cut.showFloatingPanel(
         (showOrder || showText) ? all : [],
         function (char, index) {
-          var no = showOrder ? char.char_no : '';
-          var txt = !text[index] ? '？' : showText ? text[index] : '';
-          // var cc = char.cc || 1;
-          // var same = !char.ocr_txt || text[index] === char.ocr_txt || cc < 0.35;
+          let no = showOrder ? char.char_no : '';
+          let txt = !text[index] ? '？' : showText ? text[index] : '';
+          // let cc = char.cc || 1;
+          // let same = !char.ocr_txt || text[index] === char.ocr_txt || cc < 0.35;
           // return no + txt + (showText ? (same && (cc > 0.5 || cc < 0.35) ? '' : same ? '？' : char.ocr_txt) : '');
           return no + txt;
         },
@@ -64,8 +64,8 @@ function getLineNo(line) {
 }
 
 function findBestBoxes(offset, block_no, column_no, cmp) {
-  var ret;
-  var minNo = 10;
+  let ret;
+  let minNo = 10;
   $.cut.findCharsByLine(block_no, column_no, function (ch, box) {
     if (cmp(ch)) {
       if (minNo > Math.abs(offset + 1 - box.char_no)) {
@@ -88,12 +88,12 @@ function getSpanText($span, chars) {
     if ($(el).css('display') === 'none') {
       return;
     }
-    var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
+    let text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
     if ($(el).hasClass('variant')) {
       chars = chars.concat(text.split(''));  // chars.push($(el).text());
     } else {
-      var mb4Chars = ($(el).attr('utf8mb4') || '').split(',');
-      var mb4Map = {}, order = 'a', c;
+      let mb4Chars = ($(el).attr('utf8mb4') || '').split(',');
+      let mb4Map = {}, order = 'a', c;
       mb4Chars.forEach(function (mb4Char) {
         if (mb4Char && text.indexOf(mb4Char) !== -1) {
           mb4Map[order] = mb4Char;
@@ -112,10 +112,10 @@ function getSpanText($span, chars) {
 
 // 获取当前光标位置、当前选中高亮文本范围在当前span的开始位置
 function getCursorPosition(element) {
-  var caretOffset = 0;
-  var doc = element.ownerDocument || element.document;
-  var win = doc.defaultView || doc.parentWindow;
-  var sel, range, preCaretRange;
+  let caretOffset = 0;
+  let doc = element.ownerDocument || element.document;
+  let win = doc.defaultView || doc.parentWindow;
+  let sel, range, preCaretRange;
   if (typeof win.getSelection !== 'undefined') {    // 谷歌、火狐
     sel = win.getSelection();
     if (sel.rangeCount > 0) {                       // 选中的区域
@@ -129,36 +129,36 @@ function getCursorPosition(element) {
     preCaretRange.setEndPoint('EndToEnd', range);
     caretOffset = preCaretRange.text.replace(/[YMN]/g, '').length;
   }
-  var txt = $('.current-span').text().substr(0, caretOffset);
+  let txt = $('.current-span').text().substr(0, caretOffset);
   return txt.replace(/[YMN]/g, '').length;
 }
 
 // 点击文字区域时，高亮与文字对应的字框
-var offsetInSpan = null;                  // 当前选中范围开始位置
-var currentSpan = [null];                 // [当前span, 是否第一个]
+let offsetInSpan = null;                  // 当前选中范围开始位置
+let currentSpan = [null];                 // [当前span, 是否第一个]
 function highlightBox($span, first, keyCode) {
   $span = $span || currentSpan[0];
   first = first || currentSpan[1];
   if (!$span)
     return;
 
-  var $line = $span.parent();
-  var line_no = getLineNo($line);
-  var $block = $line.parent();
-  var block_no = getBlockNo($block);
-  var offset0 = parseInt($span.attr('offset') || 0);
+  let $line = $span.parent();
+  let line_no = getLineNo($line);
+  let $block = $line.parent();
+  let block_no = getBlockNo($block);
+  let offset0 = parseInt($span.attr('offset') || 0);
   offsetInSpan = offsetInSpan ? offsetInSpan : getCursorPosition($span[0]);
   offsetInSpan = offsetInSpan + (keyCode === 39 ? 1 : keyCode === 37 ? -1 : 0);
   offsetInSpan = offsetInSpan || 1;
-  var offsetInLine = offsetInSpan + offset0;
-  var ocrCursor = ($span.attr('base') || '')[offsetInSpan];
-  var cmp1Cursor = ($span.attr('cmp1') || '')[offsetInSpan];
-  var text = $span.text().replace(/\s/g, '');
+  let offsetInLine = offsetInSpan + offset0;
+  let ocrCursor = ($span.attr('base') || '')[offsetInSpan];
+  let cmp1Cursor = ($span.attr('cmp1') || '')[offsetInSpan];
+  let text = $span.text().replace(/\s/g, '');
 
-  var i, chTmp, cmp_ch;
+  let i, chTmp, cmp_ch;
 
   // 根据文字序号寻找序号对应的字框
-  var boxes = $.cut.findCharsByOffset(block_no, line_no, offsetInLine);
+  let boxes = $.cut.findCharsByOffset(block_no, line_no, offsetInLine);
   // 根据文字的栏列号匹配到字框的列，然后根据文字精确匹配列中的字框
   if (!boxes.length)
     boxes = $.cut.findCharsByLine(block_no, line_no, function (ch) {
@@ -212,7 +212,7 @@ $(document).on('mouseup', '.line > span', function () {
 });
 
 $(document).on('keydown', '.line > span', function (e) {
-  var keyCode = e.keyCode || e.which;
+  let keyCode = e.keyCode || e.which;
   highlightBox($(this), false, keyCode);
 });
 
@@ -220,14 +220,14 @@ $(document).on('keydown', '.line > span', function (e) {
 /** 3.文本比对弹框相关代码*/
 function setDialogLabel(labels) {
   $('#dlg-items').html(labels.map(function (label, i) {
-    var key = i ? 'cmp' + i : 'base';
+    let key = i ? 'cmp' + i : 'base';
     return `<dl class="item"><dt>${label}</dt><dd class="text option" id="dlg-${key}"></dd></dl>`;
   }).join(''));
 }
 
 function resetDialogClass() {
-  var base = $("#dlg-base").text(), cmp1 = $("#dlg-cmp1").text();
-  var cmp2 = $("#dlg-cmp2").text(), select = $("#dlg-select").text();
+  let base = $("#dlg-base").text(), cmp1 = $("#dlg-cmp1").text();
+  let cmp2 = $("#dlg-cmp2").text(), select = $("#dlg-select").text();
   $("#dlg-base").toggleClass('same-base', base === select);
   $("#dlg-cmp1").toggleClass('same-base', cmp1 === select);
   $("#dlg-cmp2").toggleClass('same-base', cmp2 === select);
@@ -249,7 +249,7 @@ $(document).on('click', '.diff, .same', function () {
 });
 
 // 双击同文、异文
-var $dlg = $('#pfread-dialog');
+let $dlg = $('#pfread-dialog');
 $(document).on('dblclick', '.diff, .same', function (e) {
   e.stopPropagation();
   // 1.设置当前异文
@@ -266,26 +266,26 @@ $(document).on('dblclick', '.diff, .same', function (e) {
   // 3.设置弹框位置
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
   // - 当弹框超出文字框时，向上弹出
-  var o_t = $dlg.offset().top;
-  var r_h = $("#cmp-html").height();
-  var d_h = $('.dialog-abs').height();
+  let o_t = $dlg.offset().top;
+  let r_h = $("#cmp-html").height();
+  let d_h = $('.dialog-abs').height();
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
   if (o_t + d_h > r_h) {
     $dlg.offset({top: $(this).offset().top - 5 - $dlg.height()});
     $('.dialog-abs').removeClass('dialog-common').addClass('dialog-common-t');
   }
   // - 当弹框右边出界时，向左移动
-  var offset = 0;
-  var o_l = $dlg.offset().left;
-  var d_r = $dlg[0].getBoundingClientRect().right;
-  var r_w = $dlg.parent()[0].getBoundingClientRect().right;
+  let offset = 0;
+  let o_l = $dlg.offset().left;
+  let d_r = $dlg[0].getBoundingClientRect().right;
+  let r_w = $dlg.parent()[0].getBoundingClientRect().right;
   if (d_r > r_w - 20) {
     offset = r_w - d_r - 20;
     $dlg.offset({left: o_l + offset});
   }
   // - 设置弹框小箭头
-  var $mark = o_t + d_h > r_h ? $dlg.find('.dlg-after') : $dlg.find('.dlg-before');
-  var ml = $mark.attr('last-left') || $mark.css('marginLeft');
+  let $mark = o_t + d_h > r_h ? $dlg.find('.dlg-after') : $dlg.find('.dlg-before');
+  let ml = $mark.attr('last-left') || $mark.css('marginLeft');
   $mark.attr('last-left', ml).css('marginLeft', parseInt(ml) - offset);
 });
 
@@ -359,17 +359,17 @@ $(document).on('click', '#btn-work-text', function () {
 
 $(document).on('click', '#btn-work-html', function () {
   if (typeof txtFields === 'undefined') return;
-  var $workText = $('#work-text textarea');
+  let $workText = $('#work-text textarea');
   if ($workText.text().trim() === $workText.val().trim()) {
     return showTxt('work-html');
   }
 
   // 用工作文本替代底本与比对文本比对
-  var texts = txtFields.map((txt) => getText('#text-' + txt));
+  let texts = txtFields.map((txt) => getText('#text-' + txt));
   texts[0] = $workText.val();
-  var hints = $.map($('#work-html .selected'), function (i) {
-    var lineNo = getLineNo($(i).parent());
-    var blockNo = getBlockNo($(i).parent().parent());
+  let hints = $.map($('#work-html .selected'), function (i) {
+    let lineNo = getLineNo($(i).parent());
+    let blockNo = getBlockNo($(i).parent().parent());
     return {line_no: lineNo, block_no: blockNo, base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')}
   });
   postApi('/page/txt/diff', {data: {texts: texts, hints: hints}}, function (res) {
@@ -388,16 +388,16 @@ $('.btn-show-txt').on('click', function () {
 
 // 重新比对
 $('#btn-cmp-txt').on('click', function () {
-  var base = $('.cmp-menu .base-txt :checked').val();
+  let base = $('.cmp-menu .base-txt :checked').val();
   if (!base)
     return showTips('提示', '请选择底本', 3000);
-  var cmps = $.map($('.cmp-menu .cmp-txt :checked'), (item) => {
+  let cmps = $.map($('.cmp-menu .cmp-txt :checked'), (item) => {
     if ($(item).val() && $(item).val() !== base)
       return $(item).val();
   });
   if (!cmps.length)
     return showTips('提示', '请选择校本', 3000);
-  var texts = [base].concat(cmps).map((field) => getText('#text-' + field));
+  let texts = [base].concat(cmps).map((field) => getText('#text-' + field));
   postApi('/page/txt/diff', {data: {texts: texts}}, function (res) {
     $('.cmp-txt .dropdown-menu').hide();
     $('#work-html .blocks').html(res['cmp_data']);
@@ -412,7 +412,7 @@ $('#btn-cmp-txt').on('click', function () {
 /** 存疑相关代码 */
 // 点击存疑，弹出对话框
 $('#save-doubt').on('click', function () {
-  var txt = window.getSelection ? window.getSelection().toString() : '';
+  let txt = window.getSelection ? window.getSelection().toString() : '';
   if (!txt.length || !currentSpan[0]) {
     return showTips('提示', '请先选择存疑文字', 3000);
   }
@@ -423,17 +423,17 @@ $('#save-doubt').on('click', function () {
 
 // 存疑对话框，点击确认
 $('#doubtModal .modal-confirm').on('click', function () {
-  var reason = $('#doubtModal .doubt_reason').val().trim();
+  let reason = $('#doubtModal .doubt_reason').val().trim();
   if (reason.length <= 0)
     return showTips('提示', '请填写存疑理由', 3000);
-  var txt = $('#doubtModal .doubt_input').val().trim();
-  var $span = $('.current-span');
-  var offset0 = parseInt($span.attr('offset') || 0);
-  var offsetInLine = offsetInSpan + offset0;
-  var lineId = $span.parent().attr('id');
+  let txt = $('#doubtModal .doubt_input').val().trim();
+  let $span = $('.current-span');
+  let offset0 = parseInt($span.attr('offset') || 0);
+  let offsetInLine = offsetInSpan + offset0;
+  let lineId = $span.parent().attr('id');
   if (!lineId)
     return showTips('提示', '请先在文本区内选择文本', 3000);
-  var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
+  let line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
       "</td><td class='del-doubt'><i class='icon-bin'></i></td></tr>";
@@ -447,7 +447,7 @@ $('#doubtModal .modal-confirm').on('click', function () {
 // 切换存疑列表
 $('.doubt-list .toggle-tab').on('click', function () {
   $(this).addClass('active').siblings().removeClass('active');
-  var index = $('.doubt-list .toggle-tab').index($(this));
+  let index = $('.doubt-list .toggle-tab').index($(this));
   $('.doubt-list .char-list-table').removeClass('active').eq(index).addClass('active');
 });
 
@@ -463,9 +463,9 @@ $(document).on('click', '.del-doubt', function () {
 });
 
 function findSpanByOffset($li, offset) {
-  var ret = [null, 0];
+  let ret = [null, 0];
   $li.find('span').each(function (i, item) {
-    var off = parseInt($(item).attr('offset'));
+    let off = parseInt($(item).attr('offset'));
     if (i === 0) {
       ret = [$(this), offset]
     } else if (off <= offset) {
@@ -476,7 +476,7 @@ function findSpanByOffset($li, offset) {
 }
 
 function highlightInSpan(startNode, startOffset, endOffset) {
-  var text = startNode.innerText;
+  let text = startNode.innerText;
   $(startNode).html(text.substring(0, startOffset) + '<b style="color: #f00">' +
       text.substring(startOffset, endOffset) + '</b>' + text.substring(endOffset));
   setTimeout(function () {
@@ -486,9 +486,9 @@ function highlightInSpan(startNode, startOffset, endOffset) {
 
 // 点击存疑列表，对应行blink
 $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
-  var $tr = $(this), id = $tr.attr('data'), $li = $('#' + id);
-  var pos = findSpanByOffset($li, parseInt($tr.attr('data-offset')));
-  var txt = $tr.find('td:nth-child(3)').text();
+  let $tr = $(this), id = $tr.attr('data'), $li = $('#' + id);
+  let pos = findSpanByOffset($li, parseInt($tr.attr('data-offset')));
+  let txt = $tr.find('td:nth-child(3)').text();
   $('#cmp-html').animate({scrollTop: $li.offset().top}, 100);
   if (pos[0]) {
     highlightInSpan(pos[0][0], pos[1], pos[1] + txt.length);
@@ -500,12 +500,12 @@ $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
 /** 图文匹配相关代码 */
 // 检查图文匹配
 function checkMismatch(report, fromApi) {
-  var mismatch = [];
-  var lineCountMisMatch = '', ocrColumns = [];
+  let mismatch = [];
+  let lineCountMisMatch = '', ocrColumns = [];
   // 文本区每行的栏号和列号
-  var lineNos = $('#cmp-html .line').map(function (i, line) {
-    var blockNo = getBlockNo($(line).parent());
-    var lineNo = getLineNo($(line));
+  let lineNos = $('#cmp-html .line').map(function (i, line) {
+    let blockNo = getBlockNo($(line).parent());
+    let lineNo = getLineNo($(line));
     return {blockNo: blockNo, lineNo: lineNo};
   }).get();
   if (!fromApi) {
@@ -516,7 +516,7 @@ function checkMismatch(report, fromApi) {
   // ocrColumns: 从字框提取所有列（栏号和列号）
   $.cut.data.chars.forEach(function (c) {
     if (c.shape && c.column_no && (!c.class || c.class === 'char')) {
-      var t = c.block_no + ',' + c.column_no;
+      let t = c.block_no + ',' + c.column_no;
       if (ocrColumns.indexOf(t) < 0) {
         ocrColumns.push(t);
       }
@@ -528,10 +528,10 @@ function checkMismatch(report, fromApi) {
     mismatch.splice(0, 0, lineCountMisMatch);
   }
   lineNos.forEach(function (no) {
-    var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
-    var $line = getLine(no.blockNo, no.lineNo);
-    var text = getLineText($line);
-    var len = text.length;
+    let boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
+    let $line = getLine(no.blockNo, no.lineNo);
+    let text = getLineText($line);
+    let len = text.length;
     $line.toggleClass('mismatch', boxes.length !== len);
     if (boxes.length === len) {
       $line.removeAttr('mismatch');
@@ -553,8 +553,8 @@ function checkMismatch(report, fromApi) {
   $.cut.updateText && $.cut.updateText();
   if (report) {
     if (mismatch.length) {
-      var text = mismatch.map(function (t) {
-        var ts = t.split('#');
+      let text = mismatch.map(function (t) {
+        let ts = t.split('#');
         return '<li><span class="head">' + ts[0] + ':</span><span>' + ts[1] + '</span><span>' + ts[2] + '</span></li>';
       }).join('');
       text = '<ul class="match-tips">' + text + '</ul>';
@@ -567,24 +567,24 @@ function checkMismatch(report, fromApi) {
 
 // 调用后台API，根据文本行内容识别宽字符
 function updateWideChars(lineNos, ended) {
-  var texts = [];
+  let texts = [];
   lineNos.forEach(function (no) {
-    var $line = getLine(no.blockNo, no.lineNo);
-    var spans = [];
+    let $line = getLine(no.blockNo, no.lineNo);
+    let spans = [];
     texts.push(spans);
     $line.find('span').each(function (i, el) {
       if ($(el).parent().prop('tagName') === 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
-        var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
+        let text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
         spans.push(text);
       }
     });
   });
   postApi('/page/txt/detect_chars', {data: {texts: texts}}, function (res) {
     lineNos.forEach(function (no, lineIdx) {
-      var $line = getLine(no.blockNo, no.lineNo);
+      let $line = getLine(no.blockNo, no.lineNo);
       $line.find('span').each(function (i, el) {
         if ($(el).parent().prop('tagName') === 'LI') {
-          var mb4 = res.data[lineIdx][i];
+          let mb4 = res.data[lineIdx][i];
           $(el).attr('utf8mb4', mb4);
         }
       });
@@ -602,6 +602,6 @@ $('#check-match').on('click', function () {
 // 粘贴时去掉格式
 $(document).on('paste', 'span', function (e) {
   e.preventDefault();
-  var text = e.originalEvent.clipboardData.getData('text/plain');
+  let text = e.originalEvent.clipboardData.getData('text/plain');
   document.execCommand('insertHTML', false, text);
 });

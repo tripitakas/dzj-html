@@ -7,20 +7,20 @@
 
 // 高度自适应
 $(document).ready(function () {
-  var h = $(document.body).height();
+  let h = $(document.body).height();
   $('#main-left').height(h);
   $('#main-right').height(h);
 });
 
 $(window).resize(function () {
-  var h = $(document.body).height();
+  let h = $(document.body).height();
   $('#main-left').height(h);
   $('#main-right').height(h);
 });
 
 // 显隐左侧目录
 $(document).on('click', '#toggle-menu', function () {
-  var $menu = $('#left-menu');
+  let $menu = $('#left-menu');
   $menu.toggleClass('hide');
   if ($menu.hasClass('hide')) {
     $('#main-right .m-header').css('left', 0);
@@ -49,14 +49,14 @@ $('.m-pager .btn-page:not(.to)').click(function () {
 
 // 跳转第n页
 $('.m-pager .btn-page.to').on("keydown", function (event) {
-  var keyCode = event.keyCode || event.which;
+  let keyCode = event.keyCode || event.which;
   if (keyCode === 13) {
     jump($('.m-pager .btn-page.to input').val());
   }
 });
 
 function jump(page) {
-  var curVolume = $('#cur-volume').text();
+  let curVolume = $('#cur-volume').text();
   if (curVolume && page) {
     window.location = '/tripitaka/' + curVolume + '_' + page;
   }
@@ -66,7 +66,7 @@ function jump(page) {
 $('#txtModal .btn-txt').click(function () {
   $(this).removeClass('btn-default').addClass('btn-primary');
   $(this).siblings().removeClass('btn-primary').addClass('btn-default');
-  var txtType = $(this).attr('id').replace('show-', '');
+  let txtType = $(this).attr('id').replace('show-', '');
   if (txtType === 'all')
     $('#txtModal textarea').show();
   else
@@ -95,8 +95,8 @@ $.mapKey('shift+right', function () {
 
 // 增加文本字号
 $(document).on('click', '#enlarge-font', function () {
-  var $div = $('.content-right .page-text');
-  var size = parseInt($div.css('font-size'));
+  let $div = $('.content-right .page-text');
+  let size = parseInt($div.css('font-size'));
   if (size < 36) {
     size++;
     $div.css('font-size', size + 'px');
@@ -105,8 +105,8 @@ $(document).on('click', '#enlarge-font', function () {
 
 // 减少文本字号
 $(document).on('click', '#reduce-font', function () {
-  var $div = $('.content-right .page-text');
-  var size = parseInt($div.css('font-size'));
+  let $div = $('.content-right .page-text');
+  let size = parseInt($div.css('font-size'));
   if (size > 8) {
     size--;
     $div.css('font-size', size + 'px');
@@ -125,7 +125,7 @@ $('.main-left').on('click', '.leaf', function () {
 
 // 回车检索
 $('.menu-search-wrapper').on("keydown", ".menu-search-input", function (event) {
-  var keyCode = event.keyCode || event.which;
+  let keyCode = event.keyCode || event.which;
   if (keyCode === 13) {
     $(".menu-search-wrapper .menu-search-btn").click();
     event.preventDefault();
@@ -135,8 +135,8 @@ $('.menu-search-wrapper').on("keydown", ".menu-search-input", function (event) {
 // 检索目录
 $(".menu-search-wrapper").on('click', '.menu-search-btn', function () {
   $("#side-menu .sub-ul").addClass('sub-ul-hidden');
-  var inputval = new RegExp($(".menu-search-wrapper .menu-search-input").val().trim(), "i");
-  var selections = $("#side-menu").find('.menu-item');
+  let inputval = new RegExp($(".menu-search-wrapper .menu-search-input").val().trim(), "i");
+  let selections = $("#side-menu").find('.menu-item');
   selections.each(function () {
     if ($(this).text().match(inputval)) {
       $(this).show();
@@ -148,7 +148,7 @@ $(".menu-search-wrapper").on('click', '.menu-search-btn', function () {
 
 // 检索目录
 $('.menu-search-wrapper').on("keydown", ".menu-search-input", function (event) {
-  var keyCode = event.keyCode || event.which;
+  let keyCode = event.keyCode || event.which;
   if (keyCode === 13) {
     $(".menu-search-wrapper .menu-search-btn").click();
     event.preventDefault();
@@ -156,10 +156,10 @@ $('.menu-search-wrapper').on("keydown", ".menu-search-input", function (event) {
 });
 
 // 全局经目信息
-var sutra_maps = [];
+let sutra_maps = [];
 if (typeof (sutras) !== 'undefined') {
-  for (var i in sutras) {
-    var sutra = sutras[i];
+  for (let i in sutras) {
+    let sutra = sutras[i];
     sutra_maps[sutra[0]] = sutra;
   }
 }
@@ -167,7 +167,7 @@ if (typeof (sutras) !== 'undefined') {
 function get_sutra_title(tripitaka, sutra_no) {
   sutra_no = sutra_no.toString();
   sutra_no = sutra_no.length < 4 ? sutra_no.padStart(4, "0") : sutra_no;
-  var sutra = sutra_maps[tripitaka + sutra_no];
+  let sutra = sutra_maps[tripitaka + sutra_no];
   if (sutra !== undefined) {
     return sutra_no + '.' + sutra[1];
   } else {
@@ -179,19 +179,19 @@ function get_sutra_title(tripitaka, sutra_no) {
 $(document).ready(function () {
   if (typeof (window.volumes) === 'undefined' || typeof (window.store_pattern) === 'undefined') return;
   // 生成目录树
-  var tripitaka = location.pathname.match(/\/([A-Z]{2})/)[1];
-  var muluHtml = volumes.map(function (item) {
-    var id = tripitaka + '_' + item[0];
-    var cls = item[1].length ? 'has-sub' : 'leaf';
-    var title = '第' + item[0] + store_pattern.split('_')[1];
+  let tripitaka = location.pathname.match(/\/([A-Z]{2})/)[1];
+  let muluHtml = volumes.map(function (item) {
+    let id = tripitaka + '_' + item[0];
+    let cls = item[1].length ? 'has-sub' : 'leaf';
+    let title = '第' + item[0] + store_pattern.split('_')[1];
     if (store_pattern.indexOf('经') !== -1) {
       title = get_sutra_title(tripitaka, item[0]);
     }
-    var sub = '';
+    let sub = '';
     if (item[1].length) {
-      var _li = item[1].map(function (s) {
-        var _id = id + '_' + s;
-        var _title = '第' + s + store_pattern.split('_')[2];
+      let _li = item[1].map(function (s) {
+        let _id = id + '_' + s;
+        let _title = '第' + s + store_pattern.split('_')[2];
         if (/\s/.test(s)) {  // 卷、册允许显示名称
           _id = id + '_' + s.split(' ')[0];
           _title = s.split(' ')[1];
@@ -205,12 +205,12 @@ $(document).ready(function () {
   $('#side-menu').html(muluHtml);
 
   // 选中当前目录
-  var curMenuId = $('#cur-volume').text().trim();
+  let curMenuId = $('#cur-volume').text().trim();
   $('#' + curMenuId).addClass('active').parents('.sub-ul').removeClass('sub-ul-hidden');
 });
 
 // Datatable本地化
-var language = {
+let language = {
   "sProcessing": "处理中...",
   "sLengthMenu": "显示 _MENU_ 项结果",
   "sZeroRecords": "没有匹配结果",
@@ -243,7 +243,7 @@ $('#my-sutra-table').DataTable({
       'targets': [0],
       'data': 'id',
       'render': function (data, type, full) {
-        var start_page = full[4] + '_' + full[5];
+        let start_page = full[4] + '_' + full[5];
         return '<span class="sutra-code page-code" title="' + start_page + '">' + full[0] + '</span>'
       }
     },
@@ -258,7 +258,7 @@ $('#my-sutra-table').DataTable({
       'targets': [5],
       'data': 'id',
       'render': function (data, type, full) {
-        var start_page = full[4] + '_' + full[5];
+        let start_page = full[4] + '_' + full[5];
         return '<span class="page-code" title="' + start_page + '">' + full[5] + '</span>'
       }
     },
@@ -273,7 +273,7 @@ $('#my-sutra-table').DataTable({
       'targets': [7],
       'data': 'id',
       'render': function (data, type, full) {
-        var end_page = full[6] + '_' + full[7];
+        let end_page = full[6] + '_' + full[7];
         return '<span class="page-code" title="' + end_page + '">' + full[7] + '</span>'
       }
     }
