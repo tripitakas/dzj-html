@@ -87,44 +87,44 @@ $('#zoom-out').on('click', () => highlightBox());
 $('#zoom-reset').on('click', () => highlightBox());
 
 // 修改切分
-$('#btn-ed-box').click(function () {
+$('#btn-ed-box').on('click', function () {
   autoSave(function () {
     location = '/page/cut_edit/' + docId + '?step=box&from=' + encodeFrom();
   });
 });
 
 // 查看切分
-$('#btn-vw-box').click(function () {
+$('#btn-vw-box').on('click', function () {
   location = '/page/cut_view/' + docId + '?step=box&from=' + encodeFrom();
 });
 
 // 修改字序
-$('#btn-ed-order').click(function () {
+$('#btn-ed-order').on('click', function () {
   autoSave(function () {
     location = '/page/cut_edit/' + docId + '?step=order&from=' + encodeFrom();
   });
 });
 
 // 查看字序
-$('#btn-vw-order').click(function () {
+$('#btn-vw-order').on('click', function () {
   location = '/page/cut_view/' + docId + '?step=order&from=' + encodeFrom();
 });
 
 // 修改文本
-$('#btn-ed-txt').click(function () {
+$('#btn-ed-txt').on('click', function () {
   autoSave(function () {
     location = location.href.replace(/\?.+$/, '') + '?txt_mode=char&step=proof';
   });
 });
 
 // 增加字体
-$('#enlarge-font').click(function () {
+$('#enlarge-font').on('click', function () {
   let size = parseInt($('#raw-txt').css('font-size'));
   $('#raw-txt').css('font-size', ++size + 'px');
 });
 
 // 减少字体
-$('#reduce-font').click(function () {
+$('#reduce-font').on('click', function () {
   let size = parseInt($('#raw-txt').css('font-size'));
   $('#raw-txt').css('font-size', --size + 'px');
 });

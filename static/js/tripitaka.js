@@ -34,7 +34,7 @@ if (localStorage.getItem('toggleMenu') === 'hide') {
 }
 
 // 显隐右侧区域
-$('#toggle-text').click(function () {
+$('#toggle-text').on('click', function () {
   $('#right-region').toggleClass('hide');
   localStorage.setItem('toggleText', $('#right-region').hasClass('hide') ? 'hide' : 'show');
 });
@@ -43,7 +43,7 @@ if (localStorage.getItem('toggleText') === 'hide') {
 }
 
 // 跳转某一页
-$('.m-pager .btn-page:not(.to)').click(function () {
+$('.m-pager .btn-page:not(.to)').on('click', function () {
   window.location = '/tripitaka/' + $(this).attr("title");
 });
 
@@ -63,7 +63,7 @@ function jump(page) {
 }
 
 // 切换文本
-$('#txtModal .btn-txt').click(function () {
+$('#txtModal .btn-txt').on('click', function () {
   $(this).removeClass('btn-default').addClass('btn-primary');
   $(this).siblings().removeClass('btn-primary').addClass('btn-default');
   let txtType = $(this).attr('id').replace('show-', '');
@@ -74,12 +74,12 @@ $('#txtModal .btn-txt').click(function () {
 });
 
 // 图片向左翻页
-$('#pic-left').click(function () {
+$('#pic-left').on('click', function () {
   $('.btn-page.prev').click();
 });
 
 // 图片向右翻页
-$('#pic-right').click(function () {
+$('#pic-right').on('click', function () {
   $('.btn-page.next').click();
 });
 

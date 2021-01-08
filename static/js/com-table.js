@@ -4,13 +4,13 @@
  */
 
 // 排序
-$('.sty-table .sort').click(function () {
+$('.sty-table .sort').on('click', function () {
   let direction = $(this).find('span').hasClass('icon-triangle-up') ? '-' : '';
   location.href = setQueryString('order', direction + $(this).attr('title'));
 });
 
 // 过滤
-$('.btn-filter').click(function () {
+$('.btn-filter').on('click', function () {
   let title = $(this).attr('title').trim();
   location.href = setQueryString(title.split('=')[0], title.split('=')[1])
 });
@@ -25,7 +25,7 @@ $('#search-input').on("keydown", function (event) {
 });
 
 // 全选
-$('#check-all').click(function () {
+$('#check-all').on('click', function () {
   let $items = $("tr [type='checkbox']");
   if (!this.checked)
     $items.removeAttr('checked');
@@ -34,7 +34,7 @@ $('#check-all').click(function () {
 });
 
 // 列表配置
-$('#configModal .modal-confirm').click(function () {
+$('#configModal .modal-confirm').on('click', function () {
   $.map($('#configModal :checkbox:not(:checked)'), function (item) {
     $('.sty-table .' + $(item).attr('title')).addClass('hide');
   });
@@ -135,7 +135,7 @@ let $modal = $('#updateModal');
 let fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_id'});
 
 // 新增-弹框
-$('.btn-add').click(function () {
+$('.btn-add').on('click', function () {
   $modal.find('.modal-title').html('新增数据');
   $modal.find('.update-url').val($(this).attr('url') || location.pathname);
   toggleModal($modal, fields, false);
@@ -144,7 +144,7 @@ $('.btn-add').click(function () {
 });
 
 // 查看-弹框
-$('.btn-view').click(function () {
+$('.btn-view').on('click', function () {
   let id = $(this).parent().parent().attr('id');
   if ($(this).attr('url')) {
     location.href = $(this).attr('url').replace('@id', id);
@@ -159,7 +159,7 @@ $('.btn-view').click(function () {
 });
 
 // 修改-弹框
-$('.btn-update').click(function () {
+$('.btn-update').on('click', function () {
   let id = $(this).parent().parent().attr('id');
   let data = getData(id);
   let title = 'name' in data ? '修改数据/' + data.name : '修改数据';
@@ -171,7 +171,7 @@ $('.btn-update').click(function () {
 });
 
 // 新增/修改-提交
-$("#updateModal .modal-confirm").click(function () {
+$("#updateModal .modal-confirm").on('click', function () {
   let data = getModal($modal, fields);
   postApi($modal.find('.update-url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已提交。', 2000);
@@ -182,7 +182,7 @@ $("#updateModal .modal-confirm").click(function () {
 });
 
 // 删除
-$('.btn-remove').click(function () {
+$('.btn-remove').on('click', function () {
   let id = $(this).parent().parent().attr('id');
   let data = getData(id);
   let name = 'name' in data ? data.name : '';
@@ -202,7 +202,7 @@ $('.btn-remove').click(function () {
 });
 
 // 批量删除
-$('.operation .bat-remove').click(function () {
+$('.operation .bat-remove').on('click', function () {
   let ids = $.map($('table tbody :checked'), function (item) {
     return $(item).parent().parent().attr('id');
   });

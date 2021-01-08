@@ -1,5 +1,5 @@
 // 更新批次
-$('.operation .bat-batch').click(function () {
+$('.operation .bat-batch').on('click', function () {
   let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
   if (!ids.length)
     return showTips('请选择', '当前没有选中任何记录', 3000);
@@ -10,40 +10,40 @@ $('.operation .bat-batch').click(function () {
   });
 });
 // 统计检索结果
-$('.operation .btn-statistic a').click(function () {
+$('.operation .btn-statistic a').on('click', function () {
   let collection = location.pathname.indexOf('page') > -1 ? 'page' : 'char';
   location.href = '/' + collection + '/task/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
 });
 // 显示退回理由、失败理由等
-$('.sty-table td.return_reason').click(function () {
+$('.sty-table td.return_reason').on('click', function () {
   if ($(this).text().length) {
     showTips($(this).text());
   }
 });
 // 查看页面
-$('.sty-table td.doc_id').click(function () {
+$('.sty-table td.doc_id').on('click', function () {
   if ($(this).text().length) {
     location.href = '/page/browse/' + $(this).text() + '?from=' + encodeFrom();
   }
 });
 // 浏览任务
-$('.sty-table .action .btn-nav').click(function () {
+$('.sty-table .action .btn-nav').on('click', function () {
   let node = $(this).parent().parent();
   let taskType = node.find('.task_type').attr('title');
   location.href = '/task/browse/' + taskType + '/' + node.attr('id') + '?from=' + encodeFrom();
 });
 // 任务详情
-$('.sty-table .action .btn-detail').click(function () {
+$('.sty-table .action .btn-detail').on('click', function () {
   let node = $(this).parent().parent();
   location.href = '/task/info/' + node.attr('id');
 });
 // 任务历程
-$('.sty-table .action .btn-history').click(function () {
+$('.sty-table .action .btn-history').on('click', function () {
   let node = $(this).parent().parent();
   location.href = '/page/task/resume/' + node.find('.doc_id').text();
 });
 // 重新发布任务
-$('.sty-table .action .btn-republish').click(function () {
+$('.sty-table .action .btn-republish').on('click', function () {
   let node = $(this).parent().parent();
   let regex = /(picked|failed)/i;
   if (!node.find('.status').attr('title').match(regex)) {
@@ -56,7 +56,7 @@ $('.sty-table .action .btn-republish').click(function () {
   });
 });
 // 删除任务
-$('.sty-table .action .btn-delete').click(function () {
+$('.sty-table .action .btn-delete').on('click', function () {
   let node = $(this).parent().parent();
   let regex = /(published|fetched|pending|returned)/i;
   if (!node.find('.status').attr('title').match(regex)) {
@@ -77,7 +77,7 @@ $('.sty-table .action .btn-delete').click(function () {
 
 /*---指派任务---*/
 let $assignModal = $('#assignModal');
-$('.operation .bat-assign').click(function () {
+$('.operation .bat-assign').on('click', function () {
   $assignModal.modal();
 });
 
@@ -95,7 +95,7 @@ $assignModal.find(".select-user").select2({
     }
   }
 });
-$assignModal.find('.modal-confirm').click(function () {
+$assignModal.find('.modal-confirm').on('click', function () {
   if (!$('.sty-table :checked').length) {
     $assignModal.modal('hide');
     return showTips('提示', '请选择任务', 3000);
@@ -115,12 +115,12 @@ $assignModal.find('.modal-confirm').click(function () {
     $assignResultModal.modal();
   });
 });
-$assignResultModal.find('.modal-confirm').click(function () {
+$assignResultModal.find('.modal-confirm').on('click', function () {
   location.reload();
 });
 
 // 批量重做
-$('.operation .bat-republish').click(function () {
+$('.operation .bat-republish').on('click', function () {
   let ids = $.map($('table tbody :checked'), function (item) {
     return $(item).parent().parent().attr('id').trim();
   });
