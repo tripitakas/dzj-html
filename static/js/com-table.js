@@ -170,7 +170,7 @@ $("#updateModal .modal-confirm").on('click', function () {
   let data = getModal($('#updateModal'), fields);
   postApi($('#updateModal .update-url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已保存', 1000);
-    location.reload();
+    refresh(1000);
   }, function (error) {
     showError('失败', error.message, 3000);
   });
@@ -186,7 +186,7 @@ $('.btn-remove').on('click', function () {
     postApi(url, {data: {_id: data._id}}, function (res) {
       if (res.count) {
         showSuccess('成功', '数据' + name + '已删除', 1000);
-        location.reload();
+        refresh(1000);
       } else {
         showError('失败', '数据未删除', 3000);
       }

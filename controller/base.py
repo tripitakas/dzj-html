@@ -28,6 +28,7 @@ from controller.helper import get_date_time, prop, md5_encode, gen_id, BASE_DIR
 
 class BaseHandler(CorsMixin, RequestHandler):
     """ 后端API响应类的基类"""
+
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
 
@@ -48,6 +49,9 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_header('Access-Control-Allow-Methods', self._get_methods())
         self.set_header('Access-Control-Allow-Credentials', 'true')
         self.set_header('Cache-Control', 'no-cache')
+
+    def data_received(self, chunk):
+        pass
 
     def prepare(self):
         """ 调用 get/post 前的准备"""
