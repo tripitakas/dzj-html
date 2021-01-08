@@ -77,14 +77,31 @@ class ArticleUpsertApi(BaseHandler):
 class UploadImageApi(BaseHandler):
     URL = '/php/imageUp.php'
 
+    @staticmethod
+    def resize_image(filename, width=0, height=0):
+        im = Image.open(filename)
+        w, h = im.size
+        width = width or 2048
+        height = height or 1500
+        if w > width or h > height:
+            if w > width:
+                h = round(width * h / w)
+                w = width
+            if h > height:
+                w = round(height * w / h)
+                h = height
+            im.thumbnail((int(w), int(h)), Image.ANTIALIAS)
+            os.remove(filename)
+            filename = re.sub(r'\.\w+$', '.png', filename)
+            im.save(filename, 'png')
+        return filename, int(w), int(h)
+
     def prepare(self):
         super(UploadImageApi, self).prepare()
         self.is_api = True
 
     def post(self):
-        """ 编辑器中的图片上传
-        url参数和返回值要适配editor
-        """
+        """ 编辑器中的图片上传（url参数和返回值要适配editor）"""
         assert self.request.files and self.request.files['upfile']
         file = self.request.files['upfile'][0]
         if len(file['body']) > 1024 * 1024:
@@ -111,22 +128,3 @@ class UploadImageApi(BaseHandler):
 
         self.add_log('upload_image', content='%s,%dx%d' % (filename, w, h))
         self.write(dict(state='SUCCESS', url=filename, w=w, h=h))
-
-    @staticmethod
-    def resize_image(filename, width=0, height=0):
-        im = Image.open(filename)
-        w, h = im.size
-        width = width or 2048
-        height = height or 1500
-        if w > width or h > height:
-            if w > width:
-                h = round(width * h / w)
-                w = width
-            if h > height:
-                w = round(height * w / h)
-                h = height
-            im.thumbnail((int(w), int(h)), Image.ANTIALIAS)
-            os.remove(filename)
-            filename = re.sub(r'\.\w+$', '.png', filename)
-            im.save(filename, 'png')
-        return filename, int(w), int(h)

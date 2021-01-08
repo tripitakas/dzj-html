@@ -24,7 +24,7 @@ class Model(object):
     """ metadata"""
     fields = {
         'id1': {'name': 'name1', 'input_type': 'text'},
-        'id2': {'name': 'name2', 'filter': [], 'input_type': 'radio', 'options': []},
+        'id2': {'name': 'name2', 'filter': {}, 'input_type': 'radio', 'options': []},
     }
 
     """ 数据库参数"""
@@ -55,6 +55,8 @@ class Model(object):
     @classmethod
     def get_search_tips(cls):
         names = [cls.get_field_name(f) for f in cls.search_fields]
+        if not names:
+            return ''
         if len(names) == 1:
             return '请搜索' + names[0]
         return '请搜索%s和%s' % ('、'.join(names[:-1]), names[-1])

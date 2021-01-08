@@ -4,6 +4,7 @@
   {% set title = '更新文章' if article_id else '新建文章' %}
   <title>{{title}}</title>
   {% include com/_base_css.html %}
+  <link href="{{static_url('editor/themes/default/_css/umeditor.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -11,7 +12,7 @@
 </head>
 
 <style>
-  .content {
+  .m-content {
     max-width: 1024px;
     margin: 45px auto 0;
   }
@@ -45,8 +46,6 @@
     max-width: 100%;
     min-width: 100%;
     overflow: auto;
-    /*padding-bottom: 20px;*/
-    height: 520px !important;
   }
 
   h1 {
@@ -75,7 +74,7 @@
   <div class="main">
     <header class="m-header">
       <div class="back">
-        <a class="btn-txt icon-home" href="/article/admin" data-toggle="tooltip" data-placement="bottom" title="返回文章管理"></a>
+        <a class="icon-return-back" href="/article/admin" data-toggle="tooltip" data-placement="bottom" title="返回文章管理"></a>
       </div>
       <div class="title">{{title}}</div>
       <div class="btn-group right">
@@ -83,50 +82,52 @@
         <span class="btn-txt icon-submit" id="btn-submit" data-toggle="tooltip" data-placement="bottom" title="保存"></span>
       </div><!--right-->
     </header>
-    <div class="content">
-      <div class="item">
-        <label>文章标题</label>
-        <div class="control">
-          <input type="text" id="article-title" class="form-control" placeholder="文章标题" value="{{article.get('title') or ''}}">
+    <div class="m-content">
+      <div class="metadata">
+        <div class="item">
+          <label>文章标题</label>
+          <div class="control">
+            <input type="text" id="article-title" class="form-control" placeholder="文章标题" value="{{article.get('title') or ''}}">
+          </div>
+        </div>
+        <div class="item">
+          <label>标题链接</label>
+          <div class="control">
+            <input type="text" id="title-link" class="form-control" placeholder="标题链接" value="{{article.get('title_link') or ''}}">
+          </div>
+        </div>
+        <div class="item items">
+          <label>文章标识</label>
+          <div class="control">
+            <input type="text" class="form-control" id="article-id" value="{{article.get('article_id') or ''}}">
+          </div>
+          <label>序号</label>
+          <div class="control" style="max-width: 60px">
+            <input type="text" class="form-control" id="no" value="{{article.get('no') or ''}}">
+          </div>
+          <label>文章分类</label>
+          <div class="control" style="max-width: 100px">
+            <select class="form-control" id="article-category">
+              <option value="帮助" {{
+              'selected' if article.get('category') == '帮助' else ''}}>帮助</option>
+              <option value="公告" {{
+              'selected' if article.get('category') == '公告' else ''}}>公告</option>
+              <option value="通知" {{
+              'selected' if article.get('category') == '通知' else ''}}>通知</option>
+            </select>
+          </div>
+          <label>是否发布</label>
+          <div class="control" style="max-width: 65px; margin-right: 0">
+            <select class="form-control" id="article-active">
+              <option value="是" {{
+              'selected' if article.get('active') == '是' else ''}}>是</option>
+              <option value="否" {{
+              'selected' if article.get('active') == '否' else ''}}>否</option>
+            </select>
+          </div>
         </div>
       </div>
-      <div class="item">
-        <label>标题链接</label>
-        <div class="control">
-          <input type="text" id="title-link" class="form-control" placeholder="标题链接" value="{{article.get('title_link') or ''}}">
-        </div>
-      </div>
-      <div class="item items">
-        <label>文章标识</label>
-        <div class="control">
-          <input type="text" class="form-control" id="article-id" value="{{article.get('article_id') or ''}}">
-        </div>
-        <label>序号</label>
-        <div class="control" style="max-width: 60px">
-          <input type="text" class="form-control" id="no" value="{{article.get('no') or ''}}">
-        </div>
-        <label>文章分类</label>
-        <div class="control" style="max-width: 100px">
-          <select class="form-control" id="article-category">
-            <option value="帮助" {{
-            'selected' if article.get('category') == '帮助' else ''}}>帮助</option>
-            <option value="公告" {{
-            'selected' if article.get('category') == '公告' else ''}}>公告</option>
-            <option value="通知" {{
-            'selected' if article.get('category') == '通知' else ''}}>通知</option>
-          </select>
-        </div>
-        <label>是否发布</label>
-        <div class="control" style="max-width: 65px; margin-right: 0">
-          <select class="form-control" id="article-active">
-            <option value="是" {{
-            'selected' if article.get('active') == '是' else ''}}>是</option>
-            <option value="否" {{
-            'selected' if article.get('active') == '否' else ''}}>否</option>
-          </select>
-        </div>
-      </div>
-      <div class="item">
+      <div class="content">
         <script class="editor" id="content-editor" type="text/plain" style="width: 100%;max-width: 800px;min-height: 100px;"></script>
       </div>
     </div>
@@ -134,32 +135,25 @@
 </div>
 
 {% include com/_base_js.html %}
-
-<!-- UM Editor -->
-<link href="{{static_url('editor/themes/default/_css/umeditor.css')}}" rel="stylesheet"/>
 <script src="{{static_url('editor/third-party/template.min.js')}}"></script>
 <script src="{{static_url('editor/editor.config.js')}}"></script>
 <script src="{{static_url('editor/editor.api.js')}}"></script>
 <script src="{{static_url('editor/lang/zh-cn/zh-cn.js')}}"></script>
 <script src="{{static_url('js/editor.js')}}"></script>
 
-<!-- CUSTOM JS -->
 <script>
   let articleId = '{{article_id}}';
-  let _id = '{{article.get("_id") or ""}}';
   initEditor('content-editor', decodeJSON('{{article.get("content", "").replace("\n", "")}}', true));
 
   // 提交
   $('#btn-submit').on('click', function () {
-    if (!$('#article-id').val().length) return showTips('提示', '请填写文章标识', 3000);
+    if (!$('#article-id').val().length)
+      return showTips('提示', '请填写文章标识', 1000);
     let data = {
-      _id: _id,
-      no: $('#no').val(),
-      title: $('#article-title').val(),
-      title_link: $('#title-link').val(),
-      article_id: $('#article-id').val(),
-      category: $('#article-category').val(),
-      active: $('#article-active').val(),
+      _id: '{{article.get("_id") or ""}}',
+      no: $('#no').val(), title: $('#article-title').val(),
+      title_link: $('#title-link').val(), article_id: $('#article-id').val(),
+      category: $('#article-category').val(), active: $('#article-active').val(),
       content: UM.getEditor('content-editor').getContent()
     };
     let url = '/article/admin/' + (articleId ? 'update' : 'add');
@@ -170,21 +164,17 @@
 
   // 查看
   $('#btn-view').on('click', function () {
-    if (!articleId)
-      return showTips('提示', '请先保存文章', 3000);
-    else
-      window.location = '/article/' + articleId;
+    articleId ? goto('/article/' + articleId, 100) : showTips('提示', '请先保存文章', 1000);
   });
 
   // 设置编辑器高度
   $(document).ready(function () {
-    $("#content-editor").height($(document.body).height() - 200);
+    $("#content-editor").height($(document.body).height() - 225);
   });
   $(window).resize(function () {
-    $("#content-editor").height($(document.body).height() - 200);
+    $("#content-editor").height($(document.body).height() - 225);
   });
 
 </script>
-
 </body>
 </html>

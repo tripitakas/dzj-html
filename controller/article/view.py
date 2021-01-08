@@ -12,24 +12,28 @@ from controller.article.article import Article
 class ArticleAdminHandler(BaseHandler, Article):
     URL = '/article/admin'
 
-    table_fields = [
-        {'id': 'no', 'name': '序号'},
-        {'id': 'title', 'name': '标题'},
-        {'id': 'article_id', 'name': '标识'},
-        {'id': 'category', 'name': '分类', 'filter': {'帮助': '帮助', '公告': '公告', '通知': '通知'}},
-        {'id': 'active', 'name': '是否发布', 'filter': {'是': '是', '否': '否'}},
-        {'id': 'author_name', 'name': '创建人'},
-        {'id': 'create_time', 'name': '创建时间'},
-        {'id': 'updated_by', 'name': '修改人'},
-        {'id': 'updated_time', 'name': '修改时间'},
+    page_title = '文章管理'
+    search_fields = ['title', 'article_id', 'category', 'content']
+    table_fields = ['no', 'title', 'article_id', 'category', 'active', 'author_name', 'updated_by', 'create_time',
+                    'updated_time']
+    operations = [
+        {'operation': 'article-add', 'label': '新增文章'},
+        {'operation': 'bat-remove', 'label': '批量删除'},
+    ]
+    img_operations = ['config']
+    actions = [
+        {'action': 'article-view', 'label': '查看'},
+        {'action': 'article-update', 'label': '更新'},
+        {'action': 'btn-remove', 'label': '删除'},
     ]
 
     def get(self):
         """ 文章管理"""
         try:
             kwargs = self.get_template_kwargs()
-            cd, params = self.get_article_search_condition(self.request.query)
-            docs, pager, q, order = self.find_by_page(self, cd, None, '-create_time', {'content': 0})
+            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            cond, params = self.get_article_search_condition(self.request.query)
+            docs, pager, q, order = self.find_by_page(self, cond, None, '-create_time', {'content': 0})
             self.render('article_admin.html', docs=docs, pager=pager, order=order, q=q, **kwargs)
 
         except Exception as error:
@@ -68,32 +72,31 @@ class ArticleViewHandler(BaseHandler):
 class ArticleListHandler(BaseHandler, Article):
     URL = '/(help|announce)'
 
-    @classmethod
-    def set_template_kwargs(cls, category):
-        cls.search_tips = ''
-        cls.search_fields = []
-        cls.operations = []
-        cls.img_operations = []
-        cls.page_title = '帮助中心' if category == 'help' else '通知中心'
+    @staticmethod
+    def pack_content(content):
+        size = 200
+        content = content.replace('&nbsp;', '')
+        content = re.sub(r'<.*?>', '', content)
+        if len(content) > size:
+            content = content[:size] + '...'
+        return content
+
+    def get_template_kwargs(self, fields=None):
+        kwargs = super().get_template_kwargs()
+        kwargs['search_fields'] = []
+        kwargs['operations'] = []
+        kwargs['img_operations'] = []
+        return kwargs
 
     def get(self, category):
         """ 帮助、通知中心"""
-
-        def pack_content(content):
-            size = 200
-            content = content.replace('&nbsp;', '')
-            content = re.sub(r'<.*?>', '', content)
-            if len(content) > size:
-                content = content[:size] + '...'
-            return content
-
         try:
-            self.set_template_kwargs(category)
             kwargs = self.get_template_kwargs()
+            kwargs['page_title'] = '帮助中心' if category == 'help' else '通知中心'
             condition = {'category': '帮助' if category == 'help' else '通知', 'active': '是'}
             docs, pager, q, order = self.find_by_page(self, condition, default_order='no')
-            self.render('article_list.html', docs=docs, pager=pager, order=order, q=q, pack=pack_content,
-                        **kwargs)
+            self.render('article_list.html', docs=docs, pager=pager, order=order, q=q,
+                        pack=self.pack_content, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
