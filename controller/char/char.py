@@ -8,46 +8,42 @@ from controller import validate as v
 
 
 class Char(Model):
-    collection = 'char'
-    fields = [
-        {'id': 'name', 'name': '字编码'},
-        {'id': 'page_name', 'name': '页编码'},
-        {'id': 'char_id', 'name': '序号'},
-        {'id': 'uid', 'name': 'uid', 'remark': 'page_name和char_id的整型值'},
-        {'id': 'cid', 'name': 'cid'},
-        {'id': 'source', 'name': '分类'},
-        {'id': 'has_img', 'name': '是否已有字图'},
-        {'id': 'img_need_updated', 'name': '是否需要更新字图'},
-        {'id': 'diff', 'name': '是否不匹配'},
-        {'id': 'un_required', 'name': '是否不必校对'},
-        {'id': 'cc', 'name': '置信度'},
-        {'id': 'sc', 'name': '相似度'},
-        {'id': 'pos', 'name': '坐标'},
-        {'id': 'column', 'name': '所属列'},
-        {'id': 'ocr_txt', 'name': 'OCR文字'},
-        {'id': 'alternatives', 'name': '字框OCR'},
-        {'id': 'ocr_col', 'name': '列框OCR'},
-        {'id': 'cmp_txt', 'name': '比对文字'},
-        {'id': 'txt', 'name': '原字'},
-        {'id': 'nor_txt', 'name': '正字'},
-        {'id': 'txt_type', 'name': '类型'},
-        {'id': 'box_level', 'name': '切分等级'},
-        {'id': 'box_point', 'name': '切分积分'},
-        {'id': 'box_logs', 'name': '切分校对历史'},
-        {'id': 'txt_level', 'name': '文字等级'},
-        {'id': 'txt_point', 'name': '文字积分'},
-        {'id': 'txt_logs', 'name': '文字校对历史'},
-        {'id': 'tasks', 'name': '校对任务'},
-        {'id': 'remark', 'name': '备注'},
-    ]
-    rules = [
-        (v.is_page, 'page_name'),
-    ]
     primary = 'name'
-
+    collection = 'char'
     txt_types = {'Y': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+    fields = {
+        'name': {'name': '字编码'},
+        'page_name': {'name': '页编码'},
+        'char_id': {'name': '序号'},
+        'uid': {'name': 'uid', 'remark': 'page_name和char_id的对齐编码'},
+        'cid': {'name': 'cid'},
+        'source': {'name': '分类'},
+        'has_img': {'name': '是否已有字图'},
+        'img_need_updated': {'name': '是否需要更新字图'},
+        'cc': {'name': '置信度'},
+        'sc': {'name': '相似度'},
+        'pos': {'name': '坐标'},
+        'column': {'name': '所属列'},
+        'ocr_txt': {'name': 'OCR文字'},
+        'alternatives': {'name': '字框OCR'},
+        'ocr_col': {'name': '列框OCR'},
+        'cmp_txt': {'name': '比对文字'},
+        'diff': {'name': '文字是否不匹配'},
+        'un_required': {'name': '是否不必校对'},
+        'txt': {'name': '原字'},
+        'nor_txt': {'name': '正字'},
+        'txt_type': {'name': '类型', 'input_type': 'radio', 'options': txt_types},
+        'box_level': {'name': '切分等级'},
+        'box_point': {'name': '切分积分'},
+        'box_logs': {'name': '切分校对历史'},
+        'txt_level': {'name': '文字等级'},
+        'txt_point': {'name': '文字积分'},
+        'txt_logs': {'name': '文字校对历史'},
+        'tasks': {'name': '校对任务'},
+        'remark': {'name': '备注'},
+    }
+    rules = [(v.is_page, 'page_name')]
     # search_fields在这里定义，这样find_by_page时q参数才会起作用
-    search_tips = '请搜索字编码、分类、文字'
     search_fields = ['name', 'source', 'txt', 'ocr_txt', 'nor_txt']
 
     @classmethod

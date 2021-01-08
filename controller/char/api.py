@@ -40,14 +40,14 @@ class CharExtractImgApi(CharHandler):
         try:
             rules = [(v.not_empty, 'type'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
+
             if self.data['type'] == 'selected':
                 condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
             else:
                 condition = self.get_char_search_condition(self.data['search'])[0]
             count = self.db.char.count_documents(condition)
             self.db.char.update_many(condition, {'$set': {'img_need_updated': True}})
-            if count:
-                # 启动脚本，生成字图
+            if count:  # 启动脚本，生成字图
                 regen = int(self.data.get('regen') in ['是', True])
                 script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img_%s.log 2>&1 &'
                 script = script % (h.BASE_DIR, self.username, regen, h.get_date_time(fmt='%Y%m%d%H%M%S'))
@@ -70,6 +70,7 @@ class CharTxtApi(CharHandler):
         try:
             rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt_type, 'txt_type')]
             self.validate(self.data, rules)
+
             char = self.db.char.find_one({'name': char_name})
             if not char:
                 return self.send_error_response(e.no_object, message='没有找到字符')
@@ -108,6 +109,7 @@ class CharsTxtApi(CharHandler):
         try:
             rules = [(v.not_empty, 'names', field)]
             self.validate(self.data, rules)
+
             task_type = self.data.get('task_type')
             log = dict(un_changed=[], level_unqualified=[], point_unqualified=[])
             chars = list(self.db.char.find({'name': {'$in': self.data['names']}, field: {'$ne': self.data[field]}}))
@@ -164,6 +166,7 @@ class CharSourceApi(CharHandler):
         try:
             rules = [(v.not_empty, 'type', 'source'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
+
             if self.data['type'] == 'selected':
                 condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
             else:
