@@ -30,4 +30,3 @@ class User(Model):
         (v.is_phone, 'phone'),
         (v.is_password, 'password'),
     ]
-    search_fields = ['name', 'email', 'phone', 'group', 'task_batch']

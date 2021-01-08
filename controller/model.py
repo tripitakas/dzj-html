@@ -52,7 +52,10 @@ class Model(object):
 
     @classmethod
     def get_search_tips(cls):
-        return '请搜索' + ''.join([cls.get_field_name(f) for f in cls.search_fields])
+        names = [cls.get_field_name(f) for f in cls.search_fields]
+        if len(names) == 1:
+            return '请搜索' + names[0]
+        return '请搜索%s和%s' % ('、'.join(names[:-1]), names[-1])
 
     @classmethod
     def get_template_kwargs(cls, fields=None):

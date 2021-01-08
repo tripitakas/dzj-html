@@ -40,6 +40,7 @@ class UsersAdminHandler(BaseHandler, User):
 
     page_title = '用户管理'
     info_fields = list(User.fields.keys())
+    search_fields = ['name', 'email', 'phone', 'group']
     hide_fields = ['agent', 'create_time', 'updated_time']
     table_fields = User.get_field_list(exclude=['password'])
     update_fields = User.get_field_list(exclude=['img', 'create_time', 'updated_time', 'task_batch'])
@@ -81,10 +82,10 @@ class UsersAdminHandler(BaseHandler, User):
 class UserRolesHandler(BaseHandler, User):
     URL = '/user/roles'
 
-    def get_template_kwargs(self, fields=None):
-        kwargs = super().get_template_kwargs(fields)
-        kwargs.update({'operations': [], 'img_operations': [], 'page_title': '授权管理'})
-        return kwargs
+    page_title = '授权管理'
+    operations = []
+    img_operations = []
+    search_fields = ['name', 'email', 'phone', 'group']
 
     def get(self):
         """ 角色管理页面 """
