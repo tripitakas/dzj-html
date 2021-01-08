@@ -125,7 +125,7 @@
       showSuccess('成功', '数据已提交。', 2000);
       refresh(1000);
     }, function (error) {
-      return showError('提交失败', error.message, 5000);
+      return showError('提交失败', error.message, 3000);
     });
   });
 
@@ -134,7 +134,7 @@
     let node = $(this).parent().parent();
     let regex = /(进行中|失败)/i;
     if (!node.find('.status').text().trim().match(regex)) {
-      return showWarning('状态有误', '只能重新发布进行中或已失败的任务！', 5000);
+      return showWarning('状态有误', '只能重新发布进行中或已失败的任务！', 3000);
     }
     showConfirm("确定重新发布吗？", "任务" + node.find('.doc_id').text().trim() + "将被重新发布！", function () {
       postApi('/task/republish/' + node.attr('id'), {data: {}}, function () {

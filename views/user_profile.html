@@ -161,7 +161,7 @@
       if (err.code === 1009) {
         showSuccess('修改成功', '个人信息没有发生改变。', 2000);
       }
-      showError('修改失败', err.message, 5000);
+      showError('修改失败', err.message, 3000);
     });
   }
 
@@ -185,7 +185,7 @@
         showSuccess('修改成功', '密码没有发生改变。', 2000);
         $('#updateModal').modal('hide');
       } else {
-        showError('修改失败', err.message, 5000);
+        showError('修改失败', err.message, 3000);
       }
     });
   });

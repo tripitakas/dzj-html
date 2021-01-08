@@ -87,7 +87,7 @@
     postApi('/user/login?next={{next}}', {data: data}, function (res) {
       window.location = res.redirect || '{{next}}';
     }, function (err) {
-      showError('登录失败', err.message, 5000);
+      showError('登录失败', err.message, 3000);
     });
   });
 
@@ -112,7 +112,7 @@
     postApi('/user/forget_pwd', {data: data}, function () {
       showSuccess('新的密码已经发送，请查收。', '', 2000);
     }, function (err) {
-      showError('错误', err.message, 5000);
+      showError('错误', err.message, 3000);
     });
   });
 </script>

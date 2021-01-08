@@ -173,7 +173,7 @@
     }, function (data) {
       window.location = data.redirect || '{{next}}';
     }, function (error) {
-      return showError('提交失败', error.message, 5000);
+      return showError('提交失败', error.message, 3000);
     });
   });
 
@@ -215,7 +215,7 @@
     $this.text("发送中...");
     postApi('/user/email_code', {'data': {email: email}}, function (res) {
       if (!res.status) {
-        return showError(code, error, 5000);
+        return showError(code, error, 3000);
       } else {
         $this.addClass('sending');      // 成功后显示已发送状态
         let time = 60;
@@ -248,7 +248,7 @@
     $this.text("发送中...");
     postApi('/user/phone_code', {'data': {phone: phone}}, function (res) {
       if (!res.status) {
-        return showError(code, error, 5000);
+        return showError(code, error, 3000);
       } else {
         $this.addClass('sending');      // 成功后显示已发送状态
         let time = 60;

@@ -58,7 +58,7 @@
       postApi('/user/admin/reset_pwd', {data: {_id: user._id}}, function (res) {
         showSuccess('重置成功', '新密码是 <b>' + res.password + '</b><br>请转告用此密码登录，然后修改密码。');
       }, function (err) {
-        showError('重置失败', err.message, 5000);
+        showError('重置失败', err.message, 3000);
       });
     });
   });

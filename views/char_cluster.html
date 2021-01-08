@@ -336,7 +336,7 @@
   $('#variantModal .modal-confirm').on('click', function () {
     let data = {txt: $('#variantModal .txt').val(), normal_txt: $('#variantModal .normal-txt').val()};
     if (!data.txt.length) {
-      return showTips('提示', '请输入异体字文字或字图编码', 5000);
+      return showTips('提示', '请输入异体字文字或字图编码', 3000);
     } else if (!data.normal_txt.length) {
       return showTips('提示', '请输入异体字所属正字', 3000);
     } else {

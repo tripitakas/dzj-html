@@ -453,7 +453,7 @@
         if (res.existed_count)
           showError('失败', '数据有关联任务，不能删除', 3000);
       }, function (err) {
-        showError('删除失败', err.message, 5000);
+        showError('删除失败', err.message, 3000);
       });
     });
   });
@@ -474,7 +474,7 @@
           refresh(2000);
         }
       }, function (err) {
-        showError('删除失败', err.message, 5000);
+        showError('删除失败', err.message, 3000);
       });
     });
   });
