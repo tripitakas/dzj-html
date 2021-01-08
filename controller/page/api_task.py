@@ -10,7 +10,7 @@ from controller import validate as v
 from .api import PageBoxApi
 
 
-class PageTasklistApi(PageHandler):
+class PageTaskListApi(PageHandler):
     URL = '/api/page/task/list'
 
     def post(self):
@@ -18,8 +18,9 @@ class PageTasklistApi(PageHandler):
         try:
             rules = [(v.not_empty, 'search')]
             self.validate(self.data, rules)
-            condition, _ = self.get_task_search_condition(self.data['search'], 'page')
-            tasks = list(self.db.task.find(condition, {'doc_id': 1}))
+
+            cond = self.get_task_search_condition(self.data['search'], 'page')[0]
+            tasks = list(self.db.task.find(cond, {'doc_id': 1}))
             page_names = [task['doc_id'] for task in tasks]
             self.send_data_response(dict(names=page_names))
 
@@ -29,11 +30,6 @@ class PageTasklistApi(PageHandler):
 
 class PageTaskPublishApi(PageHandler):
     URL = '/api/page/task/publish'
-
-    field_names = {
-        'published': '任务已发布', 'pending': '任务已悬挂', 'finished_before': '任务已完成',
-        'un_existed': '页面不存在', 'published_before': '任务曾被发布',
-    }
 
     def post(self):
         """发布任务"""
@@ -49,7 +45,9 @@ class PageTaskPublishApi(PageHandler):
             self.validate(self.data, rules)
             log = self.check_and_publish(log)
             log_id = self.add_op_log(self.db, 'publish_task', None, log, self.username)
-            message = '，'.join(['%s：%s条' % (self.field_names.get(k) or k, len(names)) for k, names in log.items()])
+            trans = {'published': '任务已发布', 'pending': '任务已悬挂', 'finished_before': '任务已完成',
+                     'un_existed': '页面不存在', 'published_before': '任务曾被发布'}
+            message = '，'.join(['%s：%s条' % (trans.get(k) or k, len(names)) for k, names in log.items()])
             return self.send_data_response(dict(message=message, id=str(log_id), **log))
 
         except self.DbError as error:
@@ -97,7 +95,6 @@ class PageTaskPublishApi(PageHandler):
             cond = dict(task_type=task_type, num=int(num), doc_id={'$in': list(page_names)})
             log['published_before'] = set(t['doc_id'] for t in self.db.task.find(cond, {'doc_id': 1}))
             page_names = set(page_names) - log['published_before']
-
         # 剩下的页码，发布新任务
         if page_names:
             pre_tasks = self.data['pre_tasks']

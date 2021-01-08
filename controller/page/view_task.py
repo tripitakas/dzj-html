@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import re
-from bson import json_util
 from datetime import datetime
 from operator import itemgetter
 from controller import errors as e
@@ -40,6 +37,7 @@ class PageTaskListHandler(PageHandler):
         {'id': 'used_time', 'name': '执行时间'},
         {'id': 'remark', 'name': '备注'},
     ]
+    hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
     search_fields = ['doc_id', 'batch', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
@@ -65,13 +63,12 @@ class PageTaskListHandler(PageHandler):
         {'action': 'btn-delete', 'label': '删除'},
         {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
     ]
-    hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
-    update_fields = []
 
     def get_template_kwargs(self, fields=None):
         kwargs = super().get_template_kwargs()
+        kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
         readonly = '任务管理员' not in self.current_user['roles']
-        if readonly:
+        if readonly:  # 任务浏览员
             kwargs['actions'] = [{'action': 'btn-nav', 'label': '浏览'}]
             kwargs['operations'] = [{'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'}]
         return kwargs
@@ -79,7 +76,7 @@ class PageTaskListHandler(PageHandler):
     def get_task_search_condition(self, request_query, collection=None):
         condition, params = super().get_task_search_condition(request_query, collection)
         readonly = '任务管理员' not in self.current_user['roles']
-        if readonly:
+        if readonly:  # 任务浏览员
             condition['task_type'] = {'$in': ['cut_proof', 'cut_review']}
         return condition, params
 
@@ -87,14 +84,11 @@ class PageTaskListHandler(PageHandler):
         """任务管理-页任务管理"""
         try:
             kwargs = self.get_template_kwargs()
-            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
-            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
-            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             cd, params = self.get_task_search_condition(self.request.query, 'page')
             docs, pager, q, order = self.find_by_page(self, cd, self.search_fields, '-_id', {'params': 0, 'result': 0})
             self.render('page_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                        format_value=self.format_value,
-                        **kwargs)
+                        format_value=self.format_value, **kwargs)
+
         except Exception as error:
             return self.send_db_error(error)
 
@@ -252,23 +246,19 @@ class PageTaskDashBoardHandler(PageHandler):
 class PageTaskResumeHandler(PageHandler):
     URL = '/page/task/resume/@page_name'
 
-    order = [
-        'upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof', 'text_review',
-    ]
-    display_fields = [
-        'doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
-        'updated_time', 'finished_time', 'publish_by', 'publish_time',
-        'picked_by', 'picked_time', 'message'
-    ]
-
     def get(self, page_name):
         """页任务简历"""
         from functools import cmp_to_key
         try:
+            order = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text',
+                     'text_proof', 'text_review']
+            fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
+                      'updated_time', 'finished_time', 'publish_by', 'publish_time',
+                      'picked_by', 'picked_time', 'message']
             page = self.db.page.find_one({'name': page_name}) or dict(name=page_name)
             tasks = list(self.db.task.find({'collection': 'page', 'doc_id': page_name}))
-            tasks.sort(key=cmp_to_key(lambda a, b: self.order.index(a['task_type']) - self.order.index(b['task_type'])))
-            self.render('task_resume.html', page=page, tasks=tasks, display_fields=self.display_fields)
+            tasks.sort(key=cmp_to_key(lambda a, b: order.index(a['task_type']) - order.index(b['task_type'])))
+            self.render('task_resume.html', page=page, tasks=tasks, display_fields=fields)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -290,8 +280,8 @@ class PageTaskCutHandler(PageHandler):
             self.pack_boxes(page)
             page['img_url'] = self.get_page_img(page)
 
-            tasks = list(self.db.task.find({'doc_id': page['name']}, {
-                k: 1 for k in ['task_type', 'picked_by', 'picked_user_id']}))
+            project = {k: 1 for k in ['task_type', 'picked_by', 'picked_user_id']}
+            tasks = list(self.db.task.find({'doc_id': page['name']}, project))
             tasks = [t for t in tasks if t.get('picked_user_id') and t['picked_user_id'] != self.user_id]
             task_names = dict(cut_proof='校对', cut_review='审定')
 

@@ -16,24 +16,11 @@ class PageListHandler(PageHandler):
     URL = '/page/list'
 
     page_title = '页数据管理'
-    table_fields = [
-        {'id': 'name', 'name': '页编码'},
-        {'id': 'page_code', 'name': '对齐编码'},
-        {'id': 'book_page', 'name': '原书页码'},
-        {'id': 'source', 'name': '分类'},
-        {'id': 'layout', 'name': '页面结构'},
-        {'id': 'uni_sutra_code', 'name': '统一经编码'},
-        {'id': 'sutra_code', 'name': '经编码'},
-        {'id': 'reel_code', 'name': '卷编码'},
-        {'id': 'tasks', 'name': '任务'},
-        {'id': 'box_ready', 'name': '切分就绪'},
-        {'id': 'remark_box', 'name': '切分备注'},
-        {'id': 'remark_txt', 'name': '文本备注'},
-        {'id': 'op_text', 'name': '文本匹配'},
-    ]
-    info_fields = ['name', 'source', 'box_ready', 'layout', 'remark_box', 'op_text']
-    hide_fields = ['book_page', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready', 'remark_box', 'remark_txt',
-                   'op_text']
+    table_fields = ['name', 'page_code', 'book_page', 'source', 'layout', 'uni_sutra_code', 'sutra_code',
+                    'reel_code', 'tasks', 'box_ready', 'remark_box', 'remark_txt', 'op_text']
+    update_fields = ['name', 'source', 'box_ready', 'layout', 'remark_box', 'remark_txt']
+    hide_fields = ['book_page', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready',
+                   'remark_box', 'remark_txt', 'op_text']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
@@ -56,14 +43,6 @@ class PageListHandler(PageHandler):
         {'action': 'btn-update', 'label': '更新', 'url': '/api/page'},
         {'action': 'btn-delete', 'label': '删除'},
     ]
-    update_fields = [
-        {'id': 'name', 'name': '页编码', 'readonly': True},
-        {'id': 'source', 'name': '分　类'},
-        {'id': 'box_ready', 'name': '切分就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': PageHandler.layouts},
-        {'id': 'remark_box', 'name': '切分备注'},
-        {'id': 'remark_txt', 'name': '文本备注'},
-    ]
     task_statuses = {
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
@@ -73,6 +52,7 @@ class PageListHandler(PageHandler):
 
     def get_template_kwargs(self, fields=None):
         kwargs = super().get_template_kwargs()
+        kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
         if self.prop(self.config, 'site.skin') == 'nlc':
             kwargs['operations'] = [o for o in kwargs['operations'] if o.get('label') not in ['生成字表', '检查图文匹配']]
         if '系统管理员' in self.current_user['roles']:
@@ -116,10 +96,6 @@ class PageListHandler(PageHandler):
         """页数据管理"""
         try:
             kwargs = self.get_template_kwargs()
-            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
-            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
-            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
             else:
@@ -127,8 +103,9 @@ class PageListHandler(PageHandler):
             page_tasks = {'': '', **PageHandler.task_names('page', True, True)}
             docs, pager, q, order = Page.find_by_page(self, condition)
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        page_tasks=page_tasks, task_statuses=self.task_statuses, match_fields=self.match_fields,
-                        match_statuses=self.match_statuses, format_value=self.format_value, **kwargs)
+                        match_fields=self.match_fields, match_statuses=self.match_statuses,
+                        page_tasks=page_tasks, task_statuses=self.task_statuses,
+                        format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -140,10 +117,7 @@ class PageStatisticHandler(PageHandler):
     def get(self):
         """统计页数据的分类"""
         try:
-            counts = list(self.db.page.aggregate([
-                {'$group': {'_id': '$source', 'count': {'$sum': 1}}},
-            ]))
-
+            counts = list(self.db.page.aggregate([{'$group': {'_id': '$source', 'count': {'$sum': 1}}}]))
             self.render('data_statistic.html', counts=counts, collection='page')
 
         except Exception as error:
@@ -180,19 +154,16 @@ class PageBrowseHandler(PageHandler):
                 return self.send_error_response(e.no_object, message=message)
 
             txts = self.get_txts(page)
-            txt_fields = [t[1] for t in txts]
-            txt_dict = {t[1]: t for t in txts}
+            txt_fields, txt_dict = [t[1] for t in txts], {t[1]: t for t in txts}
             img_url = self.get_page_img(page)
             chars_col = self.get_chars_col(page.get('chars'))
             info = {f['id']: self.prop(page, f['id'], '') for f in edit_fields}
             btn_config = json_util.loads(self.get_secure_cookie('page_browse_btn') or '{}')
             active = btn_config.get('sutra-txt')
             self.pack_boxes(page)
-            self.render(
-                'page_browse.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
-                active=active, txt_fields=txt_fields, chars_col=chars_col, info=info,
-                btn_config=btn_config, edit_fields=edit_fields,
-            )
+            self.render('page_browse.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
+                        active=active, txt_fields=txt_fields, chars_col=chars_col, info=info,
+                        btn_config=btn_config, edit_fields=edit_fields)
 
         except Exception as error:
             return self.send_db_error(error)
