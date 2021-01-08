@@ -117,20 +117,25 @@ function toggleModal(modal, fields, disabled) {
 
 function getData(id) {
   let data = parseJSON($('#' + id).find('.info').text());
+  let fields = ($('#table_fields').val() || '').split(',');
+  fields.forEach((f) => {
+    if (!data[f] && ['ckbox', 'action'].indexOf(f) < 0) {
+      data[f] = $(`#${id} td.${f}`).text().trim();
+    }
+  });
   data['_id'] = id;
   return data;
 }
 
-let $modal = $('#updateModal');
 let fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_id'});
 
 // 新增-弹框
 $('.btn-add').on('click', function () {
-  $modal.find('.modal-title').html('新增数据');
-  $modal.find('.update-url').val($(this).attr('url') || location.pathname);
-  toggleModal($modal, fields, false);
-  resetModal($modal, fields);
-  $modal.modal();
+  $('#updateModal .modal-title').html('新增数据');
+  $('#updateModal .update-url').val($(this).attr('url') || location.pathname);
+  toggleModal($('#updateModal'), fields, false);
+  resetModal($('#updateModal'), fields);
+  $('#updateModal').modal();
 });
 
 // 查看-弹框
@@ -141,10 +146,10 @@ $('.btn-view').on('click', function () {
   } else {
     let data = getData(id);
     let title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
-    $modal.find('.modal-title').html(title);
-    toggleModal($modal, fields, true);
-    setModal($modal, data, fields);
-    $modal.modal();
+    $('#updateModal .modal-title').html(title);
+    toggleModal($('#updateModal'), fields, true);
+    setModal($('#updateModal'), data, fields);
+    $('#updateModal').modal();
   }
 });
 
@@ -153,17 +158,17 @@ $('.btn-update').on('click', function () {
   let id = $(this).parent().parent().attr('id');
   let data = getData(id);
   let title = 'name' in data ? '修改数据/' + data.name : '修改数据';
-  $modal.find('.update-url').val($(this).attr('url') || location.pathname);
-  $modal.find('.modal-title').html(title);
-  toggleModal($modal, fields, false);
-  setModal($modal, data, fields);
-  $modal.modal();
+  $('#updateModal .update-url').val($(this).attr('url') || location.pathname);
+  $('#updateModal .modal-title').html(title);
+  toggleModal($('#updateModal'), fields, false);
+  setModal($('#updateModal'), data, fields);
+  $('#updateModal').modal();
 });
 
 // 新增/修改-提交
 $("#updateModal .modal-confirm").on('click', function () {
-  let data = getModal($modal, fields);
-  postApi($modal.find('.update-url').val().trim(), {data: data}, function () {
+  let data = getModal($('#updateModal'), fields);
+  postApi($('#updateModal .update-url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已保存', 1000);
     location.reload();
   }, function (error) {

@@ -39,11 +39,12 @@ class UsersAdminHandler(BaseHandler, User):
     URL = '/user/admin'
 
     page_title = '用户管理'
-    info_fields = list(User.fields.keys())
     search_fields = ['name', 'email', 'phone', 'group']
+    table_fields = ['img', 'name', 'gender', 'email', 'phone', 'group', 'task_batch', 'agent', 'create_time',
+                    'updated_time']
     hide_fields = ['agent', 'create_time', 'updated_time']
-    table_fields = User.get_field_list(exclude=['password'])
-    update_fields = User.get_field_list(exclude=['img', 'create_time', 'updated_time', 'task_batch'])
+    info_fields = ['task_batch']
+    update_fields = ['gender', 'name', 'email', 'phone', 'password', 'group', 'agent']
     operations = [
         {'operation': 'btn-add', 'label': '新增用户'},
         {'operation': 'bat-remove', 'label': '批量删除'},

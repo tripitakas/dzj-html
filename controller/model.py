@@ -5,9 +5,9 @@
 数据库字段(fields)定义格式如下:
 {
     'name': '',  # 字段名称
-    'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
-    'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
-    'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
+    'filter': [],  # 前端列表的过滤选项
+    'input_type': 'text',  # 新增或修改时的输入类型，默认为text，其它如radio/select/textarea等
+    'options': [],  # 新增或修改时的输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
 }
 @time: 2019/12/10
 """
@@ -21,23 +21,26 @@ from bson.objectid import ObjectId
 
 
 class Model(object):
+    """ metadata"""
+    fields = {
+        'id1': {'name': 'name1', 'input_type': 'text'},
+        'id2': {'name': 'name2', 'filter': [], 'input_type': 'radio', 'options': []},
+    }
+
     """ 数据库参数"""
     primary = ''  # 主键
     rules = []  # 校验规则
     collection = ''  # 数据库表名
-    fields = {  # 数据库字段定义
-        'id1': {'name': 'name1', 'type': 'str', 'input_type': 'text'},
-        'id2': {'name': 'name2', 'type': 'int', 'input_type': 'radio', 'options': []},
-    }
 
     """ 前端列表页面参数"""
-    page_size = 0  # 每页显示多少条
+    page_size = 10  # 每页显示多少条
     page_title = ''  # 页面title
     search_tips = ''  # 查询提示
     search_fields = []  # 查询哪些字段
-    table_fields = [dict(id='', name='')]  # 列表包含哪些字段
+    table_fields = []  # 列表包含哪些字段
     hide_fields = []  # 列表默认隐藏哪些字段
-    info_fields = []  # 列表action操作需要哪些字段信息
+    info_fields = []  # 除table_fields外，列表action需要哪些字段
+    update_fields = []  # 更新时，模态框需要哪些字段
     operations = [  # 批量操作
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -48,7 +51,6 @@ class Model(object):
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-    update_fields = [dict(id='', name='', input_type='', options=[])]  # update模态框包含哪些字段
 
     @classmethod
     def get_search_tips(cls):
@@ -60,12 +62,12 @@ class Model(object):
     @classmethod
     def get_template_kwargs(cls, fields=None):
         """ 获取前端模板参数"""
-        fields = fields or [
-            'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
-            'info_fields', 'operations', 'img_operations', 'actions', 'update_fields'
-        ]
+        fields = fields or ['page_title', 'search_fields', 'hide_fields', 'info_fields',
+                            'operations', 'img_operations', 'actions']
         kwargs = {f: getattr(cls, f) for f in fields}
-        kwargs['search_tips'] = kwargs['search_tips'] or cls.get_search_tips()
+        kwargs['table_fields'] = cls.get_field_list(cls.table_fields)
+        kwargs['update_fields'] = cls.get_field_list(cls.update_fields)
+        kwargs['search_tips'] = cls.search_tips or cls.get_search_tips()
         return kwargs
 
     @staticmethod
@@ -82,12 +84,8 @@ class Model(object):
         return list(cls.fields.keys())
 
     @classmethod
-    def get_field_list(cls, include=None, exclude=None):
-        if include:
-            return [dict(id=k, **v) for k, v in cls.fields.items() if k in include]
-        if exclude:
-            return [dict(id=k, **v) for k, v in cls.fields.items() if k not in exclude]
-        return [dict(id=k, **v) for k, v in cls.fields.items()]
+    def get_field_list(cls, fields):
+        return [dict(id=f, **cls.fields[f]) for f in fields if f in cls.fields]
 
     @classmethod
     def get_need_fields(cls):
