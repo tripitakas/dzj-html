@@ -240,7 +240,7 @@ class Variant(Model):
             if value:
                 params[field] = value
                 condition.update({field: value})
-        for field in ['img_name', 'remark']:
+        for field in ['img_name', 'source', 'remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

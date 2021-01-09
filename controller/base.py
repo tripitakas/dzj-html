@@ -104,7 +104,8 @@ class BaseHandler(CorsMixin, RequestHandler):
     def direct_login(self, login_id, password):
         """直接登录，然后访问网站api"""
         # 检查是否多次登录失败
-        if self.db.log.count_documents({'type': 'login-fail', 'content': login_id}) >= 12:
+        failed_times = self.db.log.count_documents({'type': 'login-fail', 'content': login_id})
+        if failed_times >= 12:
             self.db.user.update_one({'email': login_id}, {'$set': {'disabled': True}})
             return self.send_error_response(e.unauthorized, message='登录失败超过12次，账号被禁用，请联系管理员。')
 
@@ -116,7 +117,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error_response(e.incorrect_password)
 
         # 清除登录失败记录
-        self.db.log.delete_many({'type': 'login_fail', 'content': login_id})
+        failed_times and self.db.log.delete_many({'type': 'login_fail', 'content': login_id})
 
         user['roles'] = user.get('roles', '')
         user['login_md5'] = gen_id(user['roles'])

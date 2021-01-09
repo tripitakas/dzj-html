@@ -106,8 +106,9 @@ class VariantListHandler(BaseHandler, Variant):
                     'updated_time']
     operations = [
         {'operation': 'btn-add', 'label': '新增记录'},
-        {'operation': 'btn-merge', 'label': '合并字图'},
         {'operation': 'bat-remove', 'label': '批量删除'},
+        {'operation': 'bat-source', 'label': '更新分类'},
+        {'operation': 'btn-merge', 'label': '合并字图'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
     ]
     img_operations = ['config']
