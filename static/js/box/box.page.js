@@ -62,6 +62,8 @@
     if (p.curBoxType) {
       $.box.setCurBoxType(p.curBoxType);
       $.box.switchBoxType(p.curBoxType, true);
+    } else {
+      $($.box.data.holder).addClass('hide-all');
     }
     // 3. 设置图片
     $.box.toggleImage(p.showImage || true);
@@ -76,6 +78,11 @@
       updateHeadBoxKindNo();
       // 5. 设置导航条中操作历史
       initHeadHintList();
+    }
+    // 6. 设置文本
+    if (p.txtHolder) {
+      $.box.initTxt(p.txtHolder, 'txt');
+      initHeadTxtList();
     }
   }
 
@@ -236,6 +243,13 @@
       });
     }
     if (html) $('#hint-list').append(html);
+  }
+
+  function initHeadTxtList() {
+    ['txt', 'ocr_txt', 'col_txt', 'cmp_txt'].forEach((txtType) => {
+      if (!$.box.hasTxtType(txtType)) $('.toggle-txt#' + txtType).addClass('hide');
+    });
+    if (!$('.toggle-txt:not(.hide)').length) $('#toggle-txts').addClass('hide');
   }
 
   function updateFootHintNo() {

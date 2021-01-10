@@ -306,3 +306,11 @@ $('#load-user-order').on('click', function () {
   $.box.drawLink(true);
   bsShow('成功', '已加载用户字序', 'info', 500);
 });
+
+
+//----------------------文本操作----------------------
+$('.toggle-txt').on('click', function () {
+  $('.toggle-txt').removeClass('active');
+  $(this).addClass('active');
+  $.box.toggleTxt($(this).attr('id'), true);
+});

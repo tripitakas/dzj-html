@@ -21,6 +21,7 @@
   let data = {
     paper: null,                                    // Raphael画布
     holder: null,                                   // 画布所在的页面元素
+    txtHolder: null,                                // 文本所在的页面元素
     image: {elem: null, width: null, height: null}, // 背景图
     showMode: null,                                 // 初始化的显示模式
     initRatio: 1,                                   // 框坐标初始化的缩放比例
@@ -36,7 +37,8 @@
     readonly: true,                                 // 是否只读
     curBox: null,                                   // 当前框
     curBoxType: 'char',                             // 当前显示框的类型
-    curNoType: 'char',                              // 当前显示序号的类型
+    curNoType: 'char',                              // 当前显示序号类型
+    curTxtType: 'txt',                              // 当前显示文本类型
   };
 
   $.box = {
@@ -63,12 +65,15 @@
     findBoxByPoint: findBoxByPoint,
     scrollToVisible: scrollToVisible,
     isInRect: isInRect,
-    getTxt: getTxt,
+    getCharTxt: getCharTxt,
     getPoint: getPoint,
     getDistance: getDistance,
     getHandlePt: getHandlePt,
     showNo: showNo,
     toggleNo: toggleNo,
+    initTxt: initTxt,
+    toggleTxt: toggleTxt,
+    hasTxtType: hasTxtType,
     zoomImg: zoomImg,
     toggleImage: toggleImage,
     getImageOpacity: getImageOpacity,
@@ -110,8 +115,8 @@
     data.image.width = width;
     data.image.height = height;
     let w = $(data.holder).width(), h = $(data.holder).height();
-    let rw = (h * width / w < height ? w - 15 : w) / width;
-    let rh = (w * height / h < width ? h - 20 : h - 5) / height;
+    let rw = ((h * width / w) < height ? w - 15 : w) / width;
+    let rh = ((w * height / h) < width ? h - 20 : h - 5) / height;
     if (showMode === 'width-full') {
       data.initRatio = rw;
     } else if (showMode === 'height-full') {
@@ -377,6 +382,7 @@
         scrollToVisible(box, true);
         status.curBox = box;
       }
+      switchCurTxt(box);
     } else {
       removeClass(status.curBox, 'current hover');
       status.curBox = null;
@@ -438,7 +444,7 @@
     if (b.boxType === 'char') return id;
   }
 
-  function getTxt(b) {
+  function getCharTxt(b) {
     return b['txt'] || b['ocr_txt'] || '';
   }
 
@@ -476,6 +482,7 @@
     if (index === 8) return {x: b.x + b.width / 2, y: b.y + b.height / 2};  // center
   }
 
+  //---序号相关---
   function showNo() {
     data.boxes.forEach(function (b, i) {
       if (isDeleted(b) || b.boxType === 'image')
@@ -514,6 +521,67 @@
     }
   }
 
+  //---文本相关---
+  function initTxt(txtHolder, txtType) {
+    let html = '', blockNo = null, columnNo = null;
+    data.boxes.forEach((b) => {
+      if (b.boxType !== 'char' || isDeleted(b)) return;
+      if (blockNo !== b.block_no) {
+        html += (!blockNo ? '</div></div>' : '') + '<div class="block"><div class="line">';
+        blockNo = b.block_no;
+        columnNo = 1;
+      } else if (columnNo !== b.column_no) {
+        html += '</div><div class="line">';
+        columnNo = b.column_no;
+      }
+      b.class = b.class ? 'char ' + b.class : 'char';
+      html += `<span id="idx-${b.idx}" class="${b.class}">${b[txtType] || '■'}</span>`;
+    });
+    html += '</div></div>';
+    data.txtHolder = txtHolder;
+    $(txtHolder).html(html);
+  }
+
+  function toggleTxt(txtType, show) {
+    if (status.curTxtType === txtType) return;
+    if (txtType && show) {
+      status.curTxtType = txtType;
+      $.map($(data.txtHolder).find('.char'), function (item) {
+        let idx = $(item).attr('id').split('-')[1];
+        let box = data.boxes[idx];
+        $(item).text(box[txtType] || '■');
+      })
+    }
+  }
+
+  function switchCurTxt(box) {
+    let holder = $(data.txtHolder);
+    holder.find('.current-txt').removeClass('current-txt');
+    if (box) {
+      let curTxt = holder.find('#idx-' + box.idx);
+      curTxt.addClass('current-txt');
+      let hp = $(data.txtHolder).offset(), cp = curTxt.offset();
+      if ((cp.top - hp.top > holder.height() + holder.scrollTop())
+          || (cp.top < hp.top)) {
+        holder.animate({scrollTop: cp.top - hp.top - 10}, 500);
+      }
+    }
+  }
+
+  function hasTxtType(txtType) {
+    let chars = getBoxes()['chars'];
+    if (chars.length === 1 && txtType in chars[0]) return true;
+    return chars.length >= 2 && txtType in chars[0] && txtType in chars[1];
+  }
+
+  $(document).on('click', '.char', function (e) {
+    let idx = $(this).attr('id').split('-')[1];
+    switchCurBox(data.boxes[idx]);
+    $('.current-txt').removeClass('current-txt');
+    $(this).addClass('current-txt')
+  });
+
+  //---图片相关---
   /**
    * 缩放画布或图片
    * ratio：设置缩放比例，相对原始大小缩放；factor：设置缩放因子，从当前大小开始缩放
@@ -567,6 +635,7 @@
     }
   }
 
+  //---功能函数---
   function equal(el1, el2) {
     if (el1 && el1.elem) el1 = el1.elem;
     if (el2 && el2.elem) el2 = el2.elem;

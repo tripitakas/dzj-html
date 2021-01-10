@@ -44,6 +44,10 @@
   fill-opacity: 0.1;
 }
 
+.show-current .current {
+  display: block !important;
+}
+
 .box.edited {
   stroke: red;
   display: block;
@@ -361,4 +365,18 @@
 .cmb-hint .box.b-changed:not(.b-added):not(.b-deleted) {
   stroke: red !important;
   stroke-opacity: 0.7 !important;
+}
+
+/*-字框文字-*/
+.txt-holder {
+  height: 100%;
+  overflow: auto;
+  cursor: pointer;
+  padding: 0 8px 8px 8px;
+  background: var(--Grey_Content1);
+  border-left: 1px solid #ddd;
+}
+
+.current-txt {
+  color: red;
 }

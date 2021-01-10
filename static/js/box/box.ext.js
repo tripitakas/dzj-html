@@ -1,5 +1,5 @@
 /**
- * box.core.js扩展
+ * box.base.js扩展
  * 1. 操作痕迹。包括初始状态、某用户或时间的操作痕迹、所有操作痕迹、最终状态等
  * 2. redo/undo
  * Date: 2020-11-28
@@ -192,7 +192,7 @@
       if (b.boxType === 'char' && !self.isDeleted(b)) {
         let shape = getCharShape(b, true);
         shape && self.addClass(b, shape);
-        let txt = eStatus.mayWrong && self.getTxt(b);
+        let txt = eStatus.mayWrong && self.getCharTxt(b);
         if (txt && eStatus.mayWrong.indexOf(txt) > -1) {
           self.addClass(b, 's-mayWrong');
         }
@@ -297,7 +297,7 @@
     eStatus.mayWrong = mayWrong;
     mayWrong && data.boxes.forEach(function (b, i) {
       if (b.boxType === 'char' && !self.isDeleted(b)) {
-        let txt = self.getTxt(b);
+        let txt = self.getCharTxt(b);
         if (txt && mayWrong.indexOf(txt) > -1) {
           self.addClass(b, 's-mayWrong');
         } else {

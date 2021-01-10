@@ -145,12 +145,8 @@ a:hover, a:focus {
 }
 
 body.widescreen {
-  padding: auto !important;
   height: 100% !important;
-}
-
-body.modal-open {
-  padding-right: 15px !important;
+  padding: auto !important;
 }
 
 .app-main {
