@@ -238,7 +238,8 @@ class CharTaskClusterHandler(CharHandler):
             # 设置列图hash值
             for d in docs:
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
-                d['column']['img_url'] = self.get_web_img(column_name, 'column')
+                if d and d.get('column'):
+                    d['column']['img_url'] = self.get_web_img(column_name, 'column')
             char_count = self.task.get('char_count')
             show_char_info = json_util.loads(self.get_secure_cookie('cluster_char_info') or '0') or '是'
             self.render(
