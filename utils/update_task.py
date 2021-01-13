@@ -24,7 +24,7 @@ def update_page_task(db):
     """更新页任务"""
     size = 100
     invalid = []
-    cond = {'task_type': {'$in': ['cut_proof', 'cut_review']}}
+    cond = {'task_type': {'$in': ['cut_proof', 'cut_review']}, 'status': 'finished'}
     item_count = db.task.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
@@ -34,6 +34,8 @@ def update_page_task(db):
         tasks = list(db.task.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for t in tasks:
             print('[%s]%s, %s' % (hp.get_date_time(), t['task_type'], t['doc_id']))
+            if not t.get('picked_user_id'):
+                continue
             page = db.page.find_one({'name': t['doc_id']})
             if not page:
                 invalid.append(t['doc_id'])

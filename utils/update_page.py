@@ -302,7 +302,7 @@ def update_page_logs(db):
             db.page.update_one({'_id': p['_id']}, {'$set': {**update, 'updated': True}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='update_page_logs', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
