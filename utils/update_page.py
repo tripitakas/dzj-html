@@ -280,7 +280,7 @@ def reset_logs(boxes):
 def update_page_logs(db):
     """ 重置page表的chars.box_logs字段"""
     size = 1000
-    cond = {'updated': None}
+    cond = {'updated': False}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
