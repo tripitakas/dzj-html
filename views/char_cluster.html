@@ -11,6 +11,12 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   {% import re %}
+  <style>
+    #panel-region {
+      width: 260px;
+      max-width: 260px;
+    }
+  </style>
 </head>
 
 <body class="widescreen">
@@ -129,15 +135,17 @@
         {% module Pager(pager) %}
       </div>
       <div class="column-panel">
-        <div id="col-holder"><div id="col-holder-inner"></div></div>
+        <div id="col-holder">
+          <div id="col-holder-inner"></div>
+        </div>
         <div class="btn-group" role="group" aria-label="column panel buttons" style="margin-top: 6px">
           <button id="zoom-out" class="btn btn-default btn-sm" title="缩小">-</button>
           <button id="submit-box" class="btn btn-primary btn-sm">确认</button>
           <button id="zoom-in" class="btn btn-default btn-sm" title="放大">+</button>
         </div>
       </div>
-      <div class="work-panel">
-        {% module CharTxt(docs and docs[0] or {}, txt_fields = ['txt']) %}
+      <div id="panel-region" class="right bd proof-panel">
+        {% include com/_char_txt.html %}
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -149,8 +157,8 @@
         总字数：{{char_count}}　聚类字种：{{'、'.join(ocr_txts)}}
       </span>
       <span class="fr">
-        页编码：<span class="page-name" style="margin-right: 10px" title="查看单字对应的整页"></span>
-        字编码：<span class="char-name" title="查看单字详情">未选中</span>
+        页编码：<span class="page-name" style="margin-right: 10px"></span>
+        字编码：<span class="char-name">未选中</span>
       </span>
     </div>
   </div>
@@ -281,8 +289,8 @@
 <script>
   // 公共参数
   let chars = decodeJSON('{{dumps(chars)}}');
-  let txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
   let taskType = "{{handler.task_type if hasattr(handler, 'task_type') else ''}}";
+  $.txt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
 
   // 初始化
   $('#taskConfigModal .page-size').val('{{handler.page_size}}');
@@ -432,6 +440,34 @@
   // 方向键移动
   $.mapKey('right', function () {
     $('.char-item.current').next().find('.char-img').click();
+  });
+
+  // 单字提交
+  $('.char-txt .btn-submit').on('click', function () {
+    let $this = $(this);
+    if ($this.hasClass('disabled')) return;
+    let name = $('.char-txt .cur-name').val();
+    if (!name.length) return bsShow('', '请选择校对文字', 'warning', 1000, '#s-alert');
+    if (!$('#p-txt').val().length) return bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
+    let data = {
+      txt: $('#p-txt').val() || '',
+      remark: $('#p-remark').val() || '',
+      is_vague: $('.is-vague :checked').val() === '1',
+      is_deform: $('.is-deform :checked').val() === '1',
+      task_type: typeof gTaskType === 'undefined' ? '' : gTaskType
+    };
+    $this.addClass('disabled');
+    postApi('/char/txt/' + name, {data: data}, function (res) {
+      $this.removeClass('disabled');
+      location.href = setAnchor(name);
+      bsShow('', '已保存成功', 'success', 1000, '#s-alert');
+      $('.char-item.current .txt').text(data.txt);
+      $.txt.setTxtLogs(res['txt_logs']);
+    }, function (err) {
+      $this.removeClass('disabled');
+      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
+      else bsShow('失败', err.message, 'warning', 1000);
+    });
   });
 
 </script>

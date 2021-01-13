@@ -66,8 +66,6 @@ class CharListHandler(CharHandler):
 
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
-        if key == 'txt_type' and value:
-            return self.txt_types.get(value, value)
         if key in ['diff', 'un_required']:
             return self.yes_no.get(value) or ''
         if key in ['cc', 'sc'] and value:
@@ -83,7 +81,7 @@ class CharListHandler(CharHandler):
     def get(self):
         """字数据管理"""
         try:
-            kwargs = self.get_template_kwargs()
+            kwargs = super(Char, self).get_template_kwargs()
             kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
@@ -91,8 +89,7 @@ class CharListHandler(CharHandler):
                 condition, params = Char.get_char_search_condition(self.request.query)
             docs, pager, q, order = Char.find_by_page(self, condition)
             self.render('char_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        txt_types=self.txt_types, yes_no=self.yes_no,
-                        format_value=self.format_value, **kwargs)
+                        yes_no=self.yes_no, format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)

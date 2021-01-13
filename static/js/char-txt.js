@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  $.box.onBoxChanged(function (box, reason, param) {
+  $.box && $.box.onBoxChanged(function (box, reason, param) {
     if (reason === 'switch') {
       if (box && box.boxType === 'char')
         $.txt.setChar(box);
