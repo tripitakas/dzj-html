@@ -252,8 +252,6 @@ def reset_logs(boxes):
         b.pop('updated', 0)
         if not b.get('box_logs'):
             continue
-        if b['cid'] == 484:
-            print(b)
         # 设置added/updated
         if b['box_logs'][0].get('username'):
             b['added'] = True
