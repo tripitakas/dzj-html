@@ -371,12 +371,35 @@
 .txt-holder {
   height: 100%;
   overflow: auto;
-  cursor: pointer;
   padding: 0 8px 8px 8px;
   background: var(--Grey_Content1);
   border-left: 1px solid #ddd;
 }
 
-.current-txt {
+.txt-holder .char {
+  margin: 5px 0;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 38px;
+  letter-spacing: 1px;
+  word-break: break-all;
+}
+
+.txt-holder .char.current-char {
+  background: rgba(255, 0, 0, 0.2);
+}
+
+.txt-holder .line.current-line {
+  padding-left: 4px;
+  margin-left: -10px;
+  border-left: 6px solid rgba(255, 0, 0, .5);
+}
+
+.txt-holder .is-diff {
+  border-bottom: 1px solid grey;
+}
+
+.txt-holder .changed {
   color: red;
 }

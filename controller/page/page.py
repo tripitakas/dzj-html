@@ -39,7 +39,7 @@ class Page(Model):
         'tasks_info': {'name': '任务信息'},
         'remark_box': {'name': '切分备注'},
         'remark_txt': {'name': '文本备注'},
-        'op_text': {'name': '文本操作'},
+        'op_text': {'name': '文本匹配'},
     }
     rules = [(v.not_empty, 'name'), (v.is_page, 'name')]
     search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']

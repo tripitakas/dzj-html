@@ -742,8 +742,35 @@ body.widescreen {
   margin-right: 6px;
 }
 
-/* bootstrap */
+/*滚动条样式*/
+.slim-bar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
 
+.slim-bar::-webkit-scrollbar-track-piece {
+  background-color: white;
+  -webkit-border-radius: 6px;
+}
+
+.slim-bar::-webkit-scrollbar-thumb:vertical {
+  height: 6px;
+  background-color: #BDBDBD;
+  -webkit-border-radius: 3px;
+}
+
+.slim-bar::-webkit-scrollbar-thumb:horizontal {
+  width: 6px;
+  background-color: #BDBDBD;
+  -webkit-border-radius: 3px;
+}
+
+.slim-bar::-webkit-scrollbar-thumb:vertical:hover,
+.slim-bar::-webkit-scrollbar-thumb:horizontal:hover {
+  background-color: #808080;
+}
+
+/* bootstrap */
 .alert {
   border: 0;
 }

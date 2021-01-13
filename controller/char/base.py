@@ -51,9 +51,12 @@ class CharHandler(TaskHandler, Char):
     @staticmethod
     def get_user_point(self, task_type):
         """针对指定的任务类型，获取用户积分"""
-        condition = {'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED}
-        tasks = list(self.db.task.find(condition, {'char_count': 1}))
-        return sum([t['char_count'] for t in tasks])
+        counts = list(self.db.task.aggregate([
+            {'$match': {'task_type': task_type, 'status': self.STATUS_FINISHED, 'picked_user_id': self.user_id}},
+            {'$group': {'_id': None, 'count': {'$sum': '$char_count'}}},
+        ]))
+        points = counts and counts[0]['count'] or 0
+        return points
 
     @classmethod
     def check_txt_level_and_point(cls, self, char, task_type=None, send_error_response=True):

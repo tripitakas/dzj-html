@@ -9982,12 +9982,12 @@ def is_variant(a, b):
     return a != b and m and b in m.group(0)
 
 
-def is_variants(args):
-    """检查args中是否全部为异体字"""
-    if len(args) == 1:
+def is_variants(txts):
+    """检查txts中是否全部为异体字"""
+    if len(txts) == 1:
         return False
-    for t in args[1:]:
-        if not is_variant(args[0], t):
+    for t in txts[1:]:
+        if not is_variant(txts[0], t):
             return False
     return True
 
@@ -10007,10 +10007,3 @@ def normalize(txt):
         return variants_str[p2 + 1]
 
     return ''.join([get_normal(ch) for ch in txt])
-
-
-if __name__ == '__main__':
-    txts = ['為', '爲']
-    b1 = is_variant(*txts)
-    b2 = is_variants(txts)
-    print(b1, b2)

@@ -74,6 +74,23 @@ class PageUpsertApi(PageHandler):
             return self.send_db_error(error)
 
 
+class PageMetaApi(PageHandler):
+    URL = '/api/page/meta'
+
+    def post(self):
+        """修改页数据"""
+        try:
+            rules = [(v.not_empty, '_id')]
+            self.validate(self.data, rules)
+            self.db.page.update_one({'_id': ObjectId(self.data['_id'])}, {'$set': {
+                k: self.data[k] for k in ['source', 'layout', 'remark_box', 'remark_txt'] if k in self.data
+            }})
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class PageSourceApi(BaseHandler):
     URL = '/api/page/source'
 
@@ -241,12 +258,12 @@ class PageCharTxtApi(PageHandler):
 
     def post(self, char_name):
         """更新字符的txt"""
-
         try:
-            rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt, 'txt'), (v.is_txt_type, 'txt_type')]
+            rules = [(v.not_empty, 'txt'), (v.is_txt, 'txt')]
             self.validate(self.data, rules)
-            page_name, cid = '_'.join(char_name.split('_')[:-1]), int(char_name.split('_')[-1])
-            cond = {'name': page_name, 'chars.cid': cid}
+
+            page_name, cid = char_name.rsplit('_', 1)
+            cond = {'name': page_name, 'chars.cid': int(cid)}
             page = self.db.page.find_one(cond, {'name': 1, 'tasks': 1, 'chars.$': 1})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
@@ -254,13 +271,15 @@ class PageCharTxtApi(PageHandler):
             char = page['chars'][0]
             CharHandler.check_txt_level_and_point(self, char, self.data.get('task_type'))
             # 检查参数，设置更新
-            fields = ['txt', 'nor_txt', 'txt_type', 'remark']
-            update = {k: self.data[k] for k in fields if self.data.get(k) not in ['', None]}
+            fields = ['txt', 'is_deform', 'is_vague', 'remark']
+            char['is_vague'] = char.get('is_vague') or False
+            char['is_deform'] = char.get('is_deform') or False
+            update = {k: self.data[k] for k in fields if self.data.get(k) is not None}
             if h.cmp_obj(update, char, fields):
-                return self.send_error_response(e.not_changed)
+                return self.send_error_response(e.not_changed, message='没有任何修改')
             char.update(update)
             my_log = {k: self.data[k] for k in fields + ['task_type'] if self.data.get(k) not in ['', None]}
-            char['txt_logs'] = self.merge_txt_logs(my_log, char.get('txt_logs'))
+            char['txt_logs'] = self.merge_txt_logs(my_log, char)
             char['txt_level'] = CharHandler.get_user_txt_level(self, self.data.get('task_type'))
             # 更新page表
             self.db.page.update_one(cond, {'$set': {'chars.$': char}})

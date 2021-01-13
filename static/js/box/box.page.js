@@ -81,7 +81,8 @@
     }
     // 6. 设置文本
     if (p.txtHolder) {
-      $.box.initTxt(p.txtHolder, 'txt');
+      $(p.holder).addClass('show-current');
+      $.box.initTxt(p.txtHolder, 'txt', p.useTooTips);
       initHeadTxtList();
     }
   }
@@ -246,7 +247,7 @@
   }
 
   function initHeadTxtList() {
-    ['txt', 'ocr_txt', 'col_txt', 'cmp_txt'].forEach((txtType) => {
+    ['txt', 'ocr_txt', 'ocr_col', 'cmp_txt'].forEach((txtType) => {
       if (!$.box.hasTxtType(txtType)) $('.toggle-txt#' + txtType).addClass('hide');
     });
     if (!$('.toggle-txt:not(.hide)').length) $('#toggle-txts').addClass('hide');

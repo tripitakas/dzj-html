@@ -315,8 +315,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
-    def get_config(self, key):
-        return self.prop(self.config, key)
+    def get_config(self, key, default=None):
+        return self.prop(self.config, key, default)
 
     def get_hide_fields(self):
         key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
@@ -359,7 +359,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         """获取藏经图片的后缀名"""
         return self.prop(self.config, 'img_suffix.%s' % tripitaka_code) or 'jpg'
 
-    def get_web_img(self, img_name, img_type='page', use_my_cloud=False):
+    def get_web_img(self, img_name, img_type='page'):
         if not img_name:
             return ''
         inner_path = '/'.join(img_name.split('_')[:-1])
@@ -374,7 +374,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 return img_url
         # 从我的云盘获取图片。如果use_my_cloud为True，则返回我的云盘路径而不使用共享云盘
         my_cloud = self.get_config('web_img.my_cloud')
-        if my_cloud and (img_type in (self.get_config('web_img.cloud_type') or '') or use_my_cloud):
+        if my_cloud and img_type in self.get_config('web_img.cloud_type', ''):
             return path.join(my_cloud.replace('-internal', ''), relative_url)
         # 从共享盘获取图片
         shared_cloud = self.get_config('web_img.shared_cloud')

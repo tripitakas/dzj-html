@@ -10,7 +10,6 @@ from controller import validate as v
 class Char(Model):
     primary = 'name'
     collection = 'char'
-    txt_types = {'Y': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
     fields = {
         'name': {'name': '字编码'},
         'page_name': {'name': '页编码'},
@@ -28,11 +27,12 @@ class Char(Model):
         'alternatives': {'name': '字框OCR'},
         'ocr_col': {'name': '列框OCR'},
         'cmp_txt': {'name': '比对文字'},
-        'diff': {'name': '文字是否不匹配'},
+        'is_diff': {'name': '是否不一致'},
         'un_required': {'name': '是否不必校对'},
         'txt': {'name': '原字'},
         'nor_txt': {'name': '正字'},
-        'txt_type': {'name': '类型', 'input_type': 'radio', 'options': txt_types},
+        'is_vague': {'name': '是否模糊'},
+        'is_deform': {'name': '是否异形字'},
         'box_level': {'name': '切分等级'},
         'box_point': {'name': '切分积分'},
         'box_logs': {'name': '切分校对历史'},
@@ -45,10 +45,6 @@ class Char(Model):
     rules = [(v.is_page, 'page_name')]
     # search_fields在这里定义，这样find_by_page时q参数才会起作用
     search_fields = ['name', 'source', 'txt', 'ocr_txt', 'nor_txt']
-
-    @classmethod
-    def get_type_names(cls, txt_type):
-        return cls.prop(cls.txt_types, txt_type) or txt_type
 
     @classmethod
     def get_char_search_condition(cls, request_query):

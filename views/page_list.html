@@ -2,6 +2,10 @@
 {% block custom-css %}
 <link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
 <style>
+  body.swal2-shown {
+    padding-right: 15px !important;
+  }
+
   .sty-table .tasks {
     width: 210px;
   }
@@ -14,12 +18,9 @@
     width: 100% !important;
   }
 
-  #searchModal .modal-body h4, #searchModal .modal-body div {
+  #searchModal .modal-body h4,
+  #searchModal .modal-body div {
     margin: 5px 0;
-  }
-
-  #txt-content {
-    font-size: 1.2em;
   }
 </style>
 {% end %}
@@ -352,13 +353,6 @@
 
 {% block custom-js %}
 <script>
-  // 浏览
-  $('.action .btn-nav').on('click', function () {
-    let name = $(this).parent().siblings('.name').text();
-    let symbol = location.search ? '&' : '?';
-    location.href = '/page/browse/' + name + location.search + symbol + 'from=' + encodeFrom();
-  });
-
   // 查找重复
   $('.operation .btn-duplicate').on('click', function () {
     location.href = location.pathname + '?duplicate=true';
@@ -372,9 +366,7 @@
   // 更新分类
   $sourceModal = $('#sourceModal');
   $('.operation .bat-source').on('click', function () {
-    // 检索参数
     $sourceModal.find('#src-param').val(location.search);
-    // 选中页码
     $sourceModal.find('#src-names').val($.map($('table tbody :checked'), function (item) {
       return $(item).parent().parent().find('.name').text().trim();
     }));
@@ -384,7 +376,7 @@
   $('#sourceModal .modal-confirm11').on('click', function () {
     let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     if (!ids.length)
-      return showTips('请选择', '当前没有选中任何记录', 3000);
+      return showTips('请选择', '当前没有选中任何记录', 1000);
     Swal2.fire({title: '请输入分类', input: 'text'}).then((result) => {
       if (result.value) {
         postApi('/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
@@ -394,28 +386,29 @@
 
   $sourceModal.find('.modal-confirm').on('click', function () {
     let source = $sourceModal.find('.source').val().trim();
-    if (!source.length) return showTips('请输入分类', '分类不允许为空', 3000);
-    let data = {'source': source};
+    if (!source.length)
+      return showTips('请输入分类', '分类不允许为空', 1000);
 
     let isFile = false;
+    let data = {'source': source};
     let formData = new FormData();
     let src = $sourceModal.find('.tab-pane.active').attr('id');
     switch (src) {
       case 'src-search':
         let searchParam = $sourceModal.find('#src-param').val();
-        if (!searchParam.length) return showTips('提示', '检索条件不允许为空', 3000);
+        if (!searchParam.length) return showTips('提示', '检索条件不允许为空', 1000);
         data['search'] = searchParam;
         break;
       case 'src-select':
         let pageNames = $('#src-names').val().trim();
-        if (!pageNames.length) return showTips('提示', '请选择页码', 3000);
+        if (!pageNames.length) return showTips('提示', '请选择页码', 1000);
         data['page_names'] = pageNames.split(',');
         break;
       case 'src-file':
         let idsFile = $('#src-upload')[0].files[0];
-        if (typeof idsFile === "undefined") return showTips('提示', '请选择文件', 3000);
-        if (!/\.(csv|txt|json)$/.test(idsFile.name)) return showTips('提示', '文件不是CSV或TXT类型', 3000);
-        if (idsFile.size > (10 * 1024 * 1024)) return showTips('提示', '文件大小不能超过10M', 3000);
+        if (typeof idsFile === "undefined") return showTips('提示', '请选择文件', 1000);
+        if (!/\.(csv|txt|json)$/.test(idsFile.name)) return showTips('提示', '文件不是CSV或TXT类型', 1000);
+        if (idsFile.size > (10 * 1024 * 1024)) return showTips('提示', '文件大小不能超过10M', 1000);
         formData.append('data', JSON.stringify(data));
         formData.append('names_file', idsFile);
         isFile = true;
@@ -426,11 +419,13 @@
     }, null, isFile);
   });
 
-  // 生成字表
+  // 生成字数据
   $('.operation .bat-gen-chars').on('click', function () {
-    let pageNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.name').text().trim());
+    let pageNames = $.map($('table tbody :checked'), (item) => {
+      return $(item).parent().parent().find('.name').text().trim();
+    });
     if (!pageNames.length)
-      return showTips('请选择', '当前没有选中任何记录', 3000);
+      return showTips('请选择', '当前没有选中任何记录', 1000);
     showConfirm('提示', `将对选中的${pageNames.length}条记录生成字表`, function () {
       postApi('/page/start_gen_chars', {data: {page_names: pageNames}}, (res) => {
         Swal0.fire({
@@ -441,19 +436,19 @@
     });
   });
 
-  // 删除
+  // 删除数据
   $('.btn-delete').on('click', function () {
     let name = $(this).parent().parent().find('.name').text().trim();
     showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
       postApi('/api/page/delete', {data: {page_name: name}}, function (res) {
-        if (res.deleted_count) {
-          showSuccess('成功', '数据已删除', 2000);
-          refresh(2000);
+        if (res['deleted_count']) {
+          showSuccess('成功', '数据已删除', 1000);
+          refresh(1000);
         }
-        if (res.existed_count)
-          showError('失败', '数据有关联任务，不能删除', 3000);
+        if (res['existed_count'])
+          showError('失败', '数据有关联任务，不能删除', 1000);
       }, function (err) {
-        showError('删除失败', err.message, 3000);
+        showError('失败', err.message, 2000);
       });
     });
   });
@@ -463,33 +458,28 @@
       return $(item).parent().parent().find('.name').text().trim();
     });
     if (!names.length)
-      return showTips('请选择', '当前没有选中任何记录', 3000);
+      return showTips('请选择', '当前没有选中任何记录', 1000);
     showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
       postApi('/api/page/delete', {data: {page_names: names}}, function (res) {
-        let msg = `已删除${res.deleted_count}条数据。`;
-        if (res.existed_count)
-          msg += `${res.existed_count}条数据有关联任务，不能直接删除。`;
-        showSuccess('成功', msg, 3000);
-        if (res.deleted_count) {
-          refresh(2000);
+        let msg = `已删除${res['deleted_count']}条数据。`;
+        if (res['existed_count']) msg += `${res['existed_count']}条数据有关联任务，不能直接删除。`;
+        showSuccess('成功', msg, 1000);
+        if (res['deleted_count']) {
+          refresh(1000);
         }
       }, function (err) {
-        showError('删除失败', err.message, 3000);
+        showError('失败', err.message, 2000);
       });
     });
   });
 
   // 检查图文匹配
-  $('.operation .btn-check-match').on('click', function () {
-    $('#checkModal').modal();
-  });
+  $('.operation .btn-check-match').on('click', () => $('#checkModal').modal());
   $('#checkModal .modal-confirm').on('click', function () {
     $(this).text('进行中...');
-    let field = $.map($('#checkModal .field :checked'), function (item) {
-      return $(item).attr('title');
-    });
+    let fields = $.map($('#checkModal .field :checked'), (item) => $(item).attr('title'));
     let publishTask = $('#checkModal .publish_task :checked').val() === '是';
-    postApi('/page/start_check_match', {data: {field: field, publish_task: publishTask}}, (res) => {
+    postApi('/page/start_check_match', {data: {field: fields, publish_task: publishTask}}, (res) => {
       Swal0.fire({
         type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
         footer: '详情可以查看<a href="/sys/oplog/latest/check_match">日志</a>'
@@ -500,37 +490,29 @@
   // 修改字框
   $('.btn-box').on('click', function () {
     let name = $(this).parent().parent().find('.name').text();
-    let url = '/page/box/' + name;
-    location.href = url + '?from=' + encodeFrom();
-  });
-
-  // 修改字序
-  $('.btn-order').on('click', function () {
-    let name = $(this).parent().parent().find('.name').text();
-    let url = '/page/order/' + name;
-    location.href = url + '?from=' + encodeFrom();
+    location.href = `/page/box/${name}?from=` + encodeFrom();
   });
 
   // 修改文字
   $('.btn-text').on('click', function () {
     let name = $(this).parent().parent().find('.name').text();
-    let url = '/page/txt/' + name;
-    location.href = url + '?from=' + encodeFrom();
+    location.href = `/page/txt/${name}?from=` + encodeFrom();
   });
 
   // 文本匹配-OCR列文、比对文本、校对文本
   $('.op_text a').on('click', function () {
     let name = $(this).parent().parent().find('.name').text();
-    let url = `/page/txt_match/${name}?field=${$(this).attr("title")}`;
-    location.href = url + '&from=' + encodeFrom();
+    location.href = `/page/txt_match/${name}?field=${$(this).attr("title")}&from=` + encodeFrom();
   });
 
-  // 查看
-  $('.action .btn-my-view').on('click', function () {
-    location.href = '/page/' + $(this).parent().siblings('.name').text();
+  // 浏览页面
+  $('.action .btn-browse').on('click', function () {
+    let name = $(this).parent().siblings('.name').text();
+    let symbol = location.search ? '&' : '?';
+    location.href = '/page/browse/' + name + location.search + symbol + 'from=' + encodeFrom();
   });
 
-  // 详情
+  // 查看详情
   $('.action .btn-detail').on('click', function () {
     location.href = '/page/info/' + $(this).parent().siblings('.name').text();
   });
@@ -599,7 +581,7 @@
       }
     });
     // 子步骤
-    let steps = taskTypes[taskType].steps || [];
+    let steps = taskTypes[taskType]['steps'] || [];
     $publishModal.find('.label-steps').toggleClass('hide', !steps.length);
     $publishModal.find('.steps').html($.map(steps, function (item) {
       return `<label class="checkbox-inline"><input type="checkbox" title="${item[0]}" checked>${item[1]}</label>`;

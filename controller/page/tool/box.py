@@ -75,7 +75,7 @@ class Box(BoxOrder):
         for b in blocks:
             if not b.get('deleted'):
                 b_chars = [c for c in chars if c.get('block_no') and str(c['block_no']) == str(b['block_no'])]
-                if b_chars:
+                if b_chars:  # 删除没有字框的空栏
                     b.update(cls.get_outer_range(b_chars))
                     ret.append(b)
             else:
@@ -91,7 +91,7 @@ class Box(BoxOrder):
                 c_chars = [ch for ch in chars if ch.get('block_no') and ch.get('column_no')
                            and str(ch['column_no']) == str(c.get('column_no'))
                            and str(ch['block_no']) == str(c.get('block_no'))]
-                if c_chars:
+                if c_chars:  # 删除没有字框的空栏
                     c.update(cls.get_outer_range(c_chars))
                     ret.append(c)
             else:

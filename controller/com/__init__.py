@@ -17,5 +17,5 @@ modules = {
     'ComModal': module.ComModal, 'ReturnModal': module.ReturnModal, 'DoubtModal': module.DoubtModal,
     'PageConfigModal': module.PageConfigModal, 'PageRemarkModal': module.PageRemarkModal,
     'TaskConfigModal': module.TaskConfigModal, 'TaskRemarkModal': module.TaskRemarkModal,
-    'TxtDiff': module.TxtDiff, 'CharTxt': module.CharTxt, 'PageTxt': module.PageTxt,
+    'TxtDiff': module.TxtDiff, 'PageTxt': module.PageTxt,
 }

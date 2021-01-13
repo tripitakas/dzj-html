@@ -5,7 +5,6 @@
   <title>{{'%s-%s' % (tripitaka['name'], page['name'])}}</title>
   {% include com/_base_css.html %}
   <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
-  <link href="{{static_url('css/page-txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -219,8 +218,7 @@
 <script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/page-box.js')}}"></script>
 <script>
-  // 初始化
-  // 先设置右侧，后设置$.page.init
+  // 初始化。注：先设置右侧，后设置$.page.init
   if (parseInt('{{len(txts)}}') && getStorage('tptkRight', false)) {
     $('#toggle-right').addClass('active');
     $('#right-region').removeClass('hide');
@@ -246,6 +244,8 @@
   if (getStorage('tptkBox', '')) $('#toggle-' + getStorage('tptkBox')).addClass('active');
   window.onload = () => $.box.setRawImageRatio();
 
+</script>
+<script>
   // 模糊图片
   $('#toggle-blur').on('click', function () {
     setStorage('tptkBlur', $(this).hasClass('active'));

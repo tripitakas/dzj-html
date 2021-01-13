@@ -522,7 +522,7 @@
   }
 
   //---文本相关---
-  function initTxt(txtHolder, txtType) {
+  function initTxt(txtHolder, txtType, toolTip) {
     let html = '', blockNo = null, columnNo = null;
     data.boxes.forEach((b) => {
       if (b.boxType !== 'char' || isDeleted(b)) return;
@@ -534,12 +534,40 @@
         html += '</div><div class="line">';
         columnNo = b.column_no;
       }
-      b.class = b.class ? 'char ' + b.class : 'char';
-      html += `<span id="idx-${b.idx}" class="${b.class}">${b[txtType] || '■'}</span>`;
+      let attr = getTxtAttr(b);
+      if (toolTip && attr.cls.replace('char', '').length > 1) {
+        html += `<span id="idx-${b.idx}" class="${attr.cls}" data-toggle="tooltip" data-html="true" data-placement="bottom" title="${attr.tip}">${b[txtType] || '■'}</span>`;
+      } else {
+        html += `<span id="idx-${b.idx}" class="${attr.cls}">${b[txtType] || '■'}</span>`;
+      }
     });
     html += '</div></div>';
     data.txtHolder = txtHolder;
     $(txtHolder).html(html);
+  }
+
+  function getTxtAttr(box) {
+    let txts = [], cls = 'char', tips = [];
+    if (box['txt']) {
+      tips.push(`校对文本: ${box['txt']}`);
+    }
+    let ocr_char = (box['alternatives'] || '').split('')[0];
+    if (ocr_char) {
+      txts.push(ocr_char);
+      tips.push(`字框OCR: ${ocr_char}`);
+    }
+    if (box['ocr_col']) {
+      txts.push(box['ocr_col']);
+      tips.push(`列框OCR: ${box['ocr_col']}`);
+    }
+    if (box['cmp_txt']) {
+      txts.push(box['cmp_txt']);
+      tips.push(`比对文本: ${box['cmp_txt']}`);
+    }
+    txts = txts.filter((t)=>t !== '■');
+    if (txts.length > 1 && new Set(txts).size > 1) cls += ' is-diff';
+    if (box['txt']!== '■' && txts.indexOf(box['txt']) < 0) cls += ' changed';
+    return {cls: cls, tip: tips.join('<br>')};
   }
 
   function toggleTxt(txtType, show) {
@@ -557,12 +585,14 @@
   function switchCurTxt(box) {
     let holder = $(data.txtHolder);
     holder.find('.current-txt').removeClass('current-txt');
-    if (box) {
-      let curTxt = holder.find('#idx-' + box.idx);
-      curTxt.addClass('current-txt');
-      let hp = $(data.txtHolder).offset(), cp = curTxt.offset();
-      if ((cp.top - hp.top > holder.height() + holder.scrollTop())
-          || (cp.top < hp.top)) {
+    if (box && box.boxType === 'char') {
+      let $this = holder.find('#idx-' + box.idx);
+      $('.current-char').removeClass('current-char');
+      $this.addClass('current-char');
+      $('.current-line').removeClass('current-line');
+      $this.parent().addClass('current-line');
+      let hp = $(data.txtHolder).offset(), cp = $this.offset();
+      if ((cp.top - hp.top > holder.height() + holder.scrollTop()) || (cp.top < hp.top)) {
         holder.animate({scrollTop: cp.top - hp.top - 10}, 500);
       }
     }
@@ -577,8 +607,6 @@
   $(document).on('click', '.char', function (e) {
     let idx = $(this).attr('id').split('-')[1];
     switchCurBox(data.boxes[idx]);
-    $('.current-txt').removeClass('current-txt');
-    $(this).addClass('current-txt')
   });
 
   //---图片相关---

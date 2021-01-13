@@ -1,16 +1,14 @@
 from . import view, api, api_task as at, view_task as vt, api_ocr as ao
 
 views = [
-    view.PageListHandler, view.PageStatisticHandler, view.PageBrowseHandler, view.PageViewHandler,
-    view.PageInfoHandler, view.PageBoxHandler, view.PageTxtHandler,
-    view.PageTxtMatchHandler, view.PageFindCmpHandler,
+    view.PageListHandler, view.PageBoxHandler, view.PageTxtHandler, view.PageBrowseHandler,
+    view.PageTxtMatchHandler, view.PageFindCmpHandler, view.PageInfoHandler, view.PageStatisticHandler,
     vt.PageTaskCutHandler, vt.PageTaskTextHandler, vt.PageTaskDashBoardHandler,
     vt.PageTaskListHandler, vt.PageTaskStatisticHandler, vt.PageTaskResumeHandler,
-    view.PageBlockHandler,
 ]
 
 handlers = [
-    api.PageDeleteApi, api.PageUpsertApi, api.PageUploadApi, api.PageSourceApi,
+    api.PageDeleteApi, api.PageUpsertApi, api.PageMetaApi, api.PageUploadApi, api.PageSourceApi,
     api.PageCmpTxtApi, api.PageFindCmpTxtApi, api.PageCmpTxtNeighborApi,
     api.PageBoxApi, api.PageCharBoxApi, api.PageCharTxtApi,
     api.PageTxtDiffApi, api.PageTxtMatchApi, api.PageTxtMatchDiffApi,

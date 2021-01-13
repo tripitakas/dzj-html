@@ -157,7 +157,7 @@ class PageTaskCutApi(PageHandler):
         """切分校对、审定页面"""
         try:
             page = PageBoxApi.save_box(self, self.task['doc_id'], task_type)
-            hint_no = self.get_user_hint_no(page, self.user_id)
+            hint_no = self.get_user_op_no(page, self.user_id)
             if self.data.get('submit') and self.task['status'] != self.STATUS_FINISHED:
                 used_time = int((self.now() - self.task['picked_time']).seconds)
                 self.db.task.update_one({'_id': self.task['_id']}, {'$set': {

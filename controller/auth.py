@@ -28,13 +28,6 @@ url_placeholder = {
     'task_type': r'ocr_\w+|cut_\w+|text_\w+|cluster_\w+',
 }
 
-""" 
-角色权限对应表。定义系统中的所有角色以及对应的route权限，将属于同一业务的route分配给同一个角色，
-用户通过拥有角色来拥有对应的route权限。角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
-roles：角色所继承的父角色；
-routes：角色可以访问的权限集合；
-is_assignable：角色是否可被分配。
-"""
 role_route_maps = {
     '单元测试用户': {
         'is_assignable': False,
@@ -84,10 +77,6 @@ role_route_maps = {
             '/api/task/(return|my_remark)/@task_id': ['POST'],
             '/api/variant/delete': ['POST'],
             '/page/@page_name': ['GET'],
-            # '/page/box/@page_name': ['GET'],
-            # '/api/page/box/@page_name': ['POST'],
-            # '/page/block/@page_name': ['GET'],
-            # '/api/page/block/@page_name': ['POST'],
             '/api/page/txt_match/diff': ['POST'],
             '/api/page/find_cmp/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
@@ -240,8 +229,8 @@ role_route_maps = {
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
             '/page/(box|txt|txt_match|find_cmp)/@page_name': ['GET'],
-            '/api/page/(delete|source|start_gen_chars|start_check_match)': ['POST'],
             '/api/page/(box|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
+            '/api/page/(delete|meta|source|start_gen_chars|start_check_match)': ['POST'],
             '/api/char/(delete|source|extract_img)': ['POST'],
             '/char/(list|browse|statistic|consistent)': ['GET'],
         }
@@ -288,6 +277,13 @@ role_route_maps = {
         }
     },
 }
+""" 
+角色权限对应表。定义系统中的所有角色以及对应的route权限，将属于同一业务的route分配给同一个角色，
+用户通过拥有角色来拥有对应的route权限。角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
+roles：角色所继承的父角色；
+routes：角色可以访问的权限集合；
+is_assignable：角色是否可被分配。
+"""
 
 
 def get_assignable_roles():

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import re
 import math
 from bson import json_util
 from controller import errors as e
@@ -18,7 +16,7 @@ class PageListHandler(PageHandler):
     page_title = '页数据管理'
     table_fields = ['name', 'page_code', 'book_page', 'source', 'layout', 'uni_sutra_code', 'sutra_code',
                     'reel_code', 'tasks', 'box_ready', 'remark_box', 'remark_txt', 'op_text']
-    update_fields = ['name', 'source', 'box_ready', 'layout', 'remark_box', 'remark_txt']
+    update_fields = ['source', 'layout', 'remark_box', 'remark_txt']
     hide_fields = ['book_page', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready',
                    'remark_box', 'remark_txt', 'op_text']
     operations = [
@@ -37,24 +35,21 @@ class PageListHandler(PageHandler):
     actions = [
         {'action': 'btn-box', 'label': '切分'},
         {'action': 'btn-text', 'label': '文字'},
-        {'action': 'btn-my-view', 'label': '查看'},
-        {'action': 'btn-nav', 'label': '浏览'},
+        {'action': 'btn-browse', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
-        {'action': 'btn-update', 'label': '更新', 'url': '/api/page'},
+        {'action': 'btn-update', 'label': '更新', 'url': '/api/page/meta'},
         {'action': 'btn-delete', 'label': '删除'},
     ]
     task_statuses = {
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
     }
-    match_fields = {'': '', 'cmp_txt': '比对文本', 'ocr_col': 'OCR列文', 'txt': '校对文本'}
+    match_fields = {'': '', 'cmp_txt': '比对文本', 'ocr_col': '列框OCR', 'txt': '校对文本'}
     match_statuses = {'': '', None: '无', True: '匹配', False: '不匹配'}
 
     def get_template_kwargs(self, fields=None):
-        kwargs = super().get_template_kwargs()
+        kwargs = super(Page, self).get_template_kwargs()
         kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
-        if self.prop(self.config, 'site.skin') == 'nlc':
-            kwargs['operations'] = [o for o in kwargs['operations'] if o.get('label') not in ['生成字表', '检查图文匹配']]
         if '系统管理员' in self.current_user['roles']:
             kwargs['operations'][-2]['groups'] = [
                 {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, True).items()
@@ -111,14 +106,37 @@ class PageListHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageStatisticHandler(PageHandler):
-    URL = '/page/statistic'
+class PageBoxHandler(PageHandler):
+    URL = '/page/box/@page_name'
 
-    def get(self):
-        """统计页数据的分类"""
+    def get(self, page_name):
+        """切分校对页面"""
         try:
-            counts = list(self.db.page.aggregate([{'$group': {'_id': '$source', 'count': {'$sum': 1}}}]))
-            self.render('data_statistic.html', counts=counts, collection='page')
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            self.pack_boxes(page)
+            self.set_box_access(page)
+            page['img_url'] = self.get_page_img(page)
+            self.render('page_box.html', page=page)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class PageTxtHandler(PageHandler):
+    URL = '/page/txt/@page_name'
+
+    def get(self, page_name):
+        """单字修改页面"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
+
+            self.pack_boxes(page, True, True)
+            page['img_url'] = self.get_page_img(page)
+            self.render('page_txt.html', page=page)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -128,70 +146,81 @@ class PageBrowseHandler(PageHandler):
     URL = '/page/browse/@page_name'
 
     def get(self, page_name):
-        """浏览页面数据"""
-        edit_fields = [
-            {'id': 'name', 'name': '页编码', 'readonly': True},
-            {'id': 'source', 'name': '分　类'},
-            {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': self.layouts},
-            {'id': 'box_ready', 'name': '切分就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        ]
-
+        """浏览页面"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            condition = self.get_page_search_condition(self.request.query)[0]
+            cond = self.get_page_search_condition(self.request.query)[0]
             order = self.get_query_argument('order', '_id')
             to = self.get_query_argument('to', '')
             if to == 'next':
-                condition[order] = {'$gt': page.get(order)}
-                page = self.db.page.find_one(condition, sort=[(order, 1)])
+                cond[order] = {'$gt': page.get(order)}
+                page = self.db.page.find_one(cond, sort=[(order, 1)])
             elif to == 'prev':
-                condition[order] = {'$lt': page.get(order)}
-                page = self.db.page.find_one(condition, sort=[(order, -1)])
+                cond[order] = {'$lt': page.get(order)}
+                page = self.db.page.find_one(cond, sort=[(order, -1)])
             if not page:
                 message = '已是第一页' if to == 'prev' else '已是最后一页'
                 return self.send_error_response(e.no_object, message=message)
 
-            txts = self.get_txts(page)
-            txt_fields, txt_dict = [t[1] for t in txts], {t[1]: t for t in txts}
-            img_url = self.get_page_img(page)
-            chars_col = self.get_chars_col(page.get('chars'))
-            info = {f['id']: self.prop(page, f['id'], '') for f in edit_fields}
-            btn_config = json_util.loads(self.get_secure_cookie('page_browse_btn') or '{}')
-            active = btn_config.get('sutra-txt')
-            self.pack_boxes(page)
-            self.render('page_browse.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
-                        active=active, txt_fields=txt_fields, chars_col=chars_col, info=info,
-                        btn_config=btn_config, edit_fields=edit_fields)
+            self.pack_boxes(page, True, True)
+            page['img_url'] = self.get_page_img(page)
+            self.render('page_browse.html', page=page)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class PageViewHandler(PageHandler):
-    URL = '/page/@page_name'
+class PageFindCmpHandler(PageHandler):
+    URL = '/page/find_cmp/@page_name'
 
     def get(self, page_name):
-        """查看Page页面"""
+        """寻找比对文本页面"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            if not page.get('chars'):
-                return self.send_error_response(e.no_object, message='页面%s没有字框数据，无法查看' % page_name)
-            txts = self.get_txts(page)
-            txt_fields = [t[1] for t in txts]
-            txt_dict = {t[1]: t for t in txts}
-            cid = self.get_query_argument('cid', '')
-            img_url = self.get_page_img(page)
-            chars_col = self.get_chars_col(page['chars'])
-            txt_off = self.get_query_argument('txt', None) == 'off'
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             self.pack_boxes(page)
+            page['img_url'] = self.get_page_img(page)
+            self.render('page_find_cmp.html', page=page, readonly=True, ocr=self.get_txt(page, 'ocr'),
+                        cmp_txt=self.get_txt(page, 'cmp_txt'))
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class PageTxtMatchHandler(PageHandler):
+    URL = '/page/txt_match/@page_name'
+
+    def get(self, page_name):
+        """文字匹配页面。（将文本和OCR字框文本适配后，回写至字框中）"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            field = self.get_query_argument('field', '')
+            assert field in ['txt', 'cmp_txt', 'ocr_col']
+            txt_match = self.prop(page, 'txt_match.' + field)
+            mth_txt = self.prop(txt_match, 'value') or self.get_txt(page, field)
+            field_name = Page.get_field_name(field)
+            if not mth_txt:
+                if field == 'cmp_txt':
+                    self.redirect('/page/find_cmp/' + page_name)
+                else:
+                    self.send_error_response(e.no_object, message='页面没有%s，无法进行匹配' % field_name)
+
+            ocr_txt = self.get_txt(page, 'ocr')
+            txts = [(mth_txt, field, field_name), (ocr_txt, 'ocr', '字框OCR')]
+            txt_dict = {t[1]: t for t in txts}
+            cmp_data = self.match_diff(ocr_txt, mth_txt)
+            self.pack_boxes(page, False, False)
+            img_url = self.get_page_img(page)
             self.render(
-                'page_view.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
-                active=None, txt_fields=txt_fields, txt_off=txt_off, chars_col=chars_col,
-                cur_cid=cid,
+                'page_txt_match.html', page=page, img_url=img_url, ocr_txt=ocr_txt, cmp_data=cmp_data,
+                field=field, field_name=field_name, txt_match=txt_match, txts=txts,
+                txt_fields=[field, 'OCR'], txt_dict=txt_dict, active='work-html',
             )
 
         except Exception as error:
@@ -202,7 +231,7 @@ class PageInfoHandler(PageHandler):
     URL = '/page/info/@page_name'
 
     def format_value(self, value, key=None, doc=None):
-        """格式化task表的字段输出"""
+        """格式化task的字段输出"""
         if key in ['blocks', 'columns', 'chars'] and value:
             return '<div>%s</div>' % '</div><div>'.join([str(v) for v in value])
         return h.format_value(value, key, doc)
@@ -229,135 +258,14 @@ class PageInfoHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageBlockHandler(PageHandler):
-    URL = '/page/block/@page_name'
+class PageStatisticHandler(PageHandler):
+    URL = '/page/statistic'
 
-    def get(self, page_name):
-        """栏框校对页面"""
+    def get(self):
+        """统计分类"""
         try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            img_url = self.get_page_img(page)
-            self.render('page_box.html', page=page, img_url=img_url, readonly=False)
+            counts = list(self.db.page.aggregate([{'$group': {'_id': '$source', 'count': {'$sum': 1}}}]))
+            self.render('data_statistic.html', counts=counts, collection='page')
 
         except Exception as error:
             return self.send_db_error(error)
-
-
-class PageBoxHandler(PageHandler):
-    URL = '/page/box/@page_name'
-
-    def get(self, page_name):
-        """切分校对页面"""
-        try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            self.pack_boxes(page)
-            self.set_box_access(page)
-            page['img_url'] = self.get_page_img(page)
-            self.render('page_box.html', page=page)
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-
-class PageTxtMatchHandler(PageHandler):
-    URL = '/page/txt_match/@page_name'
-
-    def get(self, page_name):
-        """文字匹配页面"""
-        field = self.get_query_argument('field', '')
-        assert field in ['txt', 'cmp_txt', 'ocr_col']
-        self.txt_match(self, field, page_name)
-
-    @staticmethod
-    def txt_match(self, field, page_name):
-        try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            cmp_txt = self.prop(page, 'txt_match.%s.value' % field) or self.get_txt(page, field)
-            field_name = Page.get_field_name(field)
-            if not cmp_txt:
-                if field == 'cmp_txt':
-                    self.redirect('/page/find_cmp/' + page_name)
-                else:
-                    self.send_error_response(e.no_object, message='页面没有%s' % field_name)
-
-            char_txt = self.get_txt(page, 'ocr')
-            txts = [(cmp_txt, field, field_name), (char_txt, 'ocr', '字框OCR')]
-            txt_dict = {t[1]: t for t in txts}
-            cmp_data = self.match_diff(char_txt, cmp_txt)
-            img_url = self.get_page_img(page)
-            txt_match = self.prop(page, 'txt_match.' + field)
-            self.pack_boxes(page)
-            self.render(
-                'page_match.html', page=page, img_url=img_url, char_txt=char_txt, cmp_data=cmp_data,
-                field=field, field_name=field_name, txt_match=txt_match, txts=txts,
-                txt_fields=[field, 'OCR'], txt_dict=txt_dict, active='work-html',
-            )
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-
-class PageFindCmpHandler(PageHandler):
-    URL = '/page/find_cmp/@page_name'
-
-    def get(self, page_name):
-        """寻找比对文本页面"""
-        try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            self.pack_boxes(page)
-            img_url = self.get_page_img(page)
-            self.render('page_find_cmp.html', page=page, img_url=img_url, readonly=True, ocr=self.get_txt(page, 'ocr'),
-                        cmp_txt=self.get_txt(page, 'cmp_txt'), )
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-
-class PageTxtHandler(PageHandler):
-    URL = '/page/txt/@page_name'
-
-    def get(self, page_name):
-        """单字修改页面"""
-        try:
-            self.page_title = '文字校对'
-            self.page_txt(self, page_name)
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-    @staticmethod
-    def page_txt(self, page_name):
-        page = self.db.page.find_one({'name': page_name})
-        if not page:
-            self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
-
-        self.pack_boxes(page)
-        # 设置class属性
-        self.set_char_class(page['chars'])
-        # 设置name、txt以及ratio
-        ch_a = sorted([c['w'] * c['h'] for c in page['chars']])
-        ch_a = ch_a[:-2] if len(ch_a) > 4 else ch_a[:-1] if len(ch_a) > 3 else ch_a
-        ch_a = ch_a[2:] if len(ch_a) > 4 else ch_a[:1] if len(ch_a) > 3 else ch_a
-        nm_a = sum(ch_a) / len(ch_a)
-        for ch in page['chars']:
-            ch['name'] = page['name'] + '_' + str(ch['cid'])
-            ch['txt'] = ch.get('txt') or ch.get('ocr_txt') or '■'
-            r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
-            ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
-
-        img_url = self.get_page_img(page)
-        chars_col = self.get_chars_col(page['chars'])
-        chars = {c['name']: c for c in page['chars']}
-        columns = {c['column_id']: c for c in page['columns']}
-        layout = self.get_query_argument('layout', '')
-        template = 'page_txt1.html' if layout == '1' else 'page_txt.html'
-        self.render(template, page=page, chars=chars, columns=columns, chars_col=chars_col,
-                    txt_types=CharHandler.txt_types, img_url=img_url, readonly=False)
