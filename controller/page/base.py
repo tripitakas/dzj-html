@@ -293,30 +293,31 @@ class PageHandler(Page, TaskHandler, Box):
 
     @classmethod
     def get_txt(cls, page, key):
-        if key == 'txt':
-            return page.get('txt') or ''
         if key == 'cmp_txt':
             return page.get('cmp_txt') or ''
-        if key == 'ocr':
-            return cls.get_char_txt(page) or page.get('ocr')
+        if key == 'ocr_chr':
+            return cls.get_char_txt(page, 'ocr_chr')
         if key == 'ocr_col':
-            return cls.get_column_txt(page) or page.get('ocr_col')
+            return cls.get_column_txt(page, 'ocr_txt')
+        if key == 'txt':
+            return page.get('txt') or cls.get_char_txt(page, 'txt')
 
     @classmethod
     def get_txts(cls, page, fields=None):
-        fields = fields or ['txt', 'ocr', 'ocr_col', 'cmp_txt']
+        fields = fields or ['txt', 'ocr_chr', 'ocr_col', 'cmp_txt']
         txts = [(cls.get_txt(page, f), f, Page.get_field_name(f)) for f in fields]
         return [t for t in txts if t[0]]
 
     @classmethod
-    def get_char_txt(cls, page, field='ocr_txt'):
+    def get_char_txt(cls, page, field='txt'):
         """获取chars的文本"""
 
         def get_txt(box):
-            if field == 'adapt':
-                return box.get('txt') or box.get('ocr_txt') or box.get('ocr_col')
-            if field == 'ocr_txt':
-                return box['alternatives'][0] if box.get('alternatives') else box.get('ocr_txt')
+            ocr_chr = box['alternatives'][0] if box.get('alternatives') else ''
+            if field == 'ocr_chr':
+                return ocr_chr
+            if field == 'txt':
+                return box.get('txt') or ocr_chr or box.get('ocr_col') or box.get('cmp_txt') or ''
             return box.get(field)
 
         boxes = page.get('chars')

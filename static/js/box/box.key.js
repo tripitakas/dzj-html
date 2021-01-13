@@ -124,6 +124,9 @@
       });
 
       // 切换步骤
+      on('ctrl+s', () => {
+        if ($('#save').css('display') === 'block') $('#save').click();
+      });
 
       on(',', () => {
         if (self.isMode('order')) $('#toggle-cut').click();

@@ -605,7 +605,7 @@
     return chars.length >= 2 && txtType in chars[0] && txtType in chars[1];
   }
 
-  $(document).on('click', '.char', function (e) {
+  $(document).on('click', '.txt-holder .char', function (e) {
     let idx = $(this).attr('id').split('-')[1];
     switchCurBox(data.boxes[idx]);
   });

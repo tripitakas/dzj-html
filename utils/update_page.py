@@ -9,6 +9,7 @@ import math
 import json
 import pymongo
 from os import path, walk
+from datetime import datetime
 from operator import itemgetter
 from functools import cmp_to_key
 
@@ -241,6 +242,57 @@ def update_page_code(db):
         for p in pages:
             page_code = hp.align_code(p['name'])
             db.page.update_one({'_id': p['_id']}, {'$set': {'page_code': page_code}})
+
+
+def reset_logs(boxes):
+    for b in boxes:
+        if not b.get('box_logs'):
+            continue
+        # 设置added/updated
+        if b['box_logs'][0].get('username'):
+            b['added'] = True
+            if len(b['box_logs']) > 1:
+                b['updated'] = True
+        else:
+            b['updated'] = True
+        # 设置log
+        for i, log in enumerate(b['box_logs']):
+            if log.get('updated_time'):
+                log['create_time'] = log['updated_time']
+            if i == 0:
+                if not b.get('username'):
+                    log['op'] = 'initial'
+                else:
+                    log['op'] = 'added'
+            else:
+                log['op'] = 'changed'
+        # log按时间排序
+        if len(b['box_logs']) > 1:
+            if not b['box_logs'][0].get('create_time'):
+                b['box_logs'][0]['create_time'] = datetime.strptime('1999-1-1 00:00:00', '%Y-%m-%d %H:%M:%S')
+                b['box_logs'].sort(key=itemgetter('create_time'))
+                b['box_logs'][0].pop('create_time', 0)
+            else:
+                b['box_logs'].sort(key=itemgetter('create_time'))
+
+
+def update_page_logs(db):
+    """ 重置page表的chars.box_logs字段"""
+    cond = {}
+    size = 100
+    item_count = db.page.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['name', 'blocks', 'columns', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for p in pages:
+            print('[%s]%s' % (hp.get_date_time(), p['name']))
+            for f in ['blocks', 'columns', 'chars']:
+                reset_logs(p[f])
+            p['txt'] = Ph.get_char_txt(p, 'txt')
+            db.page.update_one({'_id': p['_id']}, {'$set': {k: p[k] for k in ['blocks', 'columns', 'chars', 'txt']}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):

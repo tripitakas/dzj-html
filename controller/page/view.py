@@ -245,7 +245,7 @@ class PageInfoHandler(PageHandler):
             page_tasks = self.prop(page, 'tasks') or {}
             fields1 = ['txt', 'nor_txt', 'ocr_chr', 'ocr_col', 'cmp_txt']
             page_txts = {k: self.get_txt(page, k) for k in fields1 if self.get_txt(page, k)}
-            fields2 = ['blocks', 'columns', 'chars', 'images', 'user_links']
+            fields2 = ['blocks', 'columns', 'chars', 'images', 'user_links', 'chars_col']
             page_boxes = {k: self.prop(page, k) for k in fields2 if self.prop(page, k)}
             fields3 = list(set(page.keys()) - set(fields1 + fields2) - {'bak', 'tasks', 'txt_match'})
             metadata = {k: self.prop(page, k) for k in fields3 if self.prop(page, k)}
