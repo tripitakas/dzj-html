@@ -246,6 +246,10 @@ def update_page_code(db):
 
 def reset_logs(boxes):
     for b in boxes:
+        b.pop('new', 0)
+        b.pop('added', 0)
+        b.pop('changed', 0)
+        b.pop('updated', 0)
         if not b.get('box_logs'):
             continue
         # 设置added/updated
@@ -255,13 +259,13 @@ def reset_logs(boxes):
                 b['changed'] = True
         else:
             b['changed'] = True
-        b.pop('updated', 0)
+
         # 设置log
         for i, log in enumerate(b['box_logs']):
             if log.get('updated_time'):
                 log['create_time'] = log['updated_time']
             if i == 0:
-                if not b.get('username'):
+                if not log.get('username'):
                     log['op'] = 'initial'
                 else:
                     log['op'] = 'added'
@@ -280,7 +284,7 @@ def reset_logs(boxes):
 def update_page_logs(db):
     """ 重置page表的chars.box_logs字段"""
     size = 1000
-    cond = {'updated': False}
+    cond = {}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
@@ -295,7 +299,7 @@ def update_page_logs(db):
             if p.get('chars'):
                 p['txt'] = Ph.get_char_txt(p, 'txt')
             update = {k: p[k] for k in ['blocks', 'columns', 'chars', 'txt'] if p.get(k)}
-            db.page.update_one({'_id': p['_id']}, {'$set': {**update, 'updated1': True}})
+            db.page.update_one({'_id': p['_id']}, {'$set': {**update, 'updated': True}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):

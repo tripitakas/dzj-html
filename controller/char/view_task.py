@@ -7,7 +7,7 @@ from operator import itemgetter
 from .char import Char
 from .base import CharHandler
 from controller import errors as e
-from controller.page.view_task import PageTaskDashBoardHandler
+from controller.task.task import Task
 
 
 class CharTaskListHandler(CharHandler):
@@ -37,6 +37,7 @@ class CharTaskListHandler(CharHandler):
         {'id': 'remark', 'name': '备注'},
     ]
     search_fields = ['params.ocr_txt', 'params.txt', 'batch', 'remark']
+    search_tips = '请搜索字种、批次和备注'
     hide_fields = ['_id', 'params', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
@@ -80,7 +81,7 @@ class CharTaskListHandler(CharHandler):
             kwargs = self.get_template_kwargs()
             kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
             cond, params = self.get_task_search_condition(self.request.query, 'char')
-            docs, pager, q, order = self.find_by_page(self, cond, self.search_fields, '-_id')
+            docs, pager, q, order = Task.find_by_page(self, cond, self.search_fields, '-_id')
             self.render('char_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
                         format_value=self.format_value, **kwargs)
 
@@ -134,6 +135,7 @@ class CharTaskDashBoardHandler(CharHandler):
 
     def get(self):
         """综合统计"""
+        from controller.page.view_task import PageTaskDashBoardHandler
         PageTaskDashBoardHandler.task_dashboard(self, 'char')
 
 
