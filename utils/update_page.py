@@ -279,8 +279,8 @@ def reset_logs(boxes):
 
 def update_page_logs(db):
     """ 重置page表的chars.box_logs字段"""
-    cond = {}
     size = 1000
+    cond = {'updated': None}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
@@ -291,9 +291,11 @@ def update_page_logs(db):
         for p in pages:
             print('[%s]%s' % (hp.get_date_time(), p['name']))
             for f in ['blocks', 'columns', 'chars']:
-                reset_logs(p[f])
-            p['txt'] = Ph.get_char_txt(p, 'txt')
-            db.page.update_one({'_id': p['_id']}, {'$set': {k: p[k] for k in ['blocks', 'columns', 'chars', 'txt']}})
+                reset_logs(p.get(f) or [])
+            if p.get('chars'):
+                p['txt'] = Ph.get_char_txt(p, 'txt')
+            update = {k: p[k] for k in ['blocks', 'columns', 'chars', 'txt'] if p.get(k)}
+            db.page.update_one({'_id': p['_id']}, {'$set': {**update, 'updated': True}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
