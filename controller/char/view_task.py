@@ -54,7 +54,7 @@ class CharTaskListHandler(CharHandler):
         ]},
     ]
     actions = [
-        {'action': 'btn-nav', 'label': '浏览'},
+        {'action': 'btn-browse', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-delete', 'label': '删除'},
         {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
@@ -64,7 +64,7 @@ class CharTaskListHandler(CharHandler):
         kwargs = super().get_template_kwargs()
         readonly = '任务管理员' not in self.current_user['roles']
         if readonly:  # 任务浏览员
-            kwargs['actions'] = [{'action': 'btn-nav', 'label': '浏览'}]
+            kwargs['actions'] = [{'action': 'btn-browse', 'label': '浏览'}]
             kwargs['operations'] = [{'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'}]
         return kwargs
 

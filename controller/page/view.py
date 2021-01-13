@@ -15,10 +15,9 @@ class PageListHandler(PageHandler):
 
     page_title = '页数据管理'
     table_fields = ['name', 'page_code', 'book_page', 'source', 'layout', 'uni_sutra_code', 'sutra_code',
-                    'reel_code', 'tasks', 'box_ready', 'remark_box', 'remark_txt', 'op_text']
+                    'reel_code', 'tasks', 'remark_box', 'remark_txt', 'txt_match']
     update_fields = ['source', 'layout', 'remark_box', 'remark_txt']
-    hide_fields = ['book_page', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready',
-                   'remark_box', 'remark_txt', 'op_text']
+    hide_fields = ['book_page', 'uni_sutra_code', 'sutra_code', 'reel_code', 'remark_box', 'remark_txt', 'txt_match']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
@@ -34,7 +33,7 @@ class PageListHandler(PageHandler):
     ]
     actions = [
         {'action': 'btn-box', 'label': '切分'},
-        {'action': 'btn-text', 'label': '文字'},
+        {'action': 'btn-text', 'label': '文本'},
         {'action': 'btn-browse', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-update', 'label': '更新', 'url': '/api/page/meta'},
@@ -74,7 +73,7 @@ class PageListHandler(PageHandler):
                 else:
                     ret += '%s/%s<br/>' % (self.get_task_name(tsk_type), self.get_status_name(tasks))
             return ret.rstrip('<br/>')
-        if key == 'op_text':
+        if key == 'txt_match':
             return '<br/>'.join([format_txt(k, k != 'txt') for k in ['ocr_col', 'cmp_txt', 'txt']])
         return h.format_value(value, key, doc)
 
@@ -231,7 +230,7 @@ class PageInfoHandler(PageHandler):
     URL = '/page/info/@page_name'
 
     def format_value(self, value, key=None, doc=None):
-        """格式化task的字段输出"""
+        """格式化输出"""
         if key in ['blocks', 'columns', 'chars'] and value:
             return '<div>%s</div>' % '</div><div>'.join([str(v) for v in value])
         return h.format_value(value, key, doc)
@@ -244,15 +243,16 @@ class PageInfoHandler(PageHandler):
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
 
             page_tasks = self.prop(page, 'tasks') or {}
-            fields1 = ['txt', 'ocr', 'ocr_col', 'cmp_txt']
+            fields1 = ['txt', 'nor_txt', 'ocr_chr', 'ocr_col', 'cmp_txt']
             page_txts = {k: self.get_txt(page, k) for k in fields1 if self.get_txt(page, k)}
-            fields2 = ['blocks', 'columns', 'chars', 'chars_col']
+            fields2 = ['blocks', 'columns', 'chars', 'images', 'user_links']
             page_boxes = {k: self.prop(page, k) for k in fields2 if self.prop(page, k)}
             fields3 = list(set(page.keys()) - set(fields1 + fields2) - {'bak', 'tasks', 'txt_match'})
             metadata = {k: self.prop(page, k) for k in fields3 if self.prop(page, k)}
 
-            self.render('page_info.html', page=page, metadata=metadata, page_txts=page_txts, page_boxes=page_boxes,
-                        page_tasks=page_tasks, Page=Page, Task=Task, format_value=self.format_value)
+            self.render('page_info.html', Page=Page, Task=Task, page=page, metadata=metadata,
+                        page_txts=page_txts, page_boxes=page_boxes, page_tasks=page_tasks,
+                        format_value=self.format_value)
 
         except Exception as error:
             return self.send_db_error(error)

@@ -68,6 +68,9 @@
         </div>
       </div>
       <div class="right">
+        {% set mode = globals().get('mode') or '' %}
+        {% set readonly = globals().get('readonly') or False %}
+        {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
         <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
         <div id="toggle-txts" class="btn-group" title="切换文本">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
@@ -78,6 +81,13 @@
             <li id="cmp_txt" class="toggle-txt"><a href="#">比对文本</a></li>
           </ul>
         </div>
+        <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
+        <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
+        <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
+        <div id="task-submit-back" class="btn-txt icon-check-outline2 {{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
+        <div id="task-submit" class="btn-txt icon-submit my-task {{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
+        <div id="task-prev" class="btn-txt icon-arrow-left {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]]"></div>
+        <div id="task-next" class="btn-txt icon-arrow-right {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="后一个任务[[]"></div>
       </div>
     </div>
     <div class="m-body flex">
@@ -98,6 +108,14 @@
     <div class="m-footer">
       <span class="fl">
         <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
+        {% if globals().get('task_type') %}
+        <span class="task-info">
+          <span class="task-name">#文字{{task_names.get(task_type)}}</span>
+          {% for t in globals().get('tasks', []) %}
+          <span id="{{t['picked_user_id']}}" class="task-user">{{task_names.get(t['task_type'])}}@{{t['picked_by']}}</span>
+          {% end %}
+        </span>
+        {% end %}
       </span>
       <span class="center">
         <span class="txt-type">
@@ -171,6 +189,11 @@
       </div>
     </div>
   </div>
+  {% if hasattr(handler, 'task_type') and handler.task_type %}
+  {% module ReturnModal() %}
+  {% module TaskRemarkModal() %}
+  {% module TaskConfigModal(handler.config_fields if hasattr(handler, 'config_fields') else []) %}
+  {% end %}
 </div>
 
 {% include com/_base_js.html %}
@@ -201,6 +224,7 @@
   });
   $.box.bindBaseKeys();
   $.txt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
+
 </script>
 <script>
   $('#toggle-right').on('click', function () {
@@ -228,6 +252,7 @@
     location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
   });
 
+  // 单字提交
   $('.char-txt .btn-submit').on('click', function () {
     let $this = $(this);
     if ($this.hasClass('disabled')) return;
@@ -257,6 +282,23 @@
       else bsShow('失败', err.message, 'warning', 1000);
     });
   });
+  // 提交任务
+  $('#task-submit,#task-submit-back').on('click', function () {
+    let $this = $(this), id = $this.attr('id');
+    if ($this.hasClass('disabled')) return;
+    bsLoading('提交中‧‧‧');
+    $this.addClass('disabled');
+    postApi(location.pathname, {data: {submit: true}}, function (res) {
+      bsShow('成功!', '已提交。', 'info', 1000);
+      $this.removeClass('disabled');
+      if (id === 'task-submit') {
+        pick(gTaskType);
+      } else if (id === 'task-submit-back') {
+        location.href = '/task/lobby/' + gTaskType;
+      }
+    });
+  });
+
 </script>
 </body>
 </html>

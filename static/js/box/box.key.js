@@ -123,36 +123,15 @@
         self.isMode('cut') && self.redo();
       });
 
-      // 任务与步骤
-      on('t', () => {
-        if (self.isMode('order') && !$('#task-submit').hasClass('hide'))
-          $('#task-submit').click();
-      });
-      on('y', () => {
-        if (self.isMode('order') && !$('#task-submit-back').hasClass('hide'))
-          $('#task-submit-back').click();
-      });
-      on('ctrl+s', () => {
-        $('#save').click();
-      });
-      on('ctrl+r', () => {
-        if (!$('#task-return').hasClass('hide'))
-          $('#task-return').click();
-      });
+      // 切换步骤
+
       on(',', () => {
         if (self.isMode('order')) $('#toggle-cut').click();
       });
       on('.', () => {
         if (self.isMode('cut')) $('#toggle-order').click();
       });
-      on(']', () => {
-        if (!$('#task-next').hasClass('hide'))
-          $('#task-next').click();
-      });
-      on('[', () => {
-        if (!$('#task-prev').hasClass('hide'))
-          $('#task-prev').click();
-      });
+
 
       // 框提示
       on('a', () => {

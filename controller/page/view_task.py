@@ -57,7 +57,7 @@ class PageTaskListHandler(PageHandler):
         ]},
     ]
     actions = [
-        {'action': 'btn-nav', 'label': '浏览'},
+        {'action': 'btn-browse', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-history', 'label': '历程'},
         {'action': 'btn-delete', 'label': '删除'},
@@ -69,7 +69,7 @@ class PageTaskListHandler(PageHandler):
         kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
         readonly = '任务管理员' not in self.current_user['roles']
         if readonly:  # 任务浏览员
-            kwargs['actions'] = [{'action': 'btn-nav', 'label': '浏览'}]
+            kwargs['actions'] = [{'action': 'btn-browse', 'label': '浏览'}]
             kwargs['operations'] = [{'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'}]
         return kwargs
 
@@ -250,11 +250,9 @@ class PageTaskResumeHandler(PageHandler):
         """页任务简历"""
         from functools import cmp_to_key
         try:
-            order = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text',
-                     'text_proof', 'text_review']
-            fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
-                      'updated_time', 'finished_time', 'publish_by', 'publish_time',
-                      'picked_by', 'picked_time', 'message']
+            order = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof', 'text_review']
+            fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority', 'publish_time', 'publish_by',
+                      'picked_time', 'picked_by', 'finished_time', 'message']
             page = self.db.page.find_one({'name': page_name}) or dict(name=page_name)
             tasks = list(self.db.task.find({'collection': 'page', 'doc_id': page_name}))
             tasks.sort(key=cmp_to_key(lambda a, b: order.index(a['task_type']) - order.index(b['task_type'])))
@@ -280,13 +278,12 @@ class PageTaskCutHandler(PageHandler):
             self.pack_boxes(page)
             page['img_url'] = self.get_page_img(page)
 
-            project = {k: 1 for k in ['task_type', 'picked_by', 'picked_user_id']}
-            tasks = list(self.db.task.find({'doc_id': page['name']}, project))
-            tasks = [t for t in tasks if t.get('picked_user_id') and t['picked_user_id'] != self.user_id]
+            review_tasks = []
+            if task_type == 'cut_proof' and self.prop(page, 'tasks.cut_review.1') == self.STATUS_FINISHED:
+                review_tasks = list(self.db.task.find({'doc_id': page['name'], 'task_type': 'cut_review'}))
             task_names = dict(cut_proof='校对', cut_review='审定')
-
             self.render('page_box.html', page=page, readonly=self.readonly, mode=self.mode,
-                        task_type=task_type, tasks=tasks, task_names=task_names)
+                        task_type=task_type, task_names=task_names, tasks=review_tasks)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -302,8 +299,18 @@ class PageTaskTextHandler(PageHandler):
     def get(self, task_type, task_id):
         """文字校对、审定页面"""
         try:
-            self.page_title = '文字审定' if task_type == 'text_review' else '文字校对'
-            PageTxtHandler.page_txt(self, self.task['doc_id'])
+            page = self.db.page.find_one({'name': self.task['doc_id']})
+            if not page:
+                self.send_error_response(e.no_object, message='页面%s不存在' % self.task['doc_id'])
+            self.pack_boxes(page, True, True)
+            page['img_url'] = self.get_page_img(page)
+
+            review_tasks = []
+            if task_type == 'text_proof' and self.prop(page, 'tasks.text_review.1') == self.STATUS_FINISHED:
+                review_tasks = list(self.db.task.find({'doc_id': page['name'], 'task_type': 'text_review'}))
+            task_names = dict(text_proof='校对', text_review='审定')
+            self.render('page_txt.html', page=page, readonly=self.readonly, mode=self.mode,
+                        task_type=task_type, task_names=task_names, tasks=review_tasks)
 
         except Exception as error:
             return self.send_db_error(error)

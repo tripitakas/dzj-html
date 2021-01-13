@@ -104,5 +104,24 @@
     }
   });
 
+  $.mapKey('ctrl+s', function () {
+    if ($('#save').css('display') === 'block') $('#save').click();
+  });
+  $.mapKey('ctrl+r', function () {
+    if ($('#task-return').css('display') === 'block') $('#task-return').click();
+  });
+  $.mapKey('t', function () {
+    if ($('#task-submit').css('display') === 'block') $('#task-submit').click();
+  });
+  $.mapKey('y', function () {
+    if ($('#task-submit-back').css('display') === 'block') $('#task-submit-back').click();
+  });
+  $.mapKey('[', function () {
+    if ($('#task-prev').css('display') === 'block') $('#task-prev').click();
+  });
+  $.mapKey(']', function () {
+    if ($('#task-next').css('display') === 'block') $('#task-next').click();
+  });
+
 </script>
 {% end %}

@@ -564,9 +564,9 @@
       txts.push(box['cmp_txt']);
       tips.push(`比对文本: ${box['cmp_txt']}`);
     }
-    txts = txts.filter((t)=>t !== '■');
+    txts = txts.filter((t) => t !== '■');
     if (txts.length > 1 && new Set(txts).size > 1) cls += ' is-diff';
-    if (box['txt']!== '■' && txts.indexOf(box['txt']) < 0) cls += ' changed';
+    if (box['txt'] !== '■' && txts.indexOf(box['txt']) < 0) cls += ' changed';
     return {cls: cls, tip: tips.join('<br>')};
   }
 
@@ -584,6 +584,7 @@
 
   function switchCurTxt(box) {
     let holder = $(data.txtHolder);
+    if (!data.txtHolder || !holder.length) return;
     holder.find('.current-txt').removeClass('current-txt');
     if (box && box.boxType === 'char') {
       let $this = holder.find('#idx-' + box.idx);

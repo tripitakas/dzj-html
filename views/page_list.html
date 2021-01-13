@@ -500,7 +500,7 @@
   });
 
   // 文本匹配-OCR列文、比对文本、校对文本
-  $('.op_text a').on('click', function () {
+  $('.txt_match a').on('click', function () {
     let name = $(this).parent().parent().find('.name').text();
     location.href = `/page/txt_match/${name}?field=${$(this).attr("title")}&from=` + encodeFrom();
   });
