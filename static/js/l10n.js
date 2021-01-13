@@ -6,7 +6,7 @@ function _t(key) {
   return key in l10n ? l10n[key] : key;
 }
 
-var l10n = {
+let l10n = {
   un_existed: '数据存在',
   un_ready: '数据未就绪',
   published_before: '任务曾被发布',

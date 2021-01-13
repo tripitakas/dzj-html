@@ -18,7 +18,7 @@ class LogDeleteApi(BaseHandler):
     URL = r'/api/sys/(oplog|log)/delete'
 
     def post(self, collection):
-        """ 删除日志"""
+        """删除日志"""
         try:
             rules = [(v.not_both_empty, '_id', '_ids')]
             self.validate(self.data, rules)
@@ -35,7 +35,7 @@ class OpLogStatusApi(BaseHandler):
     URL = r'/api/sys/oplog/status/@oid'
 
     def post(self, oid):
-        """ 获取运维日志状态"""
+        """获取运维日志状态"""
         try:
             oplog = self.db.oplog.find_one({'_id': ObjectId(oid)})
             if not oplog:
@@ -50,7 +50,7 @@ class SysUploadOssApi(BaseHandler):
     URL = r'/api/sys/upload_oss/(char|column)'
 
     def post(self, img_type):
-        """ 启动上传OSS脚本"""
+        """启动上传OSS脚本"""
         try:
             r = upload_oss(img_type, True)
             if r is not True:
@@ -71,7 +71,7 @@ class ResetExamUserApi(BaseHandler):
     URL = r'/api/sys/reset_exam_user'
 
     def post(self):
-        """ 重置考核用户相关数据和任务"""
+        """重置考核用户相关数据和任务"""
         try:
             user_no = None
             user_id = self.data['user_id']

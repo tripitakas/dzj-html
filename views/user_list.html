@@ -52,22 +52,22 @@
 <script>
   // 重置密码
   $('.btn-reset-pwd').on('click', function () {
-    var id = $(this).parent().parent().attr('id');
-    var user = getData(id);
+    let id = $(this).parent().parent().attr('id');
+    let user = getData(id);
     showConfirm("确定重置" + user.name + "吗？", "重置后无法恢复！", function () {
       postApi('/user/admin/reset_pwd', {data: {_id: user._id}}, function (res) {
         showSuccess('重置成功', '新密码是 <b>' + res.password + '</b><br>请转告用此密码登录，然后修改密码。');
       }, function (err) {
-        showError('重置失败', err.message, 5000);
+        showError('重置失败', err.message, 3000);
       });
     });
   });
 
   // 指派批次
   $('.btn-batch').on('click', function () {
-    var id = $(this).parent().parent().attr('id');
-    var user = getData(id);
-    var batch = user['task_batch'] || {};
+    let id = $(this).parent().parent().attr('id');
+    let user = getData(id);
+    let batch = user['task_batch'] || {};
     $('#batchModal #_id').text(user['_id']);
     $('#batchModal .username').text(user['name']);
     $('#batchModal .cut_proof').val(batch['cut_proof']);
@@ -78,13 +78,13 @@
   });
 
   $('#batchModal .modal-confirm').on('click', function () {
-    var _id = $('#batchModal #_id').text().trim();
-    var cut_proof = $('#batchModal .cut_proof').val().trim();
-    var cut_review = $('#batchModal .cut_review').val().trim();
-    var cluster_proof = $('#batchModal .cluster_proof').val().trim();
-    var cluster_review = $('#batchModal .cluster_review').val().trim();
-    var data = {cut_proof: cut_proof, cut_review: cut_review, cluster_proof: cluster_proof, cluster_review: cluster_review};
-    for (var key in data) {
+    let _id = $('#batchModal #_id').text().trim();
+    let cut_proof = $('#batchModal .cut_proof').val().trim();
+    let cut_review = $('#batchModal .cut_review').val().trim();
+    let cluster_proof = $('#batchModal .cluster_proof').val().trim();
+    let cluster_review = $('#batchModal .cluster_review').val().trim();
+    let data = {cut_proof: cut_proof, cut_review: cut_review, cluster_proof: cluster_proof, cluster_review: cluster_review};
+    for (let key in data) {
       if (!data[key].length) delete data[key];
     }
     postApi('/user/task_batch', {data: {_id: _id, task_batch: data}}, () => location.reload());

@@ -14,13 +14,14 @@ class CharTaskPublishApi(CharHandler):
     URL = r'/api/char/task/publish'
 
     def post(self):
-        """ 发布字任务"""
+        """发布字任务"""
         try:
             rules = [(v.not_empty, 'batch', 'task_type', 'source')]
             self.validate(self.data, rules)
+
             if not self.db.char.count_documents({'source': self.data['source']}):
                 self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
-            log = self.publish_cluster_task()
+            log = self.publish_char_task()
             return self.send_data_response(log)
 
         except self.DbError as error:
@@ -28,7 +29,7 @@ class CharTaskPublishApi(CharHandler):
 
     @staticmethod
     def get_txt(task, field):
-        """ 获取任务相关的文字"""
+        """获取任务相关的文字"""
         return ''.join([str(p[field]) for p in task.get('params', [])])
 
     def task_meta(self, task_type, params, cnt, field):
@@ -46,28 +47,24 @@ class CharTaskPublishApi(CharHandler):
         not is_oriented and task.pop('is_oriented', 0)
         return task
 
-    def publish_cluster_task(self):
-        """ 发布聚类校对、审定任务 """
-
+    def publish_char_task(self):
+        """发布聚类校对、审定任务"""
         log = []
         source = self.data['source']
         task_type = self.data['task_type']
         num = int(self.data.get('num') or 1)  # 默认校次为1
-
         # 统计字频
         field = 'ocr_txt'  # 以哪个字段进行聚类
         counts = list(self.db.char.aggregate([
             {'$match': {'source': source}}, {'$group': {'_id': '$' + field, 'count': {'$sum': 1}}},
             {'$sort': {'count': -1}}
         ]))
-
         # 去除已发布的任务
         cond = {'task_type': task_type, 'num': num, 'params.source': source}
         published = list(self.db.task.find(cond))
         if published:
             published = ''.join([self.get_txt(t, field) for t in published])
             counts = [c for c in counts if str(c['_id']) not in published]
-
         # 针对常见字(字频大于等于50)，发布聚类校对
         counts1 = [c for c in counts if c['count'] >= 50]
         normal_tasks = [
@@ -77,7 +74,6 @@ class CharTaskPublishApi(CharHandler):
         if normal_tasks:
             self.db.task.insert_many(normal_tasks)
             log.append(dict(task_type=task_type, task_params=[t['params'] for t in normal_tasks]))
-
         # 针对生僻字(字频小于50)，发布生僻校对。发布任务时，字种不超过10个。
         rare_type = task_type  # 生僻校对的任务类型同聚类校对
         counts2 = [c for c in counts if c['count'] < 50]
@@ -94,7 +90,6 @@ class CharTaskPublishApi(CharHandler):
         if rare_tasks:
             self.db.task.insert_many(rare_tasks)
             log.append(dict(task_type=rare_type, task_params=[t['params'] for t in rare_tasks]))
-
         self.add_op_log(self.db, 'publish_task', None, log, self.username)
         # 启动脚本，更新required_count
         script = 'nohup python3 %s/utils/update_char.py --func=update_task_required_count --batch=%s --renew=1 >> log/update_char_%s.log 2>&1 &'
@@ -106,11 +101,11 @@ class CharTaskPublishApi(CharHandler):
 
 
 class CharTaskClusterApi(CharHandler):
-    URL = ['/api/task/do/@cluster_task/@task_id',
-           '/api/task/update/@cluster_task/@task_id']
+    URL = ['/api/task/do/@char_task/@task_id',
+           '/api/task/update/@char_task/@task_id']
 
     def post(self, task_type, task_id):
-        """ 提交聚类校对任务"""
+        """提交聚类校对任务"""
         try:
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'tasks.' + task_type: {'$ne': self.task['_id']}, 'txt_level': {'$lte': user_level}}
@@ -121,13 +116,13 @@ class CharTaskClusterApi(CharHandler):
                 return self.send_data_response()
             # 提交任务
             params = self.task['params']
-            cond.update({'un_required': None, 'source': params[0]['source'],
-                         'ocr_txt': {'$in': [c['ocr_txt'] for c in params]}})
+            ocr_txts = [c['ocr_txt'] for c in params]
+            cond.update({'un_required': None, 'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}})
             if self.db.char.count_documents(cond):
                 return self.send_error_response(e.task_submit_error, message='还有未提交的字图，不能提交任务')
+
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                'status': self.STATUS_FINISHED, 'finished_time': self.now()
-            }})
+                'status': self.STATUS_FINISHED, 'finished_time': self.now()}})
             return self.send_data_response()
 
         except self.DbError as error:

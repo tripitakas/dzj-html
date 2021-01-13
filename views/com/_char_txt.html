@@ -1,95 +1,68 @@
 <!--本UIModule依赖于char-txt.css和char-txt.js-->
-<div class="char-edit">
-  <input type="hidden" class="current-name" value="{{char.get('name') or ''}}">
-  <div class="items char-info">
-    {% if show_base %}
-    <div class="item base-info">
+<div class="char-txt">
+  <input type="hidden" class="cur-name" value="">
+  <div class="items char-meta slim-bar">
+    <div id="base-info" class="item hide">
       <label class="head">基本信息</label>
       <div class="body">
-        <div class="log">
-          <div class="log-meta">
-            {% for f in base_fields %}
-            {% if char.get(f) is not None or 'txt' in f %}
-            <label>{{Char.get_field_name(f)}}</label>
-            <span class="{{f}}">{{format_value(char.get(f), f, char) or ''}}</span><br/>
-            {% end %}
-            {% end %}
-          </div>
+        <div class="meta">
+          <label>分类</label><span>60华严</span><br/>
+          <label>置信度</label><span>0.99</span><br/>
         </div>
       </div>
     </div>
-    {% end %}
-    <div class="item txt-alternatives">
+    <div id="txt-alternatives" class="item">
       <label class="head">候选文字
-        <span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="红色下划线文字来自OCR列引擎，绿色来自CBETA文本，蓝色来自OCR字引擎，其余来自OCR字引擎推荐"></span>
+        <span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" data-html="true" title="下划线表示来源：<br/>红色来自OCR列引擎<br/>绿色来自CBETA文本<br/>无则来自OCR字引擎"></span>
       </label>
-      <div class="body">
-        {% if char.get('ocr_col') not in [None, '■'] %}<span class="txt-item ocr-col">{{char['ocr_col']}}</span>{% end %}
-        {% if char.get('cmp_txt') not in [None, '■'] %}<span class="txt-item cmp-txt">{{char['cmp_txt']}}</span>{% end %}
-        {% for n, t in enumerate(char.get('alternatives', []))%}
-          <span class="txt-item{{' ocr-char' if not n else ''}}">{{t}}</span>
-        {% end %}
-      </div>
+      <div class="body"></div>
     </div>
-    <div class="item logs txt-logs{{'' if char.get('txt_logs') else ' hide'}}">
+    <div id="txt-logs" class="item logs hide">
       <label class="head">文字校对历史</label>
       <div class="body">
-        {% for log in char.get('txt_logs', [])%}
-        <div class="log">
-          <div class="log-meta">
-            {% for f in ['txt', 'nor_txt', 'txt_type', 'remark'] %}
-            {% if log.get(f) %}<label>{{Char.get_field_name(f) or f}}</label><span>{{Char.get_type_names(log[f]) if f == 'txt_type' else log[f]}}</span><br/>{% end %}
-            {% end %}
-            {% if log.get('username') %}<label>校对人</label><span>{{log['username']}}</span><br/>{% end %}
-            {% if log.get('create_time') %}<label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>{% end %}
-            {% if log.get('updated_time') %}<label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>{% end %}
-          </div>
+        <div class="log meta">
+          <label>原字</label><span>一</span><br/>
+          <label>校对人</label><span>张三</span><br/>
+          <label>创建时间</label><span>2021-1-1 9:00:00</span><br/>
+          <label>更新时间</label><span>2021-1-1 9:30:00</span><br/>
         </div>
-        {% end %}
       </div>
     </div>
-    <div class="item logs box-logs{{'' if char.get('box_logs') else ' hide'}}">
+    <div id="box-logs" class="item logs hide">
       <label class="head">切分校对历史</label>
       <div class="body">
-        {% for log in char.get('box_logs', [])%}
-        <div class="log">
-          <div class="log-meta">
-            {% if log.get('x') %}<label>坐标</label><span>{{', '.join(['%s:%s'%(f,log.get(f)) for f in ['x','y','w','h']])}}</span><br/>{% end %}
-            {% if log.get('username') %}<label>校对人</label><span>{{log['username']}}</span><br/>{% end %}
-            {% if log.get('create_time') %}<label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>{% end %}
-            {% if log.get('updated_time') %}<label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>{% end %}
-          </div>
+        <div class="log meta">
+          <label>坐标</label><span class="pos">705.1/949.4/85.6/69.4</span><br/>
+          <label>校对人</label><span>张三</span><br/>
+          <label>创建时间</label><span>2021-1-1 9:00:00</span><br/>
+          <label>更新时间</label><span>2021-1-1 9:30:00</span><br/>
         </div>
-        {% end %}
       </div>
     </div>
   </div>
-  {% if not char.get('error') %}
-  <div class="items user-work">
+  <div class="items user-panel">
     <div class="item proof">
-      <label class="head">
-        请您校对
-        <span class="icon-info proof-help" data-toggle="tooltip" data-placement="bottom" title="如果两个字有多笔少划或者字形结构上的不同，则二者不是同一个字。"></span>
-      </label>
+      <label class="head">请您校对</label>
       <div class="body">
-        {% if 'txt' in txt_fields %}<input class="form-control input-lg txt input-line wide-txt" placeholder="请输入字框中的文字"/>{% end %}
-        <div class="txt-types">
-          {% for k, v in Char.txt_types.items() %}
-          <label class="radio-item radio-inline">
-            <input type="radio" name="txt-type" value="{{k}}">{{v}}
-          </label>
-          {% end %}
+        <input id="p-txt" class="form-control input-lg" placeholder="请输入字图中的文字"/>
+        <div class="is-deform options">
+          <span>是否异形字</span>
+          <label class="radio-item radio-inline"><input type="radio" name="is-deform" value="1">是</label>
+          <label class="radio-item radio-inline"><input type="radio" name="is-deform" value="0" checked>否</label>
         </div>
-        {% if 'nor_txt' in txt_fields %}<input class="form-control input-lg nor-txt wide-txt" placeholder="请录入正字"/>{% end %}
-        <input class="form-control remark" placeholder="备注，如果有的话"/>
+        <div class="is-vague options">
+          <span>是否模糊或残损</span>
+          <label class="radio-item radio-inline"><input type="radio" name="is-vague" value="1">是</label>
+          <label class="radio-item radio-inline"><input type="radio" name="is-vague" value="0" checked>否</label>
+        </div>
+        <input id="p-remark" class="form-control" placeholder="备注，如果有的话"/>
       </div>
       <div class="tail submit" style="margin-top: 5px">
         <span id="s-alert" class="alert hide">
           <a class="close">×</a><strong class="title"></strong><span class="text"></span>
         </span>
-        <button class="btn btn-primary fr{{' disabled' if readonly else ''}}" id="{{submit_id or 'submit-txt'}}">确认</button>
+        <button class="btn btn-primary btn-submit fr">确认</button>
       </div>
     </div>
   </div>
-  {% end %}
 </div>

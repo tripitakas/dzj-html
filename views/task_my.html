@@ -1,41 +1,216 @@
 {% extends "com/_list.html" %}
 
 {% block custom-css %}
+<link href="{{static_url('assets/flatpickr/flatpickr.min.css')}}" rel="stylesheet"/>
+<link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
 <style>
-  .disabled {
-    display: none;
+  #statisticModal tr {
+    text-align: center;
   }
 
-  .point {
-    color: #B8906F;
-    margin-left: 10px;
+  #searchModal .time {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  #searchModal .time span {
+    min-width: 30px;
+    line-height: 25px;
+    text-align: center;
+  }
+
+  #searchModal .notes {
+    font-style: italic;
+    color: var(--Brown_Dark);
+    margin-left: 100px !important;
+  }
+
+  body.modal-open, body.swal2-shown {
+    padding-right: 15px !important;
   }
 </style>
 {% end %}
 
-{% block operation %}
-{% if point %}
-<div class="point">我的积分：{{point}}</div>
-{% end %}
+{% block custom-modal %}
+<div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">帮助文档</h4>
+      </div>
+      <div class="modal-body">
+        <div class="title">一、简介</div>
+        <div class="intro">
+          我的任务模块可以对我已经领取的任务（不包括已退回的任务）进行管理，包括检索、浏览、统计等。
+        </div>
+        <div class="title">二、操作</div>
+        <table class="table">
+          <tr>
+            <td>综合检索</td>
+            <td>可以针对批次、页编码和我的备注进行检索。
+            </td>
+          </tr>
+          <tr>
+            <td>浏览结果</td>
+            <td>可以对检索结果进行逐条浏览。</td>
+          </tr>
+          <tr>
+            <td>统计</td>
+            <td>针对当前检索结果进行统计。</td>
+          </tr>
+          <tr>
+            <td>备注</td>
+            <td>对任务进行备注。</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="statisticModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="statisticModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <table class="table">
+          <tr>
+            <td>单字</td>
+            <td>新增</td>
+            <td>删除</td>
+            <td>修改</td>
+            <td>执行时间(分)</td>
+            <td>执行时间(时)</td>
+          </tr>
+          <tr>
+            <td class="char_count"></td>
+            <td class="added"></td>
+            <td class="deleted"></td>
+            <td class="changed"></td>
+            <td class="used_time1"></td>
+            <td class="used_time2"></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">综合检索</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="notes">注：批次、页编码和我的备注，带''时进行精确匹配，否则模糊匹配</div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">批次</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="请输入批次">
+            </div>
+            <h4 class="col-sm-2 control-label">页编码</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control doc_id" value="{{params.get('doc_id') or ''}}" placeholder="请输入页编码">
+            </div>
+            <h4 class="col-sm-2 control-label">我的备注</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control my_remark" value="{{params.get('my_remark') or ''}}" placeholder="请输入我的备注">
+            </div>
+            <h4 class="col-sm-2 control-label">领取时间</h4>
+            <div class="col-sm-10 time picked_time">
+              <input type="text" class="form-control flatpickr picked_start" value="{{params.get('picked_start') or ''}}" data-enable-time=true data-enable-seconds=true placeholder="请选择开始时间">
+              <span>~</span>
+              <input type="text" class="form-control flatpickr picked_end" value="{{params.get('picked_end') or ''}}" data-enable-time=true data-enable-seconds=true placeholder="请选择结束时间">
+            </div>
+            <h4 class="col-sm-2 control-label">完成时间</h4>
+            <div class="col-sm-10 time finished_time">
+              <input type="text" class="form-control flatpickr finished_start" value="{{params.get('finished_start') or ''}}" data-enable-time=true data-enable-seconds=true placeholder="请选择开始时间">
+              <span>~</span>
+              <input type="text" class="form-control flatpickr finished_end" value="{{params.get('finished_end') or ''}}" data-enable-time=true data-enable-seconds=true placeholder="请选择结束时间">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect reset">重置</button>
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% end %}
 
 {% block custom-js %}
+<script src="{{static_url('assets/flatpickr/flatpickr.js')}}"></script>
+<script src="{{static_url('assets/flatpickr/zh.js')}}"></script>
 <script>
+  let taskType = '{{task_type}}';
   // 查看
-  $('.action .my-task-view').click(function () {
-    var data = getData($(this).parent().parent().attr('id'));
-    location.href = '/task/' + data.task_type + '/' + data._id + '?from=' + encodeFrom();
-  });
-  // 继续
-  $('.action .my-task-do').click(function () {
-    var data = getData($(this).parent().parent().attr('id'));
-    if (data.status === 'finished') return showTips('提示', '只能继续进行中的任务，已完成的任务，请直接修改。', 5000);
-    location.href = '/task/do/' + data.task_type + '/' + data._id;
+  $('.action .my-task-view').on('click', function () {
+    let taskId = $(this).parent().parent().attr('id');
+    location.href = `/task/${taskType}/${taskId}?from=` + encodeFrom();
   });
   // 修改
-  $('.action .my-task-update').click(function () {
-    var data = getData($(this).parent().parent().attr('id'));
-    location.href = '/task/update/' + data.task_type + '/' + data._id + '?from=' + encodeFrom();
+  $('.action .my-task-update').on('click', function () {
+    let taskId = $(this).parent().parent().attr('id');
+    location.href = `/task/update/${taskType}/${taskId}?from=` + encodeFrom();
+  });
+  // 浏览
+  $('.operation .btn-browse').on('click', function () {
+    if (!$('tbody tr').first()) return;
+    let taskId = $('tbody tr').first().attr('id');
+    location.href = `/task/nav/${taskType}/${taskId}?my=true&from=` + encodeFrom();
+  });
+  // 统计
+  $('.operation .btn-dashboard').on('click', function () {
+    let round = (num) => Math.round(num * 100) / 100;
+    postApi('/task/statistic/' + taskType, {data: {query: location.search}}, function (r) {
+      $('#statisticModal .char_count').text(r['char_count']);
+      $('#statisticModal .added').text(r['added']);
+      $('#statisticModal .deleted').text(r['deleted']);
+      $('#statisticModal .changed').text(r['changed']);
+      $('#statisticModal .used_time1').text(round(r['used_time'] / 60));
+      $('#statisticModal .used_time2').text(round(r['used_time'] / (60 * 60)));
+      $('#statisticModal').modal();
+    });
+  });
+  // 备注
+  $('.action .my-task-remark').on('click', function () {
+    let taskId = $(this).parent().parent().attr('id');
+    let myRemark = $(this).parent().parent().find('.my_remark');
+    Swal2.fire({title: '请输入备注', input: 'text', inputValue: myRemark.text().trim()}).then((result) => {
+      if (result.dismiss) return;
+      postApi('/task/my_remark/' + taskId, {data: {my_remark: result.value}}, function () {
+        myRemark.text(result.value);
+        showSuccess('备注成功', '', 1000);
+      });
+    });
+  });
+
+  //---综合检索---
+  let searchFields = [
+    {id: 'batch'}, {id: 'doc_id'}, {id: 'picked_start'}, {id: 'picked_end'},
+    {id: 'finished_start'}, {id: 'finished_end'}, {id: 'my_remark'}
+  ];
+  // 设置时间选择器
+  $("#searchModal .picked_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  $("#searchModal .picked_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  $("#searchModal .finished_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  $("#searchModal .finished_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
+  // 提交
+  $("#searchModal .modal-confirm").on('click', function () {
+    let data = getModal($("#searchModal"), searchFields);
+    let search = $.map(data, (v, k) => '&' + k + '=' + v).join('');
+    if (!search.length) return showTips('提示', '请输入查询条件');
+    location.href = location.pathname + '?' + search.substr(1);
+  });
+  // 重置
+  $("#searchModal .reset").on('click', function () {
+    $("#searchModal .picked_user_id").val(null).trigger('change');
+    resetModal($("#searchModal"), searchFields);
   });
 </script>
 {% end %}

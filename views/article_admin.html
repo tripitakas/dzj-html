@@ -6,11 +6,11 @@
     window.location = '/article/add';
   });
   $('.article-view').click(function () {
-    var articleId = $(this).parent().parent().find('.article_id').text();
+    let articleId = $(this).parent().parent().find('.article_id').text();
     window.location = '/article/' + articleId;
   });
   $('.article-update').click(function () {
-    var articleId = $(this).parent().parent().find('.article_id').text();
+    let articleId = $(this).parent().parent().find('.article_id').text();
     window.location = '/article/update/' + articleId;
   });
 </script>

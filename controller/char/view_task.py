@@ -3,7 +3,6 @@
 
 import re
 from bson import json_util
-from datetime import datetime
 from operator import itemgetter
 from .char import Char
 from .base import CharHandler
@@ -15,8 +14,6 @@ class CharTaskListHandler(CharHandler):
     URL = '/char/task/list'
 
     page_title = '字任务管理'
-    search_tips = '请搜索字种、批次号或备注'
-    search_fields = ['params.ocr_txt', 'params.txt', 'batch', 'remark']
     table_fields = [
         {'id': '_id', 'name': '主键'},
         {'id': 'batch', 'name': '批次号'},
@@ -39,6 +36,8 @@ class CharTaskListHandler(CharHandler):
         {'id': 'finished_time', 'name': '完成时间'},
         {'id': 'remark', 'name': '备注'},
     ]
+    search_fields = ['params.ocr_txt', 'params.txt', 'batch', 'remark']
+    hide_fields = ['_id', 'params', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
@@ -55,42 +54,36 @@ class CharTaskListHandler(CharHandler):
         ]},
     ]
     actions = [
-        {'action': 'btn-nav', 'label': '浏览'},
+        {'action': 'btn-browse', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-delete', 'label': '删除'},
         {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
     ]
-    hide_fields = ['_id', 'params', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
-    update_fields = []
 
     def get_template_kwargs(self, fields=None):
         kwargs = super().get_template_kwargs()
         readonly = '任务管理员' not in self.current_user['roles']
-        if readonly:
-            kwargs['actions'] = [{'action': 'btn-nav', 'label': '浏览'}]
+        if readonly:  # 任务浏览员
+            kwargs['actions'] = [{'action': 'btn-browse', 'label': '浏览'}]
             kwargs['operations'] = [{'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'}]
         return kwargs
 
     def format_value(self, value, key=None, doc=None):
-        """ 格式化page表的字段输出"""
+        """格式化page表的字段输出"""
         if key == 'txt_kind' and value:
             return (value[:5] + '...') if len(value) > 5 else value
         return super().format_value(value, key, doc)
 
     def get(self):
-        """ 任务管理-字任务管理"""
+        """任务管理-字任务管理"""
         try:
-            # 模板参数
             kwargs = self.get_template_kwargs()
-            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
-            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
-            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            condition, params = self.get_task_search_condition(self.request.query, 'char')
-            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
-            self.render(
-                'char_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                format_value=self.format_value, **kwargs,
-            )
+            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            cond, params = self.get_task_search_condition(self.request.query, 'char')
+            docs, pager, q, order = self.find_by_page(self, cond, self.search_fields, '-_id')
+            self.render('char_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
+                        format_value=self.format_value, **kwargs)
+
         except Exception as error:
             return self.send_db_error(error)
 
@@ -99,7 +92,7 @@ class CharTaskStatHandler(CharHandler):
     URL = '/char/task/statistic'
 
     def get(self):
-        """ 根据用户、批次、任务类型或任务状态统计"""
+        """根据用户、批次、类型或状态进行统计"""
         try:
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
@@ -113,9 +106,9 @@ class CharTaskStatHandler(CharHandler):
 
             head, rows = [], []
             if kind == 'picked_user_id':
-                head = ['用户', '分组', '数量']
+                head = ['分组', '用户', '数量']
                 users = list(self.db.user.find({'_id': {'$in': [c['_id'] for c in counts]}}))
-                users = {u['_id']: [u.get('name'), u.get('group') or ''] for u in users}
+                users = {u['_id']: [u.get('group') or '', u.get('name')] for u in users}
                 rows = [[*users.get(c['_id'], ['', '']), c['count']] for c in counts]
                 rows.sort(key=itemgetter(1))
             elif kind == 'task_type':
@@ -140,15 +133,15 @@ class CharTaskDashBoardHandler(CharHandler):
     URL = '/char/task/dashboard'
 
     def get(self):
-        """ 综合统计"""
+        """综合统计"""
         PageTaskDashBoardHandler.task_dashboard(self, 'char')
 
 
 class CharTaskClusterHandler(CharHandler):
-    URL = ['/task/@cluster_task/@task_id',
-           '/task/do/@cluster_task/@task_id',
-           '/task/browse/@cluster_task/@task_id',
-           '/task/update/@cluster_task/@task_id']
+    URL = ['/task/@char_task/@task_id',
+           '/task/do/@char_task/@task_id',
+           '/task/browse/@char_task/@task_id',
+           '/task/update/@char_task/@task_id']
 
     config_fields = [
         {'id': 'page-size', 'name': '每页显示条数'},
@@ -157,7 +150,7 @@ class CharTaskClusterHandler(CharHandler):
     ]
 
     def get(self, task_type, task_id):
-        """ 聚类校对页面"""
+        """聚类校对页面"""
 
         def c2int(c):
             return int(float(c) * 1000)

@@ -108,13 +108,13 @@
   // 搜索
   $('#btn-search').on("click", function () {
     $('.tips').addClass('hide');
-    var q = $('#search-input').val();
+    let q = $('#search-input').val();
     if (q.trim().length === 0)
       return;
-    var $this = $(this);
+    let $this = $(this);
     $this.text("检索中...");
     postApi('/com/search', {data: {q: q}}, function (res) {
-      var $html = res.matches.map(function (item) {
+      let $html = res.matches.map(function (item) {
         return "<div class='item'><div class='title'>" + (item['_source'] ? item['_source']['page_code'] : 'error')
             + "</div><div class='content'>" + item['hits'].join('') + "</div></div>";
       }).join('');

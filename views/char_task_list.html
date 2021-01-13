@@ -6,7 +6,7 @@
 {% end %}
 
 {% block custom-modal %}
-<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+<div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
      aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -219,21 +219,21 @@
 {% end %}
 <script>
   /*---公共设置---*/
-  var taskTypes = decodeJSON('{{handler.task_types}}');
+  let taskTypes = decodeJSON('{{handler.task_types}}');
   $.fn.modal.Constructor.prototype.enforceFocus = function () {
   };
 
   $('.btn-dashboard').on('click', function () {
-    var date = new Date();
-    var day = date.getDay() || 7;
+    let date = new Date();
+    let day = date.getDay() || 7;
     date.setDate(date.getDate() - day + 1);
     date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     location.href = '/char/task/dashboard?start=' + date.format("yyyy-MM-dd hh:mm:ss");
   });
 
   /*---综合检索---*/
-  var $searchModal = $("#searchModal");
-  var searchFields = [
+  let $searchModal = $("#searchModal");
+  let searchFields = [
     {id: 'batch'}, {id: 'txt_kind'}, {id: 'status', input_type: 'select'}, {id: 'task_type', input_type: 'select'},
     {id: 'picked_user_id', input_type: 'select'}, {id: 'is_oriented', input_type: 'select'},
     {id: 'publish_start'}, {id: 'publish_end'}, {id: 'picked_start'}, {id: 'picked_end'},
@@ -262,8 +262,8 @@
   });
   // 提交
   $searchModal.find('.modal-confirm').click(function () {
-    var data = getModal($searchModal, searchFields);
-    var search = $.map(data, function (v, k) {
+    let data = getModal($searchModal, searchFields);
+    let search = $.map(data, function (v, k) {
       return '&' + k + '=' + v;
     }).join('');
     if (!search.length)

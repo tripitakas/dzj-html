@@ -244,6 +244,17 @@ class PageRemarkModal(UIModule):
                                   buttons=buttons)
 
 
+class PageConfigModal(UIModule):
+    def render(self):
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
+        modal_fields = [
+            {'id': 'may_wrong', 'name': '易错字列表', 'input_type': 'textarea'},
+            {'id': 'img_opacity', 'name': '图片透明度'}
+        ]
+        return self.render_string('com/_modal.html', modal_fields=modal_fields, id='pageConfigModal', title='配置',
+                                  buttons=buttons)
+
+
 class TaskConfigModal(UIModule):
     def render(self, config_fields=None):
         title = '配置项'
@@ -255,40 +266,10 @@ class TaskConfigModal(UIModule):
 
 class TxtDiff(UIModule):
     def render(self, cmp_data):
-        """ 文字校对的文字区"""
+        """文字校对的文字区"""
         return self.render_string(
             'com/_txt_diff.html', blocks=cmp_data,
             sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0])
-        )
-
-
-class CharTxt(UIModule):
-    @staticmethod
-    def format_value(value, key=None, doc=None):
-        """ 格式化task表的字段输出"""
-        if key in ['cc', 'sc'] and value:
-            return value / 1000
-        if key in ['pos', 'column'] and value:
-            fields = ['x', 'y', 'w', 'h', 'cid']
-            return ', '.join([('%s:%.1f' % (k, v)).replace('.0', '') for k, v in value.items() if k in fields])
-        if key == 'txt_type':
-            return Char.txt_types.get(value) or value or ''
-        if key == 'nor_txt':
-            return value or ''
-        if key in ['box_point', 'txt_point'] and value:
-            return '%s/%s' % (Task.get_task_name(value[0]), value[1])
-        return h.format_value(value, key, doc)
-
-    def render(self, char, show_base=False, txt_fields=None, readonly=None, submit_id=None):
-        """ 单字校对区域"""
-
-        txt_fields = txt_fields or ['txt', 'nor_txt']
-        base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt', 'nor_txt',
-                       'txt_type', 'box_level', 'box_point', 'txt_level', 'txt_point', 'remark']
-        return self.render_string(
-            'com/_char_txt.html', Char=Char, char=char, txt_fields=txt_fields, show_base=show_base,
-            submit_id=submit_id, base_fields=base_fields, readonly=readonly, format_value=self.format_value,
-            to_date_str=lambda t, fmt='%Y-%m-%d %H:%M': h.get_date_time(fmt=fmt, date_time=t) if t else ''
         )
 
 

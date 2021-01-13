@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import os
-import re
 from bson.objectid import ObjectId
 from .char import Char
 from .base import CharHandler
@@ -15,7 +13,7 @@ class CharDeleteApi(CharHandler):
     URL = '/api/(char)/delete'
 
     def post(self, collection):
-        """ 批量删除 """
+        """批量删除"""
         try:
             rules = [(v.not_both_empty, '_id', '_ids')]
             self.validate(self.data, rules)
@@ -36,18 +34,18 @@ class CharExtractImgApi(CharHandler):
     URL = '/api/char/extract_img'
 
     def post(self):
-        """ 批量生成字图"""
+        """批量生成字图"""
         try:
             rules = [(v.not_empty, 'type'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
+
             if self.data['type'] == 'selected':
                 condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
             else:
                 condition = self.get_char_search_condition(self.data['search'])[0]
             count = self.db.char.count_documents(condition)
             self.db.char.update_many(condition, {'$set': {'img_need_updated': True}})
-            if count:
-                # 启动脚本，生成字图
+            if count:  # 启动脚本，生成字图
                 regen = int(self.data.get('regen') in ['是', True])
                 script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img_%s.log 2>&1 &'
                 script = script % (h.BASE_DIR, self.username, regen, h.get_date_time(fmt='%Y%m%d%H%M%S'))
@@ -64,36 +62,42 @@ class CharExtractImgApi(CharHandler):
 class CharTxtApi(CharHandler):
     URL = '/api/char/txt/@char_name'
 
+    def merge_txt_logs(self, user_log, char):
+        """合并用户的连续修改"""
+        ori_logs = char.get('txt_logs') or []
+        for i in range(len(ori_logs)):
+            last = len(ori_logs) - 1 - i
+            if ori_logs[last].get('user_id') == self.user_id:
+                ori_logs.pop(last)
+            else:
+                break
+        user_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
+        return ori_logs + [user_log]
+
     def post(self, char_name):
-        """ 更新字符的txt"""
+        """更新字符的txt"""
 
         try:
-            rules = [(v.not_none, 'txt', 'txt_type'), (v.is_txt_type, 'txt_type')]
+            rules = [(v.not_empty, 'txt'), (v.is_txt, 'txt')]
             self.validate(self.data, rules)
+
             char = self.db.char.find_one({'name': char_name})
             if not char:
                 return self.send_error_response(e.no_object, message='没有找到字符')
             # 检查数据等级和积分
             self.check_txt_level_and_point(self, char, self.data.get('task_type'))
             # 检查参数，设置更新
-            fields = ['txt', 'nor_txt', 'txt_type', 'remark']
-            update = {k: self.data[k] for k in fields if self.data.get(k) not in ['', None]}
+            fields = ['txt', 'is_deform', 'is_vague', 'remark']
+            char['is_vague'] = char.get('is_vague') or False
+            char['is_deform'] = char.get('is_deform') or False
+            update = {k: self.data[k] for k in fields if self.data.get(k) is not None}
             if h.cmp_obj(update, char, fields):
-                return self.send_error_response(e.not_changed)
+                return self.send_error_response(e.not_changed, message='没有任何修改')
             my_log = {k: self.data[k] for k in fields + ['task_type'] if self.data.get(k) not in ['', None]}
-            my_log.update({'updated_time': self.now()})
-            new_log, logs = True, char.get('txt_logs') or []
-            for i, log in enumerate(logs):
-                if log.get('user_id') == self.user_id:
-                    logs[i].update(my_log)
-                    new_log = False
-            if new_log:
-                my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
-                logs.append(my_log)
-            # 更新char表
-            update.update({'txt_logs': logs, 'txt_level': self.get_user_txt_level(self, self.data.get('task_type'))})
+            update['txt_logs'] = self.merge_txt_logs(my_log, char)
+            update['txt_level'] = self.get_user_txt_level(self, self.data.get('task_type'))
             self.db.char.update_one({'name': char_name}, {'$set': update})
-            self.send_data_response(dict(txt_logs=logs))
+            self.send_data_response(dict(txt_logs=update['txt_logs']))
             self.add_log('update_txt', char['_id'], char['name'], update)
 
         except self.DbError as error:
@@ -104,10 +108,11 @@ class CharsTxtApi(CharHandler):
     URL = '/api/chars/(txt|txt_type)'
 
     def post(self, field):
-        """ 批量更新txt"""
+        """批量更新txt"""
         try:
             rules = [(v.not_empty, 'names', field)]
             self.validate(self.data, rules)
+
             task_type = self.data.get('task_type')
             log = dict(un_changed=[], level_unqualified=[], point_unqualified=[])
             chars = list(self.db.char.find({'name': {'$in': self.data['names']}, field: {'$ne': self.data[field]}}))
@@ -160,10 +165,11 @@ class CharSourceApi(CharHandler):
     URL = '/api/char/source'
 
     def post(self):
-        """ 批量更新批次"""
+        """批量更新批次"""
         try:
             rules = [(v.not_empty, 'type', 'source'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
+
             if self.data['type'] == 'selected':
                 condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
             else:

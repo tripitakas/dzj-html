@@ -5,15 +5,15 @@
 """
 import re
 from bson import json_util
+from controller.helper import prop
 from controller.base import BaseHandler
 from controller.page.tool.esearch import find
 from controller.page.tool.variant import normalize
-from controller.helper import prop
 
 
 def punc_str(orig_str, host, port):
-    import requests
     import logging
+    import requests
     try:
         res = requests.get("http://%s:%s/seg" % (host, port), params={'q': orig_str}, timeout=3.1)
     except Exception as e:
@@ -27,11 +27,13 @@ class PunctuationApi(BaseHandler):
     URL = '/api/com/punctuate'
 
     def post(self):
-        """ 自动标点"""
+        """自动标点"""
         try:
-            q = self.data.get('q', '').strip()
-            res = punc_str(q, prop(self.config, 'punctuate.host', 'localhost'),
-                           prop(self.config, 'punctuate.port', '10888')) if q else ''
+            q, res = self.data.get('q', '').strip(), ''
+            if q:
+                res = punc_str(q, prop(self.config, 'punctuate.host', 'localhost'),
+                               prop(self.config, 'punctuate.port', '10888'))
+
             self.send_data_response(dict(res=res))
 
         except self.DbError as error:
@@ -42,7 +44,7 @@ class CbetaSearchApi(BaseHandler):
     URL = '/api/com/search'
 
     def post(self):
-        """ CBETA检索"""
+        """CBETA检索"""
 
         def merge_kw(txt):
             # 将<kw>一</kw>，<kw>二</kw>格式替换为<kw>一，二</kw>
@@ -73,7 +75,7 @@ class SessionConfigApi(BaseHandler):
     URL = '/api/session/config'
 
     def post(self):
-        """ 配置后台cookie"""
+        """配置后台cookie"""
         blacklist = ['user']
         try:
             for k, v in self.data.items():

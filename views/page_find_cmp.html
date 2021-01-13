@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <title>选择比对文本-{{page['name']}}</title>
   {% include com/_base_css.html %}
-  {% include com/_font_css.html %}
-  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
   <!--  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>-->
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -89,29 +88,27 @@
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
-        <div class="btn-group title">切分校对</div>
+        <div class="btn-group title">比对文本</div>
       </div><!--left-->
       <div class="center">
-        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-        <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
-        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
-        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
-        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助[h]"></div>
+        <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片[p]"></div>
+        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本[m]"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片[+]"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小[1]"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片[-]"></div>
       </div>
       <div class="right">
         <div id="select-txt" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="选中文本"></div>
-        <div id="show-txts" class="btn-txt icon-article" data-toggle="tooltip" data-placement="bottom" title="显示OCR文本"></div>
+        <div id="show-ocr" class="btn-txt icon-article" data-toggle="tooltip" data-placement="bottom" title="显示字框OCR"></div>
         <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
       </div><!--right-->
     </div>
     <div class="m-body flex">
-      <div class="m-left fl" id="left-region">
-        <div class="bd" id="holder-container">
-          <div id="holder"></div>
-        </div>
+      <div id="left-region" class="m-left fl">
+        <div class="box-holder"></div>
       </div><!--left-->
-      <div class="m-right fr" id="right-region">
+      <div id="right-region" class="m-right fr">
         <div class="bd">
           <div class="selectable" id="selectable">
             <span class="cmp-more" id="prev" title="更多">···</span>
@@ -131,7 +128,7 @@
     </div>
     <div class="m-footer">
       <span class="fl">
-        页编码：<span class="page-name">{{page['name']}}</span>
+        <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
       </span>
       <span class="fr">
       </span>
@@ -140,9 +137,8 @@
 </div>
 </body>
 
-
 <div class="panel-body" style="padding: 0">
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -152,10 +148,8 @@
         <div class="modal-body">
           <div class="title">一、工作目标</div>
           <div class="intro">
-            从右侧文本区域，选择与左侧图片最相似的文本，作为下一步文字校对的比对文本。
-            请用先用光标选中文本，然后点击<img src="{{static_url('imgs/icon_select.png')}}"/>按钮，将选中的文本拷贝至结果输入框中。<br/>
-            右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。您只需要选择文本而无需修改，下一步可以做更准确的文字校对工作。
-            为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。
+            请从右侧文本区域，选择与左侧图片最相似的文本，作为文字校对的比对文本。<br/>
+            先用光标选中文本，然后点击<i class="btn-txt icon-check"></i>，即可将选中文本拷贝至下方输入框。<br/>
           </div>
           <div class="title">二、功能按钮</div>
           <table class="table">
@@ -196,35 +190,39 @@
   </div>
 </div>
 
-
 {% include com/_base_js.html %}
-{% include com/_base_cut.html %}
-<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/box/jquery.mapKey.js')}}"></script>
+<script src="{{static_url('js/box/raphael.js')}}"></script>
+<script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.page.js')}}"></script>
+<script src="{{static_url('js/box/box.key.js')}}"></script>
+<script src="{{static_url('js/page-box.js')}}"></script>
 <script>
-  // 页面图和切分框
-  $.cut.create({
+  $.page.init({
     readonly: true,
-    holder: 'holder',
-    image: '{{img_url}}',
-    width: '{{page["width"]}}',
-    height: '{{page["height"]}}',
-    scrollContainer: '#holder-container',
+    holder: '.box-holder',
+    showMode: 'height-full',
+    imgUrl: '{{page["img_url"]}}',
+    width: '{{page.get("width") or 0}}',
+    height: '{{page.get("height") or 0}}',
     chars: [],
+    blurImage: 1,
+    showImage: true,
   });
-  $.cut.bindKeys();
-  $.cut.toggleBox(false);
-  $.cut.switchCurrentBox(null);
-  $('#holder-container').focus();
+  $.box.bindBaseKeys();
 
   // 显示OCR文本
-  $('#show-txts').on('click', () => $('#ocrModal').modal());
+  $('#show-ocr').on('click', () => $('#ocrModal').modal());
 
   // 初始化加载比对文本
   $(document).ready(function () {
+    bsLoading('加载中‧‧‧');
     postApi('/page/find_cmp/{{page["name"]}}', {data: {}}, function (data) {
+      bsHide();
       $('#cmp').html(data.cmp);
       $('#pagination').html(data['hit_page_codes'].map(function (pageCode, i) {
-        return "<a" + (i ? '' : ' class="cur"') + " title='" + pageCode + "'>" + (i + 1) + "</a>";
+        return `<a${i ? '' : ' class="cur"'} title='${pageCode}'>${i + 1}</a>`;
       }).join(''));
       $('.cmp-more').css('display', 'inline-block');
     });
@@ -232,8 +230,10 @@
 
   // 选择第n个比对文本
   $(document).on('click', '#pagination a', function () {
-    var $this = $(this);
+    let $this = $(this);
+    bsLoading('加载中‧‧‧');
     postApi('/page/find_cmp/{{page["name"]}}', {data: {num: $this.text()}}, function (res) {
+      bsHide();
       $('#pagination a').removeClass('cur');
       $this.addClass('cur').attr('title', res.cmp_page_code);
       $('#cmp').html(res.cmp);
@@ -244,54 +244,53 @@
 
   // 加载前一页比对文本
   $(document).on('click', '.selectable #prev', function () {
-    var pageCode = $('#pagination a.cur').eq(0).attr('title');
-    var data = {cmp_page_code: pageCode, neighbor: 'prev'};
+    let pageCode = $('#pagination a.cur').eq(0).attr('title');
+    let data = {cmp_page_code: pageCode, neighbor: 'prev'};
+    bsLoading('加载中‧‧‧');
     postApi('/page/find_cmp/neighbor', {data: data}, function (res) {
+      bsHide();
       if (res.txt.length) {
         $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
         $('#selectable').animate({scrollTop: $('#cmp').offset().top - 100}, 500);
       } else {
-        showTips('提示', '没有更多内容', 3000);
+        showTips('提示', '没有更多内容', 1000);
       }
     });
   });
 
   // 加载后一页比对文本
   $(document).on('click', '.selectable #next', function () {
-    var pageCode = $('#pagination a.cur').eq(0).attr('title');
-    var data = {cmp_page_code: pageCode, neighbor: 'next'};
+    let pageCode = $('#pagination a.cur').eq(0).attr('title');
+    let data = {cmp_page_code: pageCode, neighbor: 'next'};
+    bsLoading('加载中‧‧‧');
     postApi('/page/find_cmp/neighbor', {data: data}, function (res) {
+      bsHide();
       if (res.txt.length) {
         $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
         $('#selectable').animate({scrollTop: $('#cmp').offset().bottom}, 500);
       } else {
-        showTips('提示', '没有更多内容', 3000);
+        showTips('提示', '没有更多内容', 1000);
       }
     });
   });
 
   // 选中作为比对本
   $(document).on('click', '#select-txt', function () {
-    var $selected = $('#selected');
+    let $selected = $('#selected');
     $selected.val(($selected.val() + window.getSelection().toString()).trim());
     $selected.height($selected.prop('scrollHeight'));
   });
 
   $(document).on('change', '#selected', function () {
-    var $selected = $('#selected');
-    $selected.height($selected.prop('scrollHeight'));
+    $('#selected').height($('#selected').prop('scrollHeight'));
   });
-
-  // 获取提交数据
-  function getPostData() {
-    return {cmp_txt: $('#selected').val()};
-  }
 
   // 保存数据
   $('#save').on('click', function () {
     bsLoading('保存中‧‧‧');
-    postApi('/page/cmp_txt/{{page["name"]}}', {data: getPostData()}, function (res) {
-      bsShow('成功!', '已保存。');
+    let data = {cmp_txt: $('#selected').val()};
+    postApi('/page/cmp_txt/{{page["name"]}}', {data: data}, function (res) {
+      bsShow('成功!', '已保存。', 'info', 1000);
     });
   });
 

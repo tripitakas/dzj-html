@@ -2,83 +2,211 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>切分校对-{{page['name']}}</title>
+  <title>{{page['name']}}</title>
   {% include com/_base_css.html %}
-  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    .m-toolbar.order-mode .cut,
+    .m-toolbar.cut-mode .order {
+      display: none !important;
+    }
+
+    .m-toolbar .s-count {
+      font-size: 75%;
+      color: var(--Brown_Darker);
+    }
+
+    .m-toolbar .btn-txt.active {
+      color: green;
+    }
+
+    .h-toolbar {
+      width: 40px;
+      height: 100%;
+      overflow-y: auto;
+      padding: 15px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--Grey_Lighter);
+    }
+
+    .h-toolbar .btn-txt {
+      margin: 5px 5px;
+    }
+
+    .h-toolbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .h-toolbar::-webkit-scrollbar-thumb {
+      -webkit-box-shadow: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .h-toolbar::-webkit-scrollbar-track {
+      -webkit-box-shadow: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .m-footer {
+      display: flex;
+      user-select: none;
+      justify-content: space-between;
+    }
+
+    .m-footer .hint > span {
+      margin-left: 10px;
+    }
+
+    .m-footer .symbol {
+      font-size: 12px;
+      margin-right: 12px;
+    }
+
+    .m-footer .added {
+      color: #A0522D;
+    }
+
+    .m-footer .changed {
+      color: red;
+    }
+
+    .m-footer .deleted {
+      color: black;
+    }
+
+    .m-footer .task-name {
+      margin-right: 12px;
+    }
+
+    .m-footer .task-user {
+      cursor: pointer;
+    }
+
+  </style>
 </head>
 
-<body class="widescreen">
+<body class="widescreen" style="overflow: hidden">
 <div class="app-main">
   <div class="main">
-    <div class="m-header">
+    <div class="m-header m-toolbar cut-mode">
       <div class="left">
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
-        <div class="btn-group title">切分校对</div>
+        <div class="btn-group title">切分</div>
       </div><!--left-->
       <div class="center">
-        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-        <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助[h]"></div>
+        <div id="toggle-img" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片[p]"></div>
         <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片[m]"></div>
         <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片[+]"></div>
-        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小[1]"></div>
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片[-]"></div>
-        <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
-        <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
-        {% set steps_unfinished1 = 'steps_unfinished' in globals() and steps_unfinished %}
-        <div id="toggle-three" class="btn-txt toggle-boxes icon-three{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom"
-             title="显隐所有"></div>
-        <div id="toggle-block" class="btn-txt toggle-boxes icon-blocks{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom"
-             title="显隐栏框"></div>
-        <div id="toggle-column" class="btn-txt toggle-boxes icon-columns{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom"
-             title="显隐列框"></div>
-        <div id="toggle-char" class="btn-txt toggle-boxes icon-chars active{{' hide' if steps_unfinished1 and handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom"
-             title="显隐字框"></div>
-        <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
-        <div class="btn-group hl-box more-group" id="more-group">
-          <button id="toggle-all" class="btn btn-default btn-sm" type="button" title="显隐所有字框[空格]">蒙白<sup class="s-count"></sup></button>
-          <button id="toggle-opacity" class="btn btn-default btn-sm" type="button" title="透视所有字框[x]">透视<sup class="s-count"></sup></button>
-          <button id="toggle-large" class="btn btn-default btn-sm" type="button" title="显隐大字框[a]">大框<sup class="s-count"></sup></button>
-          <button id="toggle-small" class="btn btn-default btn-sm" type="button" title="显隐小字框[s]">小框<sup class="s-count"></sup></button>
-          <button id="toggle-narrow" class="btn btn-default btn-sm" type="button" title="显隐窄字框[d]">窄框<sup class="s-count"></sup></button>
-          <button id="toggle-flat" class="btn btn-default btn-sm" type="button" title="显隐扁字框[f]">扁框<sup class="s-count"></sup></button>
-          <button id="toggle-overlap" class="btn btn-default btn-sm" type="button" title="显隐重叠字框[g]">重叠<sup class="s-count"></sup></button>
-          <button id="btn-order" class="btn btn-default btn-sm{{'' if '/page/box' in handler.request.uri else ' hide'}}" type="button" title="修改字序">字序</button>
+        <div id="toggle-box-more" class="btn-txt icon-more cut hide" title="更多"></div>
+        <div id="box-op" class="btn-group more-group cut" style="margin-left: 5px">
+          <button id="toggle-white" class="btn btn-default btn-sm toggle-shape" type="button" title="蒙白所有字框[a]">蒙白<sup class="s-count"></sup></button>
+          <button id="toggle-opacity" class="btn btn-default btn-sm toggle-shape" type="button" title="透视所有字框[s]">透视<sup class="s-count"></sup></button>
+          <button id="toggle-overlap" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐重叠字框[d]">重叠<sup class="s-count"></sup></button>
+          <button id="toggle-mayWrong" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐易错字框[f]">易错<sup class="s-count"></sup></button>
+          <button id="toggle-large" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐大字框[q]">大<sup class="s-count"></sup></button>
+          <button id="toggle-small" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐小字框[w]">小<sup class="s-count"></sup></button>
+          <button id="toggle-narrow" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐窄字框[e]">窄<sup class="s-count"></sup></button>
+          <button id="toggle-flat" class="btn btn-default btn-sm toggle-shape" type="button" title="显隐扁字框[r]">扁<sup class="s-count"></sup></button>
+        </div>
+      </div><!--center-->
+      <div class="right">
+        {% set mode = globals().get('mode') or '' %}
+        {% set readonly = globals().get('readonly') or False %}
+        {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
+        <div id="toggle-my-hint" class="btn-txt icon-users hint cut{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="我的修改[i]"></div>
+        <div id="op-hint" class="btn-group cut" title="修改历史">
+          <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
+          <ul id="hint-list" class="dropdown-menu pull-right" data-stopPropagation="true">
+            <li id="no-hint" class="hint"><a href="#">当前状态</a></li>
+            <li id="ini-hint" class="hint"><a href="#">初始状态</a></li>
+            <li id="cmb-hint" class="hint"><a href="#">总的修改</a></li>
+            <li id="play-hint" class="hint"><a href="#">播放修改</a></li>
+          </ul>
+        </div>
+        <div id="save" class="btn-txt icon-save{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存[ctrl+s]"></div>
+        <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
+        <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
+        <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
+        <div id="toggle-order" class="btn-txt icon-next-step cut toggle-mode" data-toggle="tooltip" data-placement="bottom" title="字序[,]"></div>
+        <div id="toggle-cut" class="btn-txt icon-prev-step order toggle-mode" data-toggle="tooltip" data-placement="bottom" title="切分[.]"></div>
+        <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
+        <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
+        <div id="task-prev" class="btn-txt icon-arrow-left {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]]"></div>
+        <div id="task-next" class="btn-txt icon-arrow-right {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="后一个任务[[]"></div>
+      </div><!--right-->
+    </div><!--m-header-->
+
+    <div class="m-body flex">
+      <div class="m-content box-holder cut-mode show-char"></div>
+      <div class="m-toolbar h-toolbar cut-mode">
+        <div class="up">
+          <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="left" title="恢复初始设置[esc]"></div>
+          <div id="toggle-char" class="btn-txt icon-chars toggle-box active" data-toggle="tooltip" data-placement="left" title="显隐字框[j]"></div>
+          <div id="toggle-column" class="btn-txt icon-columns toggle-box" data-toggle="tooltip" data-placement="left" title="显隐列框[k]"></div>
+          <div id="toggle-block" class="btn-txt icon-blocks toggle-box" data-toggle="tooltip" data-placement="left" title="显隐栏框[l]"></div>
+          <div id="toggle-image" class="btn-txt icon-images toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐图框[o]"></div>
+          <div id="toggle-all" class="btn-txt icon-three toggle-box cut" data-toggle="tooltip" data-placement="left" title="显隐所有[;]"></div>
+          <div id="toggle-link-char" class="btn-txt icon-char-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐字框序线[u]"></div>
+          <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no" data-toggle="tooltip" data-placement="left" title="显隐字框序号[n]"></div>
+        </div>
+        <div class="down">
+          <div id="undo" class="btn-txt icon-undo disabled cut" data-toggle="tooltip" data-placement="left" title="撤销[z]"></div>
+          <div id="redo" class="btn-txt icon-redo disabled cut" data-toggle="tooltip" data-placement="left" title="重做[v]"></div>
+          <div id="toggle-multi" class="btn-txt icon-multi cut" data-toggle="tooltip" data-placement="left" title="多选模式[g]"></div>
+          <div id="adjust-columns" class="btn-txt icon-columns2 cut hide" data-toggle="tooltip" data-placement="left" title="自适应调整列框"></div>
+          <div id="adjust-blocks" class="btn-txt icon-blocks2 cut hide" data-toggle="tooltip" data-placement="left" title="自适应调整栏框"></div>
+          <div id="toggle-link-column" class="btn-txt icon-column-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐列框序线"></div>
+          <div id="toggle-no-column" class="btn-txt icon-column-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐列框序号"></div>
+          <div id="toggle-link-block" class="btn-txt icon-block-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐栏框序线"></div>
+          <div id="toggle-no-block" class="btn-txt icon-block-no order toggle-no" data-toggle="tooltip" data-placement="left" title="显隐栏框序号"></div>
+          <div id="reset-order" class="btn-txt icon-sort2 order" data-toggle="tooltip" data-placement="left" title="算法重新排序"></div>
+          <div id="load-user-order" class="btn-txt icon-swap order" data-toggle="tooltip" data-placement="left" title="加载用户序线"></div>
+          <div id="btn-check" class="btn-txt icon-check" data-toggle="tooltip" data-placement="left" title="检查、应用修改[c]"></div>
+          <div id="cut-config" class="btn-txt icon-config" data-toggle="tooltip" data-placement="left" title="系统配置"></div>
         </div>
       </div>
-      <div class="right">
-        <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
-        {% include com/_task_btns.html %}
-        {% include com/_step_btns.html %}
-      </div><!--right-->
-    </div>
-    <div class="m-body flex">
-      <div class="bd" id="holder-container">
-        <div id="holder"></div>
-      </div>
-    </div>
+    </div><!--m-body-->
+
     <div class="m-alert alert alert-info hide" id="m-alert">
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
       <strong class="title"></strong><span class="text"></span>
-    </div>
+    </div><!--m-alert-->
+
     <div class="m-footer">
-      <span class="fl">
-        页编码：<span class="page-name">{{page['name']}}</span>
+      <span>
+        <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
+        {% if globals().get('task_type') %}
+        <span class="task-info">
+          <span class="task-name">#切分{{task_names.get(task_type)}}</span>
+          {% for t in globals().get('tasks', []) %}
+          <span id="{{t['picked_user_id']}}" class="task-user">{{task_names.get(t['task_type'])}}@{{t['picked_by']}}</span>
+          {% end %}
+        </span>
+        {% end %}
       </span>
-      <span class="fr">
-        当前字框：<span class="char-name">未选中</span><span class="char-info"></span>
+      <span class="hint-info hide">
+        <span class="added">新增(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
+        <span class="changed">修改(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
+        <span class="deleted">删除(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
       </span>
-    </div>
+      <span>当前：<span class="char-name">未选中</span><span class="char-info"></span></span>
+    </div><!--m-footer-->
   </div>
 </div>
 
 <div class="panel-body" style="padding: 0">
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -137,225 +265,67 @@
       </div>
     </div>
   </div>
+  {% module PageConfigModal() %}
+  {% if hasattr(handler, 'task_type') and handler.task_type %}
+  {% module ReturnModal() %}
+  {% module TaskRemarkModal() %}
+  {% module TaskConfigModal(handler.config_fields if hasattr(handler, 'config_fields') else []) %}
+  {% end %}
 </div>
 
 {% include com/_base_js.html %}
-{% include com/_base_cut.html %}
+<script src="{{static_url('js/box/jquery.mapKey.js')}}"></script>
+<script src="{{static_url('js/box/raphael.js')}}"></script>
+<script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.cut.js')}}"></script>
+<script src="{{static_url('js/box/box.order.js')}}"></script>
+<script src="{{static_url('js/box/box.sort.js')}}"></script>
+<script src="{{static_url('js/box/box.ext.js')}}"></script>
+<script src="{{static_url('js/box/box.page.js')}}"></script>
+<script src="{{static_url('js/box/box.key.js')}}"></script>
+<script src="{{static_url('js/page-box.js')}}"></script>
 {% include com/_base_task.html %}
-<script src="{{static_url('js/page-btn.js')}}"></script>
 <script>
-  // 页面图
-  $.cut.create({
-    holder: 'holder',
-    image: "{{img_url}}",
-    width: '{{page["width"]}}',
-    height: '{{page["height"]}}',
-    chars: '{{page.get("chars") or []}}',
-    blocks: '{{page.get("blocks") or []}}',
-    columns: '{{page.get("columns") or []}}',
-    scrollContainer: '#holder-container',
+  $.page.init({
+    readonly: false,
+    curBoxType: 'char',
+    holder: '.box-holder',
+    showMode: 'no-scroll',
+    userId: currentUserId,
+    imgUrl: '{{page["img_url"]}}',
+    width: '{{page.get("width") or 0}}',
+    height: '{{page.get("height") or 0}}',
+    chars: decodeJSON('{{page.get("chars") or []}}'),
+    blocks: decodeJSON('{{page.get("blocks") or []}}'),
+    images: decodeJSON('{{page.get("images") or []}}'),
+    columns: decodeJSON('{{page.get("columns") or []}}'),
+    userLinks: decodeJSON('{{page.get("user_links") or "{}"}}'),
+    showImage: $('#toggle-img').hasClass('active'),
+    blurImage: $('#toggle-blur').hasClass('active') ? getStorage('imgOpacity', 0.2) : 1,
+    mayWrong: getStorage('mayWrong') || '一二三士土王五七十千不示入人八',
   });
-  $.cut.bindKeys();
-  $.cut.switchCurrentBox(null);
+  $.box.bindFullKeys();
 
-  // 初始化
-  if ('{{steps_unfinished1}}' === 'True') {
-    updateImage(true, true);
-    $('#toggle-three').removeClass('active');
-    $('#toggle-char').addClass('active');
-    $('#toggle-block').removeClass('active');
-    $('#toggle-column').removeClass('active');
-    updateThreeBoxes();
-  } else {
-    updateImage();
-    $('#toggle-three').removeClass('active');
-    $('#toggle-char').toggleClass('active', getStorage('toggleChar', '1') === '1');
-    $('#toggle-block').toggleClass('active', getStorage('toggleBlock', '-1') === '1');
-    $('#toggle-column').toggleClass('active', getStorage('toggleColumn', '-1') === '1');
-    updateThreeBoxes();
-  }
-
-  // 设置显隐图片、图片虚化
-  function updateImage(display, blur) {
-    if (!$.cut.data.image) return;
-    if (display === undefined) display = getStorage('toggleImage', '1') === '1';
-    $.cut.data.image.node.style.display = display ? '' : 'none';
-    $('#toggle-image').toggleClass('active', display);
-
-    if (blur === undefined) blur = getStorage('toggleBlur', '1') === '1';
-    $.cut.data.image.node.style.opacity = blur ? 0.2 : null;
-    $('#toggle-blur').toggleClass('active', blur);
-  }
-
-  // 设置三种切分框的状态
-  function updateThreeBoxes() {
-    $.cut.switchCurrentBox(null);
-    var charActive = $('#toggle-char').hasClass('active');
-    $.cut.toggleBox(charActive, 'char');
-    var blockActive = $('#toggle-block').hasClass('active');
-    $.cut.toggleBox(blockActive, 'block');
-    var columnActive = $('#toggle-column').hasClass('active');
-    $.cut.toggleBox(columnActive, 'column');
-    console.log(charActive + '|' + columnActive + '|' | blockActive);
-  }
-
-  $.cut.state.canHitBox = function (el) {
-    var boxType = $('.task-step.active').attr('data-value');
-    var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
-    var blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
-    var columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
-
-    // 栏框内的列字框可显示不能点击，列框内的字框同理。而 readonly 属性用于部分明确是只读的框，可点击不可编辑
-    if (el.data('_readonly')) return false;
-    if (charActive && el.data('class') === 'char') return true;
-    if (blockActive && el.data('class') === 'block') return true;
-    if (columnActive && el.data('class') === 'column') return true;
-  };
-
-  $.cut.onBoxChanged(function (info, box, reason) {
-    if (reason === 'added') {
-      var boxType = $('.task-step.active').attr('data-value');
-      var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
-      var blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
-      var columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
-      var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
-
-      if (active.length > 6) {
-        $.cut.removeBox();
-        bsShow('失败！', '当前显示有多种切分框，请仅选择其中一个，然后再创建。', 'warning');
-      } else if (!active.length) {
-        $.cut.removeBox();
-        bsShow('失败！', '当前没有显示任何切分框，请仅选择其中一个，然后再创建。', 'warning');
-      } else {
-        $.cut.setClass([info], active);
-        updateUndo();
-      }
-    } else if (reason === 'removed' || reason === 'changed') {
-      if ($.cut.data.hlType) {
-        $.cut.clearHighlight();
-        $.cut.highlightBoxes($.cut.data.hlType, false, true);
-        $.cut.toggleClass([info.char_id], null, 'flash', false);
-      }
-      showHighLightCount();
-      updateUndo();
-    } else if (reason === 'navigate') {
-      var curId = $.cut.getCurrentCharID(true);
-      $('.m-footer .char-name').text(curId || '未选中');
-      var msg = (info.txt || info.ocr_txt || '') + (info['is_small'] ? '（小字）' : '') + (info.readonly ? '，  权限：只读' : '，  权限：读写');
-      $('.m-footer .char-info').text(curId ? msg : '');
-    } else if (reason === 'initial') {
-      var invalid = $.cut.data.chars.map(function (c) {
-        return /b0c/.test(c.char_id) && c.char_id;
-      });
-      $.cut.toggleClass(invalid, null, 'flash', true);
-      $.cut.toggleBox(true, null, invalid);
-    } else if (reason === 'undo') {
-      updateThreeBoxes();
-    }
-  }, true);
-
-  // 高亮各种类型字框数量
-  function showHighLightCount() {
-    $('.hl-box > button').each(function (i, btn) {
-      var type = btn.getAttribute('id').replace(/^.*-/, '');
-      var boxes = $.cut.highlightBoxes(type, true, true);
-      $(btn).find('.s-count').text(boxes.length);
-    });
-  }
-
-  // 切换切分框状态
-  $('.hl-box > button').on('click', function () {
-    $.cut.switchHighlightBoxes(this.getAttribute('id').replace(/^.*-/, ''));
-  });
-
-  // 获取提交数据
-  function getPostData() {
-    return {
-      blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
-      chars: $.cut.exportBoxes('char'), auto_adjust: true, step: 'box',
-      steps_finished: stepsFinished,
-    };
-  }
-
-  // 保存数据
-  $('#save').on('click', function () {
+  // 保存数据、提交任务
+  $('#save,#task-submit,#task-submit-back').on('click', function () {
+    let $this = $(this), id = $this.attr('id');
+    if ($this.hasClass('disabled')) return;
+    let data = $.page.checkAndExport();
+    if (!data.status) return;
     bsLoading('保存中‧‧‧');
-    postApi(location.pathname, {data: getPostData()}, function (res) {
-      if (res.valid) {
-        bsShow('成功!', '已保存。');
-        location.reload();
-      } else {
-        // 高亮未被覆盖的框
-        $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
-        $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
-        var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
-        tips += `<a onclick="deleteBoxes([${res['out_boxes']}],'${res['box_type']}');">批量删除</a>`;
-        bsShow('已保存!', tips, 'warning');
+    $this.addClass('disabled');
+    data.submit = id !== 'save';
+    postApi(location.pathname, {data: data}, function (res) {
+      bsShow('成功!', '已保存。', 'info', 1000);
+      $this.removeClass('disabled');
+      if (id === 'task-submit') {
+        pick(gTaskType);
+      } else if (id === 'task-submit-back') {
+        location.href = '/task/lobby/' + gTaskType;
       }
     });
   });
-
-
-  afterStepped = function (submit, res, jumpUrl) {
-    if (res.valid) {
-      location.href = jumpUrl;
-    } else {
-      // 高亮未被覆盖的框
-      $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
-      $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
-      var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
-      tips += `<a onclick="deleteBoxes([${res['out_boxes']}],'${res['box_type']}');">批量删除</a>`;
-      bsShow('已保存!', tips, 'warning');
-    }
-  };
-
-  function deleteBoxes(cids, boxType) {
-    showConfirm('提示', '确定批量删除高亮的框吗？', function () {
-      $.cut.removeBoxes(cids, boxType);
-      bsHide();
-    });
-  }
-
-  // 切换步骤
-  var stepsFinished = null;
-  var clickedSteps = ['char'];
-
-  $('.task-step').on('click', function () {
-    var boxType = $(this).attr('data-value');
-    if (clickedSteps.indexOf(boxType) === -1) clickedSteps.push(boxType);
-    $('.task-step').removeClass('active');
-    $(this).addClass('active');
-    $('#toggle-three').removeClass('active');
-    $('#toggle-char').toggleClass('active', boxType === 'char');
-    $('#toggle-block').toggleClass('active', boxType === 'block');
-    $('#toggle-column').toggleClass('active', boxType === 'column');
-    updateThreeBoxes();
-    if (boxType === 'block') $.cut.showGrayBox('column');
-    if (boxType === 'column') $.cut.showGrayBox('char');
-  });
-
-  // 提交步骤
-  $('#submit-steps').on('click', function () {
-    stepsFinished = true;
-    $('#save').click();
-  });
-
-  // 跳转字序
-  $('#btn-order').on('click', function () {
-    var from = decodeFrom() ? '?from=' + decodeFrom() : '';
-    location.href = '/page/order/{{page["name"]}}' + from;
-  });
-
-  // 快捷键
-  $.mapKey('c', () => $.cut.addBox());
-  $.mapKey('space', () => $('#toggle-all').click());
-  $.mapKey('m', () => $('#toggle-blur').click());
-  $.mapKey('x', () => $('#toggle-opacity').click());
-  $.mapKey('a', () => $('#toggle-large').click());
-  $.mapKey('s', () => $('#toggle-small').click());
-  $.mapKey('d', () => $('#toggle-narrow').click());
-  $.mapKey('f', () => $('#toggle-flat').click());
-  $.mapKey('g', () => $('#toggle-overlap').click());
 
 </script>
 </body>

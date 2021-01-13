@@ -1706,10 +1706,6 @@ lesshat-selector {
   margin-top: 3px;
 }
 
-.btn-search {
-  display: none;
-}
-
 input.search-bar::-webkit-input-placeholder {
   color: rgba(255, 255, 255, 0.6);
 }

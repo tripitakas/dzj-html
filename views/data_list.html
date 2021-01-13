@@ -33,7 +33,7 @@
 <script>
   // 上传文件-提交
   $("#uploadModal .modal-confirm").click(function () {
-    var file = $('#upload')[0].files[0];
+    let file = $('#upload')[0].files[0];
     if (typeof file === 'undefined') {
       return showTips('提示', '请选择文件', 3000);
     } else if (!/\.(csv|CSV)$/.test(file.name)) {
@@ -43,13 +43,13 @@
     }
 
     $('#progress').removeClass('hide');
-    var formData = new FormData();
+    let formData = new FormData();
     formData.append('csv', file);
     postFile(location.pathname + '/upload', formData, function (res) {
       $('#progress').addClass('hide');
-      var errors = res.data.errors;
+      let errors = res.data.errors;
       if (errors.length > 0) {
-        var text = '<div class="message">' + res.message + '</div><br/><a href="' + res.url + '">下载上传结果</a>';
+        let text = '<div class="message">' + res.message + '</div><br/><a href="' + res.url + '">下载上传结果</a>';
         showConfirm('上传完成', text, () => location.reload());
       } else {
         showConfirm('上传成功', res.message, () => location.reload());

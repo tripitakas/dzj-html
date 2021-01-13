@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>文字校对-{{page['name']}}</title>
   {% include com/_base_css.html %}
-  {% include com/_font_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/page-txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
@@ -133,7 +132,7 @@
 
 <div class="panel-body" style="padding: 0">
   {% module DoubtModal() %}
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -223,8 +222,8 @@
 <script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
   // 公共参数
-  var txtFields = decodeJSON('{{txt_fields}}');
-  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+  let txtFields = decodeJSON('{{txt_fields}}');
+  let txtDict = decodeJSON('{{dumps(txt_dict)}}');
 
   // 页面图和切分框
   $.cut.create({

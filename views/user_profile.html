@@ -153,7 +153,7 @@
 <script type="text/javascript">
   // 修改个人信息
   function saveProfile() {
-    var info = {gender: $('#gender').val(), name: $('#name').val(), phone: $('#phone').val(), email: $('#email').val()};
+    let info = {gender: $('#gender').val(), name: $('#name').val(), phone: $('#phone').val(), email: $('#email').val()};
     postApi('/user/my/profile', {data: info}, function () {
       showSuccess('修改成功', $('#name').val() + ' 的个人信息已修改。', 2000);
       location.reload();
@@ -161,7 +161,7 @@
       if (err.code === 1009) {
         showSuccess('修改成功', '个人信息没有发生改变。', 2000);
       }
-      showError('修改失败', err.message, 5000);
+      showError('修改失败', err.message, 3000);
     });
   }
 
@@ -172,9 +172,9 @@
 
   // 提交密码修改
   $("#updateModal .modal-confirm").click(function () {
-    var password = $('#password').val().trim();
-    var oldPassword = $('#old_password').val().trim();
-    var confirmPassword = $('#confirm_password').val().trim();
+    let password = $('#password').val().trim();
+    let oldPassword = $('#old_password').val().trim();
+    let confirmPassword = $('#confirm_password').val().trim();
     if (password !== confirmPassword) {
       return showError('请重新输入', '两次密码不一致。', 3000);
     }
@@ -185,7 +185,7 @@
         showSuccess('修改成功', '密码没有发生改变。', 2000);
         $('#updateModal').modal('hide');
       } else {
-        showError('修改失败', err.message, 5000);
+        showError('修改失败', err.message, 3000);
       }
     });
   });
@@ -200,15 +200,15 @@
     if (typeof $('#upload')[0].files[0] == "undefined") {
       return showTips('提示', '请选择图片', 3000);
     }
-    var imgFile = $('#upload')[0].files[0];
-    var imgStr = /\.(jpg|jpeg|png|bmp|BMP|JPG|PNG|JPEG)$/;
+    let imgFile = $('#upload')[0].files[0];
+    let imgStr = /\.(jpg|jpeg|png|bmp|BMP|JPG|PNG|JPEG)$/;
     if (!imgStr.test(imgFile.name)) {
       return showTips('提示', '文件不是图片类型', 3000);
     }
     if (imgFile.size > (1024 * 1024)) {
       return showTips('提示', '文件大小不能超过1M', 3000);
     }
-    var formData = new FormData();
+    let formData = new FormData();
     formData.append('img', imgFile);
     postFile('/user/my/avatar', formData, function () {
       window.location.reload();

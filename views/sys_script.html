@@ -126,7 +126,7 @@
   $.fn.modal.Constructor.prototype.enforceFocus = function () {
   };
   /*---重置考核数据---*/
-  var $resetExamUser = $('#resetExamUser');
+  let $resetExamUser = $('#resetExamUser');
   $resetExamUser.find(".select-user").select2({
     dropdownParent: $resetExamUser,
     ajax: {
@@ -136,7 +136,7 @@
         return {'q': params.term || '考核', 'page': params.page || 1};
       },
       processResults: function (res, params) {
-        var data = res.data;
+        let data = res.data;
         if (!params.page || params.page === 1) data.results.splice(0, 0, {id: 'all', text: '所有考核账号'});
         return data;
       }
@@ -145,7 +145,7 @@
 
   $resetExamUser.find('.modal-confirm').click(function () {
     $(this).text('进行中...');
-    var data = {'user_id': $resetExamUser.find(".select-user").val()};
+    let data = {'user_id': $resetExamUser.find(".select-user").val()};
     postApi('/sys/reset_exam_user', {'data': data}, function (res) {
       if (res.status === 'success') {
         showSuccess('成功', '重置成功', 2000);

@@ -24,7 +24,7 @@ class DataUpsertApi(BaseHandler):
     URL = '/api/data/@metadata'
 
     def post(self, metadata):
-        """ 新增或修改 """
+        """新增或修改"""
         try:
             model = eval(metadata.capitalize())
             r = model.save_one(self.db, metadata, self.data, self=self)
@@ -52,7 +52,7 @@ class DataUploadApi(BaseHandler):
         return '/static/upload/data/' + result
 
     def post(self, collection):
-        """ 批量上传 """
+        """批量上传"""
         assert collection in ['tripitaka', 'volume', 'sutra', 'reel', 'page']
         model = eval(collection.capitalize())
         upload_file = self.request.files.get('csv')
@@ -76,7 +76,7 @@ class DataDeleteApi(BaseHandler):
     URL = '/api/data/@metadata/delete'
 
     def post(self, collection):
-        """ 批量删除 """
+        """批量删除"""
 
         def pre_variant():
             if self.data.get('_id'):
@@ -117,7 +117,7 @@ class VariantDeleteApi(BaseHandler):
     URL = '/api/variant/delete'
 
     def post(self):
-        """ 删除图片异体字"""
+        """删除图片异体字"""
         try:
             rules = [(v.not_empty, 'uid'), (v.is_char_uid, 'uid')]
             self.validate(self.data, rules)
@@ -139,7 +139,7 @@ class VariantMergeApi(BaseHandler):
     URL = '/api/variant/merge'
 
     def post(self):
-        """ 合并图片异体字"""
+        """合并图片异体字"""
         try:
             rules = [(v.not_empty, 'img_names', 'main')]
             self.validate(self.data, rules)
@@ -188,7 +188,7 @@ class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'
 
     def post(self):
-        """ build_js"""
+        """build_js"""
         try:
             rules = [(v.not_empty, 'collection', 'tripitaka_code')]
             self.validate(self.data, rules)
@@ -213,7 +213,7 @@ class PublishImportImageApi(TaskHandler):
     URL = r'/api/publish/import_image'
 
     def post(self):
-        """ 发布图片导入任务"""
+        """发布图片导入任务"""
         try:
             rules = [(v.not_empty, 'source', 'import_dir', 'priority', 'redo', 'layout')]
             self.validate(self.data, rules)
@@ -228,41 +228,3 @@ class PublishImportImageApi(TaskHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
-
-
-class PageExportApi(TaskHandler):
-    URL = '/api/data/page/export/@page_name'
-
-    def get(self, page_name):
-        """导出页面数据"""
-        try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-
-            data = {'blocks': [], 'name': page_name, 'width': page['width'], 'height': page['height']}
-            blocks, columns, chars = Box.reorder_boxes(page=page)
-            for b in blocks:
-                b = {'columns': [], 'block_no': b['block_no']}
-                data['blocks'].append(b)
-
-                for col in columns:
-                    if col['block_no'] != b['block_no']:
-                        continue
-                    chars_ = [c for c in chars if c['block_no'] == b['block_no'] and c['column_no'] == col['column_no']]
-                    column = {'column_no': col['column_no'],
-                              'txt': ''.join(c['txt'] for c in chars_),
-                              'chars': [{'txt': c['txt'], 'x': self.round_c(c['x']), 'y': self.round_c(c['y']),
-                                         'w': self.round_c(c['w']), 'h': self.round_c(c['h'])}
-                                        for c in chars_]}
-                    b['columns'].append(column)
-
-            self.add_log('export_page', page['_id'], page_name,
-                         '%s: %d chars, %d columns, %d blocks' % (page_name, len(chars), len(columns), len(blocks)))
-            self.send_data_response(data)
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-    @staticmethod
-    def round_c(x):
-        return round(x * 100) / 100

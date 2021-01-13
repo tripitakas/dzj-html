@@ -9,28 +9,23 @@ import pymongo
 from glob import glob
 from bson import json_util
 from os import path, makedirs
-from wand.image import Image as wImage
-from wand.color import Color
-from wand.drawing import Drawing
 from PIL import Image as Image, ImageDraw
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from controller.base import prop
 from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
-def export_page_txt(db, txt_field='adapt', dst_dir=''):
+def export_page_txt(db, source='', dst_dir='', txt_field='adapt'):
     size = 10000
-    cond = {'name': {'$regex': 'JS_'}, 'chars': {'$exists': True}}
+    cond = {'source': source}
     total_cnt = db.page.count_documents(cond)
     print('[%s]%s pages to process' % (hp.get_date_time(), total_cnt))
     page_nums = math.ceil(total_cnt / size)
     for i in range(page_nums):
-        project = {'name': 1, 'chars': 1}
-        pages = list(db.page.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(cond, {'name': 1, 'chars': 1}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             txt = Ph.get_char_txt(page, txt_field)
@@ -38,55 +33,10 @@ def export_page_txt(db, txt_field='adapt', dst_dir=''):
                 wf.writelines(txt.replace('|', '\n'))
 
 
-def export_phonetic(json_dir):
-    with open('phonetic.txt', 'w') as f:
-        for json_file in sorted(glob(path.join(json_dir, '*.json'))):
-            page = json.load(open(json_file))
-            texts, tags = set(), []
-            for i, field in enumerate(['text_proof_1', 'text_proof_2', 'text', 'ocr', 'ocr_col']):
-                text = re.search(r'(音释|音釋)\|+(.+)$', page.get(field, ''))
-                if text:
-                    if texts and i > 1:
-                        continue
-                    text = text.group(2)
-                    txt2 = re.sub('[YM]', '', text)
-                    if txt2 not in texts:
-                        texts.add(txt2)
-                        tags.append((field, text))
-            names = dict(text_proof_1='一校', text_proof_2='二校', text='旧审', ocr='字框', ocr_col='行文')
-            for field, text in tags:
-                f.write('%s(%s)\t%s\n' % (page['name'], names[field], text))
-
-
-def export_label_data(db):
-    fields = ['name', 'width', 'height', 'layout', 'blocks', 'columns', 'chars']
-    pages = list(db.page.find({'remark_box': '10000张切分标注'}, {k: 1 for k in fields}))
-    layout2nums = {'上下一栏': (2, 2), '上下两栏': (2, 3), '上下三栏': (2, 4), '左右两栏': (2, 2)}
-    for p in pages:
-        json_fn = path.join('/data/T/标注数据/10000张切分标注/json', '%s.json' % p['name'])
-        if path.exists(json_fn):
-            print('[%s]existed' % p['name'])
-            continue
-        print('processing %s' % p['name'])
-        p.pop('_id', 0)
-        layout = p.pop('layout', 0)
-        if layout and layout2nums.get(layout):
-            p['v_num'], p['h_num'] = layout2nums.get(layout)
-        blocks, columns, chars = p.get('blocks'), p.get('columns'), p.get('chars')
-        for i, b in enumerate(blocks):
-            keys = ['x', 'y', 'w', 'h', 'block_no']
-            blocks[i] = {k: b.get(k) for k in keys}
-        for i, b in enumerate(columns):
-            keys = ['x', 'y', 'w', 'h', 'block_no', 'column_no']
-            columns[i] = {k: b.get(k) for k in keys}
-        for i, b in enumerate(chars):
-            keys = ['x', 'y', 'w', 'h', 'block_no', 'column_no', 'char_no']
-            chars[i] = {k: b.get(k) for k in keys}
-        with open(json_fn, 'w') as fn:
-            json.dump(p, fn)
-
-
 def export_box_by_wand(db):
+    from wand.color import Color
+    from wand.drawing import Drawing
+    from wand.image import Image as wImage
     big_dir = '/data/T/big'
     dst_dir = '/data/T/标注数据/10000张切分标注/vis'
     cond = {'remark_box': '10000张切分标注'}

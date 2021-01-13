@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import re
-from bson import json_util
 from datetime import datetime
 from operator import itemgetter
 from controller import errors as e
@@ -14,20 +11,21 @@ class PageTaskListHandler(PageHandler):
     URL = '/page/task/list'
 
     page_title = '页任务管理'
-    search_tips = '请搜索页编码、批次号或备注'
-    search_fields = ['doc_id', 'batch', 'remark']
     table_fields = [
         {'id': '_id', 'name': '主键'},
         {'id': 'batch', 'name': '批次号'},
         {'id': 'doc_id', 'name': '页编码'},
-        {'id': 'char_count', 'name': '单字数量'},
         {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_names('page', True, True)},
         {'id': 'num', 'name': '校次'},
+        {'id': 'pre_tasks', 'name': '前置任务'},
         {'id': 'status', 'name': '状态', 'filter': PageHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': PageHandler.priorities},
-        {'id': 'steps', 'name': '步骤'},
-        {'id': 'pre_tasks', 'name': '前置任务'},
         {'id': 'is_oriented', 'name': '是否定向', 'filter': PageHandler.yes_no},
+        {'id': 'char_count', 'name': '单字数量'},
+        {'id': 'added', 'name': '新增'},
+        {'id': 'deleted', 'name': '删除'},
+        {'id': 'changed', 'name': '修改'},
+        {'id': 'total', 'name': '所有'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
@@ -36,8 +34,11 @@ class PageTaskListHandler(PageHandler):
         {'id': 'picked_time', 'name': '领取时间'},
         {'id': 'picked_by', 'name': '领取人'},
         {'id': 'finished_time', 'name': '完成时间'},
+        {'id': 'used_time', 'name': '执行时间'},
         {'id': 'remark', 'name': '备注'},
     ]
+    hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
+    search_fields = ['doc_id', 'batch', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
@@ -56,51 +57,47 @@ class PageTaskListHandler(PageHandler):
         ]},
     ]
     actions = [
-        {'action': 'btn-nav', 'label': '浏览'},
+        {'action': 'btn-browse', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-history', 'label': '历程'},
         {'action': 'btn-delete', 'label': '删除'},
         {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
     ]
-    hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
-    update_fields = []
 
     def get_template_kwargs(self, fields=None):
         kwargs = super().get_template_kwargs()
+        kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
         readonly = '任务管理员' not in self.current_user['roles']
-        if readonly:
-            kwargs['actions'] = [{'action': 'btn-nav', 'label': '浏览'}]
+        if readonly:  # 任务浏览员
+            kwargs['actions'] = [{'action': 'btn-browse', 'label': '浏览'}]
             kwargs['operations'] = [{'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'}]
         return kwargs
 
     def get_task_search_condition(self, request_query, collection=None):
         condition, params = super().get_task_search_condition(request_query, collection)
         readonly = '任务管理员' not in self.current_user['roles']
-        if readonly:
+        if readonly:  # 任务浏览员
             condition['task_type'] = {'$in': ['cut_proof', 'cut_review']}
         return condition, params
 
     def get(self):
-        """ 任务管理-页任务管理"""
+        """任务管理-页任务管理"""
         try:
             kwargs = self.get_template_kwargs()
-            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
-            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
-            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             cd, params = self.get_task_search_condition(self.request.query, 'page')
             docs, pager, q, order = self.find_by_page(self, cd, self.search_fields, '-_id', {'params': 0, 'result': 0})
             self.render('page_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                        format_value=self.format_value,
-                        **kwargs)
+                        format_value=self.format_value, **kwargs)
+
         except Exception as error:
             return self.send_db_error(error)
 
 
-class PageTaskStatHandler(PageHandler):
+class PageTaskStatisticHandler(PageHandler):
     URL = '/page/task/statistic'
 
     def get(self):
-        """ 根据用户、批次、任务类型或任务状态统计"""
+        """根据用户、任务类型或任务状态统计页任务"""
         try:
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status', 'batch']:
@@ -114,9 +111,9 @@ class PageTaskStatHandler(PageHandler):
 
             head, rows = [], []
             if kind == 'picked_user_id':
-                head = ['用户', '分组', '数量']
+                head = ['分组', '用户', '数量']
                 users = list(self.db.user.find({'_id': {'$in': [c['_id'] for c in counts]}}))
-                users = {u['_id']: [u.get('name'), u.get('group') or ''] for u in users}
+                users = {u['_id']: [u.get('group') or '', u.get('name')] for u in users}
                 rows = [[*users.get(c['_id'], ['', '']), c['count']] for c in counts]
                 rows.sort(key=itemgetter(1))
             elif kind == 'task_type':
@@ -129,8 +126,9 @@ class PageTaskStatHandler(PageHandler):
                 head = ['批次', '数量']
                 rows = [[c['_id'], c['count']] for c in counts]
             total = sum([c['count'] for c in counts])
-            self.render('task_statistic.html', collection='page', kind=kind, total=total, head=head, rows=rows,
-                        title='页任务统计')
+
+            self.render('task_statistic.html', counts=counts, kind=kind, total=total, head=head, rows=rows,
+                        collection='page', title='页任务统计')
 
         except Exception as error:
             return self.send_db_error(error)
@@ -140,7 +138,7 @@ class PageTaskDashBoardHandler(PageHandler):
     URL = '/page/task/dashboard'
 
     def get(self):
-        """ 综合统计"""
+        """综合统计"""
         self.task_dashboard(self, 'page')
 
     @staticmethod
@@ -153,17 +151,18 @@ class PageTaskDashBoardHandler(PageHandler):
 
         def get_params(field):
             cnd = {}
-            start and cnd.update({field.replace('_time', '_start'): start.strftime('%Y-%m-%d %H:%M:%S')})
-            end and cnd.update({field.replace('_time', '_end'): end.strftime('%Y-%m-%d %H:%M:%S')})
+            start and cnd.update({field.replace('_time', '_start'): start.strftime(fmt)})
+            end and cnd.update({field.replace('_time', '_end'): end.strftime(fmt)})
             return cnd
 
         try:
+            fmt = '%Y-%m-%d %H:%M:%S'
             start = self.get_query_argument('start', 0)
             if start:
-                start = datetime.strptime(start, '%Y-%m-%d %H:%M:%S')
+                start = datetime.strptime(start, fmt)
             end = self.get_query_argument('end', 0)
             if end:
-                end = datetime.strptime(end, '%Y-%m-%d %H:%M:%S')
+                end = datetime.strptime(end, fmt)
             task_types = [k for k, t in self.task_types.items() if self.prop(t, 'data.collection') == collection]
             # 本阶段发布
             this_publish = list(self.db.task.aggregate([
@@ -247,23 +246,17 @@ class PageTaskDashBoardHandler(PageHandler):
 class PageTaskResumeHandler(PageHandler):
     URL = '/page/task/resume/@page_name'
 
-    order = [
-        'upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof', 'text_review',
-    ]
-    display_fields = [
-        'doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
-        'updated_time', 'finished_time', 'publish_by', 'publish_time',
-        'picked_by', 'picked_time', 'message'
-    ]
-
     def get(self, page_name):
-        """ 页任务简历"""
+        """页任务简历"""
         from functools import cmp_to_key
         try:
+            order = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof', 'text_review']
+            fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority', 'publish_time', 'publish_by',
+                      'picked_time', 'picked_by', 'finished_time', 'message']
             page = self.db.page.find_one({'name': page_name}) or dict(name=page_name)
             tasks = list(self.db.task.find({'collection': 'page', 'doc_id': page_name}))
-            tasks.sort(key=cmp_to_key(lambda a, b: self.order.index(a['task_type']) - self.order.index(b['task_type'])))
-            self.render('task_resume.html', page=page, tasks=tasks, display_fields=self.display_fields)
+            tasks.sort(key=cmp_to_key(lambda a, b: order.index(a['task_type']) - order.index(b['task_type'])))
+            self.render('task_resume.html', page=page, tasks=tasks, display_fields=fields)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -272,43 +265,52 @@ class PageTaskResumeHandler(PageHandler):
 class PageTaskCutHandler(PageHandler):
     URL = ['/task/(cut_proof|cut_review)/@task_id',
            '/task/do/(cut_proof|cut_review)/@task_id',
-           '/task/browse/(cut_proof|cut_review|ocr_box|ocr_text)/@task_id',
-           '/task/update/(cut_proof|cut_review)/@task_id']
+           '/task/nav/(cut_proof|cut_review)/@task_id',
+           '/task/update/(cut_proof|cut_review)/@task_id',
+           '/task/browse/(cut_proof|cut_review|ocr_box|ocr_text)/@task_id']
 
     def get(self, task_type, task_id):
-        """ 切分校对、审定页面"""
-        page = self.db.page.find_one({'name': self.task['doc_id']})
-        if not page:
-            self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+        """切分校对、审定页面"""
+        try:
+            page = self.db.page.find_one({'name': self.task['doc_id']})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+            self.pack_boxes(page)
+            page['img_url'] = self.get_page_img(page)
 
-        self.pack_boxes(page)
-        img_url = self.get_page_img(page)
-        if self.steps['current'] == 'order':
-            reorder = self.get_query_argument('reorder', '')
-            if reorder:
-                page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
-            chars_col = self.get_chars_col(page['chars'])
-            self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=self.readonly)
-        else:
-            self.set_box_access(page, task_type)
-            submitted = self.prop(self.task, 'steps.submitted', [])
-            steps_finished = self.prop(self.task, 'result.steps_finished') or 'box' in submitted
-            steps_unfinished = True if steps_finished is None else not steps_finished
-            self.render('page_box.html', page=page, img_url=img_url, steps_unfinished=steps_unfinished,
-                        readonly=self.readonly)
+            review_tasks = []
+            if task_type == 'cut_proof' and self.prop(page, 'tasks.cut_review.1') == self.STATUS_FINISHED:
+                review_tasks = list(self.db.task.find({'doc_id': page['name'], 'task_type': 'cut_review'}))
+            task_names = dict(cut_proof='校对', cut_review='审定')
+            self.render('page_box.html', page=page, readonly=self.readonly, mode=self.mode,
+                        task_type=task_type, task_names=task_names, tasks=review_tasks)
+
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class PageTaskTextHandler(PageHandler):
     URL = ['/task/(text_proof|text_review)/@task_id',
            '/task/do/(text_proof|text_review)/@task_id',
+           '/task/nav/(text_proof|text_review)/@task_id',
            '/task/browse/(text_proof|text_review)/@task_id',
            '/task/update/(text_proof|text_review)/@task_id']
 
     def get(self, task_type, task_id):
-        """ 文字校对、审定页面"""
+        """文字校对、审定页面"""
         try:
-            self.page_title = '文字审定' if task_type == 'text_review' else '文字校对'
-            PageTxtHandler.page_txt(self, self.task['doc_id'])
+            page = self.db.page.find_one({'name': self.task['doc_id']})
+            if not page:
+                self.send_error_response(e.no_object, message='页面%s不存在' % self.task['doc_id'])
+            self.pack_boxes(page, True, True)
+            page['img_url'] = self.get_page_img(page)
+
+            review_tasks = []
+            if task_type == 'text_proof' and self.prop(page, 'tasks.text_review.1') == self.STATUS_FINISHED:
+                review_tasks = list(self.db.task.find({'doc_id': page['name'], 'task_type': 'text_review'}))
+            task_names = dict(text_proof='校对', text_review='审定')
+            self.render('page_txt.html', page=page, readonly=self.readonly, mode=self.mode,
+                        task_type=task_type, task_names=task_names, tasks=review_tasks)
 
         except Exception as error:
             return self.send_db_error(error)

@@ -30,21 +30,21 @@
 
 <script>
   $('.pagers .page-no').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
+    let keyCode = event.keyCode || event.which;
     if (keyCode === 13) {
-      var page = $(this).val().trim();
+      let page = $(this).val().trim();
       page = page > 1 ? page : 1;
       location.href = setQueryString('page', page);
     }
   });
   $('.pagers .page-size').on("change", function () {
-    var old_page_size = parseInt('{{page_size}}'),
+    let old_page_size = parseInt('{{page_size}}'),
         page_size = this.value,
         cur_page = parseInt('{{cur_page}}'),
         offset = (cur_page - 1) * old_page_size,
         new_page = Math.max(1, parseInt(offset / page_size + 1));
 
-    var search = setQueryString('page', new_page, true);
+    let search = setQueryString('page', new_page, true);
     location.href = setQueryString('page_size', this.value, false, search);
   });
 </script>

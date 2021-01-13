@@ -12,57 +12,14 @@ from controller import helper as h
 
 
 class Task(Model):
-    """ 数据库定义"""
-    collection = 'task'
+    """数据库定义"""
     primary = '_id'
-    fields = [
-        {'id': '_id', 'name': '主键'},
-        {'id': 'batch', 'name': '批次号'},
-        {'id': 'task_type', 'name': '类型'},
-        {'id': 'num', 'name': '校次'},
-        {'id': 'collection', 'name': '数据表'},
-        {'id': 'id_name', 'name': '主键名'},
-        {'id': 'doc_id', 'name': '数据ID'},
-        {'id': 'status', 'name': '状态'},
-        {'id': 'priority', 'name': '优先级'},
-        {'id': 'steps', 'name': '步骤'},
-        {'id': 'pre_tasks', 'name': '前置任务'},
-        {'id': 'is_oriented', 'name': '是否定向'},
-        {'id': 'params', 'name': '输入参数'},
-        {'id': 'result', 'name': '输出结果'},
-        {'id': 'txt_kind', 'name': '字种'},
-        {'id': 'char_count', 'name': '单字数量'},
-        {'id': 'required_count', 'name': '需要校对数量'},
-        {'id': 'type_tips', 'name': '类型说明'},
-        {'id': 'return_reason', 'name': '退回理由'},
-        {'id': 'create_time', 'name': '创建时间'},
-        {'id': 'updated_time', 'name': '更新时间'},
-        {'id': 'publish_time', 'name': '发布时间'},
-        {'id': 'publish_user_id', 'name': '发布人id'},
-        {'id': 'publish_by', 'name': '发布人'},
-        {'id': 'picked_time', 'name': '领取时间'},
-        {'id': 'picked_user_id', 'name': '领取人id'},
-        {'id': 'picked_by', 'name': '领取人'},
-        {'id': 'finished_time', 'name': '完成时间'},
-        {'id': 'is_sample', 'name': '示例任务'},
-        {'id': 'remark', 'name': '备注'},
-        {'id': 'message', 'name': '日志'},
-    ]
+    collection = 'task'
 
     # 任务类型定义
     task_types = {
         'import_image': {
-            'name': '导入图片', 'publishable': True,
-        },
-        'cut_proof': {
-            'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
-            'steps': [['box', '字框'], ['order', '字序']],
-            'num': [1, 2, 3, 4, 5, 6], 'publishable': True,
-        },
-        'cut_review': {
-            'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
-            'steps': [['box', '字框'], ['order', '字序']],
-            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_proof'], 'publishable': True,
+            'name': '导入图片', 'publishable': True, 'is_sys_task': True,
         },
         'upload_cloud': {
             'name': '上传云端', 'data': {'collection': 'page', 'id': 'name'},
@@ -76,9 +33,17 @@ class Task(Model):
             'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3, 4, 5, 6], 'publishable': True, 'is_sys_task': True,
         },
+        'cut_proof': {
+            'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['ocr_box'], 'publishable': True,
+        },
+        'cut_review': {
+            'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_proof'], 'publishable': True,
+        },
         'text_proof': {
             'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['cut_review'], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'pre_tasks': ['ocr_text'], 'publishable': True,
         },
         'text_review': {
             'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
@@ -90,7 +55,7 @@ class Task(Model):
         },
         'cluster_review': {
             'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3], 'pre_tasks': ['cluster_proof'], 'publishable': True,
+            'num': [1, 2, 3, 4, 5, 6], 'publishable': True,
         },
     }
 
@@ -108,9 +73,44 @@ class Task(Model):
         STATUS_FINISHED: '已完成',
     }
 
-    # 任务优先级
     yes_no = {True: '是', False: '否'}
     priorities = {3: '高', 2: '中', 1: '低'}
+
+    fields = {
+        '_id': {'name': '主键'},
+        'batch': {'name': '批次号'},
+        'task_type': {'name': '类型'},
+        'num': {'name': '校次'},
+        'collection': {'name': '数据表'},
+        'id_name': {'name': '主键名'},
+        'doc_id': {'name': '数据ID'},
+        'status': {'name': '状态', 'filter': task_statuses},
+        'priority': {'name': '优先级', 'filter': priorities},
+        'steps': {'name': '步骤'},
+        'pre_tasks': {'name': '前置任务'},
+        'is_oriented': {'name': '是否定向', 'filter': yes_no},
+        'params': {'name': '输入参数'},
+        'result': {'name': '输出结果'},
+        'txt_kind': {'name': '字种'},
+        'char_count': {'name': '单字数量'},
+        'required_count': {'name': '需要校对数量'},
+        'type_tips': {'name': '类型说明'},
+        'return_reason': {'name': '退回理由'},
+        'create_time': {'name': '创建时间'},
+        'updated_time': {'name': '更新时间'},
+        'publish_time': {'name': '发布时间'},
+        'publish_user_id': {'name': '发布人id'},
+        'publish_by': {'name': '发布人'},
+        'picked_time': {'name': '领取时间'},
+        'picked_user_id': {'name': '领取人id'},
+        'picked_by': {'name': '领取人'},
+        'finished_time': {'name': '完成时间'},
+        'used_time': {'name': '执行时间'},
+        'remark': {'name': '管理备注'},
+        'my_remark': {'name': '我的备注'},
+        'is_sample': {'name': '是否示例任务'},
+        'message': {'name': '日志'},
+    }
 
     @classmethod
     def has_num(cls, task_type):
@@ -170,7 +170,7 @@ class Task(Model):
 
     @classmethod
     def format_value(cls, value, key=None, doc=None):
-        """ 格式化task表的字段输出"""
+        """格式化task表的字段输出"""
         if key == 'task_type':
             return cls.get_task_name(value)
         if key == 'status' and value:
@@ -187,7 +187,7 @@ class Task(Model):
 
     @classmethod
     def get_task_search_condition(cls, request_query, collection=None):
-        """ 获取任务的查询条件"""
+        """获取任务的查询条件"""
         # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(collection=collection) if collection else dict(), dict()
         for field in ['task_type', 'collection', 'status', 'priority', 'txt_kind', 'is_oriented']:
@@ -197,7 +197,7 @@ class Task(Model):
                 value = int(value) if field == 'priority' else value
                 value = None if field == 'is_oriented' and not value else value
                 condition.update({field: value})
-        for field in ['batch', 'doc_id', 'remark']:
+        for field in ['batch', 'doc_id', 'remark', 'my_remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
@@ -208,43 +208,44 @@ class Task(Model):
             params['picked_user_id'] = picked_user_id
             condition.update({'picked_user_id': ObjectId(picked_user_id)})
 
+        fmt = '%Y-%m-%d %H:%M:%S'
         publish_start = h.get_url_param('publish_start', request_query)
         if publish_start:
             params['publish_start'] = publish_start
-            condition['publish_time'] = {'$gt': datetime.strptime(publish_start, '%Y-%m-%d %H:%M:%S')}
+            condition['publish_time'] = {'$gt': datetime.strptime(publish_start, fmt)}
         publish_end = h.get_url_param('publish_end', request_query)
         if publish_end:
             params['publish_end'] = publish_end
             condition['publish_time'] = condition.get('publish_time') or {}
-            condition['publish_time'].update({'$lt': datetime.strptime(publish_end, '%Y-%m-%d %H:%M:%S')})
+            condition['publish_time'].update({'$lt': datetime.strptime(publish_end, fmt)})
 
         picked_start = h.get_url_param('picked_start', request_query)
         if picked_start:
             params['picked_start'] = picked_start
-            condition['picked_time'] = {'$gt': datetime.strptime(picked_start, '%Y-%m-%d %H:%M:%S')}
+            condition['picked_time'] = {'$gt': datetime.strptime(picked_start, fmt)}
         picked_end = h.get_url_param('picked_end', request_query)
         if picked_end:
             params['picked_end'] = picked_end
             condition['picked_time'] = condition.get('picked_time') or {}
-            condition['picked_time'].update({'$lt': datetime.strptime(picked_end, '%Y-%m-%d %H:%M:%S')})
+            condition['picked_time'].update({'$lt': datetime.strptime(picked_end, fmt)})
 
         finished_start = h.get_url_param('finished_start', request_query)
         if finished_start:
             params['finished_start'] = finished_start
-            condition['finished_time'] = {'$gt': datetime.strptime(finished_start, '%Y-%m-%d %H:%M:%S')}
+            condition['finished_time'] = {'$gt': datetime.strptime(finished_start, fmt)}
         finished_end = h.get_url_param('finished_end', request_query)
         if finished_end:
             params['finished_end'] = finished_end
             condition['finished_time'] = condition.get('finished_time') or {}
-            condition['finished_time'].update({'$lt': datetime.strptime(finished_end, '%Y-%m-%d %H:%M:%S')})
+            condition['finished_time'].update({'$lt': datetime.strptime(finished_end, fmt)})
 
         updated_start = h.get_url_param('updated_start', request_query)
         if updated_start:
             params['updated_start'] = updated_start
-            condition['updated_time'] = {'$gt': datetime.strptime(updated_start, '%Y-%m-%d %H:%M:%S')}
+            condition['updated_time'] = {'$gt': datetime.strptime(updated_start, fmt)}
         updated_end = h.get_url_param('updated_end', request_query)
         if updated_end:
             params['updated_end'] = updated_end
             condition['updated_time'] = condition.get('updated_time') or {}
-            condition['updated_time'].update({'$lt': datetime.strptime(updated_end, '%Y-%m-%d %H:%M:%S')})
+            condition['updated_time'].update({'$lt': datetime.strptime(updated_end, fmt)})
         return condition, params

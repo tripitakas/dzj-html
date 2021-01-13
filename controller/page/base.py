@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import re
-from operator import itemgetter
 from .tool.box import Box
 from .tool.diff import Diff
 from controller import auth
+from operator import itemgetter
+from .tool import variant as vt
 from controller import errors as e
-from controller import helper as hp
 from controller.page.page import Page
 from controller.task.base import TaskHandler
-from controller.page.tool import variant as v
 
 
-class PageHandler(TaskHandler, Page, Box):
+class PageHandler(Page, TaskHandler, Box):
     box_level = {
         'task': dict(cut_proof=1, cut_review=10),
         'role': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
@@ -24,21 +22,21 @@ class PageHandler(TaskHandler, Page, Box):
         super(PageHandler, self).__init__(application, request, **kwargs)
         self.page_title = ''
 
+    # ----------权限相关----------
     @classmethod
     def get_required_box_level(cls, char):
         return char.get('box_level') or cls.default_level
 
     @classmethod
     def get_user_box_level(cls, self, task_type=None, user=None):
-        """ 获取用户的数据等级"""
+        """获取用户的数据等级"""
         user = user or self.current_user
         task_types = list(cls.box_level['task'].keys())
-        if task_type and task_type in task_types:
-            # 用户以任务模式修改切分数据时，给与最低修改等级1
-            return hp.prop(cls.box_level, 'task.' + task_type) or 1
+        if task_type and task_type in task_types:  # 用户以任务模式修改切分数据时，给与最低修改等级1
+            return cls.prop(cls.box_level, 'task.' + task_type) or 1
         else:
             roles = auth.get_all_roles(user['roles'])
-            return max([hp.prop(cls.box_level, 'role.' + role, 0) for role in roles])
+            return max([cls.prop(cls.box_level, 'role.' + role, 0) for role in roles])
 
     @classmethod
     def get_required_type_and_point(cls, page):
@@ -47,7 +45,7 @@ class PageHandler(TaskHandler, Page, Box):
         """
         ratio = {'cut_proof': 5000, 'cut_review': 2000}
         for task_type in ['cut_review', 'cut_proof']:
-            tasks = hp.prop(page, 'tasks.' + task_type, {})
+            tasks = cls.prop(page, 'tasks.' + task_type, {})
             tasks = [t for t, status in tasks.items() if status == cls.STATUS_FINISHED]
             if tasks:
                 return task_type, len(tasks) * ratio.get(task_type)
@@ -55,14 +53,17 @@ class PageHandler(TaskHandler, Page, Box):
 
     @staticmethod
     def get_user_point(self, task_type):
-        """ 针对指定的任务类型，获取用户积分"""
-        condition = {'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED}
-        tasks = list(self.db.task.find(condition, {'char_count': 1}))
-        return sum([t['char_count'] for t in tasks])
+        """针对指定的任务类型，获取用户积分"""
+        counts = list(self.db.task.aggregate([
+            {'$match': {'task_type': task_type, 'status': self.STATUS_FINISHED, 'picked_user_id': self.user_id}},
+            {'$group': {'_id': None, 'count': {'$sum': '$char_count'}}},
+        ]))
+        points = counts and counts[0]['count'] or 0
+        return points
 
     @classmethod
     def check_box_level_and_point(cls, self, char, page, task_type=None, send_error_response=True):
-        """ 检查数据等级和积分"""
+        """检查数据等级和积分"""
         required_level = cls.get_required_box_level(char)
         user_level = cls.get_user_box_level(self, task_type)
         if int(user_level) < int(required_level):
@@ -91,14 +92,8 @@ class PageHandler(TaskHandler, Page, Box):
     def can_write(self, box, page, task_type=None):
         return self.check_box_level_and_point(self, box, page, task_type, False) is True
 
-    def get_page_img(self, page):
-        page_name, use_my_cloud = page, False
-        if isinstance(page, dict):
-            page_name, use_my_cloud = page.get('name'), page.get('img_cloud_path')
-        return self.get_web_img(page_name, 'page', use_my_cloud)
-
     def set_box_access(self, page, task_type=None):
-        """ 设置切分框的读写权限"""
+        """设置切分框的读写权限"""
         for b in page.get('chars') or []:
             b['readonly'] = not self.can_write(b, page, task_type)
         for b in page.get('columns') or []:
@@ -106,31 +101,159 @@ class PageHandler(TaskHandler, Page, Box):
         for b in page.get('blocks') or []:
             b['readonly'] = not self.can_write(b, page, task_type)
 
-    @classmethod
-    def pack_boxes(cls, page, extract_sub_columns=False, pop_char_logs=True):
-        if extract_sub_columns:
-            for col in page['columns']:
-                if col.get('sub_columns'):
-                    page['columns'].extend(col['sub_columns'])
-        fields1 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'block_id']
-        fields2 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'column_id', 'ocr_txt']
-        fields3 = ['x', 'y', 'w', 'h', 'cid', 'block_no', 'column_no', 'char_no', 'char_id', 'cc',
-                   'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt']
-        page.get('blocks') and cls.pick_fields(page['blocks'], fields1)
-        page.get('columns') and cls.pick_fields(page['columns'], fields2)
-        if not pop_char_logs:
-            fields3 = fields3 + ['box_logs', 'txt_logs']
-        page.get('chars') and cls.pick_fields(page['chars'], fields3)
+    # ----------用户提交----------
+    def merge_txt_logs(self, user_log, char):
+        """合并用户的连续修改"""
+        ori_logs = char.get('txt_logs') or []
+        for i in range(len(ori_logs)):
+            last = len(ori_logs) - 1 - i
+            if ori_logs[last].get('user_id') == self.user_id:
+                ori_logs.pop(last)
+            else:
+                break
+        user_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
+        return ori_logs + [user_log]
+
+    @staticmethod
+    def get_user_op_no(page, user_id):
+        """获取用户增删改操作数量"""
+        no = dict(added=0, deleted=0, changed=0)
+        for field in ['blocks', 'columns', 'chars']:
+            for box in page[field]:
+                for log in (box.get('box_logs') or [])[::1]:
+                    if log.get('user_id') == user_id:
+                        no[log['op']] += 1
+                        continue
+        no['total'] = no['added'] + no['deleted'] + no['changed']
+        return no
+
+    def get_user_submit(self, submit_data, page, task_type=None):
+        """合并用户提交和数据库中已有数据"""
+        # 1.合并用户修改
+        user_level = self.get_user_box_level(self, task_type)
+        meta = {'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
+        for box_type, ops in submit_data.get('op', {}).items():
+            boxes = page.get(box_type) or []
+            for op in ops or []:
+                # init
+                pos = {k: op.get(k) for k in ['x', 'y', 'w', 'h']}
+                log = {'op': op['op'], 'pos': pos, **meta}
+                i, box = None, None
+                for j, b in enumerate(boxes):
+                    if b.get('cid') == op['cid']:
+                        i, box = j, b
+                        break
+                # added
+                if op['op'] == 'added':
+                    new_box = {**pos, 'cid': op['cid'], 'added': True, 'box_level': user_level, 'box_logs': [log]}
+                    if box:
+                        boxes[i] = new_box
+                    else:
+                        boxes.append(new_box)
+                    continue
+                if not box:
+                    continue
+                # if not self.can_write(box, page, task_type):
+                #     continue
+                ini_log = {'op': 'initial', 'pos': {k: box.get(k) for k in ['x', 'y', 'w', 'h']}}
+                ori_logs = box.get('box_logs') or [ini_log]
+                if op['op'] == 'deleted':
+                    if box.get('deleted'):  # 已经删除的框不能重复删除
+                        continue
+                    if box.get('added'):  # 如果是自己新增的框
+                        others_logs = [l for l in ori_logs if l.get('user_id') != self.user_id]
+                        if not len(others_logs):  # 无其他人修改，则直接删除
+                            boxes.pop(i)
+                    else:  # 否则打上deleted标记
+                        box.update({'deleted': True, 'box_level': user_level, 'box_logs': ori_logs + [log]})
+                elif op['op'] == 'recovered':
+                    if not box.get('deleted'):  # 非删除框无需恢复
+                        continue
+                    box_logs = [i for i in ori_logs if not (i.get('user_id') == self.user_id and i['op'] == 'deleted')]
+                    if len(box_logs) == 1 and box_logs[0]['op'] == 'initial':
+                        box_logs = []
+                    box.update({'box_level': user_level, 'box_logs': box_logs})
+                    box.pop('deleted', 0)
+                elif op['op'] == 'changed':
+                    length = len(ori_logs)
+                    for i in range(length):  # 合并用户连续的修改记录
+                        last = length - 1 - i
+                        if ori_logs[last].get('user_id') == self.user_id and ori_logs[last].get('op') == 'changed':
+                            ori_logs.pop(last)
+                        else:
+                            break
+                    box.update({**pos, 'changed': True, 'box_level': user_level, 'box_logs': ori_logs + [log]})
+            page[box_type] = boxes
+        # 2.合并用户框序
+        for box_type, orders in submit_data.get('order', {}).items():
+            cid2box = {b['cid']: b for b in page[box_type]}
+            for i, o in enumerate(orders or []):
+                cid, bid = o[0], o[1]
+                if cid2box.get(cid):
+                    cid2box[cid]['idx'] = i
+                    self.set_box_id(cid2box[cid], box_type, bid)
+            page[box_type].sort(key=itemgetter('idx'))
+        # 3.根据字框调整栏框、列框
+        page['blocks'] = self.adjust_blocks(page['blocks'], page['chars'])
+        page['columns'] = self.adjust_columns(page['columns'], page['chars'])
+        # 4.保存用户序线
+        page['user_links'] = submit_data.get('user_links') or {}
+        return {k: page.get(k) for k in ['blocks', 'columns', 'chars', 'images', 'user_links'] if k in page}
+
+    # ----------功能函数----------
+    def get_page_img(self, page):
+        page_name = self.prop(page, 'name', page)
+        return self.get_web_img(page_name, 'page')
 
     @classmethod
-    def filter_symbol(cls, txt):
-        """ 过滤校勘符号"""
-        return re.sub(r'[YMN]', '', txt)
+    def pack_boxes(cls, page, log=True, alternatives=False):
+        fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed']
+        log and fields.extend(['box_logs', 'txt_logs'])
+        if page.get('blocks'):
+            cls.pick_fields(page['blocks'], fields + ['block_no', 'block_id'])
+        if page.get('columns'):
+            cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id'])
+        if page.get('chars'):
+            ext = ['block_no', 'column_no', 'char_no', 'char_id', 'is_deform', 'is_vague',
+                   'ocr_txt', 'ocr_col', 'cmp_txt', 'txt', 'remark']
+            alternatives and ext.extend(['alternatives'])
+            cls.pick_fields(page['chars'], fields + ext)
+        if page.get('images'):
+            cls.pick_fields(page['images'], fields + ['image_id'])
 
+    @classmethod
+    def set_box_id(cls, box, box_type, bid):
+        if not bid:
+            cls.pop_fields([box], 'block_no,block_id,column_no,column_id,char_no,char_id')
+        elif box_type == 'blocks':
+            box['block_id'] = bid
+            box['block_no'] = bid[1:]
+        elif box_type == 'columns':
+            box['column_id'] = bid
+            box['block_no'], box['column_no'] = bid[1:].split('c')
+        elif box_type == 'chars':
+            box['char_id'] = bid
+            box['block_no'], box['column_no'], box['char_no'] = bid[1:].split('c')
+        for k in ['block_no', 'column_no', 'char_no']:
+            if k in box:
+                box[k] = int(box[k])
+
+    @classmethod
+    def set_char_class(cls, chars):
+        for ch in chars or []:
+            txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if cls.is_valid_txt(ch.get(k))))
+            is_same = len(txts) == 1
+            is_variant = vt.is_variants(txts)
+            classes = '' if is_same else 'is_variant' if is_variant else 'diff'
+            if cls.is_valid_txt(ch.get('txt')) and ch.get('txt') != ch.get('ocr_txt'):
+                classes += ' changed'
+            ch['class'] = classes.strip(' ')
+
+    # ----------文本处理----------
     @classmethod
     def apply_txt(cls, page, field):
-        """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种情况
-        用field文本和ocr文本进行diff，针对异文的几种情况：
+        """ 将文本适配至page['chars']，包括ocr_col、cmp_txt、txt等。
+        用field文本和ocr文本diff，针对异文的几种情况：
         1. 如果ocr文本为空，则丢弃field文本
         2. 如果ocr文本为换行，则补充field文本为换行
         3. 如果field文本为空，则根据ocr文本长度，填充■
@@ -141,7 +264,7 @@ class PageHandler(TaskHandler, Page, Box):
         if not cls.get_txt(page, field):
             return False, ''
         match = True
-        diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field), filter_junk=False)[0]
+        diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field))[0]
         for s in diff_segments:
             if s['is_same'] and s['base'] == '\n':
                 s['cmp1'] = '\n'
@@ -163,121 +286,56 @@ class PageHandler(TaskHandler, Page, Box):
         cls.write_back_txt(page['chars'], txt2apply, field)
         return match, txt2apply
 
-    def merge_txt_logs(self, user_log, txt_logs):
-        """ 合并log至txt_logs中。如果用户已在txt_logs中，则更新用户已有的log；否则，新增一条log"""
-        is_new = True
-        txt_logs = txt_logs or []
-        user_log['updated_time'] = self.now()
-        for i, log in enumerate(txt_logs):
-            if log.get('user_id') == self.user_id:
-                log.update(user_log)
-                is_new = False
-        if is_new:
-            user_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
-            txt_logs.append(user_log)
-        return txt_logs
-
-    def merge_box_logs(self, user_log, box_logs):
-        """ 合并log至box_logs中。如果用户已在box_logs中，则更新用户已有的log；否则，新增一条log"""
-        assert 'pos' in user_log
-        is_new = True
-        box_logs = box_logs or []
-        user_log['updated_time'] = self.now()
-        for i, log in enumerate(box_logs):
-            if log.get('user_id') == self.user_id:
-                log.update(user_log)
-                is_new = False
-        if is_new:
-            user_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
-            box_logs.append(user_log)
-        return box_logs
-
-    def merge_post_boxes(self, post_boxes, box_type, page, task_type=None):
-        """ 合并用户提交和数据库中已有数据，过程中将进行权限检查"""
-        user_level = self.get_user_box_level(self, task_type)
-        post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
-        page_cids = [b['cid'] for b in page[box_type] if b.get('cid')]
-        post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
-        # 检查删除
-        to_delete = [b for b in page[box_type] if b.get('cid') not in post_cids]
-        can_delete = [b.get('cid') for b in to_delete if self.can_write(b, page, task_type)]
-        boxes = [b for b in page[box_type] if b.get('cid') not in can_delete]  # 删除可删除的字框，保留其它字框
-        # 检查修改
-        change_cids = [b['cid'] for b in post_boxes if b.get('changed') is True]
-        to_change = [b for b in boxes if b['cid'] in change_cids]
-        can_change = [b for b in to_change if self.can_write(b, page, task_type)]
-        for b in can_change:
-            pb = post_box_dict.get(b['cid'])
-            if self.is_box_pos_equal(b, pb):
-                b.pop('changed', 0)
-                continue
-            pos = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
-            old_logs = b.get('box_logs') or [{k: b.get(k) for k in ['x', 'y', 'w', 'h']}]
-            box_logs = self.merge_box_logs({'pos': pos}, old_logs)
-            b.update({**pos, 'box_level': user_level, 'box_logs': box_logs})
-        # 检查新增
-        to_add = [b for b in post_boxes if b.get('added') is True]
-        can_add = []
-        for pb in to_add:
-            pb.pop('added', 0)
-            if pb['cid'] in page_cids or pb.get('changed'):
-                continue
-            update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
-            my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
-            pb.update({'ocr_txt': '■', 'box_level': user_level, 'box_logs': [my_log], 'new': True})
-            can_add.append(pb)
-        boxes.extend(can_add)
-        page[box_type] = boxes
-
-    def get_box_update(self, post_data, page, task_type=None):
-        """ 获取切分校对的提交"""
-        # 预处理
-        self.update_page_cid(page)
-        self.update_page_cid(post_data)
-        self.pop_fields(post_data['chars'], 'readonly,class')
-        self.pop_fields(post_data['blocks'], 'readonly,class,char_id,char_no')
-        self.pop_fields(post_data['columns'], 'readonly,class,char_id,char_no')
-        # 合并用户提交和已有数据
-        self.merge_post_boxes(post_data['blocks'], 'blocks', page, task_type)
-        self.merge_post_boxes(post_data['columns'], 'columns', page, task_type)
-        self.merge_post_boxes(post_data['chars'], 'chars', page, task_type)
-        # 过滤页面外的切分框
-        blocks, columns, chars = self.filter_box(page, page['width'], page['height'])
-        # 切分框重新排序
-        blocks = self.calc_block_id(blocks)
-        columns = self.calc_column_id(columns, blocks)
-        chars = self.calc_char_id(chars, columns)
-        if page.get('chars_col'):  # 合并用户字序
-            algorithm_chars_col = self.get_chars_col(chars)
-            page['chars_col'] = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
-            chars = self.update_char_order(chars, page['chars_col'])
-        # 根据字框调整列框和栏框的边界
-        if post_data.get('auto_adjust'):
-            blocks = self.adjust_blocks(blocks, chars)
-            columns = self.adjust_columns(columns, chars)
-        page_updated = dict(chars=chars, blocks=blocks, columns=columns, chars_col=page.get('chars_col') or [])
-        return page_updated
+    @classmethod
+    def filter_symbol(cls, txt):
+        """过滤校勘符号"""
+        return re.sub(r'[YMN]', '', txt)
 
     @classmethod
     def get_txt(cls, page, key):
-        if key == 'txt':
-            return page.get('txt') or ''
         if key == 'cmp_txt':
             return page.get('cmp_txt') or ''
-        if key == 'ocr':
-            return cls.get_char_txt(page) or page.get('ocr')
+        if key == 'ocr_chr':
+            return cls.get_char_txt(page, 'ocr_chr')
         if key == 'ocr_col':
-            return cls.get_column_txt(page) or page.get('ocr_col')
+            return cls.get_column_txt(page, 'ocr_txt')
+        if key == 'txt':
+            return page.get('txt') or cls.get_char_txt(page, 'txt')
 
     @classmethod
     def get_txts(cls, page, fields=None):
-        fields = fields or ['txt', 'ocr', 'ocr_col', 'cmp_txt']
+        fields = fields or ['txt', 'ocr_chr', 'ocr_col', 'cmp_txt']
         txts = [(cls.get_txt(page, f), f, Page.get_field_name(f)) for f in fields]
         return [t for t in txts if t[0]]
 
     @classmethod
+    def get_char_txt(cls, page, field='txt'):
+        """获取chars的文本"""
+
+        def get_txt(box):
+            ocr_chr = box['alternatives'][0] if box.get('alternatives') else ''
+            if field == 'ocr_chr':
+                return ocr_chr
+            if field == 'txt':
+                return box.get('txt') or ocr_chr or box.get('ocr_col') or box.get('cmp_txt') or ''
+            return box.get(field)
+
+        boxes = page.get('chars')
+        if not boxes:
+            return ''
+        pre, txt = boxes[0], get_txt(boxes[0]) or ''
+        for b in boxes[1:]:
+            if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
+                txt += '||'
+            elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
+                txt += '|'
+            txt += get_txt(b) or ''
+            pre = b
+        return txt.strip('|')
+
+    @classmethod
     def get_column_txt(cls, page, field='ocr_txt'):
-        """ 获取columns的文本"""
+        """获取columns的文本"""
 
         def get_txt(box):
             if box.get('sub_columns') and len(box['sub_columns']) > 1 and box['sub_columns'][1].get(field):
@@ -297,69 +355,13 @@ class PageHandler(TaskHandler, Page, Box):
             pre = b
         return txt.strip('|')
 
-    @classmethod
-    def get_char_txt(cls, page, field='ocr_txt'):
-        """ 获取chars的文本"""
-
-        def get_txt(box):
-            if field == 'adapt':
-                return box.get('txt') or box.get('ocr_txt') or box.get('ocr_col')
-            if field == 'ocr_txt':
-                return box['alternatives'][0] if box.get('alternatives') else box.get('ocr_txt')
-            return box.get(field)
-
-        boxes = page.get('chars')
-        if not boxes:
-            return ''
-        pre, txt = boxes[0], get_txt(boxes[0]) or ''
-        for b in boxes[1:]:
-            if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
-                txt += '||'
-            elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
-                txt += '|'
-            txt += get_txt(b) or ''
-            pre = b
-        return txt.strip('|')
-
     @staticmethod
     def is_valid_txt(txt):
         return txt not in [None, '■', '']
 
     @classmethod
-    def set_char_class(cls, chars):
-        for ch in chars or []:
-            txts = list(set(ch[k] for k in ['ocr_txt', 'cmp_txt', 'ocr_col'] if cls.is_valid_txt(ch.get(k))))
-            is_same = len(txts) == 1
-            is_variant = v.is_variants(txts)
-            classes = '' if is_same else 'is_variant' if is_variant else 'diff'
-            if cls.is_valid_txt(ch.get('txt')) and ch.get('txt') != ch.get('ocr_txt'):
-                classes += ' changed'
-            ch['class'] = classes.strip(' ')
-
-    @classmethod
-    def char2html(cls, chars):
-        def span(ch):
-            classes = 'char ' + ch['class'] if ch['class'] else 'char'
-            txt = ch.get('txt') if ch.get('txt') not in [None, '■'] else ch.get('ocr_txt') or '■'
-            return '<span id="%s" class="%s">%s</span>' % (ch['cid'], classes, txt)
-
-        if not chars:
-            return ''
-        cls.set_char_class(chars)
-        pre, html = chars[0], '<div class="blocks"><div class="block"><div class="line">'
-        html += span(chars[0])
-        for b in chars[1:]:
-            if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
-                html += '</div></div><div class="block"><div class="line">'
-            elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
-                html += '</div><div class="line">'
-            html += span(b)
-            pre = b
-        return html + '</div></div></div>'
-
-    @classmethod
     def html2txt(cls, html):
-        """ 从html中获取txt文本，换行用|、换栏用||表示"""
+        """从html中获取txt文本，换行用|、换栏用||表示"""
         txt = ''
         html = re.sub('&nbsp;', '', html)
         regex1 = re.compile("<ul.*?>.*?</ul>", re.M | re.S)
@@ -378,7 +380,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def txt2html(cls, txt):
-        """ 把文本转换为html，文本以空行或者||为分栏"""
+        """把文本转换为html，文本以空行或者||为分栏"""
         if not txt:
             return ''
         if isinstance(txt, str) and re.match('<[a-z]+.*>.*</[a-z]+>', txt):
@@ -394,7 +396,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def check_match(cls, chars, txt):
-        """ 检查图文是否匹配，包括总行数和每行字数"""
+        """检查图文是否匹配，包括总行数和每行字数"""
         txt = cls.filter_symbol(txt)
         # 获取每列字框数
         column_char_num = []
@@ -434,7 +436,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def write_back_txt(cls, chars, txt, field):
-        """ 将txt回写到chars中。假定图文匹配"""
+        """将txt回写到chars中。假定图文匹配"""
         txt = re.sub(r'[\|\n]+', '', txt)
         char_txt = ''.join([c['ocr_txt'] for c in chars if c.get('ocr_txt')])
         if len(char_txt) != len(cls.filter_symbol(txt)):
@@ -453,7 +455,7 @@ class PageHandler(TaskHandler, Page, Box):
 
     @classmethod
     def diff(cls, base, cmp1='', cmp2='', cmp3=''):
-        """ 生成文字校对的segment"""
+        """生成文字校对的segment"""
         # 1.生成segments
         segments = []
         pre_empty_line_no = 0

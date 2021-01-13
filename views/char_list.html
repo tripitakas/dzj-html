@@ -14,11 +14,10 @@
   }
 
 </style>
-{% include com/_font_css.html %}
 {% end %}
 
 {% block custom-modal %}
-<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+<div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
      aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -116,21 +115,6 @@
             <h4 class="col-sm-2 control-label">校对文字</h4>
             <div class="col-sm-10">
               <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入校对文字，一个汉字">
-            </div>
-          </div>
-          <div class="form-group">
-            <h4 class="col-sm-2 control-label">文字类型</h4>
-            <div class="col-sm-10">
-              <select class="form-control txt_type">
-                <option value=""></option>
-                {% for k,v in txt_types.items() %}
-                {% if params.get('txt_type', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
             </div>
           </div>
           <div class="form-group">
@@ -319,9 +303,9 @@
     $('#sourceModal').modal();
   });
   $('#sourceModal .modal-confirm').on('click', function () {
-    var source = $('#sourceModal .source').val();
-    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
+    let source = $('#sourceModal .source').val();
+    let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+    let data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
     if (data.type === 'selected' && !ids.length) return showTips('提示', '选中记录不允许为空。', 3000);
     if (data.type === 'searched' && !data.search) return showTips('提示', '检索条件不允许为空。', 3000);
     $(this).text('进行中...');
@@ -335,8 +319,8 @@
     $('#extractModal').modal();
   });
   $('#extractModal .modal-confirm').on('click', function () {
-    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    var data = {_ids: ids, type: $('#extractModal .range :checked').val(), regen: $('.regen :checked').val(), search: location.search};
+    let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+    let data = {_ids: ids, type: $('#extractModal .range :checked').val(), regen: $('.regen :checked').val(), search: location.search};
     $(this).text('进行中...');
     postApi('/char/extract_img', {data: data}, (res) => {
       Swal0.fire({
@@ -370,18 +354,18 @@
 </script>
 <script>
   /*---综合检索---*/
-  var $searchModal = $("#searchModal");
-  var inputFields = ['name', 'source', 'ocr_txt', 'txt', 'remark', 'cc'];
-  var selectFields = ['txt_type', 'diff', 'un_required'];
+  let $searchModal = $("#searchModal");
+  let inputFields = ['name', 'source', 'ocr_txt', 'txt', 'remark', 'cc'];
+  let selectFields = ['txt_type', 'diff', 'un_required'];
   $searchModal.find('.modal-confirm').on('click', function () {
-    var search = '';
+    let search = '';
     inputFields.forEach(function (field) {
-      var value = $searchModal.find('.' + field).val();
+      let value = $searchModal.find('.' + field).val();
       if (value)
         search += '&' + field + '=' + value;
     });
     selectFields.forEach(function (field) {
-      var $select = $searchModal.find('.' + field + ' :selected');
+      let $select = $searchModal.find('.' + field + ' :selected');
       if ($select.text())
         search += '&' + field + '=' + $select.val();
     });
@@ -400,21 +384,21 @@
 </script>
 <script>
   /*---发布任务---*/
-  var taskType = '';
-  var $publishModal = $('#publishModal');
-  var taskTypes = decodeJSON('{{handler.task_types}}');
+  let taskType = '';
+  let $publishModal = $('#publishModal');
+  let taskTypes = decodeJSON('{{handler.task_types}}');
   $('.btn-publish a').on('click', function () {
     $publishModal.modal();
     taskType = $(this).attr('title');
     $publishModal.find('.task-name').text($(this).text());
     // 前置任务
     $('.pre_tasks :checkbox').removeAttr('checked');
-    var preTasks = taskTypes[taskType].pre_tasks || [];
+    let preTasks = taskTypes[taskType].pre_tasks || [];
     preTasks.forEach(function (item) {
       $('.pre_tasks .' + item).prop('checked', true);
     });
     // 校次
-    var num = taskTypes[taskType].num || [];
+    let num = taskTypes[taskType].num || [];
     $publishModal.find('.num').toggleClass('hide', !num.length);
     $publishModal.find('.num .value').html($.map(num, function (item) {
       return `<label class="radio-inline"><input type="radio" name="num" value="${item}" ${item === 1 ? "checked" : ""}>${item}</label>`;
@@ -428,19 +412,19 @@
   $('#publishModal .modal-confirm').on('click', function () {
     if ($(this).text() === '进行中...') return;
     $(this).text('进行中...');
-    var num = $('#publishModal .num :checked').val();
-    var batch = $('#publishModal .batch .value').val();
-    var source = $('#publishModal .source .value').val();
-    var priority = $('#publishModal .priority :checked').val();
-    var is_oriented = $('#publishModal .is_oriented :checked').val();
-    var preTasks = $.map($('.pre_tasks :checked'), function (item) {
+    let num = $('#publishModal .num :checked').val();
+    let batch = $('#publishModal .batch .value').val();
+    let source = $('#publishModal .source .value').val();
+    let priority = $('#publishModal .priority :checked').val();
+    let is_oriented = $('#publishModal .is_oriented :checked').val();
+    let preTasks = $.map($('.pre_tasks :checked'), function (item) {
       return $(item).attr('title');
     });
-    var $this = $(this);
-    var data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, priority: priority, is_oriented: is_oriented, source: source};
+    let $this = $(this);
+    let data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, priority: priority, is_oriented: is_oriented, source: source};
     postApi('/char/task/publish', {data: data}, (res) => {
       $this.text('发布');
-      var tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;
+      let tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;
       Swal0.fire({title: '成功', html: tips, type: 'success', footer: '详情可以查看<a href="/sys/oplog/latest">日志</a>'});
     });
   });

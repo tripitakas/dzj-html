@@ -145,8 +145,8 @@ a:hover, a:focus {
 }
 
 body.widescreen {
-  padding: auto !important;
   height: 100% !important;
+  padding: auto !important;
 }
 
 .app-main {
@@ -460,6 +460,7 @@ body.widescreen {
 }
 
 .dropdown-menu > li > a {
+  cursor: pointer;
   padding: 5px 20px;
 }
 
@@ -632,6 +633,7 @@ body.widescreen {
   font-size: 20px;
   font-weight: 500;
   margin-right: 6px;
+  word-break: keep-all;
   color: var(--Color_333);
 }
 
@@ -741,8 +743,35 @@ body.widescreen {
   margin-right: 6px;
 }
 
-/* bootstrap */
+/*滚动条样式*/
+.slim-bar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
 
+.slim-bar::-webkit-scrollbar-track-piece {
+  background-color: white;
+  -webkit-border-radius: 6px;
+}
+
+.slim-bar::-webkit-scrollbar-thumb:vertical {
+  height: 6px;
+  background-color: #BDBDBD;
+  -webkit-border-radius: 3px;
+}
+
+.slim-bar::-webkit-scrollbar-thumb:horizontal {
+  width: 6px;
+  background-color: #BDBDBD;
+  -webkit-border-radius: 3px;
+}
+
+.slim-bar::-webkit-scrollbar-thumb:vertical:hover,
+.slim-bar::-webkit-scrollbar-thumb:horizontal:hover {
+  background-color: #808080;
+}
+
+/* bootstrap */
 .alert {
   border: 0;
 }
@@ -854,28 +883,28 @@ body.widescreen {
 }
 
 /* 帮助文档modal */
-.modal a.more-help {
+.modal.help a.more-help {
   color: var(--Brown_Dark);
   margin-left: 10px;
   text-decoration: underline;
   font-size: 12px;
 }
 
-.modal img {
+.modal.help img {
   width: 20px;
 }
 
-.modal-content textarea {
+.modal.help .modal-content textarea {
   min-width: 450px;
   min-height: 100px;
 }
 
-.modal tr > td:first-child {
+.modal.help tr > td:first-child {
   width: 120px;
   color: var(--Brown_Darker);
 }
 
-.modal .intro {
+.modal.help .intro {
   display: block;
   margin-left: 8px;
   color: #797979;
@@ -884,21 +913,21 @@ body.widescreen {
   line-height: 24px;
 }
 
-.modal .intro a {
+.modal.help .intro a {
   color: var(--Brown_Dark);
   text-decoration: underline;
 }
 
-.modal td {
+.modal.help td {
   word-break: break-all;
 }
 
-.modal .btn-sm {
+.modal.help .btn-sm {
   padding: 3px 6px !important;
   margin-left: -6px;
 }
 
-#helpModal i {
+.modal.help i {
   font-size: 20px;
 }
 
@@ -922,7 +951,7 @@ body.widescreen {
 }
 
 .tooltip .tooltip-arrow {
-  /*display: none;*/
+  display: none;
   border-bottom-color: #eee !important;
 }
 

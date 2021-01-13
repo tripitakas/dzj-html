@@ -90,7 +90,7 @@
   </div>
 </div>
 <div class="panel-body" style="padding: 0">
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -124,9 +124,9 @@
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   // 公共参数
-  var taskType = "";
-  var chars = decodeJSON('{{dumps(chars)}}');
-  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
+  let taskType = "";
+  let chars = decodeJSON('{{dumps(chars)}}');
+  let txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
 
   // 初始化
   $(document).ready(function () {

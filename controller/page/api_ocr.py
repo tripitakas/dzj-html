@@ -17,7 +17,7 @@ class FetchTasksApi(TaskHandler):
     URL = '/api/task/fetch_many/@ocr_task'
 
     def post(self, data_task):
-        """ 批量领取小欧任务"""
+        """批量领取小欧任务"""
 
         def get_tasks():
             doc_ids = [t['doc_id'] for t in tasks]
@@ -63,7 +63,7 @@ class ConfirmFetchApi(TaskHandler):
     URL = '/api/task/confirm_fetch/@ocr_task'
 
     def post(self, data_task):
-        """ 确认批量领取任务成功"""
+        """确认批量领取任务成功"""
 
         try:
             rules = [(v.not_empty, 'tasks')]
@@ -200,7 +200,6 @@ class SubmitTasksApi(PageHandler):
         if not page:
             return e.no_object
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
-            # 'img_cloud_path': self.prop(task, 'result.img_cloud_path'),
             'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED
         }})
 
@@ -210,7 +209,7 @@ class SubmitTasksApi(PageHandler):
         }})
 
     def submit_import_image(self, task):
-        """ 提交import_image任务"""
+        """提交import_image任务"""
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),

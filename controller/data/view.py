@@ -4,8 +4,6 @@
 @desc: 藏经数据管理
 @time: 2019/3/13
 """
-import re
-from bson import json_util
 from controller import helper as h
 from controller.base import BaseHandler
 from controller.task.base import TaskHandler
@@ -18,16 +16,6 @@ class DataImportImageHandler(TaskHandler):
     page_title = '导入页图片'
     search_tips = '请搜索网盘名称、导入文件夹'
     search_fields = ['params.pan_name', 'params.import_dir']
-    operations = [
-        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
-        {'operation': 'btn-publish', 'label': '发布任务', 'data-target': 'publishModal'},
-    ]
-    img_operations = ['help']
-    actions = [
-        {'action': 'btn-detail', 'label': '详情'},
-        {'action': 'btn-remove', 'label': '删除', 'url': '/task/delete'},
-        {'action': 'btn-republish', 'label': '重新发布'},
-    ]
     table_fields = [
         {'id': '_id', 'name': '主键'},
         {'id': 'params.pan_name', 'name': '网盘名称'},
@@ -46,27 +34,31 @@ class DataImportImageHandler(TaskHandler):
         {'id': 'finished_time', 'name': '完成时间'},
     ]
     hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
-    update_fields = []
+    operations = [
+        {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
+        {'operation': 'btn-publish', 'label': '发布任务', 'data-target': 'publishModal'},
+    ]
+    img_operations = ['help']
+    actions = [
+        {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-remove', 'label': '删除', 'url': '/task/delete'},
+        {'action': 'btn-republish', 'label': '重新发布'},
+    ]
 
     def get(self):
-        """ 数据管理/页图片导入"""
+        """数据管理/页图片导入"""
         try:
-            # 模板参数
             kwargs = self.get_template_kwargs()
-            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
-            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
-            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            # 检索条件
-            condition = dict(task_type='import_image')
+            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+
+            cond = dict(task_type='import_image')
             priority = self.get_query_argument('priority', '')
             if priority:
-                condition.update({'priority': int(priority)})
-            # 查询数据
-            docs, pager, q, order = self.find_by_page(self, condition, default_order='-publish_time')
-            self.render(
-                'data_image_import.html', docs=docs, pager=pager, order=order, q=q,
-                format_value=self.format_value, **kwargs,
-            )
+                cond.update({'priority': int(priority)})
+
+            docs, pager, q, order = self.find_by_page(self, cond, default_order='-publish_time')
+            self.render('data_image_import.html', docs=docs, pager=pager, order=order, q=q,
+                        format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -78,27 +70,24 @@ class DataListHandler(BaseHandler):
     @staticmethod
     def format_value(value, key=None, doc=None):
         if key in ['volume_code', 'start_volume', 'end_volume']:
-            return '<a href="/tptk/%s">%s</a>' % (value, value)
+            return '<a href="/page/%s">%s</a>' % (value, value)
         if key in ['start_page', 'end_page'] and value:
-            return '<a href="/tptk/%s_%s">%s</a>' % (doc.get(key.replace('page', 'volume')), value, value)
+            return '<a href="/page/%s_%s">%s</a>' % (doc.get(key.replace('page', 'volume')), value, value)
         return h.format_value(value, key, doc)
 
-    def get(self, metadata):
-        """ 数据管理"""
+    def get(self, data):
+        """数据管理"""
         try:
-            model = eval(metadata.capitalize())
+            model = eval(data.capitalize())
             kwargs = model.get_template_kwargs()
             kwargs['img_operations'] = ['config']
             kwargs['operations'] = [
                 {'operation': 'btn-add', 'label': '新增记录'},
                 {'operation': 'bat-remove', 'label': '批量删除'},
                 {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
-                {'operation': 'download-template', 'label': '下载模板',
-                 'href': '/static/template/%s-sample.csv' % metadata},
+                {'operation': 'download-template', 'label': '下载模板', 'href': '/static/template/%s-sample.csv' % data},
             ]
-            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
-            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
-            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
+            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
             docs, pager, q, order = model.find_by_page(self)
             self.render('data_list.html', docs=docs, pager=pager, q=q, order=order,
                         format_value=self.format_value, **kwargs)
@@ -111,18 +100,10 @@ class VariantListHandler(BaseHandler, Variant):
     URL = '/data/variant'
 
     page_title = '异体字管理'
-    table_fields = [
-        {'id': 'uid', 'name': '编码'},
-        {'id': 'source', 'name': '分类'},
-        {'id': 'txt', 'name': '异体字'},
-        {'id': 'img_name', 'name': '异体字图'},
-        {'id': 'normal_txt', 'name': '所属正字'},
-        {'id': 'remark', 'name': '备注'},
-        {'id': 'create_by', 'name': '创建人'},
-        {'id': 'create_time', 'name': '创建时间'},
-        {'id': 'updated_time', 'name': '更新时间'},
-    ]
-    info_fields = ['uid', 'txt', 'img_name', 'normal_txt', 'remark']
+    search_fields = ['txt', 'source', 'img_name', 'normal_txt', 'remark']
+    update_fields = ['txt', 'source', 'img_name', 'normal_txt', 'remark']
+    table_fields = ['uid', 'source', 'txt', 'img_name', 'normal_txt', 'remark', 'create_by', 'create_time',
+                    'updated_time']
     operations = [
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -130,28 +111,21 @@ class VariantListHandler(BaseHandler, Variant):
         {'operation': 'btn-merge', 'label': '合并字图'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
     ]
-    update_fields = [
-        {'id': 'uid', 'name': '编码', 'readonly': True},
-        {'id': 'normal_txt', 'name': '正字'},
-        {'id': 'remark', 'name': '备注'},
-    ]
+    img_operations = ['config']
 
     def format_value(self, value, key=None, doc=None):
-        """ 格式化输出"""
+        """格式化输出"""
         if key == 'img_name' and value:
             return '<div><img src="%s"></div><div>%s</div>' % (self.get_web_img(value, 'char'), value)
         return h.format_value(value, key, doc)
 
     def get(self):
-        """ 数据管理"""
+        """异体字管理"""
         try:
             kwargs = self.get_template_kwargs()
-            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
-            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
-            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            kwargs['img_operations'] = ['config']
-            condition, params = Variant.get_variant_search_condition(self.request.query)
-            docs, pager, q, order = Variant.find_by_page(self, condition, default_order='_id')
+            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            cond, params = self.get_variant_search_condition(self.request.query)
+            docs, pager, q, order = self.find_by_page(self, cond, default_order='_id')
             self.render('data_variant_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         format_value=self.format_value, **kwargs)
 

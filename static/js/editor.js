@@ -15,7 +15,7 @@ function initEditor(id, html) {
       $(this.container).css('z-index', 0);
       this.addInputRule(function (root) {
         $.each(root.getNodesByTagName('a'), function (i, a) {
-          var href = a.getAttr('href');
+          let href = a.getAttr('href');
           if (/^http/.test(href) && window.location.href.indexOf(href.replace(/\..+$/, '')) < 0) {
             a.setAttr('target', '_blank');
           }
@@ -31,7 +31,7 @@ function initEditor(id, html) {
           }
         },
         p: function (node) {
-          var listTag;
+          let listTag;
           if (node.getAttr('class') == 'MsoListParagraph') {
             listTag = 'MsoListParagraph';
           }
@@ -44,7 +44,7 @@ function initEditor(id, html) {
           }
         },
         div: function (node) {
-          var tmpNode, p = UM.uNode.createElement('p');
+          let tmpNode, p = UM.uNode.createElement('p');
           while (tmpNode = node.firstChild()) {
             if (tmpNode.type == 'text' || !UM.dom.dtd.$block[tmpNode.tagName]) {
               p.appendChild(tmpNode);
@@ -80,11 +80,11 @@ function initEditor(id, html) {
           node.setAttr();
         },
         li: function (node) {
-          var className = node.getAttr('class');
+          let className = node.getAttr('class');
           if (!className || !/list\-/.test(className)) {
             node.setAttr();
           }
-          var tmpNodes = node.getNodesByTagName('ol ul');
+          let tmpNodes = node.getNodesByTagName('ol ul');
           UM.utils.each(tmpNodes, function (n) {
             node.parentNode.insertAfter(n, node);
           });
@@ -92,7 +92,7 @@ function initEditor(id, html) {
         table: function (node) {
           UM.utils.each(node.getNodesByTagName('table'), function (t) {
             UM.utils.each(t.getNodesByTagName('tr'), function (tr) {
-              var p = UM.uNode.createElement('p'), child, html = [];
+              let p = UM.uNode.createElement('p'), child, html = [];
               while (child = tr.firstChild()) {
                 html.push(child.innerHTML());
                 tr.removeChild(child);
@@ -102,7 +102,7 @@ function initEditor(id, html) {
             });
             t.parentNode.removeChild(t);
           });
-          var val = node.getAttr('width');
+          let val = node.getAttr('width');
           node.setAttr();
           if (val) {
             node.setAttr('width', val);

@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>文本匹配-{{page['name']}}</title>
   {% include com/_base_css.html %}
-  {% include com/_font_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/page-txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
@@ -65,8 +64,7 @@
         <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
         <div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
         <div id="check-mis-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="查看不匹配的行"></div>
-        <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
-        {% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_task_btns.html %} {% end %}
+        <div id="save" class="btn-txt icon-save hide" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
       </div><!--right-->
     </div>
     <div class="m-body flex">
@@ -93,7 +91,7 @@
   </div>
 </div>
 <div class="panel-body" style="padding: 0">
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -200,15 +198,14 @@
 
 {% include com/_base_js.html %}
 {% include com/_base_cut.html %}
-{% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_base_task.html %} {% end %}
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script src="{{static_url('js/page-txt.js')}}"></script>
 <script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
   // 公共参数
-  var txtFields = decodeJSON('{{txt_fields}}');
-  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+  let txtFields = decodeJSON('{{txt_fields}}');
+  let txtDict = decodeJSON('{{dumps(txt_dict)}}');
 
   // 页面图和切分框
   $.cut.create({
@@ -236,14 +233,14 @@
 
   $('#check-mis-match').on('click', function () {
     bsLoading('检查中‧‧‧');
-    var data = {field: '{{field}}', content: getText('#cmp-html'), only_check: true};
+    let data = {field: '{{field}}', content: getText('#cmp-html'), only_check: true};
     postApi('/page/txt_match/{{page["name"]}}', {data: data}, function (res) {
       bsHide();
       if (res.data.status) {
-        showSuccess('成功', '图文匹配', 2000);
+        showSuccess('成功', '图文匹配', 1000);
       } else {
         $('.mis-match').removeClass('mis-match');
-        $('#resModal .table tbody').html($.map(res.data.mis_match, function (item) {
+        $('#resModal .table tbody').html($.map(res.data['mis_match'], function (item) {
           $('.mode-edit .line').eq(item[0] - 1).addClass('mis-match');
           return `<tr><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`;
         }));
@@ -263,11 +260,11 @@
     postApi('/page/txt_match/{{page["name"]}}', {data: getPostData()}, function (res) {
       bsHide();
       if (res.data.status) {
-        showSuccess('成功', '已保存', 2000);
+        showSuccess('成功', '已保存', 1000);
         location.reload();
       } else {
         $('.mis-match').removeClass('mis-match');
-        $('#resModal .table tbody').html($.map(res.data.mis_match, function (item) {
+        $('#resModal .table tbody').html($.map(res.data['mis_match'], function (item) {
           $('.mode-edit .line').eq(item[0] - 1).addClass('mis-match');
           return `<tr><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`;
         }));
@@ -279,16 +276,16 @@
   // 任务提交之后
   function afterSubmitted(submit, res, jumpUrl) {
     if (res.data.status) {
-      var autoPick = localStorage.getItem('autoPick') || '是';
-      if (mode === 'do' && autoPick === '是') {
-        showSuccess('成功', '已成功提交！将自动领取下一个任务。', 2000);
-        pick('/task/pick/' + taskType);
+      let autoPick = localStorage.getItem('autoPick') || '是';
+      if (gMode === 'do' && autoPick === '是') {
+        showSuccess('成功', '已成功提交！将自动领取下一个任务。', 1000);
+        pick(gTaskType);
       } else {
         window.leave();
       }
     } else {
       $('.mis-match').removeClass('mis-match');
-      $('#resModal .table tbody').html($.map(res.data.mis_match, function (item) {
+      $('#resModal .table tbody').html($.map(res.data['mis_match'], function (item) {
         $('.mode-edit .line').eq(item[0] - 1).addClass('mis-match');
         return `<tr><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`;
       }));

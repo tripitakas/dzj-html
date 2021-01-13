@@ -19,9 +19,6 @@ from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
 
-from datetime import datetime
-from controller import helper as hp
-
 
 class TaskHandler(BaseHandler, Task):
     def __init__(self, application, request, **kwargs):
@@ -31,7 +28,7 @@ class TaskHandler(BaseHandler, Task):
         self.my_tasks = []
 
     def prepare(self):
-        """ 根据url参数，检查任务是否存在并设置任务，检查任务权限，设置任务相关参数"""
+        """根据url参数，检查任务是否存在并设置任务，检查任务权限，设置任务相关参数"""
         super().prepare()
         if not self.get_task_id():
             return
@@ -51,7 +48,7 @@ class TaskHandler(BaseHandler, Task):
         self.readonly = self.mode in ['view', 'browse', '', None]
 
     def get_task(self, task_id):
-        """ 根据task_id/to以及相关条件查找任务"""
+        """根据task_id/to以及相关条件查找任务"""
         # 查找当前任务
         task = self.db.task.find_one({'_id': ObjectId(task_id)})
         if not task:
@@ -62,6 +59,10 @@ class TaskHandler(BaseHandler, Task):
         # 查找目标任务。to为prev时，查找前一个任务，即_id比task_id大的任务
         condition = self.get_task_search_condition(self.request.query)[0]
         condition.update({'_id': {'$gt' if to == 'prev' else '$lt': ObjectId(task_id)}})
+        my = self.get_query_argument('my', '')
+        if my:
+            status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
+            condition.update({'task_type': task['task_type'], 'status': status, 'picked_user_id': self.user_id})
         to_task = self.db.task.find_one(condition, sort=[('_id', 1 if to == 'prev' else -1)])
         if not to_task:
             error = e.task_not_existed[0], '已是第一个任务' if to == 'prev' else '已是最后一个任务'
@@ -79,14 +80,14 @@ class TaskHandler(BaseHandler, Task):
         return s.group(1) if (s and '/task/' in self.request.uri) else ''
 
     def get_task_mode(self):
-        r = re.findall('/task/(do|update|browse)/', self.request.path)
+        r = re.findall('/task/(do|update|browse|nav)/', self.request.path)
         mode = r[0] if r else 'view' if self.get_task_id() else None
         return mode
 
     def get_task_type(self):
-        """ 获取任务类型。子类可重载，以便prepare函数调用"""
+        """获取任务类型。子类可重载，以便prepare函数调用"""
         # eg. /task/do/cut_proof/5e3139c6a197150011d65e9d
-        s = re.search(r'/task/(do|update|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
+        s = re.search(r'/task/(do|update|nav|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
         s1 = re.search(r'/task/([^/]+?)/([0-9a-z]{24})', self.request.path)
         task_type = s.group(2) if s else s1.group(1) if s1 else ''
         return task_type
@@ -98,7 +99,7 @@ class TaskHandler(BaseHandler, Task):
         return self.get_step_name(self.steps.get('current')) or ''
 
     def find_many(self, task_type=None, status=None, size=None, order=None):
-        """ 查找任务"""
+        """查找任务"""
         condition = dict()
         if task_type:
             condition.update({'task_type': task_type})
@@ -113,7 +114,7 @@ class TaskHandler(BaseHandler, Task):
         return list(query)
 
     def find_mine(self, task_type=None, page_size=None, order=None, status=None, user_id=None, project=None):
-        """ 查找我的任务"""
+        """查找我的任务"""
         assert status in [None, self.STATUS_PICKED, self.STATUS_FINISHED]
         condition = {'picked_user_id': user_id or self.user_id}
         if task_type:
@@ -131,7 +132,7 @@ class TaskHandler(BaseHandler, Task):
         return list(query)
 
     def find_lobby(self, task_type, page_size=None, q=None, batch=None):
-        """ 按优先级排序后随机获取任务大厅的任务列表"""
+        """按优先级排序后随机获取任务大厅的任务列表"""
 
         def get_random_skip():
             n = 0
@@ -144,7 +145,7 @@ class TaskHandler(BaseHandler, Task):
         condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
         field = self.get_data_field(task_type)
         if q:
-            condition.update({field: {'$regex': q, '$options': '$i'}})
+            condition.update({field: {'$regex': q}})
         if batch:
             batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
             condition.update({'batch': batch})
@@ -157,7 +158,7 @@ class TaskHandler(BaseHandler, Task):
         return tasks[:page_size], total_count
 
     def pick_one(self, task_type, batch=None):
-        """ 领取任务"""
+        """领取任务"""
         condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
         if batch:
             batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
@@ -173,7 +174,7 @@ class TaskHandler(BaseHandler, Task):
         return self.db.task.find_one(condition, sort=[('priority', 1)])
 
     def count_task(self, task_type=None, status=None, mine=False):
-        """ 统计任务数量"""
+        """统计任务数量"""
         condition = dict()
         if task_type:
             condition.update({'task_type': task_type})
@@ -186,7 +187,7 @@ class TaskHandler(BaseHandler, Task):
         return self.db.task.count_documents(condition)
 
     def check_task_auth(self, task, mode=None):
-        """ 检查当前用户是否拥有相应的任务权限"""
+        """检查当前用户是否拥有相应的任务权限"""
         mode = self.get_task_mode() if not mode else mode
         error = None
         if mode in ['do', 'update']:
@@ -194,12 +195,10 @@ class TaskHandler(BaseHandler, Task):
                 error = e.task_not_existed
             elif not self.current_user:
                 error = e.need_login
+            elif task['status'] == self.STATUS_RETURNED:
+                error = e.task_status_error
             elif task.get('picked_user_id') != self.current_user.get('_id'):
                 error = e.task_has_been_picked
-            elif mode == 'do' and task['status'] != self.STATUS_PICKED:
-                error = e.task_can_only_do_picked
-            elif mode == 'update' and task['status'] != self.STATUS_FINISHED:
-                error = e.task_can_only_update_finished
         has_auth = error is None
         return has_auth, error
 
@@ -249,7 +248,7 @@ class TaskHandler(BaseHandler, Task):
         )
 
     def update_page_status(self, status, task=None):
-        """ 更新任务相关的页面数据"""
+        """更新任务相关的页面数据"""
         task = task or self.task or {}
         if task.get('collection') == 'page' and task.get('doc_id'):
             field = 'tasks.%s.%s' % (task['task_type'], task['num'])
@@ -259,7 +258,7 @@ class TaskHandler(BaseHandler, Task):
                 self.db.page.update_one({'name': task['doc_id']}, {'$unset': {field: ''}})
 
     def update_post_tasks(self, task):
-        """ 更新后置任务。针对当前任务的后置任务，如果它们的状态为「已悬挂」，则检查它们的所有前置任务，如果都已完成，则修改其状态为「已发布」"""
+        """更新后置任务。针对当前任务的后置任务，如果它们的状态为「已悬挂」，则检查它们的所有前置任务，如果都已完成，则修改其状态为「已发布」"""
         cond = {'collection': task['collection'], 'id_name': task['id_name'], 'doc_id': task['doc_id']}
         tasks = list(self.db.task.find(cond, {'task_type': 1, 'pre_tasks': 1, 'status': 1}))
         to_publish = []

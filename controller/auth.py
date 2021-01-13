@@ -22,19 +22,12 @@ url_placeholder = {
     'tripitaka_code': r'[a-zA-Z]{2}',
     'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
     'metadata': r'tripitaka|sutra|volume|reel|variant',
+    'char_task': r'cluster_proof|cluster_review',
     'ocr_task': r'import_image|ocr_box|ocr_text|upload_cloud',
-    'page_task': r'cut_proof|cut_review|txt_match|find_cmp',
-    'cluster_task': r'cluster_proof|cluster_review|rare_proof|rare_review',
-    'task_type': r'ocr_\w+|cut_\w+|text_\w+|cluster_\w+|rare_\w+|txt_match|find_cmp',
+    'page_task': r'cut_proof|cut_review|text_proof|text_review',
+    'task_type': r'ocr_\w+|cut_\w+|text_\w+|cluster_\w+',
 }
 
-""" 
-角色权限对应表。定义系统中的所有角色以及对应的route权限，将属于同一业务的route分配给同一个角色，
-用户通过拥有角色来拥有对应的route权限。角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
-roles：角色所继承的父角色；
-routes：角色可以访问的权限集合；
-is_assignable：角色是否可被分配。
-"""
 role_route_maps = {
     '单元测试用户': {
         'is_assignable': False,
@@ -79,14 +72,11 @@ role_route_maps = {
         'routes': {
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
-            '/api/task/return/@task_id': ['POST'],
-            '/api/my_task/remark/@task_id': ['POST'],
+            '/task/nav/@task_type/@task_id': ['GET'],
+            '/api/task/statistic/@task_type': ['POST'],
+            '/api/task/(return|my_remark)/@task_id': ['POST'],
             '/api/variant/delete': ['POST'],
             '/page/@page_name': ['GET'],
-            '/page/box/@page_name': ['GET'],
-            '/api/page/box/@page_name': ['POST'],
-            '/page/block/@page_name': ['GET'],
-            '/api/page/block/@page_name': ['POST'],
             '/api/page/txt_match/diff': ['POST'],
             '/api/page/find_cmp/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
@@ -164,31 +154,9 @@ role_route_maps = {
             '/api/data/variant': ['POST'],
         }
     },
-    '生僻校对员': {
-        'is_assignable': False,
-        'roles': ['工作人员'],
-        'routes': {
-            '/task/(lobby|my)/rare_proof': ['GET'],
-            '/api/task/pick/rare_proof': ['POST'],
-            '/task/(do|update)/rare_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/rare_proof/@task_id': ['POST'],
-            '/api/data/variant': ['POST'],
-        }
-    },
-    '生僻审定员': {
-        'is_assignable': False,
-        'roles': ['工作人员'],
-        'routes': {
-            '/task/(lobby|my)/rare_review': ['GET'],
-            '/api/task/pick/rare_review': ['POST'],
-            '/task/(do|update)/rare_review/@task_id': ['GET'],
-            '/api/task/(do|update)/rare_review/@task_id': ['POST'],
-            '/api/data/variant': ['POST'],
-        }
-    },
     '文字专家': {
         'is_assignable': True,
-        'roles': ['工作人员', '文字预处理员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员', '生僻校对员', '生僻审定员'],
+        'roles': ['工作人员', '文字校对员', '文字审定员', '聚类校对员', '聚类审定员'],
         'routes': {}
     },
     'OCR加工员': {
@@ -219,7 +187,7 @@ role_route_maps = {
         'routes': {
             '/char/task/list': ['GET'],
             '/api/user/list': ['POST'],
-            '/task/browse/@cluster_task/@task_id': ['GET'],
+            '/task/browse/@char_task/@task_id': ['GET'],
         }
     },
     '任务管理员': {
@@ -257,14 +225,14 @@ role_route_maps = {
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/(delete|upload)': ['POST'],
             '/api/variant/(delete|merge|source)': ['POST'],
+            '/api/page': ['POST'],
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
-            '/api/page': ['POST'],
-            '/page/(box|order|txt|txt_match|find_cmp)/@page_name': ['GET'],
-            '/api/page/(delete|source|start_gen_chars|start_check_match)': ['POST'],
-            '/api/page/(box|order|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
-            '/char/(list|browse|statistic|consistent)': ['GET'],
+            '/page/(box|txt|txt1|txt_match|find_cmp)/@page_name': ['GET'],
+            '/api/page/(box|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
+            '/api/page/(delete|meta|source|start_gen_chars|start_check_match)': ['POST'],
             '/api/char/(delete|source|extract_img)': ['POST'],
+            '/char/(list|browse|statistic|consistent)': ['GET'],
         }
     },
     '文章管理员': {
@@ -308,18 +276,18 @@ role_route_maps = {
             '/api/sys/upload_oss/(char|column)': ['POST'],
         }
     },
-    '数据导出': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/api/data/page/export/@page_name': ['GET'],
-        }
-    },
 }
+""" 
+角色权限对应表。定义系统中的所有角色以及对应的route权限，将属于同一业务的route分配给同一个角色，
+用户通过拥有角色来拥有对应的route权限。角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
+roles：角色所继承的父角色；
+routes：角色可以访问的权限集合；
+is_assignable：角色是否可被分配。
+"""
 
 
 def get_assignable_roles():
-    """ 可分配给用户的角色"""
+    """可分配给用户的角色"""
     return [role for role, v in role_route_maps.items() if v.get('is_assignable')]
 
 

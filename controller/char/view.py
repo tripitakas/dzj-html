@@ -14,33 +14,13 @@ class CharListHandler(CharHandler):
     URL = '/char/list'
 
     page_title = '字数据管理'
-    table_fields = [
-        {'id': 'has_img', 'name': '字图'},
-        {'id': 'source', 'name': '分类'},
-        {'id': 'page_name', 'name': '页编码'},
-        {'id': 'cid', 'name': 'cid'},
-        {'id': 'name', 'name': '字编码'},
-        {'id': 'char_id', 'name': '字序'},
-        {'id': 'uid', 'name': '字序编码'},
-        {'id': 'data_level', 'name': '数据等级'},
-        {'id': 'cc', 'name': '置信度'},
-        {'id': 'sc', 'name': '相似度'},
-        {'id': 'pos', 'name': '坐标'},
-        {'id': 'column', 'name': '所属列'},
-        {'id': 'txt_type', 'name': '文字类型'},
-        {'id': 'txt', 'name': '原字'},
-        {'id': 'nor_txt', 'name': '正字'},
-        {'id': 'ocr_txt', 'name': 'OCR文字'},
-        {'id': 'ocr_col', 'name': '列框OCR'},
-        {'id': 'cmp_txt', 'name': '比对文字'},
-        {'id': 'alternatives', 'name': '字框OCR'},
-        {'id': 'diff', 'name': '是否不匹配'},
-        {'id': 'un_required', 'name': '是否不必校对'},
-        {'id': 'txt_level', 'name': '文本等级'},
-        {'id': 'txt_logs', 'name': '文本校对记录'},
-        {'id': 'tasks', 'name': '校对任务'},
-        {'id': 'remark', 'name': '备注'},
-    ]
+    table_fields = ['has_img', 'source', 'page_name', 'cid', 'name', 'char_id', 'uid', 'data_level', 'cc',
+                    'sc', 'pos', 'column', 'txt_type', 'txt', 'nor_txt', 'ocr_txt', 'ocr_col', 'cmp_txt',
+                    'alternatives', 'diff', 'un_required', 'txt_level', 'txt_logs', 'tasks', 'remark']
+    update_fields = ['txt_type', 'source', 'txt', 'nor_txt', 'remark']
+    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'data_level', 'cc', 'sc', 'pos', 'column', 'diff',
+                   'txt_logs', 'tasks', 'remark']
+    info_fields = ['has_img', 'source', 'txt', 'nor_txt', 'txt_type', 'remark']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},
@@ -65,18 +45,6 @@ class CharListHandler(CharHandler):
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-remove', 'label': '删除', 'url': '/api/char/delete'},
     ]
-    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'data_level', 'cc', 'sc', 'pos', 'column', 'diff', 'txt_logs',
-                   'tasks', 'remark']
-    info_fields = ['has_img', 'source', 'txt', 'nor_txt', 'txt_type', 'remark']
-    update_fields = [
-        {'id': 'txt_type', 'name': '类型', 'input_type': 'radio', 'options': Char.txt_types},
-        {'id': 'source', 'name': '分类'},
-        {'id': 'txt', 'name': '原字'},
-        {'id': 'nor_txt', 'name': '正字'},
-        {'id': 'remark', 'name': '备注'},
-    ]
-
-    yes_no = {True: '是', False: '否'}
 
     def get_duplicate_condition(self):
         chars = list(self.db.char.aggregate([
@@ -88,18 +56,16 @@ class CharListHandler(CharHandler):
         return condition, params
 
     def format_value(self, value, key=None, doc=None):
-        """ 格式化page表的字段输出"""
+        """格式化page表的字段输出"""
 
         def log2str(log):
             val = '|'.join(log[f] for f in ['txt', 'nor_txt', 'txt_type', 'remark', 'user_name'] if log.get(f))
             if log.get('updated_time'):
-                val = val + '|' + h.get_date_time('%Y-%m-%d %H:%M', log.get('updated_time'))
+                val = val + '|' + h.get_date_time('%Y-%m-%d %H:%M:%S', log.get('updated_time'))
             return val
 
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
-        if key == 'txt_type' and value:
-            return self.txt_types.get(value, value)
         if key in ['diff', 'un_required']:
             return self.yes_no.get(value) or ''
         if key in ['cc', 'sc'] and value:
@@ -113,20 +79,17 @@ class CharListHandler(CharHandler):
         return h.format_value(value, key, doc)
 
     def get(self):
-        """ 字数据管理"""
+        """字数据管理"""
         try:
-            kwargs = self.get_template_kwargs()
-            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
-            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
-            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
+            kwargs = super(Char, self).get_template_kwargs()
+            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
             else:
                 condition, params = Char.get_char_search_condition(self.request.query)
             docs, pager, q, order = Char.find_by_page(self, condition)
             self.render('char_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        txt_types=self.txt_types, yes_no=self.yes_no, format_value=self.format_value,
-                        **kwargs)
+                        yes_no=self.yes_no, format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -136,32 +99,25 @@ class CharViewHandler(CharHandler):
     URL = '/char/@char_name'
 
     def get(self, char_name):
-        """ 查看Char页面"""
+        """查看Char页面"""
         try:
             char = self.db.char.find_one({'name': char_name})
             page_name, cid = char_name.rsplit('_', 1)
             if not char:
                 char = {'name': char_name, 'page_name': page_name, 'cid': int(cid), 'error': True}
-                # return self.send_error_response(e.no_object, message='没有找到数据%s' % char_name)
-            projection = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
-            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, projection) or {}
+            project = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
+            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, project) or {}
             if page:
                 c = page['chars'][0]
-                c['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
-                for field in Char.fields:
-                    f = field['id']
-                    if not char.get(f) and c.get(f):
-                        char[f] = c[f]
+                char.update({k: c[k] for k in ['x', 'y', 'w', 'h', 'box_logs'] if c.get(k)})
             char['txt_level'] = char.get('txt_level') or 1
             char['box_level'] = char.get('box_level') or 1
             char['txt_point'] = self.get_required_type_and_point(char)
             char['box_point'] = PageHandler.get_required_type_and_point(page)
-            img_url = self.get_web_img(page_name, 'page', page.get('img_cloud_path'))
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
-            chars = {char['name']: char}
-            self.render('char_view.html', char=char, page=page, img_url=img_url, chars=chars,
-                        txt_auth=txt_auth, box_auth=box_auth, Char=Char)
+            page['img_url'] = self.get_web_img(page_name, 'page')
+            self.render('char_view.html', Char=Char, char=char, page=page, txt_auth=txt_auth, box_auth=box_auth)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -171,7 +127,7 @@ class CharStatHandler(CharHandler):
     URL = '/char/statistic'
 
     def get(self):
-        """ 统计字数据"""
+        """统计字数据"""
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
             kind = self.get_query_argument('kind', '')
@@ -188,10 +144,10 @@ class CharStatHandler(CharHandler):
 class CharBrowseHandler(CharHandler):
     URL = '/char/browse'
 
-    page_size = 50
+    page_size = 50  # find_by_page据此来设置每页条数
 
     def get(self):
-        """ 浏览字图"""
+        """浏览字图"""
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
             docs, pager, q, order = Char.find_by_page(self, condition, default_order='_id')
@@ -209,13 +165,11 @@ class CharConsistentHandler(CharHandler):
     URL = '/char/consistent'
 
     def get(self):
-        """ 检查字数据中某页的数据和页数据中字框的数量是否一致"""
+        """检查字数据中某页的数据和页数据中字框的数量是否一致"""
         try:
-
             cond = self.get_char_search_condition(self.request.query)[0]
             counts = list(self.db.char.aggregate([
-                {'$match': cond},
-                {'$group': {'_id': '$page_name', 'count': {'$sum': 1}}},
+                {'$match': cond}, {'$group': {'_id': '$page_name', 'count': {'$sum': 1}}}
             ]))
             page_dict = {c['_id']: {'char_count': c['count']} for c in counts}
             pages = list(self.db.page.aggregate([
@@ -227,7 +181,6 @@ class CharConsistentHandler(CharHandler):
                 page['page_count'] = p['page_count']
                 page['equal'] = page['char_count'] == p['page_count']
                 page['info'] = '%s,%s,%s' % (p['name'], page['char_count'], p['page_count'])
-
             un_exist = {k: v for k, v in page_dict.items() if not v.get('page_count')}
             equal = {k: v for k, v in page_dict.items() if v.get('page_count') and v.get('equal')}
             un_equal = {k: v for k, v in page_dict.items() if v.get('page_count') and not v.get('equal')}
