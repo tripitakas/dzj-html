@@ -12,6 +12,11 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
+    #panel-region {
+      width: 260px;
+      max-width: 260px;
+    }
+
     .char-txt tspan {
       /*font-size: 32px;*/
       text-align: center;
@@ -101,9 +106,8 @@
       <div id="left-region" class="left bd">
         <div id="holder"></div>
       </div>
-      <div id="right-region" class="right bd work-panel">
-        {% set ch = page["chars"] and page["chars"][0] or {} %}
-        {% module CharTxt(ch, show_base=False, submit_id='submit-page-txt') %}
+      <div id="panel-region" class="right bd proof-panel">
+        {% include com/_char_txt.html %}
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -112,7 +116,7 @@
     </div>
     <div class="m-footer">
       <span class="fl">
-        页编码：<span class="page-name">{{page['name']}}</span>
+        <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
       </span>
       <span class="center">
         异文: <span class="diff">■</span>
@@ -200,7 +204,6 @@
   let pageName = '{{page["name"]}}';
   let chars = decodeJSON("{{dumps(chars)}}");
   let columns = decodeJSON("{{dumps(columns)}}");
-  let txtTypes = decodeJSON('{{dumps(txt_types)}}');
 
   // 显示页面图和切分框
   $.cut.createColumns({
@@ -218,18 +221,7 @@
   // 字框切换时更新字输入元素
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'navigate') {
-      if (info.class === 'char') {
-        let ch = chars[pageName + '_' + info.cid];
-        updateCharTxtPanel(ch);
-        $('.m-footer .char-info').text(ch.txt || ch.ocr_txt);
-        $('.m-footer .char-name').text(ch.char_id + '#' + ch.cid);
-      }
-      if (info.class === 'column') {
-        let ch = columns[info.column_id] || {};
-        $('.m-footer .char-info').text(ch.txt || ch.ocr_txt);
-        $('.m-footer .char-name').text(ch.column_id + '#' + ch.cid);
-        info.shape.attr({'fill-opacity': 0.2});
-      }
+
     }
   }, true);
 

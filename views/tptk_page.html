@@ -266,11 +266,11 @@
 
   // 图片导航
   $('.m-pager .btn-page:not(.to)').on('click', function () {
-    window.location = '/tptk/{{volume_code}}_' + $(this).attr('data-value');
+    window.location = '/page/{{volume_code}}_' + $(this).attr('data-value');
   });
   $('.m-pager .btn-page.to').on('keydown', function (e) {
     let keyCode = e.keyCode || e.which, pageNo = $('.m-pager .btn-page.to input').val();
-    if (keyCode === 13) window.location = '/tptk/{{volume_code}}_' + pageNo;
+    if (keyCode === 13) window.location = '/page/{{volume_code}}_' + pageNo;
   });
   $('#pic-left').on('click', () => $('.btn-page.prev').click());
   $('#pic-right').on('click', () => $('.btn-page.next').click());

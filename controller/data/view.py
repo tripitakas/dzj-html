@@ -70,9 +70,9 @@ class DataListHandler(BaseHandler):
     @staticmethod
     def format_value(value, key=None, doc=None):
         if key in ['volume_code', 'start_volume', 'end_volume']:
-            return '<a href="/tptk/%s">%s</a>' % (value, value)
+            return '<a href="/page/%s">%s</a>' % (value, value)
         if key in ['start_page', 'end_page'] and value:
-            return '<a href="/tptk/%s_%s">%s</a>' % (doc.get(key.replace('page', 'volume')), value, value)
+            return '<a href="/page/%s_%s">%s</a>' % (doc.get(key.replace('page', 'volume')), value, value)
         return h.format_value(value, key, doc)
 
     def get(self, data):

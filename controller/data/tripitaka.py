@@ -15,11 +15,11 @@ class TripitakaListHandler(BaseHandler):
     def get(self):
         """藏经列表"""
         tripitakas = list(self.db.tripitaka.find({'img_available': '是'}))
-        self.render('tripitaka_list.html', tripitakas=tripitakas)
+        self.render('tptk_list.html', tripitakas=tripitakas)
 
 
-class TptkViewHandler(PageHandler):
-    URL = '/tptk/@page_prefix'
+class TripitakaPageHandler(PageHandler):
+    URL = '/page/@page_prefix'
 
     @staticmethod
     def get_book_meta(page):
@@ -76,7 +76,7 @@ class TptkViewHandler(PageHandler):
             cid = self.get_query_argument('cid', '')
             book_meta = self.get_book_meta(page) or ''
             self.render(
-                'tptk.html', tripitaka=tripitaka, page=page, volume_code=volume_code, txts=txts,
+                'tptk_page.html', tripitaka=tripitaka, page=page, volume_code=volume_code, txts=txts,
                 tripitaka_code=name_slice[0], book_meta=book_meta, nav=nav, cid=cid,
             )
 
@@ -84,7 +84,7 @@ class TptkViewHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class TptkMetaHandler(BaseHandler):
+class TripitakaDataHandler(BaseHandler):
     URL = '/(sutra|reel|volume)/@tripitaka_code'
 
     @staticmethod
@@ -110,7 +110,7 @@ class TptkMetaHandler(BaseHandler):
             title = '%s-%s目' % (tripitaka['name'], trans[collection])
             cond = {'%s_code' % collection: {'$regex': tripitaka_code}}
             docs, pager, q, order = model.find_by_page(self, cond, kwargs['search_fields'])
-            self.render('tptk_meta.html', collection=collection, tripitaka=tripitaka, tripitaka_code=tripitaka_code,
+            self.render('tptk_data.html', collection=collection, tripitaka=tripitaka, tripitaka_code=tripitaka_code,
                         title=title, docs=docs, pager=pager, q=q, order=order, **kwargs)
 
         except Exception as error:

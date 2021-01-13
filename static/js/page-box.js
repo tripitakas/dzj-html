@@ -34,7 +34,7 @@ $('#zoom-reset').on('click', function () {
 // 查看page
 $('.m-footer .page-name').on('click', function () {
   if ($(this).hasClass('disabled')) return;
-  let url = '/tptk/' + $(this).text();
+  let url = '/page/' + $(this).text();
   let charName = $('.m-footer .char-name').text();
   if (charName && charName.length && charName !== '未选中') {
     url += '?cid=' + charName.split('#')[1];

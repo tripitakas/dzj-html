@@ -251,6 +251,9 @@
   $('#btn-box').on('click', function () {
     location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
   });
+  $('#btn-column-mode').on('click', function () {
+    location.href = '/page/txt1/{{page["name"]}}?from=' + encodeFrom();
+  });
 
   // 单字提交
   $('.char-txt .btn-submit').on('click', function () {

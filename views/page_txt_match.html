@@ -64,8 +64,7 @@
         <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
         <div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
         <div id="check-mis-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="查看不匹配的行"></div>
-        <div id="save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
-        {% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_task_btns.html %} {% end %}
+        <div id="save" class="btn-txt icon-save hide" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
       </div><!--right-->
     </div>
     <div class="m-body flex">
@@ -199,7 +198,6 @@
 
 {% include com/_base_js.html %}
 {% include com/_base_cut.html %}
-{% if hasattr(handler, 'task_type') and handler.task_type %} {% include com/_base_task.html %} {% end %}
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script src="{{static_url('js/page-txt.js')}}"></script>

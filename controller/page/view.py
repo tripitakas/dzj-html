@@ -141,6 +141,43 @@ class PageTxtHandler(PageHandler):
             return self.send_db_error(error)
 
 
+class PageTxt1Handler(PageHandler):
+    URL = '/page/txt1/@page_name'
+
+    def get(self, page_name):
+        """单字修改页面"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
+
+            self.pack_boxes(page, log=False)
+            # 设置class属性
+            self.set_char_class(page['chars'])
+            # 设置name、txt以及ratio
+            ch_a = sorted([c['w'] * c['h'] for c in page['chars']])
+            ch_a = ch_a[:-2] if len(ch_a) > 4 else ch_a[:-1] if len(ch_a) > 3 else ch_a
+            ch_a = ch_a[2:] if len(ch_a) > 4 else ch_a[:1] if len(ch_a) > 3 else ch_a
+            nm_a = sum(ch_a) / len(ch_a)
+            for ch in page['chars']:
+                ch['name'] = page['name'] + '_' + str(ch['cid'])
+                ch['alternatives'] = ch.get('alternatives', '').replace('"', '').replace("'", '')
+                ch['ocr_txt'] = ch.get('ocr_txt', '').replace('"', '').replace("'", '')
+                ch['txt'] = ch.get('txt', '').replace('"', '').replace("'", '')
+                ch['txt'] = ch['txt'] or ch['ocr_txt'] or '■'
+                r = round(math.sqrt(ch['w'] * ch['h'] / nm_a), 2)
+                ch['ratio'] = 0.75 if r < 0.75 else 1.25 if r > 1.25 else r
+
+            img_url = self.get_page_img(page)
+            chars = {c['name']: c for c in page['chars']}
+            columns = {c['column_id']: c for c in page['columns']}
+            self.render('page_txt1.html', page=page, chars=chars, columns=columns,
+                        img_url=img_url, readonly=False)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
 class PageBrowseHandler(PageHandler):
     URL = '/page/browse/@page_name'
 
@@ -189,43 +226,6 @@ class PageFindCmpHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTxtMatchHandler(PageHandler):
-    URL = '/page/txt_match/@page_name'
-
-    def get(self, page_name):
-        """文字匹配页面。（将文本和OCR字框文本适配后，回写至字框中）"""
-        try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-
-            field = self.get_query_argument('field', '')
-            assert field in ['txt', 'cmp_txt', 'ocr_col']
-            txt_match = self.prop(page, 'txt_match.' + field)
-            mth_txt = self.prop(txt_match, 'value') or self.get_txt(page, field)
-            field_name = Page.get_field_name(field)
-            if not mth_txt:
-                if field == 'cmp_txt':
-                    self.redirect('/page/find_cmp/' + page_name)
-                else:
-                    self.send_error_response(e.no_object, message='页面没有%s，无法进行匹配' % field_name)
-
-            ocr_txt = self.get_txt(page, 'ocr')
-            txts = [(mth_txt, field, field_name), (ocr_txt, 'ocr', '字框OCR')]
-            txt_dict = {t[1]: t for t in txts}
-            cmp_data = self.match_diff(ocr_txt, mth_txt)
-            self.pack_boxes(page, False, False)
-            img_url = self.get_page_img(page)
-            self.render(
-                'page_txt_match.html', page=page, img_url=img_url, ocr_txt=ocr_txt, cmp_data=cmp_data,
-                field=field, field_name=field_name, txt_match=txt_match, txts=txts,
-                txt_fields=[field, 'OCR'], txt_dict=txt_dict, active='work-html',
-            )
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-
 class PageInfoHandler(PageHandler):
     URL = '/page/info/@page_name'
 
@@ -266,6 +266,43 @@ class PageStatisticHandler(PageHandler):
         try:
             counts = list(self.db.page.aggregate([{'$group': {'_id': '$source', 'count': {'$sum': 1}}}]))
             self.render('data_statistic.html', counts=counts, collection='page')
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class PageTxtMatchHandler(PageHandler):
+    URL = '/page/txt_match/@page_name'
+
+    def get(self, page_name):
+        """文字匹配页面。（将文本和OCR字框文本适配后，回写至字框中）"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            field = self.get_query_argument('field', '')
+            assert field in ['txt', 'cmp_txt', 'ocr_col']
+            txt_match = self.prop(page, 'txt_match.' + field)
+            mth_txt = self.prop(txt_match, 'value') or self.get_txt(page, field)
+            field_name = Page.get_field_name(field)
+            if not mth_txt:
+                if field == 'cmp_txt':
+                    self.redirect('/page/find_cmp/' + page_name)
+                else:
+                    self.send_error_response(e.no_object, message='页面没有%s，无法进行匹配' % field_name)
+
+            ocr_txt = self.get_txt(page, 'ocr')
+            txts = [(mth_txt, field, field_name), (ocr_txt, 'ocr', '字框OCR')]
+            txt_dict = {t[1]: t for t in txts}
+            cmp_data = self.match_diff(ocr_txt, mth_txt)
+            self.pack_boxes(page, False, False)
+            img_url = self.get_page_img(page)
+            self.render(
+                'page_txt_match.html', page=page, img_url=img_url, ocr_txt=ocr_txt, cmp_data=cmp_data,
+                field=field, field_name=field_name, txt_match=txt_match, txts=txts,
+                txt_fields=[field, 'OCR'], txt_dict=txt_dict, active='work-html',
+            )
 
         except Exception as error:
             return self.send_db_error(error)

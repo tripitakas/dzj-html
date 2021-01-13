@@ -57,23 +57,6 @@ class PageUploadApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class PageUpsertApi(PageHandler):
-    URL = '/api/page'
-
-    def post(self):
-        """新增或修改"""
-        try:
-            r = Page.save_one(self.db, 'page', self.data)
-            if r.get('status') == 'success':
-                self.add_log('%s_page' % ('update' if r.get('update') else 'add'), content=r.get('message'))
-                self.send_data_response(r)
-            else:
-                self.send_error_response(r.get('errors'))
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
 class PageMetaApi(PageHandler):
     URL = '/api/page/meta'
 
@@ -185,25 +168,6 @@ class PageBoxApi(PageHandler):
         return page
 
 
-class PageBlocksApi(PageHandler):
-    URL = ['/api/page/block/@page_name']
-
-    def post(self, page_name):
-        """提交栏框校对"""
-        try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-
-            rules = [(v.not_empty, 'blocks')]
-            self.validate(self.data, rules)
-            self.db.page.update_one({'_id': page['_id']}, {'$set': {'blocks': self.data['blocks']}})
-            self.send_data_response({'valid': True})
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
 class PageCharBoxApi(PageHandler):
     URL = '/api/page/char/box/@char_name'
 
@@ -290,53 +254,6 @@ class PageCharTxtApi(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTxtMatchApi(PageHandler):
-    URL = ['/api/page/txt_match/@page_name']
-
-    def post(self, page_name):
-        """提交文本匹配"""
-        try:
-            r = self.save_txt_match(self, page_name)
-            self.send_data_response(r)
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-    @staticmethod
-    def save_txt_match(self, page_name):
-        rules = [(v.not_empty, 'field', 'content')]
-        self.validate(self.data, rules)
-        page = self.db.page.find_one({'name': page_name})
-        if not page:
-            return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-        r = self.check_match(page['chars'], self.data['content'])
-        if r['status'] and not self.data.get('only_check'):
-            content, field = self.data['content'].replace('\n', '|'), self.data['field']
-            chars = self.write_back_txt(page['chars'], content, field)
-            self.db.page.update_one({'_id': page['_id']}, {'$set': {
-                field: content, 'chars': chars, 'txt_match.%s.status' % field: True,
-                'txt_match.%s.value' % field: content,
-            }})
-        return r
-
-
-class PageTxtMatchDiffApi(PageHandler):
-    URL = '/api/page/txt_match/diff'
-
-    def post(self):
-        """图文匹配文本比较"""
-        try:
-            rules = [(v.not_empty, 'texts')]
-            self.validate(self.data, rules)
-            diff_blocks = self.match_diff(*self.data['texts'])
-            cmp_data = self.render_string('com/_txt_diff.html', blocks=diff_blocks,
-                                          sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))
-            cmp_data = native_str(cmp_data)
-            self.send_data_response(dict(cmp_data=cmp_data))
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
 class PageFindCmpTxtApi(PageHandler):
     URL = '/api/page/find_cmp/@page_name'
 
@@ -399,56 +316,6 @@ class PageCmpTxtApi(PageHandler):
             return self.send_db_error(error)
 
 
-class PageDetectCharsApi(PageHandler):
-    URL = '/api/page/txt/detect_chars'
-
-    def post(self):
-        """根据文本行内容识别宽字符"""
-        try:
-            mb4 = [[self.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
-            self.send_data_response(mb4)
-        except Exception as error:
-            return self.send_db_error(error)
-
-    @classmethod
-    def check_utf8mb4(cls, seg, base=None):
-        column_strip = re.sub(r'\s', '', base or seg.get('base', ''))
-        char_codes = [(c, url_escape(c)) for c in list(column_strip)]
-        seg['utf8mb4'] = ','.join([c for c, es in char_codes if len(es) > 9])
-        return seg
-
-
-class PageTxtDiffApi(PageHandler):
-    URL = '/api/page/txt/diff'
-
-    def post(self):
-        """用户提交纯文本后重新比较，并设置修改痕迹"""
-        try:
-            rules = [(v.not_empty, 'texts')]
-            self.validate(self.data, rules)
-            diff_blocks = self.diff(*self.data['texts'])
-            if self.data.get('hints'):
-                diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
-            cmp_data = self.render_string('com/_txt_diff.html', blocks=diff_blocks,
-                                          sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))
-            cmp_data = native_str(cmp_data)
-            self.send_data_response(dict(cmp_data=cmp_data))
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-    @staticmethod
-    def set_hints(diff_blocks, hints):
-        for hint in hints:
-            line_segments = diff_blocks.get(hint['block_no'], {}).get(hint['line_no'])
-            if not line_segments:
-                continue
-            for s in line_segments:
-                if s['base'] == hint['base'] and s['cmp1'] == hint['cmp1']:
-                    s['selected'] = True
-        return diff_blocks
-
-
 class PageStartCheckMatchApi(BaseHandler):
     URL = '/api/page/start_check_match'
 
@@ -500,6 +367,103 @@ class PageStartGenCharsApi(BaseHandler):
                 self.send_data_response(count=count)
             else:
                 self.send_error_response(e.no_object, message='找不到对应的页数据')
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class PageDetectCharsApi(PageHandler):
+    URL = '/api/page/txt/detect_chars'
+
+    def post(self):
+        """根据文本行内容识别宽字符"""
+        try:
+            mb4 = [[self.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
+            self.send_data_response(mb4)
+        except Exception as error:
+            return self.send_db_error(error)
+
+    @classmethod
+    def check_utf8mb4(cls, seg, base=None):
+        column_strip = re.sub(r'\s', '', base or seg.get('base', ''))
+        char_codes = [(c, url_escape(c)) for c in list(column_strip)]
+        seg['utf8mb4'] = ','.join([c for c, es in char_codes if len(es) > 9])
+        return seg
+
+
+class PageTxtDiffApi(PageHandler):
+    URL = '/api/page/txt/diff'
+
+    def post(self):
+        """用户提交纯文本后重新比较，并设置修改痕迹"""
+        try:
+            rules = [(v.not_empty, 'texts')]
+            self.validate(self.data, rules)
+            diff_blocks = self.diff(*self.data['texts'])
+            if self.data.get('hints'):
+                diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
+            cmp_data = self.render_string('com/_txt_diff.html', blocks=diff_blocks,
+                                          sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))
+            cmp_data = native_str(cmp_data)
+            self.send_data_response(dict(cmp_data=cmp_data))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+    @staticmethod
+    def set_hints(diff_blocks, hints):
+        for hint in hints:
+            line_segments = diff_blocks.get(hint['block_no'], {}).get(hint['line_no'])
+            if not line_segments:
+                continue
+            for s in line_segments:
+                if s['base'] == hint['base'] and s['cmp1'] == hint['cmp1']:
+                    s['selected'] = True
+        return diff_blocks
+
+
+class PageTxtMatchApi(PageHandler):
+    URL = ['/api/page/txt_match/@page_name']
+
+    def post(self, page_name):
+        """提交文本匹配"""
+        try:
+            r = self.save_txt_match(self, page_name)
+            self.send_data_response(r)
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+    @staticmethod
+    def save_txt_match(self, page_name):
+        rules = [(v.not_empty, 'field', 'content')]
+        self.validate(self.data, rules)
+        page = self.db.page.find_one({'name': page_name})
+        if not page:
+            return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+        r = self.check_match(page['chars'], self.data['content'])
+        if r['status'] and not self.data.get('only_check'):
+            content, field = self.data['content'].replace('\n', '|'), self.data['field']
+            chars = self.write_back_txt(page['chars'], content, field)
+            self.db.page.update_one({'_id': page['_id']}, {'$set': {
+                field: content, 'chars': chars, 'txt_match.%s.status' % field: True,
+                'txt_match.%s.value' % field: content,
+            }})
+        return r
+
+
+class PageTxtMatchDiffApi(PageHandler):
+    URL = '/api/page/txt_match/diff'
+
+    def post(self):
+        """图文匹配文本比较"""
+        try:
+            rules = [(v.not_empty, 'texts')]
+            self.validate(self.data, rules)
+            diff_blocks = self.match_diff(*self.data['texts'])
+            cmp_data = self.render_string('com/_txt_diff.html', blocks=diff_blocks,
+                                          sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))
+            cmp_data = native_str(cmp_data)
+            self.send_data_response(dict(cmp_data=cmp_data))
 
         except self.DbError as error:
             return self.send_db_error(error)
