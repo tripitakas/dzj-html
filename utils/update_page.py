@@ -295,7 +295,7 @@ def update_page_logs(db):
             if p.get('chars'):
                 p['txt'] = Ph.get_char_txt(p, 'txt')
             update = {k: p[k] for k in ['blocks', 'columns', 'chars', 'txt'] if p.get(k)}
-            db.page.update_one({'_id': p['_id']}, {'$set': {**update, 'updated': True}})
+            db.page.update_one({'_id': p['_id']}, {'$set': {**update, 'updated1': True}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
