@@ -112,7 +112,7 @@ class Model(object):
 
     @classmethod
     def pack_doc(cls, doc, self=None, exclude_none=False):
-        d = {f['id']: cls.prop(doc, f['id']) for f in cls.fields}
+        d = {k: v for k, v in doc.items() if k in cls.get_fields()}
         if exclude_none:
             d = {k: v for k, v in d.items() if v is not None}
         if doc.get('_id'):

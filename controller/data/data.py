@@ -201,7 +201,7 @@ class Variant(Model):
     search_fields = ['txt', 'img_name', 'normal_txt', 'remark']
 
     @classmethod
-    def pack_doc(cls, doc, self=None):
+    def pack_doc(cls, doc, self=None, exclude_none=False):
         if doc.get('_id'):  # 更新
             doc['updated_time'] = datetime.now()
         else:  # 新增
