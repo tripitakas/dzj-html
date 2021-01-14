@@ -42,7 +42,7 @@ class Page(Model):
         'updated_time': {'name': '更新时间'},
     }
     rules = [(v.not_empty, 'name'), (v.is_page, 'name')]
-    search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
+    search_fields = ['name', 'source']
 
     @classmethod
     def metadata(cls):

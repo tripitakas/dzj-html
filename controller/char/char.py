@@ -44,7 +44,7 @@ class Char(Model):
     }
     rules = [(v.is_page, 'page_name')]
     # search_fields在这里定义，这样find_by_page时q参数才会起作用
-    search_fields = ['name', 'source', 'txt', 'ocr_txt', 'nor_txt']
+    search_fields = ['name', 'source']
 
     @classmethod
     def get_char_search_condition(cls, request_query):

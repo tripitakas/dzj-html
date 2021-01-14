@@ -37,7 +37,8 @@ class PageTaskListHandler(TaskHandler, Page):
         {'id': 'picked_by', 'name': '领取人'},
         {'id': 'finished_time', 'name': '完成时间'},
         {'id': 'used_time', 'name': '执行时间'},
-        {'id': 'remark', 'name': '备注'},
+        {'id': 'remark', 'name': '管理备注'},
+        {'id': 'my_remark', 'name': '用户备注'},
     ]
     hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
     search_fields = ['doc_id', 'batch', 'remark']

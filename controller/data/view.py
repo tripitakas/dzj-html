@@ -100,7 +100,7 @@ class VariantListHandler(BaseHandler, Variant):
     URL = '/data/variant'
 
     page_title = '异体字管理'
-    search_fields = ['txt', 'source', 'img_name', 'normal_txt', 'remark']
+    search_fields = ['source', 'txt', 'img_name', 'normal_txt']
     update_fields = ['txt', 'source', 'img_name', 'normal_txt', 'remark']
     table_fields = ['uid', 'source', 'txt', 'img_name', 'normal_txt', 'remark', 'create_by', 'create_time',
                     'updated_time']
