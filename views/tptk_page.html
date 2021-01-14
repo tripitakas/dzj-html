@@ -110,10 +110,10 @@
         <div id="toggle-txts" class="btn-group" title="切换文本">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
-            <li id="txt" class="toggle-txt active"><a href="#">校对文本</a></li>
-            <li id="ocr_txt" class="toggle-txt"><a href="#">字框OCR</a></li>
-            <li id="col_txt" class="toggle-txt"><a href="#">列框OCR</a></li>
-            <li id="cmp_txt" class="toggle-txt"><a href="#">比对文本</a></li>
+            <li id="txt" class="toggle-txt active"><a>校对文本</a></li>
+            <li id="ocr_txt" class="toggle-txt"><a>字框OCR</a></li>
+            <li id="ocr_col" class="toggle-txt"><a>列框OCR</a></li>
+            <li id="cmp_txt" class="toggle-txt"><a>比对文本</a></li>
           </ul>
         </div>
         <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?from={{current_path}}" target="_blank">经目</a>
@@ -159,6 +159,14 @@
           <div class="title">二、操作</div>
           <table class="table">
             <tr>
+              <td>,</td>
+              <td>上一页</td>
+            </tr>
+            <tr>
+              <td>.</td>
+              <td>下一页</td>
+            </tr>
+            <tr>
               <td><i class="icon-home"></i></td>
               <td>返回</td>
             </tr>
@@ -198,10 +206,6 @@
               <td><i class="icon-history"></i></td>
               <td>切换文本显示的内容，可能有校对文本、字框OCR、列框OCR和比对文本等</td>
             </tr>
-            <tr>
-              <td>,.</td>
-              <td>“,”为上一页，“.”为下一页</td>
-            </tr>
           </table>
         </div>
       </div>
@@ -227,6 +231,7 @@
     readonly: true,
     holder: '.box-holder',
     txtHolder: '.txt-holder',
+    useTooTips: true,
     showMode: 'height-full',
     imgUrl: '{{page["img_url"]}}',
     curBoxType: getStorage('tptkBox', ''),

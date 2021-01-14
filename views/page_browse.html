@@ -174,7 +174,6 @@
     blurImage: getStorage('browseBlur', false) ? 0.2 : 1,
   });
   $.box.bindBaseKeys();
-  $('[data-toggle="tooltip"]').tooltip();
   $('#toggle-blur').toggleClass('active', getStorage('browseBlur', false));
   if (getStorage('browseBox', '')) $('#toggle-' + getStorage('browseBox')).addClass('active');
 

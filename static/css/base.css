@@ -940,7 +940,7 @@ body.widescreen {
   font-weight: 400;
   border-radius: 1px;
   background-color: #eee;
-  box-shadow: 5px 5px 3px #888888;
+  box-shadow: 0 5px 5px 0 #888888;
   word-break: keep-all;
 }
 
@@ -948,11 +948,15 @@ body.widescreen {
   font-size: 1.2em;
   text-align: left;
   word-break: break-all;
+  box-shadow: 0 3px 5px 5px #888888;
 }
 
 .tooltip .tooltip-arrow {
-  display: none;
   border-bottom-color: #eee !important;
+}
+
+.no-arrow .tooltip-arrow {
+  display: none;
 }
 
 .checkbox-inline:first-child, .radio-inline:first-child {
