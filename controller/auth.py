@@ -57,7 +57,7 @@ role_route_maps = {
             '/task/sample/@task_type': ['GET'],
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitaka/list': ['GET'],
-            '/(tripitaka|tptk)/@page_prefix': ['GET'],
+            '/(tripitaka|page)/@page_prefix': ['GET'],
             '/(sutra|reel|volume)/@tripitaka_code': ['GET'],
             '/com/search': ['GET'],
             '/com/punctuate': ['GET'],

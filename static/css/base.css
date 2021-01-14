@@ -939,9 +939,9 @@ body.widescreen {
   color: #333;
   font-weight: 400;
   border-radius: 1px;
+  word-break: keep-all;
   background-color: #eee;
   box-shadow: 0 5px 5px 0 #888888;
-  word-break: keep-all;
 }
 
 .m-body .tooltip-inner {
@@ -952,7 +952,7 @@ body.widescreen {
 }
 
 .tooltip .tooltip-arrow {
-  border-bottom-color: #eee !important;
+  /*border-bottom-color: #eee !important;*/
 }
 
 .no-arrow .tooltip-arrow {

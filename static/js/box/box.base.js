@@ -115,8 +115,8 @@
     data.image.width = width;
     data.image.height = height;
     let w = $(data.holder).width(), h = $(data.holder).height();
-    let rw = ((h * width / w) < height ? w - 15 : w) / width;
-    let rh = ((w * height / h) < width ? h - 20 : h - 5) / height;
+    let rw = ((height * w / width) > h ? w - 15 : w) / width;
+    let rh = ((width * (h - 5) / height) > w ? h - 20 : h - 5) / height;
     if (showMode === 'width-full') {
       data.initRatio = rw;
     } else if (showMode === 'height-full') {
@@ -523,9 +523,11 @@
 
   //---文本相关---
   function initTxt(txtHolder, txtType, useToolTip) {
+    let boxes = getBoxes();
     let html = '', blockNo = null, columnNo = null;
-    data.boxes.forEach((b) => {
-      if (b.boxType !== 'char' || isDeleted(b)) return;
+    let lastBlockNo = boxes.blocks[boxes.blocks.length - 1]['block_no'];
+    let lastColumnNo = boxes.columns[boxes.columns.length - 1]['column_no'];
+    boxes.chars.forEach((b) => {
       if (blockNo !== b.block_no) {
         html += (!blockNo ? '</div></div>' : '') + '<div class="block"><div class="line">';
         blockNo = b.block_no;
@@ -534,12 +536,13 @@
         html += '</div><div class="line">';
         columnNo = b.column_no;
       }
-      let attr = getTxtAttr(b);
+      let txt = b[txtType], attr = getTxtAttr(b), tip = '';
       if (useToolTip && attr.cls.replace('char', '').length > 1) {
-        html += `<span id="idx-${b.idx}" class="${attr.cls}" data-toggle="tooltip" data-html="true" data-placement="bottom" title="${attr.tip}">${b[txtType] || '■'}</span>`;
-      } else {
-        html += `<span id="idx-${b.idx}" class="${attr.cls}">${b[txtType] || '■'}</span>`;
+        let toward = (b.block_no === lastBlockNo && b.column_no > lastColumnNo - 3) ? 'top' : 'bottom';
+        tip = `data-toggle="tooltip" data-html="true" data-placement="${toward}" title="${attr.tip}"`;
       }
+      if (txtType === 'txt' && !b[txtType]) txt = b['ocr_txt'];
+      html += `<span id="idx-${b.idx}" class="${attr.cls}" ${tip}>${txt || '■'}</span>`;
     });
     html += '</div></div>';
     data.txtHolder = txtHolder;
@@ -566,7 +569,7 @@
     }
     txts = txts.filter((t) => t !== '■');
     if (txts.length > 1 && new Set(txts).size > 1) cls += ' is-diff';
-    if (box['txt'] !== '■' && txts.indexOf(box['txt']) < 0) cls += ' changed';
+    if (box['txt'] && box['txt'] !== '■' && txts.indexOf(box['txt']) < 0) cls += ' changed';
     return {cls: cls, tip: tips.join('<br>')};
   }
 
