@@ -4,11 +4,12 @@ from datetime import datetime
 from operator import itemgetter
 from controller import errors as e
 from controller.task.task import Task
+from controller.page.page import Page
+from controller.task.base import TaskHandler
 from controller.page.base import PageHandler
-from controller.page.view import PageTxtHandler
 
 
-class PageTaskListHandler(PageHandler):
+class PageTaskListHandler(TaskHandler, Page):
     URL = '/page/task/list'
 
     page_title = '页任务管理'
@@ -40,7 +41,6 @@ class PageTaskListHandler(PageHandler):
     ]
     hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
     search_fields = ['doc_id', 'batch', 'remark']
-    search_tips = '请搜索页编码、批次和备注'
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},

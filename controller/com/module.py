@@ -10,8 +10,6 @@ import math
 from bson.json_util import dumps
 from tornado.web import UIModule
 from controller import helper as h
-from controller.char.char import Char
-from controller.task.task import Task
 from controller.page.base import PageHandler as Ph
 
 
@@ -246,7 +244,7 @@ class PageRemarkModal(UIModule):
 
 class PageConfigModal(UIModule):
     def render(self):
-        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
+        buttons = [('modal-cancel', '关闭'), ('modal-confirm', '应用')]
         modal_fields = [
             {'id': 'may_wrong', 'name': '易错字列表', 'input_type': 'textarea'},
             {'id': 'img_opacity', 'name': '图片透明度'}
