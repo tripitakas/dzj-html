@@ -20,7 +20,9 @@ class Tripitaka(Model):
         'store_pattern': {'name': '存储模式'},
         'first_page': {'name': '第一页'},
         'img_available': {'name': '图片是否就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        'remark': {'name': '备注'}
+        'remark': {'name': '备注'},
+        'create_time': {'name': '创建时间'},
+        'updated_time': {'name': '更新时间'},
     }
     rules = [
         (v.not_empty, 'tripitaka_code', 'name'),
@@ -54,7 +56,9 @@ class Sutra(Model):
         'category': {'name': '分类'},
         'thousand': {'name': '千字文'},
         'trans_time': {'name': '翻译时间'},
-        'remark': {'name': '备注'}
+        'remark': {'name': '备注'},
+        'create_time': {'name': '创建时间'},
+        'updated_time': {'name': '更新时间'},
     }
     rules = [
         (v.not_empty, 'sutra_code', 'sutra_name'),
@@ -96,7 +100,9 @@ class Reel(Model):
         'start_page': {'name': '起始页', 'type': 'int'},
         'end_volume': {'name': '终止册'},
         'end_page': {'name': '终止页', 'type': 'int'},
-        'remark': {'name': '备注'}
+        'remark': {'name': '备注'},
+        'create_time': {'name': '创建时间'},
+        'updated_time': {'name': '更新时间'},
     }
     rules = [
         (v.not_empty, 'sutra_code'),
@@ -129,6 +135,8 @@ class Volume(Model):
         'front_cover_pages': {'name': '封面页', 'input_type': 'textarea'},
         'back_cover_pages': {'name': '封底页', 'input_type': 'textarea'},
         'remark': {'name': '备注'},
+        'create_time': {'name': '创建时间'},
+        'updated_time': {'name': '更新时间'},
     }
     rules = [
         (v.not_empty, 'volume_code'),
