@@ -24,6 +24,7 @@
   let data = self.data;
   let status = self.status;
   let cStatus = {
+    onlyChange: false,                              // 是否仅允许修改
     hasChanged: false,                              // 用户是否已修改
     isMouseDown: false,                             // 鼠标左键是否按下
     isDragging: false,                              // 鼠标是否在点击拖拽
@@ -61,7 +62,8 @@
     return status.boxMode === 'cut';
   }
 
-  function initCut() {
+  function initCut(p) {
+    if (p && p.onlyChange) cStatus.onlyChange = true;
     $(data.holder).find('svg').on('dblclick', dblclick).mousedown(mouseDown).mouseup(mouseUp).mousemove(function (e) {
       if (!cStatus.isMouseDown) mouseHover(e);
       else if (self.getDistance(self.getPoint(e), cStatus.downPt) > data.ratio) //仅当拖拽距离大于1时才触发拖拽函数
@@ -107,6 +109,7 @@
       cStatus.dragElem = dragHandle(cStatus.dragPt);
       self.addClass(status.curBox, 'on-drag');
     } else { // 2.新增字框
+      if (cStatus.onlyChange) return;
       cStatus.dragElem = self.createRect(cStatus.downPt, cStatus.dragPt,
           'box dragging ' + status.curBoxType, true);
     }
@@ -227,6 +230,7 @@
   }
 
   function _deleteBox(box) {
+    if (cStatus.onlyChange) return;
     if (box.op === 'added') { // 直接删除此次新增的字框
       self.addClass(box, 's-deleted');  // 标记为系统删除，将不会传给后台
     } else { // 标记删除此前新增的字框

@@ -115,8 +115,8 @@
     data.image.width = width;
     data.image.height = height;
     let w = $(data.holder).width(), h = $(data.holder).height();
-    let rw = ((h * width / w) < height ? w - 15 : w) / width;
-    let rh = ((w * height / h) < width ? h - 20 : h - 5) / height;
+    let rw = ((height * w / width) > h ? w - 15 : w) / width;
+    let rh = ((width * (h - 5) / height) > w ? h - 20 : h - 5) / height;
     if (showMode === 'width-full') {
       data.initRatio = rw;
     } else if (showMode === 'height-full') {

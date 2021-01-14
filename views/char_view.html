@@ -12,14 +12,21 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    #right-region {
-      width: 420px;
-      max-width: 420px;
+    #panel-region {
+      width: 260px;
+      max-width: 260px;
+    }
+
+    #reset-box {
+      right: 315px;
+      bottom: 32px;
+      z-index: auto;
+      position: absolute;
     }
 
     #submit-box {
-      right: 435px;
-      bottom: 30px;
+      right: 261px;
+      bottom: 32px;
       z-index: auto;
       position: absolute;
     }
@@ -50,10 +57,11 @@
     <div class="m-body flex pfread">
       <div id="left-region" class="left bd">
         <div class="box-holder"></div>
+        <button class="btn btn-default" id="reset-box">恢复</button>
         <button class="btn btn-primary{{'' if box_auth else ' disabled'}}" id="submit-box">确认</button>
       </div>
-      <div id="right-region" class="right bd work-panel">
-        {% module CharTxt(char, show_base=True) %}
+      <div id="panel-region" class="right bd proof-panel">
+        {% include com/_char_txt.html %}
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -124,15 +132,11 @@
 <script src="{{static_url('js/page-box.js')}}"></script>
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
-  // 公共参数
-  let taskType = '';
-  let chars = decodeJSON('{{dumps({char["name"]: char})}}');
-  let txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
-
   // initial
   $.page.init({
     readonly: false,
-    curBoxType: 'char',
+    onlyChange: true,
+    curBoxType: 'all',
     holder: '.box-holder',
     showMode: 'height-full',
     imgUrl: '{{page["img_url"]}}',
@@ -143,17 +147,18 @@
     blurImage: 1,
   });
   $.box.bindBaseKeys();
+
+  $.txt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
   let char = $.box.data.boxes[0];
+  $.txt.setChar(char);
   $.box.switchCurBox(char);
 
   $.box.onBoxChanged(function (box, reason, param) {
-    if (reason === 'added') $.box.deleteBox(box, true);
-    if (reason === 'deleted') $.box.recoverBox(box, true);
-    if (reason === 'zoom' && !$.box.hasClass(char, 'current'))
+    if (reason === 'zoom') {
       $.box.switchCurBox(char);
+    }
   });
 
-  // 提交字框修改
   $('#submit-box').on('click', function () {
     if ($(this).hasClass('disabled')) return;
     let chars = $.box.exportSubmitData()['op']['chars'];
@@ -161,6 +166,35 @@
     postApi('/page/char/box/{{char["name"]}}', {data: {pos: chars[0]}}, function (res) {
       bsShow('', '保存成功！', 'info', 1000);
       location.reload();
+    });
+  });
+
+  $('#reset-box').on('click', function () {
+    $.txt.toggleHint(null, false);
+    $.box.switchCurBox(char);
+  });
+
+  $('.char-txt .btn-submit').on('click', function () {
+    let $this = $(this);
+    if ($this.hasClass('disabled')) return;
+    if (!$('#p-txt').val().length) return bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
+    let data = {
+      txt: $('#p-txt').val() || '',
+      remark: $('#p-remark').val() || '',
+      is_vague: $('.is-vague :checked').val() === '1',
+      is_deform: $('.is-deform :checked').val() === '1',
+    };
+    $this.addClass('disabled');
+    postApi('/page/char/txt/' + char.name, {data: data}, function (res) {
+      $this.removeClass('disabled');
+      bsShow('', '已保存成功', 'success', 1000, '#s-alert');
+      $.txt.setTxtLogs(res['txt_logs']);
+      data['txt_logs'] = res['txt_logs'];
+      Object.assign(char, data);
+    }, function (err) {
+      $this.removeClass('disabled');
+      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
+      else bsShow('失败', err.message, 'warning', 1000);
     });
   });
 

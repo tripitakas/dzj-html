@@ -7,8 +7,9 @@
 
   $.box && $.box.onBoxChanged(function (box, reason, param) {
     if (reason === 'switch') {
-      if (box && box.boxType === 'char')
+      if (box && box.boxType === 'char') {
         $.txt.setChar(box);
+      }
     }
   });
 
@@ -18,6 +19,7 @@
     showTxtLogs: true,        // 是否显示文字校对历史
     showBoxLogs: true,        // 是否显示切分校对历史
     char: null,               // 当前校对字符数据
+    hint: null,               // 当前显示修改痕迹
   };
 
   $.txt = {
@@ -26,6 +28,7 @@
     setChar: setChar,
     setTxtLogs: setTxtLogs,
     setBoxLogs: setBoxLogs,
+    toggleHint: toggleHint,
   };
 
   function init(p) {
@@ -62,7 +65,13 @@
       'remark': '备注'
     };
     $('#base-info .meta').html(Object.keys(fields).map((f) => {
-      return char[f] ? `<label>${fields[f]}</label><span>${char[f]}</span><br/>` : '';
+      if (!char[f]) return '';
+      if (['pos', 'column'].indexOf(f) > -1) {
+        let info = JSON.stringify(char[f]).replace(/["{}]/g, '');
+        return `<label>${fields[f]}</label><span class="pos">${info}</span><br/>`;
+      } else {
+        return `<label>${fields[f]}</label><span>${char[f]}</span><br/>`;
+      }
     }).join(''));
   }
 
@@ -100,7 +109,7 @@
       let t = {initial: '初始', added: '新增', deleted: '删除', changed: '修改'};
       let meta = log.op ? `<label>操作</label><span>${t[log.op]}</span><br/>` : '';
       let pos = ['x', 'y', 'w', 'h'].map((p) => log.pos[p] || log[p] || '0').join('/');
-      meta += log.pos ? `<label>坐标</label><span>${pos}</span><br/>` : '';
+      meta += log.pos ? `<label>坐标</label><span class="pos">${pos}</span><br/>` : '';
       meta += log.username ? `<label>校对人</label><span>${log.username}</span><br/>` : '';
       meta += log.create_time ? `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>` : '';
       meta += log.updated_time ? `<label>更新时间</label><span>${toLocalTime(log.updated_time)}</span><br/>` : '';
@@ -131,7 +140,17 @@
     $('.char-txt .cur-name').val(char.name || pageName + '_' + char.cid);
   }
 
-  // 点击候选字
+  function toggleHint(box, show) {
+    status.hint && status.hint.remove();
+    status.hint = null;
+    if (!show) {
+      $($.box.data.holder).removeClass('usr-hint');
+    } else if (box) {
+      $($.box.data.holder).addClass('usr-hint');
+      status.hint = $.box.createBox(box, 'box hint current');
+    }
+  }
+
   $(document).on('click', '.txt-item', function () {
     let txt = $(this).text();
     $('.proof #p-txt').val(txt);
@@ -139,5 +158,33 @@
       $(item).toggleClass('active', $(item).text() === txt);
     });
   });
+
+  $(document).on('click', '.toggle-info', function () {
+    let target = $(this).attr('id').replace('toggle-', '');
+    console.log(target);
+    if ($(this).hasClass('icon-up')) {
+      $(this).removeClass('icon-up').addClass('icon-down');
+      $(`#${target} .body`).addClass('hide');
+    } else if ($(this).hasClass('icon-down')) {
+      $(this).removeClass('icon-down').addClass('icon-up');
+      $(`#${target} .body`).removeClass('hide');
+    }
+  });
+
+  $(document).on('click', 'span.pos', function () {
+    let txt = $(this).text(), box = {x: 0, y: 0, w: 0, h: 0, cid: 0};
+    if (txt.split(',').length > 3) {
+      txt.split(',').forEach((item) => {
+        let a = item.split(':');
+        if (a.length === 2) box[a[0]] = parseInt(a[1]);
+      });
+    } else if (txt.split('/').length > 3) {
+      let a = txt.split('/');
+      box = {x: parseInt(a[0]), y: parseInt(a[1]), w: parseInt(a[2]), h: parseInt(a[3]), cid: 0};
+    }
+    box.boxType = box.cid ? 'column' : 'char';
+    toggleHint(box, true);
+  });
+
 
 }());
