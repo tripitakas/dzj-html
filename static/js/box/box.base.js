@@ -522,7 +522,7 @@
   }
 
   //---文本相关---
-  function initTxt(txtHolder, txtType, toolTip) {
+  function initTxt(txtHolder, txtType, useToolTip) {
     let html = '', blockNo = null, columnNo = null;
     data.boxes.forEach((b) => {
       if (b.boxType !== 'char' || isDeleted(b)) return;
@@ -535,7 +535,7 @@
         columnNo = b.column_no;
       }
       let attr = getTxtAttr(b);
-      if (toolTip && attr.cls.replace('char', '').length > 1) {
+      if (useToolTip && attr.cls.replace('char', '').length > 1) {
         html += `<span id="idx-${b.idx}" class="${attr.cls}" data-toggle="tooltip" data-html="true" data-placement="bottom" title="${attr.tip}">${b[txtType] || '■'}</span>`;
       } else {
         html += `<span id="idx-${b.idx}" class="${attr.cls}">${b[txtType] || '■'}</span>`;
@@ -544,6 +544,7 @@
     html += '</div></div>';
     data.txtHolder = txtHolder;
     $(txtHolder).html(html);
+    if (useToolTip) $('[data-toggle="tooltip"]').tooltip();
   }
 
   function getTxtAttr(box) {
@@ -551,10 +552,9 @@
     if (box['txt']) {
       tips.push(`校对文本: ${box['txt']}`);
     }
-    let ocr_char = (box['alternatives'] || '').split('')[0];
-    if (ocr_char) {
-      txts.push(ocr_char);
-      tips.push(`字框OCR: ${ocr_char}`);
+    if (box['ocr_txt']) {
+      txts.push(box['ocr_txt']);
+      tips.push(`字框OCR: ${box['ocr_txt']}`);
     }
     if (box['ocr_col']) {
       txts.push(box['ocr_col']);
