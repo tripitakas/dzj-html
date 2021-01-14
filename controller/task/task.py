@@ -107,7 +107,7 @@ class Task(Model):
         'finished_time': {'name': '完成时间'},
         'used_time': {'name': '执行时间'},
         'remark': {'name': '管理备注'},
-        'my_remark': {'name': '用户备注'},
+        'my_remark': {'name': '我的备注'},
         'is_sample': {'name': '是否示例任务'},
         'message': {'name': '日志'},
     }
