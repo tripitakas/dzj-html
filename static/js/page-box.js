@@ -141,7 +141,6 @@ $('#cut-config').on('click', function () {
 });
 
 $('#pageConfigModal .modal-confirm').on('click', function () {
-  $('#pageConfigModal').modal('hide');
   // 易错字列表
   let mayWrong = $('#pageConfigModal .may_wrong').val().trim();
   if ($.box.eStatus.mayWrong !== mayWrong) {

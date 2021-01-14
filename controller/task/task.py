@@ -83,7 +83,7 @@ class Task(Model):
         'num': {'name': '校次'},
         'collection': {'name': '数据表'},
         'id_name': {'name': '主键名'},
-        'doc_id': {'name': '数据ID'},
+        'doc_id': {'name': '页编码'},
         'status': {'name': '状态', 'filter': task_statuses},
         'priority': {'name': '优先级', 'filter': priorities},
         'steps': {'name': '步骤'},
@@ -107,7 +107,7 @@ class Task(Model):
         'finished_time': {'name': '完成时间'},
         'used_time': {'name': '执行时间'},
         'remark': {'name': '管理备注'},
-        'my_remark': {'name': '我的备注'},
+        'my_remark': {'name': '用户备注'},
         'is_sample': {'name': '是否示例任务'},
         'message': {'name': '日志'},
     }

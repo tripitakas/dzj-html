@@ -39,9 +39,9 @@
 }
 
 .box.current {
-  fill: red;
-  stroke: red;
-  fill-opacity: 0.1;
+  fill: red !important;
+  stroke: red !important;
+  fill-opacity: 0.15 !important;
 }
 
 .show-current .current {
@@ -103,7 +103,6 @@
 
 .multi .box.hover {
   fill-opacity: 0.15;
-!important;
 }
 
 .multi .handle {
@@ -112,15 +111,15 @@
 
 /*-显示字框蒙白、透视、大小窄扁等-*/
 .shape-white .box {
-  fill: white !important;
-  fill-opacity: 1 !important;
+  fill: white;
+  fill-opacity: 1;
   stroke-opacity: 0.3 !important;
 }
 
 .shape-opacity .box {
-  fill: blue !important;
-  fill-opacity: 0.3 !important;
-  stroke-opacity: 0.3 !important;
+  fill: blue;
+  fill-opacity: 0.15;
+  /*stroke-opacity: 0.3 !important;*/
 }
 
 .shape-flat .box.s-flat,
@@ -129,8 +128,8 @@
 .shape-narrow .box.s-narrow,
 .shape-overlap .box.s-overlap,
 .shape-mayWrong .box.s-mayWrong {
-  fill: blue !important;
-  fill-opacity: 0.5 !important;
+  fill: blue;
+  fill-opacity: 0.3;
 }
 
 /*-字框、列框、栏框-*/

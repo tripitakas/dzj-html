@@ -571,7 +571,7 @@
   }
 
   function toggleTxt(txtType, show) {
-    if (status.curTxtType === txtType) return;
+    if (!data.txtHolder || status.curTxtType === txtType) return;
     if (txtType && show) {
       status.curTxtType = txtType;
       $.map($(data.txtHolder).find('.char'), function (item) {
@@ -583,8 +583,8 @@
   }
 
   function switchCurTxt(box) {
+    if (!data.txtHolder) return;
     let holder = $(data.txtHolder);
-    if (!data.txtHolder || !holder.length) return;
     holder.find('.current-txt').removeClass('current-txt');
     if (box && box.boxType === 'char') {
       let $this = holder.find('#idx-' + box.idx);

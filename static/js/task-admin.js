@@ -26,7 +26,7 @@ $('.sty-table td.doc_id').on('click', function () {
   }
 });
 // 浏览任务
-$('.sty-table .action .btn-nav').on('click', function () {
+$('.sty-table .action .btn-browse').on('click', function () {
   let node = $(this).parent().parent();
   let taskType = node.find('.task_type').attr('title');
   location.href = '/task/browse/' + taskType + '/' + node.attr('id') + '?from=' + encodeFrom();
