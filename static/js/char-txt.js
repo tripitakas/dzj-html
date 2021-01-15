@@ -78,7 +78,7 @@
   function setAlternatives(char) {
     let html = isValid(char['ocr_col']) ? `<span class="txt-item ocr-col${char['ocr_col'] === char.txt ? ' active' : ''}">${char['ocr_col']}</span>` : '';
     html += isValid(char['cmp_txt']) ? `<span class="txt-item cmp-txt${char['cmp_txt'] === char.txt ? ' active' : ''}">${char['cmp_txt']}</span>` : '';
-    html += (char['alternatives'] || '').split('').map(function (c, n) {
+    html += Array.from(char['alternatives'] || '').map(function (c, n) {
       return `<span class="txt-item${n ? '' : ' ocr-char'}${c === char.txt ? ' active' : ''}">${c}</span>`;
     }).join('');
     $('#txt-alternatives .body').html(html);
@@ -161,7 +161,6 @@
 
   $(document).on('click', '.toggle-info', function () {
     let target = $(this).attr('id').replace('toggle-', '');
-    console.log(target);
     if ($(this).hasClass('icon-up')) {
       $(this).removeClass('icon-up').addClass('icon-down');
       $(`#${target} .body`).addClass('hide');

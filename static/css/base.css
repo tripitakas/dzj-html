@@ -55,7 +55,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   background: url(../imgs/fbg.png) repeat;
-  font-family: Microsoft YaHei, SimSun, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
+  font-family: Microsoft YaHei, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
   /*font-family: Microsoft YaHei, SimSun, sans-serif, Helvetica Neue, Helvetica;*/
 }
 
@@ -878,8 +878,7 @@ body.widescreen {
 }
 
 .wide-txt {
-  font-family: Microsoft YaHei, SimSun, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
-  /*font-family: Microsoft YaHei, SimSun, sans-serif, Helvetica Neue, Helvetica, KaiXinSong;*/
+  font-family: Microsoft YaHei, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
 }
 
 /* 帮助文档modal */

@@ -5,11 +5,17 @@
   <title>{{'%s-%s' % (tripitaka['name'], page['name'])}}</title>
   {% include com/_base_css.html %}
   <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
+    #panel-region {
+      width: 260px;
+      max-width: 260px;
+    }
+
     .icon-home {
       font-size: 24px;
     }
@@ -83,6 +89,7 @@
     .m-footer .changed {
       color: red;
     }
+
     /*避免tooltip引起的滚动*/
     body {
       overflow: hidden !important;
@@ -125,7 +132,7 @@
         </div>
       </div>
       <div class="right">
-        <div id="toggle-right" class="btn-txt icon-txt" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
         <div id="toggle-txts" class="btn-group" title="切换文本">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
@@ -135,6 +142,7 @@
             <li id="cmp_txt" class="toggle-txt"><a>比对文本</a></li>
           </ul>
         </div>
+        <div id="toggle-proof-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
         <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?from={{current_path}}" target="_blank">经目</a>
         <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}?from={{current_path}}" target="_blank">卷目</a>
         <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}?from={{current_path}}" target="_blank">册目</a>
@@ -146,8 +154,11 @@
         <img class="pic-nav" id="pic-right" data-toggle="tooltip" data-placement="left" title="下一页[.]" src="{{static_url('imgs/icon_right.png')}}"/>
         <div class="box-holder show-current"></div>
       </div>
-      <div id="right-region" class="m-right bd wide-txt hide">
+      <div id="right-region" class="m-right bd">
         <div class="txt-holder"></div>
+      </div>
+      <div id="panel-region" class="right bd proof-panel">
+        {% include com/_char_txt.html %}
       </div>
     </div>
     <div class="m-footer">
@@ -244,11 +255,16 @@
 <script src="{{static_url('js/box/box.page.js')}}"></script>
 <script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/page-box.js')}}"></script>
+<script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   // 初始化。注：先设置右侧，后设置$.page.init
-  if (parseInt('{{len(txts)}}') && getStorage('tptkRight', false)) {
-    $('#toggle-right').addClass('active');
-    $('#right-region').removeClass('hide');
+  if (!parseInt(('{{len(page.get("chars") or [])}}')) || !getStorage('tptkRight', true)) {
+    $('#toggle-right').removeClass('active');
+    $('#right-region').addClass('hide');
+  }
+  if (!parseInt(('{{len(page.get("chars") or [])}}')) || !getStorage('tptkProof', true)) {
+    $('#toggle-proof-panel').removeClass('active');
+    $('#panel-region').addClass('hide');
   }
   $.page.init({
     readonly: true,
@@ -267,31 +283,31 @@
     blurImage: getStorage('tptkBlur', false) ? 0.2 : 1,
   });
   $.box.bindBaseKeys();
-  $('#toggle-blur').toggleClass('active', getStorage('tptkBlur', false));
+  $.txt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
   if ('{{cid}}'.length) $.box.switchCurBox($.box.findFirstBox('char', '{{cid}}'));
+  $('#toggle-blur').toggleClass('active', getStorage('tptkBlur', false));
   if (getStorage('tptkBox', '')) $('#toggle-' + getStorage('tptkBox')).addClass('active');
   window.onload = () => $.box.setRawImageRatio();
 
 </script>
 <script>
-  // 模糊图片
   $('#toggle-blur').on('click', function () {
     setStorage('tptkBlur', $(this).hasClass('active'));
   });
-
-  // 显隐框
   $('.toggle-box').on('click', function () {
     let boxType = $(this).attr('id').replace('toggle-', '');
     setStorage('tptkBox', $(this).hasClass('active') ? boxType : '');
   });
-
-  // 显隐右侧
   $('#toggle-right').on('click', function () {
     $(this).toggleClass('active');
     $('#right-region').toggleClass('hide', !$(this).hasClass('active'));
     setStorage('tptkRight', $(this).hasClass('active'));
   });
-
+  $('#toggle-proof-panel').on('click', function () {
+    $(this).toggleClass('active');
+    $('.proof-panel').toggleClass('hide', !$(this).hasClass('active'));
+    setStorage('tptkProof', $(this).hasClass('active'));
+  });
   // 图片导航
   $('.m-pager .btn-page:not(.to)').on('click', function () {
     window.location = '/page/{{volume_code}}_' + $(this).attr('data-value');
@@ -305,6 +321,36 @@
   $.mapKey(',', () => $('#pic-left').click());
   $.mapKey('.', () => $('#pic-right').click());
   $.mapKey('g', () => $('.m-pager .to input').focus());
+
+  // 单字提交
+  $('.char-txt .btn-submit').on('click', function () {
+    let $this = $(this);
+    if ($this.hasClass('disabled')) return;
+    let name = $('.char-txt .cur-name').val();
+    if (!name.length) return bsShow('', '请选择校对文字', 'warning', 1000, '#s-alert');
+    if (!$('#p-txt').val().length) return bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
+    let data = {
+      txt: $('#p-txt').val() || '',
+      remark: $('#p-remark').val() || '',
+      is_vague: $('.is-vague :checked').val() === '1',
+      is_deform: $('.is-deform :checked').val() === '1',
+    };
+    let idx = $('.txt-holder .current-char').attr('id').split('-').pop();
+    $this.addClass('disabled');
+    postApi('/page/char/txt/' + name, {data: data}, function (res) {
+      $this.removeClass('disabled');
+      location.href = setAnchor(name);
+      bsShow('', '已保存成功', 'success', 1000, '#s-alert');
+      $('.txt-holder .current-char').text(data.txt).addClass('changed');
+      $.txt.setTxtLogs(res['txt_logs']);
+      data['txt_logs'] = res['txt_logs'];
+      Object.assign($.box.data.boxes[parseInt(idx)], data);
+    }, function (err) {
+      $this.removeClass('disabled');
+      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
+      else bsShow('失败', err.message, 'warning', 1000);
+    });
+  });
 
 </script>
 </body>

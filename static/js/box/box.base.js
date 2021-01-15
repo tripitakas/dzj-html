@@ -524,6 +524,7 @@
   //---文本相关---
   function initTxt(txtHolder, txtType, useToolTip) {
     let boxes = getBoxes();
+    if (!boxes.blocks.length) return;
     let html = '', blockNo = null, columnNo = null;
     let lastBlockNo = boxes.blocks[boxes.blocks.length - 1]['block_no'];
     let lastColumnNo = boxes.columns[boxes.columns.length - 1]['column_no'];
@@ -538,7 +539,7 @@
       }
       let txt = b[txtType], attr = getTxtAttr(b), tip = '';
       if (useToolTip && attr.cls.replace('char', '').length > 1) {
-        let toward = (b.block_no === lastBlockNo && b.column_no > lastColumnNo - 3) ? 'top' : 'bottom';
+        let toward = (b.block_no === lastBlockNo && b.column_no > 3 && b.column_no > lastColumnNo - 3) ? 'top' : 'bottom';
         tip = `data-toggle="tooltip" data-html="true" data-placement="${toward}" title="${attr.tip}"`;
       }
       if (txtType === 'txt' && !b[txtType]) txt = b['ocr_txt'];
