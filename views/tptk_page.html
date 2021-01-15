@@ -266,6 +266,9 @@
     $('#toggle-proof-panel').removeClass('active');
     $('#panel-region').addClass('hide');
   }
+  if (!parseInt(('{{len(page.get("chars") or [])}}'))) {
+    $('.m-proof .txt-type').addClass('hide');
+  }
   $.page.init({
     readonly: true,
     holder: '.box-holder',

@@ -129,12 +129,13 @@
 
   function initRawImage(showMode, imgUrl) {
     data.showMode = showMode;
-    $(data.holder).html('<div class="box-holder"><div class="page-img"><img src="' + imgUrl + '" alt="图片不存在"/></div></div>')
+    $(data.holder).html('<div class="box-holder"><div class="page-img hide"><img src="' + imgUrl + '" alt="图片不存在"/></div></div>')
   }
 
   // 纯图片模式时，在windows.onload中设置缩放比例
   function setRawImageRatio() {
     if (!data.image.width) {
+      $(data.holder).find('.page-img').removeClass('hide');
       let img = $(data.holder).find('.page-img img');
       initImageRatio(data.showMode, img.width(), img.height());
       zoomImg(1);
