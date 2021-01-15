@@ -241,12 +241,17 @@ class PageCharTxtApi(PageHandler):
             update = {k: self.data[k] for k in fields if self.data.get(k) is not None}
             if h.cmp_obj(update, char, fields):
                 return self.send_error_response(e.not_changed, message='没有任何修改')
+            # 更新page表
             char.update(update)
             my_log = {k: self.data[k] for k in fields + ['task_type'] if self.data.get(k) not in ['', None]}
             char['txt_logs'] = self.merge_txt_logs(my_log, char)
             char['txt_level'] = CharHandler.get_user_txt_level(self, self.data.get('task_type'))
-            # 更新page表
             self.db.page.update_one(cond, {'$set': {'chars.$': char}})
+            # 更新char表
+            update['txt_logs'] = char['txt_logs']
+            update['txt_level'] = char['txt_level']
+            self.db.char.update_one({'name': char_name}, {'$set': update})
+
             self.send_data_response(dict(txt_logs=char['txt_logs']))
             self.add_log('update_txt', None, char_name, update)
 

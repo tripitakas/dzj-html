@@ -283,11 +283,11 @@
     blurImage: getStorage('tptkBlur', false) ? 0.2 : 1,
   });
   $.box.bindBaseKeys();
-  $('#toggle-blur').toggleClass('active', getStorage('tptkBlur', false));
+  $.txt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
   if ('{{cid}}'.length) $.box.switchCurBox($.box.findFirstBox('char', '{{cid}}'));
+  $('#toggle-blur').toggleClass('active', getStorage('tptkBlur', false));
   if (getStorage('tptkBox', '')) $('#toggle-' + getStorage('tptkBox')).addClass('active');
   window.onload = () => $.box.setRawImageRatio();
-  $.txt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
 
 </script>
 <script>
@@ -334,7 +334,6 @@
       remark: $('#p-remark').val() || '',
       is_vague: $('.is-vague :checked').val() === '1',
       is_deform: $('.is-deform :checked').val() === '1',
-      task_type: typeof gTaskType === 'undefined' ? '' : gTaskType
     };
     let idx = $('.txt-holder .current-char').attr('id').split('-').pop();
     $this.addClass('disabled');
