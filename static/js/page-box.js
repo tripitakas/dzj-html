@@ -211,6 +211,13 @@ $('#toggle-my-hint').on('click', function () {
   $.page.toggleMyHint(currentUserId, $(this).hasClass('active'));
 });
 
+// 显隐操作历史
+$('#op-hint').on('click', function () {
+  $(this).toggleClass('active');
+  $('.m-panel').toggleClass('hide', !$(this).hasClass('active'));
+  setStorage('boxOpHint', $(this).hasClass('active'));
+});
+
 // 操作历史-当前状态
 $('#hint-list #no-hint').on('click', function () {
   if (!$.box.isCutMode()) return;
@@ -236,7 +243,7 @@ $('#hint-list #play-hint').on('click', function () {
   if (!$.box.eStatus.times.length)
     return bsShow('提示', '没有修改历史', 'warning', 800);
   !$('#toggle-all').hasClass('active') && $('#toggle-all').click();
-  $('#op-hint').removeClass('open');
+  $('#op-hint').removeClass('active');
   let play = (i) => {
     let t = $.box.eStatus.times[i];
     bsLoading('', `${t.create_time} @ ${t.username}`);

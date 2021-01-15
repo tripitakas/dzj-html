@@ -232,14 +232,14 @@
     if ($.box.eStatus.users.length) {
       html += '<li class="divider"></li>';
       $.box.eStatus.users.forEach(function (item) {
-        let a = `<a href="#">${item.username} 的修改</a>`;
+        let a = `<a>${item.username} 的修改</a>`;
         html += `<li class="usr-hint hint" onclick="$.page.toggleHint('usr','${item.user_id}')">${a}</li>`;
       });
     }
     if ($.box.eStatus.times.length) {
       html += '<li class="divider"></li>';
       $.box.eStatus.times.forEach(function (item) {
-        let a = `<a href="#">${item.create_time + '@' + item.username}</a>`;
+        let a = `<a>${item.create_time + '@' + item.username}</a>`;
         html += `<li class="time-hint hint" onclick="$.page.toggleHint('time','${item.create_time}')">${a}</li>`;
       });
     }
