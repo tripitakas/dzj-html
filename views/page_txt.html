@@ -59,9 +59,6 @@
         <div id="toggle-column" class="btn-txt icon-columns toggle-box{{'' if page.get('columns') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框[k]"></div>
         <div id="toggle-block" class="btn-txt icon-blocks toggle-box{{'' if page.get('blocks') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框[l]"></div>
         <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序[n]"></div>
-        <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
-        <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
-        <div id="toggle-proof-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
         <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
         <div class="btn-group more-group hide" id="more-group">
           <span id="btn-column-mode" class="btn btn-default btn-sm" type="button">列图模式</span>
@@ -72,6 +69,8 @@
         {% set mode = globals().get('mode') or '' %}
         {% set readonly = globals().get('readonly') or False %}
         {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
+        <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
+        <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
         <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
         <div id="toggle-txts" class="btn-group" title="切换文本">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
@@ -82,6 +81,7 @@
             <li id="cmp_txt" class="toggle-txt"><a href="#">比对文本</a></li>
           </ul>
         </div>
+        <div id="toggle-proof-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
         <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
         <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>

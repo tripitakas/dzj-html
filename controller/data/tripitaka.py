@@ -47,17 +47,16 @@ class TripitakaPageHandler(PageHandler):
                 return self.send_error_response(e.no_object, message='藏经%s不存在' % m.group(1))
 
             # 获取当前页信息
+            assert tripitaka.get('store_pattern')
             if len(page_name) == 2 and tripitaka.get('first_page'):
                 page_name = tripitaka.get('first_page')
-            assert tripitaka.get('store_pattern')
             level = len(tripitaka['store_pattern'].split('_'))
             page_name = self.pad_name(page_name, level)
             name_slice = page_name.split('_')
             cur_page = int(name_slice[-1])
             page = self.db.page.find_one({'name': page_name}) or dict(name=page_name)
-            self.pack_boxes(page, log=False)
+            self.pack_boxes(page, True, True)
             page['img_url'] = self.get_web_img(page_name)
-            txts = [(self.get_char_txt(page, 'adapt'), 'txt', '校对文本')] if page.get('chars') else []
 
             # 获取当前册信息
             volume_code = '_'.join(name_slice[:-1])
@@ -75,10 +74,8 @@ class TripitakaPageHandler(PageHandler):
 
             cid = self.get_query_argument('cid', '')
             book_meta = self.get_book_meta(page) or ''
-            self.render(
-                'tptk_page.html', tripitaka=tripitaka, page=page, volume_code=volume_code, txts=txts,
-                tripitaka_code=name_slice[0], book_meta=book_meta, nav=nav, cid=cid,
-            )
+            self.render('tptk_page.html', tripitaka=tripitaka, page=page, book_meta=book_meta, nav=nav,
+                        tripitaka_code=name_slice[0], volume_code=volume_code, cid=cid)
 
         except Exception as error:
             return self.send_db_error(error)

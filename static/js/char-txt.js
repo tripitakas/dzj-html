@@ -161,7 +161,6 @@
 
   $(document).on('click', '.toggle-info', function () {
     let target = $(this).attr('id').replace('toggle-', '');
-    console.log(target);
     if ($(this).hasClass('icon-up')) {
       $(this).removeClass('icon-up').addClass('icon-down');
       $(`#${target} .body`).addClass('hide');
