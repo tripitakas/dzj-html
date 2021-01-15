@@ -538,7 +538,7 @@
       }
       let txt = b[txtType], attr = getTxtAttr(b), tip = '';
       if (useToolTip && attr.cls.replace('char', '').length > 1) {
-        let toward = (b.block_no === lastBlockNo && b.column_no > lastColumnNo - 3) ? 'top' : 'bottom';
+        let toward = (b.block_no === lastBlockNo && b.column_no > 3 && b.column_no > lastColumnNo - 3) ? 'top' : 'bottom';
         tip = `data-toggle="tooltip" data-html="true" data-placement="${toward}" title="${attr.tip}"`;
       }
       if (txtType === 'txt' && !b[txtType]) txt = b['ocr_txt'];

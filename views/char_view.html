@@ -33,7 +33,7 @@
   </style>
 </head>
 
-<body class="widescreen">
+<body class="widescreen wide-txt">
 <div class="app-main">
   <div class="main">
     <div class="m-header">
@@ -152,6 +152,7 @@
   let char = $.box.data.boxes[0];
   $.txt.setChar(char);
   $.box.switchCurBox(char);
+  // $('.m-footer .box-auth').text(char['alternatives']);
 
   $.box.onBoxChanged(function (box, reason, param) {
     if (reason === 'zoom') {

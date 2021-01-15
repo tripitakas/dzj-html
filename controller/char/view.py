@@ -109,7 +109,11 @@ class CharViewHandler(CharHandler):
             page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, project) or {}
             if page:
                 c = page['chars'][0]
-                char.update({k: c[k] for k in ['x', 'y', 'w', 'h', 'box_logs'] if c.get(k)})
+                if char.get('error'):
+                    char.update(c)
+                    char.pop('error', 0)
+                else:
+                    char.update({k: c[k] for k in ['x', 'y', 'w', 'h', 'box_logs'] if c.get(k)})
             char['txt_level'] = char.get('txt_level') or 1
             char['box_level'] = char.get('box_level') or 1
             char['txt_point'] = self.get_required_type_and_point(char)
