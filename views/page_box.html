@@ -29,8 +29,12 @@
       line-height: 1.42857143;
     }
 
-    .panel-list a:hover {
+    .panel-list li:hover {
       background-color: var(--Grey_Line);
+    }
+
+    .panel-list li.active {
+      background-color: var(--Grey_Lighter);
     }
 
     .panel-list .divider {
@@ -100,7 +104,7 @@
     }
 
     .m-footer .added {
-      color: #A0522D;
+      color: #BA55D3;
     }
 
     .m-footer .changed {
@@ -174,10 +178,10 @@
       <div class="m-content box-holder cut-mode show-char"></div>
       <div class="m-panel slim-bar hide">
         <ul id="hint-list" class="panel-list">
-          <li id="no-hint" class="hint"><a href="#">当前状态</a></li>
-          <li id="ini-hint" class="hint"><a href="#">初始状态</a></li>
-          <li id="cmb-hint" class="hint"><a href="#">总的修改</a></li>
-          <li id="play-hint" class="hint"><a href="#">播放修改</a></li>
+          <li id="no-hint" class="hint"><a>当前状态</a></li>
+          <li id="ini-hint" class="hint"><a>初始状态</a></li>
+          <li id="cmb-hint" class="hint"><a>总的修改</a></li>
+          <li id="play-hint" class="hint"><a>播放修改</a></li>
         </ul>
       </div>
       <div class="m-toolbar h-toolbar cut-mode no-arrow">
@@ -215,7 +219,7 @@
     </div><!--m-alert-->
 
     <div class="m-footer">
-      <span>
+      <span class="fl">
         <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
         {% if globals().get('task_type') %}
         <span class="task-info">
@@ -231,7 +235,9 @@
         <span class="changed">修改(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
         <span class="deleted">删除(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
       </span>
-      <span>当前：<span class="char-name">未选中</span><span class="char-info"></span></span>
+      <span class="fr">
+        <span class="char-info">当前：<span class="char-name">未选中</span><span class="char-id"></span></span>
+      </span>
     </div><!--m-footer-->
   </div>
 </div>

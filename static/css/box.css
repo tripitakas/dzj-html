@@ -249,22 +249,9 @@
   fill-opacity: 0.6;
 }
 
-/*-操作痕迹-*/
-.box.hint {
-  display: none;
-}
-
-.box.h-hide {
-  display: none !important;
-}
-
-.box.h-show {
-  display: block !important;
-}
-
-/*--1.用户痕迹--*/
+/*-操作痕迹*/
 .box.u-added {
-  stroke: #A0522D;
+  stroke: #BA55D3;
   stroke-opacity: 0.7;
 }
 
@@ -277,62 +264,71 @@
   stroke-opacity: 0.7;
 }
 
-.usr-hint .box,
-.usr-hint .handle {
+/*--这里统一规定显示或隐藏，子类规定显示效果即可--*/
+.box.hint {
   display: none;
 }
 
-.usr-hint.show-all .hint,
-.usr-hint.show-char .char.hint,
-.usr-hint.show-block .block.hint,
-.usr-hint.show-column .column.hint {
+.hint.h-former {
+  display: none;
+}
+
+.show-hint .handle,
+.show-hint .box:not(.ini-hint):not(.box-hint) {
+  display: none;
+}
+
+.show-hint.show-all .hint,
+.show-hint.show-char .char.hint,
+.show-hint.show-block .block.hint,
+.show-hint.show-column .column.hint {
   display: block !important;
 }
 
-.usr-hint .hint.h-added {
-  stroke: #A0522D !important;
+.show-hint .hint,
+.show-hint .ini-hint,
+.show-hint .box-hint {
+  fill: none;
+  stroke: grey;
+  stroke-opacity: 0.3;
+}
+
+/*--1.初始状态--*/
+.init-hint .box {
+  stroke-opacity: 0.7;
+}
+
+.init-hint .box.h-init {
+  stroke: grey;
+}
+
+/*--2.用户、时间痕迹--*/
+.user-hint .hint.h-added,
+.time-hint .hint.h-added {
+  stroke: #BA55D3 !important;
   stroke-opacity: 0.7 !important;
 }
 
-.usr-hint .hint.h-deleted {
-  cursor: pointer;
+.user-hint .hint.h-deleted,
+.time-hint .hint.h-deleted {
   fill: white;
+  cursor: pointer;
   fill-opacity: 0;
   stroke: black !important;
   stroke-opacity: 0.7 !important;
 }
 
-.usr-hint .hint.h-changed {
+.user-hint .hint.h-changed,
+.time-hint .hint.h-changed {
   stroke: red !important;
   stroke-opacity: 0.7 !important;
 }
 
-/*--2.初始状态--*/
-.box.init {
-  display: none;
-}
-
-.ini-hint .handle {
-  display: none;
-}
-
-.ini-hint .box.b-added,
-.ini-hint .box.b-changed,
-.ini-hint .box.b-deleted {
-  display: none;
-}
-
-.ini-hint.show-all .init,
-.ini-hint.show-char .char.init,
-.ini-hint.show-block .block.init,
-.ini-hint.show-column .column.init {
-  display: block !important;
-}
-
-.ini-hint .box {
-  fill: none;
-  stroke: grey !important;
-  stroke-opacity: 0.5 !important;
+.time-hint .hint.h-former {
+  display: block;
+  stroke-dasharray: 3, 3;
+  stroke: red !important;
+  stroke-opacity: 0.7 !important;
 }
 
 /*--3.总的修改--*/
@@ -340,28 +336,28 @@
   display: none;
 }
 
-.cmb-hint .handle {
+.comb-hint .handle {
   display: none;
 }
 
-.cmb-hint .box {
+.comb-hint .box {
   fill: none !important;
   stroke: grey !important;
   stroke-opacity: 0.2 !important;
 }
 
-.cmb-hint .box.b-added {
-  stroke: #A0522D !important;
+.comb-hint .box.b-added {
+  stroke: #BA55D3 !important;
   stroke-opacity: 0.7 !important;
 }
 
-.cmb-hint .box.b-deleted:not(.b-added) {
+.comb-hint .box.b-deleted:not(.b-added) {
   display: block !important;
   stroke: black !important;
   stroke-opacity: 0.7 !important;
 }
 
-.cmb-hint .box.b-changed:not(.b-added):not(.b-deleted) {
+.comb-hint .box.b-changed:not(.b-added):not(.b-deleted) {
   stroke: red !important;
   stroke-opacity: 0.7 !important;
 }

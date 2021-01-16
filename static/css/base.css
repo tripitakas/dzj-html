@@ -1017,18 +1017,8 @@ body.widescreen {
   }
 }
 
-.m-footer .page-name {
-  cursor: pointer;
-}
-
+.m-footer .page-name,
 .m-footer .char-name {
   cursor: pointer;
-}
-
-.page-name {
   margin-right: 10px;
-}
-
-.char-info {
-  margin-left: 10px;
 }

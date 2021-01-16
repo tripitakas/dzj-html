@@ -84,7 +84,7 @@
   }
 
   function mouseDown(e) {
-    if (!isCutMode() || !status.curBoxType || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType) return;
     e.preventDefault();
 
     if (e.button === 2) return; // 鼠标右键
@@ -117,7 +117,7 @@
   }
 
   function mouseUp(e) {
-    if (!isCutMode() || !status.curBoxType || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType) return;
     e.preventDefault();
 
     let pt = self.getPoint(e);
@@ -402,11 +402,10 @@
   }
 
   function canHit(box) {
-    if (status.readonly || !box || !box.elem || !box.elem.attrs) return false;
+    if (!box || !box.elem || !box.elem.attrs) return false;
     if (status.curBoxType !== 'all' && status.curBoxType !== box.boxType) return false;
     return !self.hasClass(box, 'hide')
         && !self.hasClass(box, 'hint')
-        && !self.hasClass(box, 'readonly')
         && !self.hasClass(box, 's-deleted')
         && !self.hasClass(box, 'u-deleted')
         && !self.hasClass(box, 'b-deleted')

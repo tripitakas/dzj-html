@@ -107,17 +107,17 @@ $('.toggle-mode').on('click', function () {
 
 
 //----------------------切分操作----------------------
+// 更多框操作
+$('#toggle-box-more').on('click', function () {
+  if (!$.box.isCutMode()) return;
+  $('#box-op').toggleClass('hide');
+});
+
 // 切换蒙白、透视、大小窄扁、重叠等属性
 $('.toggle-shape').on('click', function () {
   if (!$.box.isCutMode()) return;
   $(this).toggleClass('active');
   $.page.toggleCurShape($(this).attr('id').replace('toggle-', ''), $(this).hasClass('active'));
-});
-
-// 更多框操作
-$('#toggle-box-more').on('click', function () {
-  if (!$.box.isCutMode()) return;
-  $('#box-op').toggleClass('hide');
 });
 
 // 显隐栏框、列框、字框、图框、所有
@@ -204,13 +204,6 @@ $('#toggle-multi').on('click', function () {
 
 
 //----------------------修改历史----------------------
-// 我的修改痕迹
-$('#toggle-my-hint').on('click', function () {
-  if (!$.box.isCutMode()) return;
-  $(this).toggleClass('active');
-  $.page.toggleMyHint(currentUserId, $(this).hasClass('active'));
-});
-
 // 显隐操作历史
 $('#op-hint').on('click', function () {
   $(this).toggleClass('active');
@@ -218,55 +211,91 @@ $('#op-hint').on('click', function () {
   setStorage('boxOpHint', $(this).hasClass('active'));
 });
 
+// 我的修改痕迹
+$('#toggle-my-hint').on('click', function () {
+  if (!$.box.isCutMode()) return;
+  $(this).toggleClass('active');
+  $.page.toggleCurHint('my', currentUserId, !$(this).hasClass('active'));
+  $('#hint-list li.active').removeClass('active');
+});
+
 // 操作历史-当前状态
 $('#hint-list #no-hint').on('click', function () {
   if (!$.box.isCutMode()) return;
+  $.page.toggleCurHint(null, null, true);
   $('#toggle-my-hint').removeClass('active');
-  $.box.hideAllHint();
+  $('#hint-list li.active').removeClass('active');
+  $(this).addClass('active');
 });
 
 // 操作历史-初始状态
 $('#hint-list #ini-hint').on('click', function () {
   if (!$.box.isCutMode()) return;
-  $.page.toggleHint('ini');
+  $.page.toggleCurHint('init');
+  $('#toggle-my-hint').removeClass('active');
+  $('#hint-list li.active').removeClass('active');
+  $(this).addClass('active');
 });
 
 // 操作历史-总的修改
 $('#hint-list #cmb-hint').on('click', function () {
   if (!$.box.isCutMode()) return;
-  $.page.toggleHint('cmb');
+  $.page.toggleCurHint('comb');
+  $('#toggle-my-hint').removeClass('active');
+  $('#hint-list li.active').removeClass('active');
+  $(this).addClass('active');
 });
 
-// 操作历史-播放
+// 操作历史-某人修改
+$(document).on('click', '#hint-list .user-hint', function () {
+  if (!$.box.isCutMode()) return;
+  $.page.toggleCurHint('user', $(this).attr('title'));
+  $('#toggle-my-hint').removeClass('active');
+  $('#hint-list li.active').removeClass('active');
+  $(this).addClass('active');
+});
+
+// 操作历史-某时修改
+$(document).on('click', '#hint-list .time-hint', function () {
+  if (!$.box.isCutMode()) return;
+  $.page.toggleCurHint('time', $(this).attr('title'));
+  $('#toggle-my-hint').removeClass('active');
+  $('#hint-list li.active').removeClass('active');
+  $(this).addClass('active');
+});
+
+// 操作历史-播放修改
 $('#hint-list #play-hint').on('click', function () {
   if (!$.box.isCutMode()) return;
   if (!$.box.eStatus.times.length)
     return bsShow('提示', '没有修改历史', 'warning', 800);
-  !$('#toggle-all').hasClass('active') && $('#toggle-all').click();
+  $.page.toggleCurBoxType('all', true);
   $('#op-hint').removeClass('active');
+  $('#toggle-my-hint').removeClass('active');
   let play = (i) => {
     let t = $.box.eStatus.times[i];
     bsLoading('', `${t.create_time} @ ${t.username}`);
-    $.page.toggleHint('time', t.create_time);
+    $.page.toggleCurHint('time', t.create_time);
   };
 
   play(0);
   let idx = 1, itv = setInterval(function () {
     if (idx >= $.box.eStatus.times.length) {
-      clearInterval(itv);
       bsHide();
-      $.box.hideAllHint();
-      $.page.updateFootHintNo();
+      clearInterval(itv);
+      $.page.toggleCurHint(null, null, true);
     } else {
       play(idx++);
     }
-  }, 2000);
+  }, 1000);
 });
 
 // 操作历史-底部状态栏
 $('.m-footer .task-user').on('click', function () {
   $(this).toggleClass('active');
-  $.page.toggleHint('usr', $(this).attr('id'), !$(this).hasClass('active'));
+  $.page.toggleCurHint('user', $(this).attr('id'), !$(this).hasClass('active'));
+  $('#hint-list li.active').removeClass('active');
+  $('#toggle-my-hint').removeClass('active');
 });
 
 

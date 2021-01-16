@@ -36,10 +36,9 @@
     toggleNo: toggleNo,
     toggleLink: toggleLink,
     toggleMode: toggleMode,
+    toggleCurHint: toggleCurHint,
     toggleCurShape: toggleCurShape,
     toggleCurBoxType: toggleCurBoxType,
-    toggleHint: toggleHint,
-    toggleMyHint: toggleMyHint,
     checkAndExport: checkAndExport,
     initHeadHintList: initHeadHintList,
     updateHeadBoxKindNo: updateHeadBoxKindNo,
@@ -186,28 +185,24 @@
     updateFootHintNo();
   }
 
-  function toggleHint(type, value, hide) {
+  function toggleCurHint(type, value, hide) {
     if (hide) {
-      toggleCurBoxType(pStatus.cut.boxType, true);
       $.box.hideAllHint();
-    } else if (type === 'ini') $.box.showIniHint();
-    else if (type === 'cmb') $.box.showCmbHint();
-    else if (type === 'usr') $.box.showUsrHint(value);
-    else if (type === 'time') $.box.showTimeHint(value);
-    $('#toggle-my-hint').removeClass('active');
-    updateFootHintNo();
-  }
-
-  function toggleMyHint(userId, show) {
-    if (show) {
-      pStatus.cut.boxType = $.box.status.curBoxType;
-      toggleCurBoxType('all', true);
-      $.box.showMyHint(userId);
+      $('.m-footer .hint-info').addClass('hide');
+      toggleCurBoxType(pStatus.cut.boxType, true);
+    } else if (type === 'init') {
+      $.box.showInitHint();
+      $('.m-footer .hint-info').addClass('hide');
     } else {
-      toggleCurBoxType(pStatus.cut.boxType, true);
-      $.box.hideAllHint();
+      if (type === 'comb') $.box.showCombHint();
+      else if (type === 'my') $.box.showMyHint(value);
+      else if (type === 'user') $.box.showUserHint(value);
+      else if (type === 'time') $.box.showTimeHint(value);
+      updateFootHintNo();
+      $('.m-footer .hint-info').removeClass('hide');
+      // let boxTypes = $.box.eStatus.hint.boxTypes;
+      // toggleCurBoxType(boxTypes.length === 1 ? boxTypes[0] : 'all', true);
     }
-    updateFootHintNo();
   }
 
   function updateHeadBoxKindNo() {
@@ -233,14 +228,14 @@
       html += '<li class="divider"></li>';
       $.box.eStatus.users.forEach(function (item) {
         let a = `<a>${item.username} 的修改</a>`;
-        html += `<li class="usr-hint hint" onclick="$.page.toggleHint('usr','${item.user_id}')">${a}</li>`;
+        html += `<li class="user-hint hint" title="${item.user_id}">${a}</li>`;
       });
     }
     if ($.box.eStatus.times.length) {
       html += '<li class="divider"></li>';
       $.box.eStatus.times.forEach(function (item) {
         let a = `<a>${item.create_time + '@' + item.username}</a>`;
-        html += `<li class="time-hint hint" onclick="$.page.toggleHint('time','${item.create_time}')">${a}</li>`;
+        html += `<li class="time-hint hint" title="${item.create_time}">${a}</li>`;
       });
     }
     if (html) $('#hint-list').append(html);
@@ -254,15 +249,10 @@
   }
 
   function updateFootHintNo() {
-    if ($.box.eStatus && $.box.eStatus.hint.type) {
-      let no = $.box.getHintNo();
-      $('.m-footer .hint-info .added .s-no').text(no.added || 0);
-      $('.m-footer .hint-info .deleted .s-no').text(no.deleted || 0);
-      $('.m-footer .hint-info .changed .s-no').text(no.changed || 0);
-      $('.m-footer .hint-info').removeClass('hide');
-    } else {
-      $('.m-footer .hint-info').addClass('hide');
-    }
+    let no = $.box.getHintNo();
+    $('.m-footer .hint-info .added .s-no').text(no.added || 0);
+    $('.m-footer .hint-info .deleted .s-no').text(no.deleted || 0);
+    $('.m-footer .hint-info .changed .s-no').text(no.changed || 0);
   }
 
   function updateFootCharInfo(box) {
@@ -270,10 +260,10 @@
       let t = {char: '字框', column: '列框', block: '栏框', image: '图框'};
       $('.m-footer .char-name').text(`${t[box.boxType]}#${box.cid}#${box[box.boxType + '_id'] || ''}`);
       let info = `${box.txt || box['ocr_txt'] || ''}${box.readonly ? '/只读' : ''}`;
-      $('.m-footer .char-info').text(info);
+      $('.m-footer .char-id').text(info);
     } else {
       $('.m-footer .char-name').text('未选中');
-      $('.m-footer .char-info').text('');
+      $('.m-footer .char-id').text('');
     }
   }
 

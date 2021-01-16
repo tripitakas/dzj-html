@@ -246,10 +246,8 @@ def update_page_code(db):
 
 def reset_logs(boxes):
     for b in boxes:
-        b.pop('new', 0)
-        b.pop('added', 0)
-        b.pop('changed', 0)
-        b.pop('updated', 0)
+        for k in ['new', 'added', 'changed', 'updated']:
+            b.pop(k, 0)
         if not b.get('box_logs'):
             continue
         # 设置added/updated
@@ -259,11 +257,14 @@ def reset_logs(boxes):
                 b['changed'] = True
         else:
             b['changed'] = True
-
         # 设置log
         for i, log in enumerate(b['box_logs']):
-            if log.get('updated_time'):
-                log['create_time'] = log['updated_time']
+            # 检查pos
+            if log.get('x') and not log.get('pos'):
+                log['pos'] = {k: log[k] for k in ['x', 'y', 'w', 'h'] if log.get(k)}
+            for k in ['x', 'y', 'w', 'h']:
+                log.pop(k, 0)
+            # 检查op
             if i == 0:
                 if not log.get('username'):
                     log['op'] = 'initial'
@@ -271,6 +272,10 @@ def reset_logs(boxes):
                     log['op'] = 'added'
             else:
                 log['op'] = 'changed'
+            # 检查updated_time
+            if log.get('updated_time'):
+                log['create_time'] = log['updated_time']
+                log.pop('updated_time', 0)
         # log按时间排序
         if len(b['box_logs']) > 1:
             if not b['box_logs'][0].get('create_time'):
@@ -284,7 +289,7 @@ def reset_logs(boxes):
 def update_page_logs(db):
     """ 重置page表的chars.box_logs字段"""
     size = 1000
-    cond = {}
+    cond = {'name': 'JS_230_1148'}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
@@ -302,7 +307,7 @@ def update_page_logs(db):
             db.page.update_one({'_id': p['_id']}, {'$set': {**update, 'updated': True}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='update_page_logs', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
