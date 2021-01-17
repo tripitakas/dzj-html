@@ -490,8 +490,10 @@
         return addClass(b.noElem, 'hide');
       let no = b[b.boxType + '_no'] || '0';
       let noId = 'no-' + b.boxType + b.cid;
+      let parentNo = b.boxType === 'column' ? b.block_no : b.column_no;
+      let cls = 'no no-' + b.boxType + (parentNo % 2 ? ' odd' : ' even');
       if (b.noElem && (b.op || '') !== 'changed')
-        return $('#' + noId + ' tspan').text(no);
+        return $('#' + noId).attr('class', cls).find('tspan').text(no);
 
       let w = b.elem.attrs.width, fs = 0;
       if (b.boxType !== 'char') { // 宽度从6~80，对应字号从6到32
@@ -505,8 +507,6 @@
 
       b.noElem && b.noElem.remove();
       let center = getHandlePt(b.elem, 8);
-      let parentNo = b.boxType === 'column' ? b.block_no : b.column_no;
-      let cls = 'no no-' + b.boxType + (parentNo % 2 ? ' odd' : ' even');
       b.noElem = data.paper.text(center.x, center.y, no).attr({
         'class': cls, 'id': noId, 'font-size': fs * data.ratio
       });
