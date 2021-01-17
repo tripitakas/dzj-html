@@ -463,7 +463,8 @@
     }
 
     function setSubColumns(columnId, columnChars) {
-      let sub = {columns: [], col: [], no: 1, isNew: false};
+      let subColumns = [];
+      let sub = {col: [], no: 1, isNew: false};
       columnChars.forEach((c, i) => {
         if (!sub.col.length) return sub.col.push(c);
         let lst = sub.col[sub.col.length - 1];
@@ -474,18 +475,26 @@
           sub.isNew = true;
         if (sub.isNew) {
           let p = getOuterRange(sub.col);
-          sub.columns.push({x: p.x, y: p.y, w: p.w, h: p.h, 'sub_no': sub.no, 'column_id': columnId + '#' + sub.no});
+          let charCids = sub.col.map((c) => c.cid);
+          subColumns.push({
+            x: p.x, y: p.y, w: p.w, h: p.h, 'char_cids': charCids, 'sub_no': sub.no,
+            'column_id': columnId + 's' + sub.no,
+          });
           Object.assign(sub, {col: [c], no: sub.no + 1, isNew: false});
         } else {
-          sub.columns.push(c);
+          sub.col.push(c);
         }
       });
       if (sub.col.length) {
         let p = getOuterRange(sub.col);
-        sub.columns.push({x: p.x, y: p.y, w: p.w, h: p.h, 'sub_no': sub.no, 'column_id': columnId + '#' + sub.no});
+        let charCids = sub.col.map((c) => c.cid);
+        subColumns.push({
+          x: p.x, y: p.y, w: p.w, h: p.h, 'char_cids': charCids, 'sub_no': sub.no,
+          'column_id': columnId + 's' + sub.no
+        });
       }
-      if (columnId !== 'b0c0' && sub.columns.length > 1)
-        columnDict[columnId]['sub_columns'] = sub.columns;
+      if (columnId !== 'b0c0' && subColumns.length > 1)
+        columnDict[columnId]['sub_columns'] = subColumns;
     }
 
     if (!chars || !chars.length) return;

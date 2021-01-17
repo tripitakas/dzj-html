@@ -398,31 +398,31 @@ class BoxOrder(object):
                         small_start = None
 
         def set_sub_columns():
-            sub_columns, sub_col, sub_no, new_sub = [], [], 1, False
+            sub_columns = []
+            sub_col, sub_no, new_sub = [], 1, False
             for i, c in enumerate(column_chars):
                 if not sub_col:
                     sub_col.append(c)
                     continue
                 lst = sub_col[-1]
                 if c.get('is_small'):
-                    if lst.get('is_small'):
-                        if c['y'] < lst['y'] + lst['h'] / 2:
-                            new_sub = True
-                    else:
-                        new_sub = True
-                else:
-                    if lst.get('is_small'):
-                        new_sub = True
+                    new_sub = not lst.get('is_small') or (c['y'] < lst['y'] + lst['h'] / 2)
+                elif lst.get('is_small'):
+                    new_sub = True
 
                 if new_sub:
                     pos = cls.get_outer_range(sub_col)
-                    sub_columns.append({**pos, 'sub_no': sub_no, 'column_id': '%s#%s' % (column_id, sub_no)})
+                    col_id = '%ss%s' % (column_id, sub_no)
+                    char_cids = [c['cid'] for c in sub_col if c.get('cid')]
+                    sub_columns.append({**pos, 'char_cids': char_cids, 'sub_no': sub_no, 'column_id': col_id})
                     sub_col, sub_no, new_sub = [c], sub_no + 1, False
                 else:
                     sub_col.append(c)
             if sub_col:
                 pos = cls.get_outer_range(sub_col)
-                sub_columns.append({**pos, 'sub_no': sub_no, 'column_id': '%s#%s' % (column_id, sub_no)})
+                col_id = '%ss%s' % (column_id, sub_no)
+                char_cids = [c['cid'] for c in sub_col if c.get('cid')]
+                sub_columns.append({**pos, 'char_cids': char_cids, 'sub_no': sub_no, 'column_id': col_id})
             if sub_columns and column_id != 'b0c0' and len(sub_columns) > 1:
                 column_dict[column_id]['sub_columns'] = sub_columns
 

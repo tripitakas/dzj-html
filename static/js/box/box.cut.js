@@ -508,12 +508,18 @@
 
   function exportSubmitData() {
     let r = data.initRatio;
+    let subColumns = {};
     let op = {blocks: [], columns: [], chars: [], images: []};
     let order = {blocks: [], columns: [], chars: [], images: []};
     data.boxes.forEach(function (box) {
       // s-deleted是系统删除，无需传给后台
       if (self.hasClass(box, 's-deleted')) return;
+      // sub columns
+      if (box.boxType === 'column' && box['sub_columns'])
+        subColumns[box['column_id']] = box['sub_columns'];
+      // order
       order[box.boxType + 's'].push([box.cid, box[box.boxType + '_id'] || '']);
+      // op
       if (!box.op || !box.elem || !box.elem.attrs) return;
       let b = box.elem.attrs, p = {cid: box.cid, op: box.op};
       Object.assign(p, {
@@ -523,7 +529,7 @@
       if (box.op === 'changed' && box.x === p.x && box.y === p.y && box.w === p.w && box.h === p.h) return;
       op[box.boxType + 's'].push(p);
     });
-    return {op: op, order: order};
+    return {op: op, order: order, sub_columns: subColumns};
   }
 
 }());
