@@ -126,13 +126,6 @@ $('.toggle-box').on('click', function () {
   $.page.toggleCurBoxType($(this).attr('id').replace('toggle-', ''), $(this).hasClass('active'));
 });
 
-// 点击框
-$(document).on('click', '.box', function () {
-  if ($(this).attr('class').split(' ').indexOf('current') > -1 || $.box.cStatus) return;
-  let idx = $(this).attr('id').split('#').pop();
-  $.box.switchCurBox($.box.data.boxes[idx]);
-});
-
 // 系统配置
 $('#cut-config').on('click', function () {
   $('#pageConfigModal .may_wrong').text($.box.eStatus.mayWrong);

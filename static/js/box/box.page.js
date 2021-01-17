@@ -249,6 +249,7 @@
   }
 
   function updateFootHintNo() {
+    if (!$.box.getHintNo) return;
     let no = $.box.getHintNo();
     $('.m-footer .hint-info .added .s-no').text(no.added || 0);
     $('.m-footer .hint-info .deleted .s-no').text(no.deleted || 0);

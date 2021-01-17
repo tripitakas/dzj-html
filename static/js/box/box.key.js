@@ -12,7 +12,7 @@
         $.mapKey(k.trim(), func, {direction: 'down'});
       });
     },
-    bindBaseKeys: function () {
+    bindBaseKeys: function (readonly) {
       let self = this;
       let on = self.bindKey;
 
@@ -62,6 +62,7 @@
         let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
         self.navigate('down', navType);
       });
+      if (readonly) return;
       on('back,del,x', () => {
         self.isMode('cut') ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
       });

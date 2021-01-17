@@ -75,8 +75,7 @@
       margin-left: 12px;
     }
 
-    .m-footer .fr {
-      width: 49%;
+    .m-footer {
       display: flex;
       justify-content: space-between;
     }
@@ -166,11 +165,13 @@
         <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
         <span class="book-meta">{{book_meta}}</span>
       </span>
-      <span class="fr">
+      <span class="center">
         <span class="txt-type">
           不一致: <span class="is-diff">_</span>
           已修改: <span class="changed">阿</span>
         </span>
+      </span>
+      <span class="fr">
         <span class="char-info">当前：<span class="char-name">未选中</span><span class="char-id"></span></span>
       </span>
     </div>
@@ -252,6 +253,7 @@
 <script src="{{static_url('js/box/raphael.js')}}"></script>
 <script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
 <script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.cut.js')}}"></script>
 <script src="{{static_url('js/box/box.page.js')}}"></script>
 <script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/page-box.js')}}"></script>
@@ -261,14 +263,13 @@
   if (!parseInt(('{{len(page.get("chars") or [])}}')) || !getStorage('tptkRight', true)) {
     $('#toggle-right').removeClass('active');
     $('#right-region').addClass('hide');
+    $('.m-footer .txt-type').addClass('hide');
   }
   if (!parseInt(('{{len(page.get("chars") or [])}}')) || !getStorage('tptkProof', true)) {
     $('#toggle-proof-panel').removeClass('active');
     $('#panel-region').addClass('hide');
   }
-  if (!parseInt(('{{len(page.get("chars") or [])}}'))) {
-    $('.m-proof .txt-type').addClass('hide');
-  }
+
   $.page.init({
     readonly: true,
     holder: '.box-holder',
@@ -285,7 +286,7 @@
     showImage: $('#toggle-img').hasClass('active'),
     blurImage: getStorage('tptkBlur', false) ? 0.2 : 1,
   });
-  $.box.bindBaseKeys();
+  $.box.bindBaseKeys(true);
   $.txt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
   if ('{{cid}}'.length) $.box.switchCurBox($.box.findFirstBox('char', '{{cid}}'));
   $('#toggle-blur').toggleClass('active', getStorage('tptkBlur', false));
@@ -304,6 +305,7 @@
   $('#toggle-right').on('click', function () {
     $(this).toggleClass('active');
     $('#right-region').toggleClass('hide', !$(this).hasClass('active'));
+    $('.m-footer .txt-type').toggleClass('hide', !$(this).hasClass('active'));
     setStorage('tptkRight', $(this).hasClass('active'));
   });
   $('#toggle-proof-panel').on('click', function () {
