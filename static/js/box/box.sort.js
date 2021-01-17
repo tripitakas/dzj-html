@@ -339,12 +339,12 @@
           let x = Math.min(column1['x'], column2['x']);
           let w = Math.max(column1['x'] + column1['w'], column2['x'] + column2['w']) - x;
           let hrNbs = getBoxesOfRegion(chars, {x: x, y: cp['y'], w: w, h: cp['h']}, 0.1);
-          let hrNbs1 = hrNbs.filter((n) => n['column_id'] = c['column_id']);
-          let hrNbs2 = hrNbs.filter((n) => n['column_id'] = c['column_id2']);
+          let hrNbs1 = hrNbs.filter((n) => n['column_id'] === c['column_id']);
+          let hrNbs2 = hrNbs.filter((n) => n['column_id'] === c['column_id2']);
           // 比较把c放过去之后两列的水平宽度
           let hrW1 = getOuterRange(hrNbs1)['w'];
           let hrW2 = getOuterRange(hrNbs2.concat([c]))['w'];
-          if (hrW1 < hrW2) c['column_id'] = c['column_id2'];
+          if (hrW2 < hrW1) c['column_id'] = c['column_id2'];
         }
       });
       // 3.根据column_id分组
