@@ -15,7 +15,7 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
-from controller.base import BaseHandler as Bh
+from controller.page.base import PageHandler as Ph
 
 
 def is_changed(a, b):
@@ -31,10 +31,6 @@ def is_changed(a, b):
         if a['column'][k] != b['column'][k]:
             return True
     return False
-
-
-def is_valid(txt):
-    return txt not in [None, '', '■']
 
 
 def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, username=None):
@@ -72,19 +68,12 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
                         # ocr_txt
-                        m['ocr_txt'] = c.get('alternatives', '')[:1]
-                        if is_valid(m.get('ocr_col')) and m['ocr_col'] != m.get('ocr_txt') and m['ocr_col'] == m.get(
-                                'cmp_txt'):
-                            m['ocr_txt'] = m['ocr_col']
+                        m['ocr_txt'] = Ph.get_cmb_txt(c)
                         m['txt'] = c.get('txt') or m['ocr_txt']
                         # un_required
-                        m['un_required'] = False
-                        if m.get('cc', 0) >= 990 and m.get('cmp_txt', 0) == m.get('alternatives', '')[:1]:
-                            m['un_required'] = True
+                        m['un_required'] = Ph.is_un_required(c)
                         # diff
-                        txts = [c.get('alternatives') and c['alternatives'][0], c.get('ocr_col'), c.get('cmp_txt')]
-                        if len(set(t for t in txts if is_valid(t))) > 1:
-                            m['diff'] = True
+                        m['diff'] = Ph.is_source_txt_diff(c)
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         if 'column_no' not in c:
                             c['column_no'] = c.pop('line_no')
@@ -128,7 +117,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                    deleted_char=[c['name'] for c in deleted], invalid_char=invalid_chars,
                    valid_pages=valid_pages, invalid_pages=invalid_pages,
                    create_time=datetime.now())
-        Bh.add_op_log(db, 'gen_chars', 'finished', log, username)
+        Ph.add_op_log(db, 'gen_chars', 'finished', log, username)
 
 
 if __name__ == '__main__':

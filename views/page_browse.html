@@ -10,8 +10,7 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    .m-footer .fr {
-      width: 49%;
+    .m-footer {
       display: flex;
       justify-content: space-between;
     }
@@ -89,11 +88,13 @@
       <span class="fl">
         <span class="page-info">页编码：<span class="page-name disabled">{{page['name']}}</span></span>
       </span>
-      <span class="fr">
+      <span class="center">
         <span class="txt-type">
           不一致: <span class="is-diff">_</span>
           已修改: <span class="changed">阿</span>
         </span>
+      </span>
+      <span class="fr">
         <span>当前：<span class="char-name">未选中</span><span class="char-info"></span></span>
       </span>
     </div>
@@ -148,6 +149,7 @@
 <script src="{{static_url('js/box/raphael.js')}}"></script>
 <script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
 <script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.cut.js')}}"></script>
 <script src="{{static_url('js/box/box.page.js')}}"></script>
 <script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/page-box.js')}}"></script>
@@ -156,6 +158,7 @@
   if (!getStorage('browseRight', true)) {
     $('#toggle-right').removeClass('active');
     $('#right-region').addClass('hide');
+    $('.m-footer .txt-type').addClass('hide');
   }
   $.page.init({
     readonly: true,
@@ -173,7 +176,7 @@
     showImage: $('#toggle-img').hasClass('active'),
     blurImage: getStorage('browseBlur', false) ? 0.2 : 1,
   });
-  $.box.bindBaseKeys();
+  $.box.bindBaseKeys(true);
   $('#toggle-blur').toggleClass('active', getStorage('browseBlur', false));
   if (getStorage('browseBox', '')) $('#toggle-' + getStorage('browseBox')).addClass('active');
 
@@ -207,6 +210,7 @@
   $('#toggle-right').on('click', function () {
     $(this).toggleClass('active');
     $('#right-region').toggleClass('hide', !$(this).hasClass('active'));
+    $('.m-footer .txt-type').toggleClass('hide', !$(this).hasClass('active'));
     setStorage('browseRight', $(this).hasClass('active'));
   });
   $('#toggle-more').on('click', function () {

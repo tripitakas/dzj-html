@@ -108,8 +108,10 @@
     let html = (boxLogs || []).map(function (log) {
       let t = {initial: '初始', added: '新增', deleted: '删除', changed: '修改'};
       let meta = log.op ? `<label>操作</label><span>${t[log.op]}</span><br/>` : '';
-      let pos = ['x', 'y', 'w', 'h'].map((p) => log.pos[p] || log[p] || '0').join('/');
-      meta += log.pos ? `<label>坐标</label><span class="pos">${pos}</span><br/>` : '';
+      if (log.pos || log.x) {
+        let pos = ['x', 'y', 'w', 'h'].map((p) => (log.pos ? log.pos[p] : log[p]) || '0').join('/');
+        meta += `<label>坐标</label><span class="pos">${pos}</span><br/>`;
+      }
       meta += log.username ? `<label>校对人</label><span>${log.username}</span><br/>` : '';
       meta += log.create_time ? `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>` : '';
       meta += log.updated_time ? `<label>更新时间</label><span>${toLocalTime(log.updated_time)}</span><br/>` : '';

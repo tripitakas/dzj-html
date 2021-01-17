@@ -31,7 +31,7 @@
     undoLogs: [],                                 // undo操作堆栈
     mayWrong: '',                                 // 易错字列表
     charMeanA: 0,                                 // 字框的平均面积
-    hint: {type: 0, user_id: 0, create_time: 0},  // 当前hint，type可为usr/ini/cmb
+    hint: {type: 0, boxTypes: [], user_id: 0, create_time: 0},  // 当前hint
   };
 
   $.extend($.box, {
@@ -42,10 +42,10 @@
     canRedo: canRedo,
     getHintNo: getHintNo,
     showMyHint: showMyHint,
-    showUsrHint: showUsrHint,
-    showIniHint: showIniHint,
-    showCmbHint: showCmbHint,
     hideAllHint: hideAllHint,
+    showUserHint: showUserHint,
+    showInitHint: showInitHint,
+    showCombHint: showCombHint,
     showTimeHint: showTimeHint,
     initUserAndTime: initUserAndTime,
     resetOverlap: resetOverlap,
@@ -56,104 +56,148 @@
     updateBoxOverlap: updateBoxOverlap,
   });
 
-  //-------1.操作痕迹-------
+  //-------1.修改痕迹-------
+  // 修改痕迹的切换是通过在holder上设置不同的css样式来实现的
+  // 包括：初始状态init-hint、用户痕迹user-hint、时间痕迹time-hint、综合修改comb-hint等
+
+  // 比较两个时间的大小
+  function cmpTime(a, b) {
+    a = typeof a === 'object' ? a.create_time : a;
+    b = typeof b === 'object' ? b.create_time : b;
+    return new Date(a || '1970-01-01') - new Date(b || '1970-01-01');
+  }
+
   // 设置字框中的用户和时间信息
   function initUserAndTime() {
     let users = {}, times = {};
     data.boxes.forEach(function (box) {
-      (box['box_logs'] || []).forEach(function (log) {
+      let logs = box['box_logs'] || [];
+      if (!logs.length) return;
+      box['box_logs'] = logs.sort(cmpTime);
+      box['box_logs'].forEach(function (log) {
         let item = {user_id: log.user_id, username: log.username, create_time: log.create_time};
         if (log.user_id && !users[log.user_id]) users[log.user_id] = item;
         if (log.create_time && !times[log.create_time]) times[log.create_time] = item;
       });
     });
-    let sort = (a, b) => new Date(a.create_time) - new Date(b.create_time);
-    if (users) eStatus.users = Object.values(users).sort(sort);
-    if (times) eStatus.times = Object.values(times).sort(sort);
+    if (users) eStatus.users = Object.values(users).sort(cmpTime);
+    if (times) eStatus.times = Object.values(times).sort(cmpTime);
   }
 
-  // 根据log设置操作痕迹
-  function setLogHint(user_id, create_time) {
-    let value = user_id ? user_id : create_time;
-    let key = user_id ? 'user_id' : 'create_time';
+  // 设置初始状态
+  // 不显示新增框；有修改则显示第一条log；无则设置为ini-hint
+  function showInitHint() {
+    status.readonly = true;
+    $(data.holder).addClass('show-hint init-hint').removeClass('user-hint comb-hint time-hint');
+    if (eStatus.hint.type === 'init') return;
     data.boxes.forEach(function (box) {
-      let hint = box.hint || {};
+      box.hint && box.hint.elem && box.hint.elem.remove();
+      box.hint && box.hint.former && box.hint.former.remove();
+      if (box.added) return;
+      let logs = box['box_logs'] || [];
+      if (!logs.length) return self.addClass(box, 'ini-hint');
+      box.hint = {elem: self.createBox(logs[0].pos, `box ${box.boxType} hint h-init`)};
+    });
+    eStatus.hint.type = 'init';
+  }
+
+  // 设置某时间点所有修改痕迹
+  // 1. 如果字框无修改历史，显示字框当前状态
+  // 2. 否则，如果字框在这个时间点有修改，则显示这个时间点的修改状态和修改前的状态
+  // 3. 否则，如果显示字框在这个时间点前有logs，则显示最后log的状态
+  // 4. 否则，如果显示字框在这个时间点后有logs，如果框不是新增则显示
+  function showTimeHint(create_time) {
+    status.readonly = true;
+    $(data.holder).addClass('show-hint time-hint').removeClass('init-hint comb-hint user-hint');
+    if (eStatus.hint.type === 'time' && eStatus.hint.create_time === create_time) return;
+    let boxTypes = [];
+    data.boxes.forEach(function (box) {
+      let logs = box['box_logs'] || [], hint = box.hint || {};
+      if (!logs.length) return self.addClass(box, 'box-hint'); // #1
+      self.removeClass(box, 'box-hint');
       hint.elem && hint.elem.remove();
-      let logs = (box['box_logs'] || []).filter((log) => log[key] === value);
-      if (logs.length) {
-        let log = logs[logs.length - 1];
-        let cls = 'box ' + box.boxType + ' hint h-' + log.op;
-        hint.elem = self.createBox(log.pos, cls);
+      hint.former && hint.former.remove();
+      let curLogs = logs.filter((log) => log['create_time'] === create_time);
+      let prevLogs = logs.filter((log) => cmpTime(log, create_time) < 0);
+      if (curLogs.length) { // #2
+        if (boxTypes.indexOf(box.boxType) < 0) boxTypes.push(box.boxType);
+        hint.create_time = create_time;
+        hint.elem = self.createBox(curLogs[0].pos, `box ${box.boxType} hint h-${curLogs[0].op}`);
+        let idx = logs.indexOf(curLogs[0]);
+        if (idx > 0) {
+          hint.former = self.createBox(logs[idx - 1].pos, `box ${box.boxType} hint h-former`);
+        }
+      } else if (prevLogs.length) { // #3
+        let last = prevLogs[prevLogs.length - 1];
+        if (last.op !== 'deleted')
+          hint.elem = self.createBox(last.pos, `box ${box.boxType} hint`);
+      } else if (!box.added) { // #4
+        self.addClass(box, 'box-hint');
+      }
+      box.hint = hint;
+    });
+    Object.assign(eStatus.hint, {type: 'time', create_time: create_time, boxTypes: boxTypes});
+  }
+
+  // 设置用户所有修改痕迹
+  // 如果有用户修改，则显示修改痕迹，否则设置为box-hint
+  function showUserHint(user_id) {
+    status.readonly = true;
+    $(data.holder).addClass('show-hint user-hint').removeClass('init-hint comb-hint time-hint');
+    if (eStatus.hint.type === 'user' && eStatus.hint.user_id === user_id) return;
+    let boxTypes = [];
+    data.boxes.forEach(function (box) {
+      let logs = box['box_logs'] || [], hint = box.hint || {};
+      let uLogs = logs.filter((log) => log['user_id'] === user_id);
+      hint.former && hint.former.remove();
+      if (uLogs.length) {
+        if (boxTypes.indexOf(box.boxType) < 0) boxTypes.push(box.boxType);
+        self.removeClass(box, 'box-hint');
+        let log = uLogs[uLogs.length - 1];
+        if (hint.user_id === user_id && hint.create_time === log.create_time) return;
+        hint.elem && hint.elem.remove();
+        hint.elem = self.createBox(log.pos, `box ${box.boxType} hint h-${log.op}`);
         hint.create_time = log.create_time;
         hint.user_id = log.user_id;
         box.hint = hint;
+      } else {
+        self.addClass(box, 'box-hint');
+        hint.elem && hint.elem.remove();
+        box.hint = {};
       }
     });
+    Object.assign(eStatus.hint, {type: 'user', user_id: user_id, boxTypes: boxTypes});
   }
 
-  // 根据用户当前op设置操作痕迹
-  function setOpHint() {
+  // 设置用户当前操作痕迹，包括历史操作和当前操作
+  function showMyHint(user_id) {
+    status.readonly = true;
+    $(data.holder).addClass('show-hint user-hint').removeClass('init-hint comb-hint time-hint');
+    if (eStatus.hint.type === 'my') return;
+    showUserHint(user_id);
     data.boxes.forEach(function (box) {
       if (!box.op) return;
-      let hint = box.hint || {};
-      hint.elem && hint.elem.remove();
-      hint.elem = box.elem.clone();
-      hint.elem.attr({'class': 'box ' + box.boxType + ' hint h-' + box.op});
-      box.hint = hint;
-    });
-  }
-
-  // 显示某时间的修改痕迹
-  function showTimeHint(create_time) {
-    // 操作痕迹的切换是通过在holder上设置不同的css样式来实现，有usr-hint、ini-hint、cmb-hint等
-    $(data.holder).addClass('usr-hint').removeClass('ini-hint').removeClass('cmb-hint');
-    setLogHint(null, create_time);
-    eStatus.hint = {type: 'time', create_time: create_time};
-    status.readonly = true;
-  }
-
-  // 显示某用户的操作痕迹
-  function showUsrHint(user_id) {
-    $(data.holder).addClass('usr-hint').removeClass('ini-hint').removeClass('cmb-hint');
-    setLogHint(user_id);
-    eStatus.hint = {type: 'usr', user_id: user_id};
-    status.readonly = true;
-  }
-
-  // 显示我的操作痕迹
-  function showMyHint(user_id) {
-    $(data.holder).addClass('usr-hint').removeClass('ini-hint').removeClass('cmb-hint');
-    setLogHint(user_id);
-    setOpHint(); // 先设置logHint，后设置opHint，以免被冲掉
-    eStatus.hint = {type: 'usr', user_id: user_id};
-    status.readonly = true;
-  }
-
-  // 显示框的初始状态
-  function showIniHint() {
-    $(data.holder).addClass('ini-hint').removeClass('usr-hint').removeClass('cmb-hint');
-    data.boxes.forEach(function (box) {
-      let boxLogs = box['box_logs'];
-      if (boxLogs && !box.added && !box.iniElem) {
-        let cls = 'box init ' + box.boxType + (self.hasClass(box, 'even') ? ' even' : ' odd');
-        box.iniElem = self.createBox(boxLogs[0].pos, cls);
+      if (eStatus.hint.boxTypes.indexOf(box.boxType) < 0) eStatus.hint.boxTypes.push(box.boxType);
+      self.addClass(box, 'box-hint h-' + box.op);
+      box.hint && box.hint.elem && box.hint.elem.remove();
+      box.hint && box.hint.former && box.hint.former.remove();
+      if (box.op === 'changed') {
+        box.hint = {former: self.createBox(box, 'hint h-former')};
       }
     });
-    eStatus.hint = {type: 'ini'};
-    status.readonly = true;
+    eStatus.hint.type = 'my';
   }
 
   // 显示框的综合修改痕迹
-  function showCmbHint() {
-    $(data.holder).addClass('cmb-hint').removeClass('usr-hint').removeClass('ini-hint');
-    eStatus.hint = {type: 'cmb'};
+  function showCombHint() {
+    $(data.holder).addClass('comb-hint').removeClass('show-hint user-hint init-hint time-hint');
     status.readonly = true;
+    eStatus.hint.type = 'comb';
   }
 
   // 隐藏所有修改痕迹
   function hideAllHint() {
-    $(data.holder).removeClass('cmb-hint').removeClass('usr-hint').removeClass('ini-hint');
-    eStatus.hint = {type: 0};
+    $(data.holder).removeClass('show-hint init-hint comb-hint user-hint time-hint');
     status.readonly = false;
   }
 
@@ -162,13 +206,13 @@
     let boxType = status.curBoxType;
     if (!boxType) return {};
     if (boxType === 'all') boxType = 'box';
-    if (['usr', 'time'].indexOf(eStatus.hint.type) > -1) // 某个用户、时间操作
+    if (['user', 'time', 'my'].indexOf(eStatus.hint.type) > -1) // 某个用户、时间操作
       return {
         deleted: $('.' + boxType + '.h-deleted').length,
         added: $('.' + boxType + '.h-added:not(.h-deleted)').length,
         changed: $('.' + boxType + '.h-changed:not(.h-added):not(.h-deleted)').length
       };
-    else if (eStatus.hint.type === 'cmb')  // 总的字框操作
+    else if (eStatus.hint.type === 'comb')  // 总的字框操作
       return {
         added: $('.' + boxType + '.b-added').length,
         deleted: $('.' + boxType + '.b-deleted:not(.b-added)').length,
@@ -216,29 +260,6 @@
     }
   }
 
-  // 重置overlap属性
-  function resetOverlap(boxType) {
-    let boxes = self.getBoxes()[boxType];
-    boxes.forEach((b) => {
-      b.overlap = [];
-      self.removeClass(b, 's-overlap');
-    });
-    for (let i = 0, len = boxes.length; i < len; i++) {
-      let b = boxes[i];
-      if (self.isDeleted(b)) continue;
-      for (let j = i + 1; j < len; j++) {
-        let b1 = boxes[j];
-        if (self.isDeleted(b1) || b1.boxType !== b.boxType) continue;
-        if (self.isOverlap(b, b1)) {
-          b.overlap = (b.overlap || []).concat([b1.idx]);
-          b1.overlap = (b1.overlap || []).concat([b.idx]);
-          self.addClass(b, 's-overlap');
-          self.addClass(b1, 's-overlap');
-        }
-      }
-    }
-  }
-
   // 获取框大小窄扁、重叠等的数量
   function getBoxKindNo() {
     let boxType = status.curBoxType;
@@ -273,6 +294,29 @@
     let cNames = box.elem.attr('class').split(' ');
     let cls = cNames.filter((s) => s.length && s.indexOf('s-') < 0).join(' ');
     box.elem.attr({'class': $.trim(cls + ' ' + (getCharShape(box) || ''))});
+  }
+
+  // 重置overlap属性
+  function resetOverlap(boxType) {
+    let boxes = self.getBoxes()[boxType];
+    boxes.forEach((b) => {
+      b.overlap = [];
+      self.removeClass(b, 's-overlap').overlap = [];
+    });
+    for (let i = 0, len = boxes.length; i < len; i++) {
+      let b = boxes[i];
+      if (self.isDeleted(b)) continue;
+      for (let j = i + 1; j < len; j++) {
+        let b1 = boxes[j];
+        if (self.isDeleted(b1) || b1.boxType !== b.boxType) continue;
+        if (self.isOverlap(b, b1)) {
+          b.overlap = (b.overlap || []).concat([b1.idx]);
+          b1.overlap = (b1.overlap || []).concat([b.idx]);
+          self.addClass(b, 's-overlap');
+          self.addClass(b1, 's-overlap');
+        }
+      }
+    }
   }
 
   function updateBoxOverlap(b) {

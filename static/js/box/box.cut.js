@@ -56,6 +56,7 @@
     toggleMulti: toggleMulti,
     deleteBoxByIdxes: deleteBoxByIdxes,
     exportSubmitData: exportSubmitData,
+    selectBoxesByShape: selectBoxesByShape,
   });
 
   function isCutMode() {
@@ -84,7 +85,7 @@
   }
 
   function mouseDown(e) {
-    if (!isCutMode() || !status.curBoxType || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType) return;
     e.preventDefault();
 
     if (e.button === 2) return; // 鼠标右键
@@ -117,7 +118,7 @@
   }
 
   function mouseUp(e) {
-    if (!isCutMode() || !status.curBoxType || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType) return;
     e.preventDefault();
 
     let pt = self.getPoint(e);
@@ -290,13 +291,24 @@
   }
 
   function selectBoxes(rangeElem, reverse) {
-    if (!rangeElem) return;
+    if (!cStatus.isMulti || !rangeElem) return;
     data.boxes.forEach(function (box) {
       if (canHit(box) && self.isOverlap(box.elem, rangeElem)) {
         reverse ? self.removeClass(box, 'u-selected') : self.addClass(box, 'u-selected');
       }
     });
     rangeElem.remove();
+  }
+
+  function selectBoxesByShape(shape, reverse) {
+    if (!cStatus.isMulti) return;
+    if ('white/opacity'.indexOf(shape) > -1) return;
+    if (status.curBoxType !== 'char' && shape !== 'overlap') return;
+    data.boxes.forEach((box) => {
+      if (canHit(box) && self.hasClass(box.elem, 's-' + shape)) {
+        reverse ? self.removeClass(box, 'u-selected') : self.addClass(box, 'u-selected');
+      }
+    });
   }
 
   function getUnit(unit) {
@@ -402,11 +414,10 @@
   }
 
   function canHit(box) {
-    if (status.readonly || !box || !box.elem || !box.elem.attrs) return false;
+    if (!box || !box.elem || !box.elem.attrs) return false;
     if (status.curBoxType !== 'all' && status.curBoxType !== box.boxType) return false;
     return !self.hasClass(box, 'hide')
         && !self.hasClass(box, 'hint')
-        && !self.hasClass(box, 'readonly')
         && !self.hasClass(box, 's-deleted')
         && !self.hasClass(box, 'u-deleted')
         && !self.hasClass(box, 'b-deleted')
@@ -461,6 +472,7 @@
   }
 
   function switchCurHandles(box, force) {
+    if ($.box.status.readonly) return;
     // 清空curHandles
     cStatus.curHandles.forEach((h) => h.remove());
     cStatus.curHandles = [];

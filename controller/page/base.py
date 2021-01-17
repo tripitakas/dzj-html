@@ -206,20 +206,40 @@ class PageHandler(Page, TaskHandler, Box):
         return self.get_web_img(page_name, 'page')
 
     @classmethod
-    def pack_boxes(cls, page, log=True, alternatives=False):
+    def pack_cut_boxes(cls, page):
+        fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed', 'box_logs', 'block_no']
+        if page.get('blocks'):
+            cls.pick_fields(page['blocks'], fields + ['block_id'])
+        if page.get('columns'):
+            cls.pick_fields(page['columns'], fields + ['column_no', 'column_id'])
+        if page.get('chars'):
+            cls.pick_fields(page['chars'], fields + ['column_no', 'char_no', 'char_id', 'ocr_txt', 'txt'])
+        if page.get('images'):
+            cls.pick_fields(page['images'], fields + ['image_id'])
+
+    @classmethod
+    def pack_txt_boxes(cls, page, log=True):
         fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed']
         log and fields.extend(['box_logs', 'txt_logs'])
         if page.get('blocks'):
             cls.pick_fields(page['blocks'], fields + ['block_no', 'block_id'])
         if page.get('columns'):
-            cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id'])
+            cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id', 'ocr_txt'])
         if page.get('chars'):
             ext = ['block_no', 'column_no', 'char_no', 'char_id', 'is_deform', 'is_vague',
-                   'ocr_txt', 'ocr_col', 'cmp_txt', 'txt', 'remark']
-            alternatives and ext.extend(['alternatives'])
+                   'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt', 'remark']
             cls.pick_fields(page['chars'], fields + ext)
         if page.get('images'):
             cls.pick_fields(page['images'], fields + ['image_id'])
+
+    @classmethod
+    def extract_sub_col(cls, page):
+        sub_cols = []
+        for col in page.get('columns', []):
+            if col.get('sub_columns'):
+                sub_cols += col['sub_columns']
+        if page.get('columns') and len(sub_cols):
+            page['columns'] += sub_cols
 
     @classmethod
     def set_box_id(cls, box, box_type, bid):
@@ -313,12 +333,12 @@ class PageHandler(Page, TaskHandler, Box):
         """获取chars的文本"""
 
         def get_txt(box):
-            ocr_chr = box['alternatives'][0] if box.get('alternatives') else ''
+            if field in ['ocr_col', 'cmp_txt', 'ocr_txt']:
+                return box.get(field) or ''
             if field == 'ocr_chr':
-                return ocr_chr
+                return box.get('alternatives', '')[:1]
             if field == 'txt':
-                return box.get('txt') or ocr_chr or box.get('ocr_col') or box.get('cmp_txt') or ''
-            return box.get(field)
+                return box.get('txt') or box.get('alternatives', '')[:1] or box.get('ocr_col') or box.get('cmp_txt', '')
 
         boxes = page.get('chars')
         if not boxes:
@@ -358,6 +378,32 @@ class PageHandler(Page, TaskHandler, Box):
     @staticmethod
     def is_valid_txt(txt):
         return txt not in [None, '■', '']
+
+    @classmethod
+    def get_cmb_txt(cls, ch):
+        """ 选择综合文本。char的ocr_txt字段作为综合文本"""
+        cmb_txt = ch.get('alternatives', '')[:1]
+        if cls.is_valid_txt(ch.get('ocr_col')):
+            if ch['ocr_col'] == ch.get('cmp_txt'):
+                cmb_txt = ch['ocr_col']
+            elif ch.get('cc') < 0.6 and ch.get('lc') > 0.9:
+                cmb_txt = ch['ocr_col']
+        elif cls.is_valid_txt(ch.get('cmp_txt')):
+            if ch.get('cc') < 0.8:  # 相信比对文本
+                cmb_txt = ch['cmp_txt']
+        return cmb_txt
+
+    @classmethod
+    def is_source_txt_diff(cls, ch):
+        """ 来源文本是否不一致"""
+        txts = [ch.get('alternatives', '')[:1], ch.get('ocr_col'), ch.get('cmp_txt')]
+        return len(set(t for t in txts if cls.is_valid_txt(t))) > 1
+
+    @classmethod
+    def is_un_required(cls, ch):
+        """ 是否不必校对"""
+        return cls.is_valid_txt(ch.get('cmp_txt')) and (
+                ch['cmp_txt'] == ch.get('alternatives', '')[:1] or ch['cmp_txt'] == ch.get('ocr_col'))
 
     @classmethod
     def html2txt(cls, html):

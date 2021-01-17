@@ -10,6 +10,40 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
+    .m-panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--Grey_Content1);
+      border-left: 1px solid var(--Grey_Light);
+      border-right: 1px solid var(--Grey_Light);
+    }
+
+    .panel-list > li > a {
+      clear: both;
+      color: #333;
+      display: block;
+      cursor: pointer;
+      font-weight: 400;
+      padding: 3px 20px;
+      white-space: nowrap;
+      line-height: 1.42857143;
+    }
+
+    .panel-list li:hover {
+      background-color: var(--Grey_Line);
+    }
+
+    .panel-list li.active {
+      background-color: var(--Grey_Lighter);
+    }
+
+    .panel-list .divider {
+      height: 1px;
+      margin: 9px 0;
+      overflow: hidden;
+      background-color: #e5e5e5;
+    }
+
     .m-toolbar.order-mode .cut,
     .m-toolbar.cut-mode .order {
       display: none !important;
@@ -25,9 +59,10 @@
     }
 
     .h-toolbar {
-      width: 40px;
+      width: 45px;
       height: 100%;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 15px 0;
       display: flex;
       flex-direction: column;
@@ -55,7 +90,6 @@
 
     .m-footer {
       display: flex;
-      user-select: none;
       justify-content: space-between;
     }
 
@@ -69,7 +103,7 @@
     }
 
     .m-footer .added {
-      color: #A0522D;
+      color: #BA55D3;
     }
 
     .m-footer .changed {
@@ -125,15 +159,7 @@
         {% set readonly = globals().get('readonly') or False %}
         {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
         <div id="toggle-my-hint" class="btn-txt icon-users hint cut{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="我的修改[i]"></div>
-        <div id="op-hint" class="btn-group cut" title="修改历史">
-          <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
-          <ul id="hint-list" class="dropdown-menu pull-right" data-stopPropagation="true">
-            <li id="no-hint" class="hint"><a href="#">当前状态</a></li>
-            <li id="ini-hint" class="hint"><a href="#">初始状态</a></li>
-            <li id="cmb-hint" class="hint"><a href="#">总的修改</a></li>
-            <li id="play-hint" class="hint"><a href="#">播放修改</a></li>
-          </ul>
-        </div>
+        <div id="op-hint" class="btn-txt icon-history cut" data-toggle="tooltip" data-placement="bottom" title="修改历史"></div>
         <div id="save" class="btn-txt icon-save{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存[ctrl+s]"></div>
         <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
@@ -149,6 +175,14 @@
 
     <div class="m-body flex">
       <div class="m-content box-holder cut-mode show-char"></div>
+      <div class="m-panel slim-bar hide">
+        <ul id="hint-list" class="panel-list">
+          <li id="no-hint" class="hint"><a>当前状态</a></li>
+          <li id="ini-hint" class="hint"><a>初始状态</a></li>
+          <li id="cmb-hint" class="hint"><a>总的修改</a></li>
+          <li id="play-hint" class="hint"><a>播放修改</a></li>
+        </ul>
+      </div>
       <div class="m-toolbar h-toolbar cut-mode no-arrow">
         <div class="up">
           <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="left" title="恢复初始设置[esc]"></div>
@@ -184,7 +218,7 @@
     </div><!--m-alert-->
 
     <div class="m-footer">
-      <span>
+      <span class="fl">
         <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
         {% if globals().get('task_type') %}
         <span class="task-info">
@@ -200,7 +234,9 @@
         <span class="changed">修改(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
         <span class="deleted">删除(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
       </span>
-      <span>当前：<span class="char-name">未选中</span><span class="char-info"></span></span>
+      <span class="fr">
+        <span class="char-info">当前：<span class="char-name">未选中</span><span class="char-id"></span></span>
+      </span>
     </div><!--m-footer-->
   </div>
 </div>
@@ -287,6 +323,12 @@
 <script src="{{static_url('js/page-box.js')}}"></script>
 {% include com/_base_task.html %}
 <script>
+  // 初始化。注：先设置右侧，后设置$.page.init
+  if (getStorage('boxOpHint', false)) {
+    $('.m-panel').removeClass('hide');
+    $('#op-hint').addClass('active');
+  }
+
   $.page.init({
     readonly: false,
     curBoxType: 'char',

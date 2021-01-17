@@ -114,7 +114,8 @@ class PageBoxHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            self.pack_boxes(page)
+
+            self.pack_cut_boxes(page)
             self.set_box_access(page)
             page['img_url'] = self.get_page_img(page)
             self.render('page_box.html', page=page)
@@ -133,7 +134,7 @@ class PageTxtHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
 
-            self.pack_boxes(page, True, True)
+            self.pack_txt_boxes(page)
             page['img_url'] = self.get_page_img(page)
             self.render('page_txt.html', page=page)
 
@@ -151,7 +152,7 @@ class PageTxt1Handler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
 
-            self.pack_boxes(page, log=False)
+            self.pack_txt_boxes(page)
             # 设置class属性
             self.set_char_class(page['chars'])
             # 设置name、txt以及ratio
@@ -200,7 +201,7 @@ class PageBrowseHandler(PageHandler):
                 message = '已是第一页' if to == 'prev' else '已是最后一页'
                 return self.send_error_response(e.no_object, message=message)
 
-            self.pack_boxes(page, True, True)
+            self.pack_txt_boxes(page)
             page['img_url'] = self.get_page_img(page)
             self.render('page_browse.html', page=page)
 
@@ -217,7 +218,7 @@ class PageFindCmpHandler(PageHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            self.pack_boxes(page)
+            self.pack_txt_boxes(page)
             page['img_url'] = self.get_page_img(page)
             self.render('page_find_cmp.html', page=page, readonly=True, ocr=self.get_txt(page, 'ocr'),
                         cmp_txt=self.get_txt(page, 'cmp_txt'))
@@ -296,7 +297,7 @@ class PageTxtMatchHandler(PageHandler):
             txts = [(mth_txt, field, field_name), (ocr_txt, 'ocr', '字框OCR')]
             txt_dict = {t[1]: t for t in txts}
             cmp_data = self.match_diff(ocr_txt, mth_txt)
-            self.pack_boxes(page, False, False)
+            self.pack_txt_boxes(page, False)
             img_url = self.get_page_img(page)
             self.render(
                 'page_txt_match.html', page=page, img_url=img_url, ocr_txt=ocr_txt, cmp_data=cmp_data,
