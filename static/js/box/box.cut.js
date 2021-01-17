@@ -12,10 +12,10 @@
   'use strict';
 
   $.box.onBoxChanged(function (box, reason, param) {
-    if (reason === 'switch' && !$.box.status.readonly) {
+    if (reason === 'switch') {
       switchCurHandles(box);
     }
-    if (reason === 'zoom' && !$.box.status.readonly) {
+    if (reason === 'zoom') {
       switchCurHandles($.box.status.curBox);
     }
   });
@@ -460,6 +460,7 @@
   }
 
   function switchCurHandles(box, force) {
+    if ($.box.status.readonly) return;
     // 清空curHandles
     cStatus.curHandles.forEach((h) => h.remove());
     cStatus.curHandles = [];
