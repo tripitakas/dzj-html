@@ -31,8 +31,10 @@ class FetchTasksApi(TaskHandler):
             if data_task == 'ocr_text':
                 # 把layout/width/height/blocks/columns/chars等参数传过去
                 for t in tasks:
-                    PageHandler.pack_boxes(pages.get(t['doc_id']))
-                    t['params'] = pages.get(t['doc_id'])
+                    page = pages.get(t['doc_id'])
+                    PageHandler.extract_sub_col(page)
+                    PageHandler.pack_cut_boxes(page)
+                    t['params'] = page
             return [dict(task_id=str(t['_id']), num=t.get('num'), priority=t.get('priority'),
                          page_name=t.get('doc_id'), params=t.get('params')) for t in tasks]
 
@@ -152,7 +154,7 @@ class SubmitTasksApi(PageHandler):
         update['page_code'] = hp.align_code(page['name'])
         update['create_time'] = self.now()
         self.apply_txt(update, 'ocr_col')
-        self.update_page_cid(update)
+        self.update_page_cid(update, reset=True)
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
 
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {

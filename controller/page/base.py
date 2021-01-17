@@ -206,20 +206,40 @@ class PageHandler(Page, TaskHandler, Box):
         return self.get_web_img(page_name, 'page')
 
     @classmethod
-    def pack_boxes(cls, page, log=True, alternatives=False):
+    def pack_cut_boxes(cls, page):
+        fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed', 'box_logs', 'block_no']
+        if page.get('blocks'):
+            cls.pick_fields(page['blocks'], fields + ['block_id'])
+        if page.get('columns'):
+            cls.pick_fields(page['columns'], fields + ['column_no', 'column_id'])
+        if page.get('chars'):
+            cls.pick_fields(page['chars'], fields + ['column_no', 'char_no', 'char_id', 'ocr_txt', 'txt'])
+        if page.get('images'):
+            cls.pick_fields(page['images'], fields + ['image_id'])
+
+    @classmethod
+    def pack_txt_boxes(cls, page, log=True):
         fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed']
         log and fields.extend(['box_logs', 'txt_logs'])
         if page.get('blocks'):
             cls.pick_fields(page['blocks'], fields + ['block_no', 'block_id'])
         if page.get('columns'):
-            cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id'])
+            cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id', 'ocr_txt'])
         if page.get('chars'):
             ext = ['block_no', 'column_no', 'char_no', 'char_id', 'is_deform', 'is_vague',
-                   'ocr_txt', 'ocr_col', 'cmp_txt', 'txt', 'remark']
-            alternatives and ext.extend(['alternatives'])
+                   'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt', 'remark']
             cls.pick_fields(page['chars'], fields + ext)
         if page.get('images'):
             cls.pick_fields(page['images'], fields + ['image_id'])
+
+    @classmethod
+    def extract_sub_col(cls, page):
+        sub_cols = []
+        for col in page.get('columns', []):
+            if col.get('sub_columns'):
+                sub_cols += col['sub_columns']
+        if page.get('columns') and len(sub_cols):
+            page['columns'] += sub_cols
 
     @classmethod
     def set_box_id(cls, box, box_type, bid):

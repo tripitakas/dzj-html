@@ -55,7 +55,9 @@ class TripitakaPageHandler(PageHandler):
             name_slice = page_name.split('_')
             cur_page = int(name_slice[-1])
             page = self.db.page.find_one({'name': page_name}) or dict(name=page_name)
-            self.pack_boxes(page, True, True)
+            if self.get_query_argument('sub_col', ''):
+                self.extract_sub_col(page)
+            self.pack_txt_boxes(page)
             page['img_url'] = self.get_web_img(page_name)
 
             # 获取当前册信息

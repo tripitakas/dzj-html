@@ -174,13 +174,13 @@ class Box(BoxOrder):
         return updated
 
     @classmethod
-    def update_page_cid(cls, page, box_types=None):
-        updated = False
-        box_types = box_types or ['blocks', 'columns', 'chars']
-        for box_type in box_types:
-            r = cls.update_box_cid(page.get(box_type))
-            updated = updated or r
-        return updated
+    def update_page_cid(cls, page, reset=False):
+        for box_type in ['blocks', 'columns', 'chars']:
+            if not reset:
+                cls.update_box_cid(page.get(box_type))
+            else:
+                for i, box in enumerate(page.get(box_type) or []):
+                    box['cid'] = i + 1
 
     @staticmethod
     def is_box_pos_equal(box1, box2):

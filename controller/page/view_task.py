@@ -278,7 +278,7 @@ class PageTaskCutHandler(PageHandler):
             page = self.db.page.find_one({'name': self.task['doc_id']})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
-            self.pack_boxes(page)
+            self.pack_cut_boxes(page)
             page['img_url'] = self.get_page_img(page)
 
             review_tasks = []
@@ -305,7 +305,7 @@ class PageTaskTextHandler(PageHandler):
             page = self.db.page.find_one({'name': self.task['doc_id']})
             if not page:
                 self.send_error_response(e.no_object, message='页面%s不存在' % self.task['doc_id'])
-            self.pack_boxes(page, True, True)
+            self.pack_txt_boxes(page)
             page['img_url'] = self.get_page_img(page)
 
             review_tasks = []
