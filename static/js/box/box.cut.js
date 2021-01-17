@@ -56,6 +56,7 @@
     toggleMulti: toggleMulti,
     deleteBoxByIdxes: deleteBoxByIdxes,
     exportSubmitData: exportSubmitData,
+    selectBoxesByShape: selectBoxesByShape,
   });
 
   function isCutMode() {
@@ -290,13 +291,24 @@
   }
 
   function selectBoxes(rangeElem, reverse) {
-    if (!rangeElem) return;
+    if (!cStatus.isMulti || !rangeElem) return;
     data.boxes.forEach(function (box) {
       if (canHit(box) && self.isOverlap(box.elem, rangeElem)) {
         reverse ? self.removeClass(box, 'u-selected') : self.addClass(box, 'u-selected');
       }
     });
     rangeElem.remove();
+  }
+
+  function selectBoxesByShape(shape, reverse) {
+    if (!cStatus.isMulti) return;
+    if ('white/opacity'.indexOf(shape) > -1) return;
+    if (status.curBoxType !== 'char' && shape !== 'overlap') return;
+    data.boxes.forEach((box) => {
+      if (canHit(box) && self.hasClass(box.elem, 's-' + shape)) {
+        reverse ? self.removeClass(box, 'u-selected') : self.addClass(box, 'u-selected');
+      }
+    });
   }
 
   function getUnit(unit) {

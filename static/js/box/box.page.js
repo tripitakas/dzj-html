@@ -22,6 +22,7 @@
     if (['redo', 'undo'].indexOf(reason) > -1) {
       let boxBtn = $('#toggle-' + box.boxType);
       if (!boxBtn.hasClass('active')) boxBtn.click();
+      updateHeadBoxKindNo();
     }
   });
 
@@ -174,6 +175,7 @@
     let names = holder.attr('class').split(' ');
     holder.attr('class', names.filter((n) => n.length && n.indexOf('shape-') < 0).join(' '));
     show && holder.addClass('shape-' + shape);
+    if ($.box.cStatus.isMulti) $.box.selectBoxesByShape(shape, !show);
   }
 
   function toggleCurBoxType(boxType, show) {
