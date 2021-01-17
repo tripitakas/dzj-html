@@ -17,32 +17,34 @@ class PickTaskApi(TaskHandler):
         """领取任务"""
         try:
             # 检查是否有未完成的任务
+            field = self.get_data_field(task_type)
             uncompleted = self.find_mine(task_type, 1, status=self.STATUS_PICKED)
             if uncompleted:
                 url = '/task/do/%s/%s' % (uncompleted[0]['task_type'], uncompleted[0]['_id'])
-                return self.send_error_response(e.task_uncompleted, **{'url': url, 'doc_id': uncompleted[0]['doc_id']})
+                return self.send_error_response(e.task_uncompleted, **{'url': url, field: uncompleted[0][field]})
             # 领取任务
             task_id, task = self.prop(self.data, 'task_id'), None
             if task_id:
-                field = self.get_data_field(task_type)
                 task = self.db.task.find_one({'_id': ObjectId(task_id)})
-                if self.has_num(task_type) and task.get(field) and self.db.task.find_one(dict(
-                        task_type=task_type, status={'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]},
-                        field=task[field], picked_user_id=self.user_id,
-                )):
-                    task = None
-            if not task or task['status'] != self.STATUS_PUBLISHED:
-                batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
-                task = self.pick_one(task_type, batch=batch)
-            if not task:
-                return self.send_error_response(e.no_task_to_pick)
+                cond = {'task_type': task_type, field: task.get(field), 'picked_user_id': self.user_id,
+                        'status': {'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]}}
+                if self.has_num(task_type) and task.get(field) and self.db.task.find_one(cond):
+                    task = None  # 不可以领取同一编码不同校次的任务
             # 分配任务
-            self.db.task.update_one({'_id': task['_id']}, {'$set': {
-                'status': self.STATUS_PICKED, 'picked_user_id': self.user_id, 'picked_by': self.username,
-                'picked_time': self.now(), 'updated_time': self.now(),
-            }})
-            # 更新页面
-            self.update_page_status(self.STATUS_PICKED, task)
+            for i in range(5):
+                if not task or task['status'] != self.STATUS_PUBLISHED:
+                    batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
+                    task = self.pick_one(task_type, batch=batch)
+                if not task:
+                    return self.send_error_response(e.no_task_to_pick)
+                update = {'status': self.STATUS_PICKED, 'picked_user_id': self.user_id, 'picked_by': self.username,
+                          'picked_time': self.now(), 'updated_time': self.now()}
+                r = self.db.task.update_one({'_id': task['_id'], 'status': self.STATUS_PUBLISHED}, {'$set': update})
+                if r.matched_count:
+                    self.update_page_status(self.STATUS_PICKED, task)
+                    break
+                else:
+                    task = None
 
             url = '/task/do/%s/%s' % (task['task_type'], task['_id'])
             return self.send_data_response({'url': url, 'doc_id': task.get('doc_id'), 'task_id': task['_id']})
