@@ -158,21 +158,21 @@
           self.cStatus.isMulti ? self.moveBox('down') : $('#toggle-opacity').click();
       });
       on('d', () => {
-        if (self.isMode('cut')) $('#toggle-narrow').click();
+        if (self.isMode('cut'))
+          self.cStatus.isMulti ? self.moveBox('right') : $('#toggle-narrow').click();
       });
       on('f', () => {
         if (self.isMode('cut')) $('#toggle-flat').click();
       });
       on('q', () => {
-        if (self.isMode('cut'))
-          self.cStatus.isMulti ? self.moveBox('up') : $('#toggle-small').click();
+        if (self.isMode('cut')) $('#toggle-small').click();
       });
       on('w', () => {
-        if (self.isMode('cut')) $('#toggle-large').click();
+        if (self.isMode('cut'))
+          self.cStatus.isMulti ? self.moveBox('up') : $('#toggle-large').click();
       });
       on('e', () => {
-        if (self.isMode('cut'))
-          self.cStatus.isMulti ? self.moveBox('right') : $('#toggle-overlap').click();
+        if (self.isMode('cut')) $('#toggle-overlap').click();
       });
       on('r', () => {
         if (self.isMode('cut')) $('#toggle-mayWrong').click();
