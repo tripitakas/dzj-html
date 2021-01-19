@@ -18,7 +18,7 @@
 
       // 图片操作
       on('h', () => $('#help').click());
-      on('m', () => $('#toggle-blur').click());
+      on('space', () => $('#toggle-blur').click());
       on('p', () => $('#toggle-img').click());
       on('+', () => self.zoomImg(self.data.ratio * 1.2));
       on('=', () => self.zoomImg(self.data.ratio * 1.2));
@@ -34,14 +34,27 @@
       on('9', () => self.zoomImg(0.9));
 
       // 框操作
-      on('l', () => {
-        $('#toggle-block').click();
+      on('j', () => {
+        $('#toggle-char').click();
       });
       on('k', () => {
         $('#toggle-column').click();
       });
-      on('j', () => {
-        $('#toggle-char').click();
+      on('l', () => {
+        $('#toggle-block').click();
+      });
+      on('tab', () => {
+        let seqs = ['char', 'column', 'block'];
+        let next = (seqs.indexOf(self.status.curBoxType) + 1) % 3;
+        $(`#toggle-${seqs[next]}`).click();
+      });
+      on('shift+tab', () => {
+        let seqs = ['char', 'column', 'block'];
+        let prev = (seqs.indexOf(self.status.curBoxType) + 2) % 3;
+        $(`#toggle-${seqs[prev]}`).click();
+      });
+      on(';', () => {
+        if (self.isMode('cut')) $('#toggle-all').click();
       });
       on('n', () => {
         $('#toggle-no-char').click();
@@ -117,25 +130,23 @@
         $('#btn-reset').click();
       });
       on('c', () => $('#btn-check').click());
-      on('z', () => {
+      on('ctrl+z', () => {
         self.isMode('cut') && self.undo();
       });
-      on('v', () => {
+      on('ctrl+x', () => {
         self.isMode('cut') && self.redo();
       });
-
-      // 切换步骤
       on('ctrl+s', () => {
         if ($('#save').css('display') === 'block') $('#save').click();
       });
 
-      on(',', () => {
+      // 切换步骤
+      on('g', () => {
         if (self.isMode('order')) $('#toggle-cut').click();
       });
-      on('.', () => {
+      on('b', () => {
         if (self.isMode('cut')) $('#toggle-order').click();
       });
-
 
       // 框提示
       on('a', () => {
@@ -147,42 +158,35 @@
           self.cStatus.isMulti ? self.moveBox('down') : $('#toggle-opacity').click();
       });
       on('d', () => {
-        if (self.isMode('cut'))
-          self.cStatus.isMulti ? self.moveBox('right') : $('#toggle-overlap').click();
+        if (self.isMode('cut')) $('#toggle-narrow').click();
       });
       on('f', () => {
-        if (self.isMode('cut')) $('#toggle-mayWrong').click();
+        if (self.isMode('cut')) $('#toggle-flat').click();
       });
       on('q', () => {
-        if (self.isMode('cut')) $('#toggle-large').click();
-      });
-      on('w', () => {
         if (self.isMode('cut'))
           self.cStatus.isMulti ? self.moveBox('up') : $('#toggle-small').click();
       });
+      on('w', () => {
+        if (self.isMode('cut')) $('#toggle-large').click();
+      });
       on('e', () => {
-        if (self.isMode('cut')) $('#toggle-narrow').click();
+        if (self.isMode('cut'))
+          self.cStatus.isMulti ? self.moveBox('right') : $('#toggle-overlap').click();
       });
       on('r', () => {
-        if (self.isMode('cut')) $('#toggle-flat').click();
+        if (self.isMode('cut')) $('#toggle-mayWrong').click();
       });
 
       // 框操作
       on("o", () => {
         if (self.isMode('cut')) $('#toggle-image').click();
       });
-      on(";", () => {
-        if (self.isMode('cut')) $('#toggle-all').click();
-      });
       on('i', () => {
         if (self.isMode('cut')) $('#toggle-my-hint').click();
       });
-      on('g', () => {
+      on('v', () => {
         if (self.isMode('cut')) $('#toggle-multi').click();
-      });
-      on('space', () => {
-        if (self.isMode('cut') && self.cStatus.isMulti)
-          self.toggleClass(self.status.curBox, 'u-selected');
       });
 
       // 序操作

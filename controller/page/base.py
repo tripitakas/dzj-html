@@ -184,6 +184,16 @@ class PageHandler(Page, TaskHandler, Box):
                             break
                     box.update({**pos, 'changed': True, 'box_level': user_level, 'box_logs': ori_logs + [log]})
             page[box_type] = boxes
+        # 2.sub columns
+        if submit_data.get('sub_columns'):
+            column_dict = {c['column_id']: c for c in page['columns'] if c.get('column_id')}
+            for col_id, sub_columns in submit_data.get('sub_columns').items():
+                column = column_dict.get(col_id)
+                if column:
+                    for sub_col in sub_columns:
+                        col_chars = [c for c in page['chars'] if c['cid'] in sub_col['char_cids']]
+                        sub_col.update(self.get_outer_range(col_chars))
+                    column['sub_columns'] = sub_columns
         # 2.合并用户框序
         for box_type, orders in submit_data.get('order', {}).items():
             cid2box = {b['cid']: b for b in page[box_type]}
