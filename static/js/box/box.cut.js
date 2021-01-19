@@ -173,12 +173,14 @@
     multi = multi || !cStatus.isMulti;
     cStatus.isMulti = !!multi;
     if (cStatus.isMulti) {
+      bsShow('', '多选模式 已开启！', 'info', 1000);
       $(data.holder).addClass('multi');
       if (status.curBox) {
         self.addClass(status.curBox, 'u-selected');
         self.switchCurBox(null);
       }
     } else {
+      bsShow('', '多选模式 已关闭！', 'info', 1000);
       data.boxes.forEach(function (box) {
         if (self.hasClass(box, 'u-selected')) self.removeClass(box, 'u-selected');
       });

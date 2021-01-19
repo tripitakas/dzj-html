@@ -113,7 +113,7 @@
 .shape-white .box {
   fill: white;
   fill-opacity: 1;
-  stroke-opacity: 0.3 !important;
+  stroke-opacity: 0.5 !important;
 }
 
 .shape-opacity .box {

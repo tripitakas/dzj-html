@@ -41,7 +41,7 @@
   };
 
   // 备注任务管理
-  $('#remarkModal .options :radio').on('click', () => $('#remarkModal .remark').val($(this).val()));
+  $('#remarkModal .options :radio').on('click', () => $('#remarkModal .remark').val($('#remarkModal .options :checked').val()));
   $('#remarkModal .modal-confirm').on('click', function () {
     if ($(this).hasClass('disabled')) return;
     let remark = $('#remarkModal .remark').val().trim();
@@ -67,7 +67,7 @@
   });
 
   // 任务退回
-  $('#returnModal .options :radio').on('click', () => $('#returnModal .return_reason').val($(this).val()));
+  $('#returnModal .options :radio').on('click', () => $('#returnModal .return_reason').val($('#returnModal .options :checked').val()));
   $('#returnModal .modal-confirm, #returnModal .modal-next').on('click', function () {
     if ($(this).hasClass('disabled')) return;
     let reason = $('#returnModal .return_reason').val().trim();
