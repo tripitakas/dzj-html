@@ -73,7 +73,7 @@
   }
 
   function dblclick(e) {
-    if (!isCutMode() || !$(data.holder).hasClass('usr-hint')) return;
+    if (!isCutMode() || !$(data.holder).hasClass('user-hint')) return;
     e.preventDefault();
     let pt = self.getPoint(e);
     let box = findHintBoxByPoint(pt, status.curBoxType);

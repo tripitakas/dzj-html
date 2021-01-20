@@ -236,7 +236,7 @@ class PageHandler(Page, TaskHandler, Box):
         if page.get('columns'):
             cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id', 'ocr_txt'])
         if page.get('chars'):
-            ext = ['block_no', 'column_no', 'char_no', 'char_id', 'is_deform', 'is_vague',
+            ext = ['block_no', 'column_no', 'char_no', 'char_id', 'is_vague', 'is_deform', 'uncertain',
                    'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt', 'remark']
             cls.pick_fields(page['chars'], fields + ext)
         if page.get('images'):

@@ -59,7 +59,7 @@
     let fields = {
       'name': '字编码', 'char_id': '序号', 'source': '分类', 'cc': '置信度', 'sc': '相似度', 'pos': '坐标',
       'column': '所属列', 'is_diff': '是否不一致', 'un_required': '是否不必校对', 'txt': '原字',
-      'nor_txt': '正字', 'is_vague': '是否模糊', 'is_deform': '是否异形字',
+      'nor_txt': '正字', 'is_vague': '笔画残损', 'is_deform': '异形字', 'uncertain': '不确定',
       'box_level': '切分等级', 'box_point': '切分积分',
       'txt_level': '文字等级', 'txt_point': '文字积分',
       'remark': '备注'
@@ -90,8 +90,9 @@
     if (!status.showTxtLogs) return;
     let html = (txtLogs || []).map(function (log) {
       let meta = log.txt ? `<label>校对文字</label><span>${log.txt}</span><br/>` : '';
-      meta += log.is_deform ? `<label>是否异形字</label><span>是</span><br/>` : '';
-      meta += log.is_vague ? `<label>是否模糊或残损</label><span>是</span><br/>` : '';
+      meta += log.is_vague ? `<label>笔画残损</label><span>是</span><br/>` : '';
+      meta += log.is_deform ? `<label>异形字</label><span>是</span><br/>` : '';
+      meta += log.uncertain ? `<label>不确定</label><span>是</span><br/>` : '';
       meta += log.remark ? `<label>备注</label><span>${log.remark}</span><br/>` : '';
       meta += log.username ? `<label>校对人</label><span>${log.username}</span><br/>` : '';
       meta += log.create_time ? `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>` : '';
@@ -124,13 +125,17 @@
   function setUserPanel(char) {
     $('#p-remark').val(char.remark || '');
     $('#p-txt').val(char.txt || char['ocr_txt']);
-    let val1 = char['is_deform'] ? '1' : '0';
-    $('.is-deform :radio').map(function (i, item) {
+    let val1 = char['is_vague'] ? '1' : '0';
+    $('.is-vague :radio').map(function (i, item) {
       ($(item).val() === val1) ? $(item).prop('checked', true) : $(item).removeAttr('checked');
     });
-    let val2 = char['is_vague'] ? '1' : '0';
-    $('.is-vague :radio').map(function (i, item) {
+    let val2 = char['is_deform'] ? '1' : '0';
+    $('.is-deform :radio').map(function (i, item) {
       ($(item).val() === val2) ? $(item).prop('checked', true) : $(item).removeAttr('checked');
+    });
+    let val3 = char['uncertain'] ? '1' : '0';
+    $('.uncertain :radio').map(function (i, item) {
+      ($(item).val() === val3) ? $(item).prop('checked', true) : $(item).removeAttr('checked');
     });
     if (status.readonly) $('.proof .btn-submit').addClass('hide');
   }
@@ -146,9 +151,9 @@
     status.hint && status.hint.remove();
     status.hint = null;
     if (!show) {
-      $($.box.data.holder).removeClass('usr-hint');
+      $($.box.data.holder).removeClass('user-hint');
     } else if (box) {
-      $($.box.data.holder).addClass('usr-hint');
+      $($.box.data.holder).addClass('user-hint');
       status.hint = $.box.createBox(box, 'box hint current');
     }
   }
