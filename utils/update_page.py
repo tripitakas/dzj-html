@@ -56,7 +56,7 @@ def reset_ocr_txt(page):
         c['ocr_txt'] = Ph.get_cmb_txt(c)
         txts = [c[k] for k in ['ocr_txt', 'ocr_col', 'cmp_txt'] if c.get(k)]
         c.get('alternatives') and txts.append(c.get('alternatives')[:1])
-        if not c.get('txt_logs') and c['txt'] in txts:
+        if not c.get('txt_logs') and (not c.get('txt') or c['txt'] in txts):
             changed = True
             c['txt'] = c['ocr_txt']
     return changed
