@@ -396,10 +396,10 @@ class PageHandler(Page, TaskHandler, Box):
         if cls.is_valid_txt(ch.get('ocr_col')):
             if ch['ocr_col'] == ch.get('cmp_txt'):
                 cmb_txt = ch['ocr_col']
-            elif ch.get('cc') < 0.6 and ch.get('lc') > 0.9:
+            elif ch.get('cc', 1) < 0.6 and ch.get('lc', 0) > 0.9:
                 cmb_txt = ch['ocr_col']
         elif cls.is_valid_txt(ch.get('cmp_txt')):
-            if ch.get('cc') < 0.8:  # 相信比对文本
+            if ch.get('cc', 1) < 0.8:  # 相信比对文本
                 cmb_txt = ch['cmp_txt']
         return cmb_txt
 
