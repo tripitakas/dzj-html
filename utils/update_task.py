@@ -40,8 +40,11 @@ def update_page_task(db):
             if not page:
                 invalid.append(t['doc_id'])
                 continue
-            op_no = Ph.get_user_op_no(page, t['picked_user_id'])
-            db.task.update_one({'_id': t['_id']}, {'$set': op_no})
+            # op no
+            update = Ph.get_user_op_no(page, t['picked_user_id'])
+            # exe time
+            update['exe_time'] = (t['finished_time'] - t['picked_time']).seconds
+            db.task.update_one({'_id': t['_id']}, {'$set': update})
     if invalid:
         print('invalid: %s' % invalid)
 
