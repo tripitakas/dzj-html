@@ -88,13 +88,24 @@ def align_code(code):
 
 
 def code2int(code):
-    # 把藏经编码转换成整数
+    """把藏经编码转换成整数"""
     m = re.match(r'^([A-Z]{2})((_\d+)+)', code)
     if m:
         h1 = sum([ord(s) for s in m.group(1)]) % 99
         h2 = ''.join([n.zfill(4) for n in m.group(2)[1:].split('_')])
         return '%d%s' % (h1, h2)
         # return int('%d%s' % (h1, h2))
+
+
+def dec2code36(uid):
+    """将十进制整数转为三十六进制字符串"""
+    assert int(uid) > 0
+    uid, t, r = int(uid), '0123456789abcdefghijklmnopqrstuvwxyz', ''
+    while uid >= 36:
+        r = t[uid % 36] + r
+        uid = int(uid / 36)
+    r = t[uid] + r
+    return r
 
 
 def format_value(value, key=None, doc=None):

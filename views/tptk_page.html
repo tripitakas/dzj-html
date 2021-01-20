@@ -339,6 +339,7 @@
       remark: $('#p-remark').val() || '',
       is_vague: $('.is-vague :checked').val() === '1',
       is_deform: $('.is-deform :checked').val() === '1',
+      uncertain: $('.uncertain :checked').val() === '1',
     };
     let idx = $('.txt-holder .current-char').attr('id').split('-').pop();
     $this.addClass('disabled');

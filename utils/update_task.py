@@ -30,7 +30,7 @@ def update_page_task(db):
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        fields = ['doc_id', 'task_type', 'picked_user_id']
+        fields = ['doc_id', 'task_type', 'picked_user_id', 'picked_time', 'finished_time']
         tasks = list(db.task.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for t in tasks:
             print('[%s]%s, %s' % (hp.get_date_time(), t['task_type'], t['doc_id']))
@@ -40,8 +40,11 @@ def update_page_task(db):
             if not page:
                 invalid.append(t['doc_id'])
                 continue
-            op_no = Ph.get_user_op_no(page, t['picked_user_id'])
-            db.task.update_one({'_id': t['_id']}, {'$set': op_no})
+            # op no
+            update = Ph.get_user_op_no(page, t['picked_user_id'])
+            # exe time
+            update['exe_time'] = (t['finished_time'] - t['picked_time']).seconds
+            db.task.update_one({'_id': t['_id']}, {'$set': update})
     if invalid:
         print('invalid: %s' % invalid)
 

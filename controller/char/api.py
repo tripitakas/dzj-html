@@ -87,9 +87,10 @@ class CharTxtApi(CharHandler):
             # 检查数据等级和积分
             self.check_txt_level_and_point(self, char, self.data.get('task_type'))
             # 检查参数，设置更新
-            fields = ['txt', 'is_deform', 'is_vague', 'remark']
+            fields = ['txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
             char['is_vague'] = char.get('is_vague') or False
             char['is_deform'] = char.get('is_deform') or False
+            char['uncertain'] = char.get('uncertain') or False
             update = {k: self.data[k] for k in fields if self.data.get(k) is not None}
             if h.cmp_obj(update, char, fields):
                 return self.send_error_response(e.not_changed, message='没有任何修改')

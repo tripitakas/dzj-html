@@ -236,7 +236,7 @@ class PageHandler(Page, TaskHandler, Box):
         if page.get('columns'):
             cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id', 'ocr_txt'])
         if page.get('chars'):
-            ext = ['block_no', 'column_no', 'char_no', 'char_id', 'is_deform', 'is_vague',
+            ext = ['block_no', 'column_no', 'char_no', 'char_id', 'is_vague', 'is_deform', 'uncertain',
                    'alternatives', 'ocr_txt', 'ocr_col', 'cmp_txt', 'txt', 'remark']
             cls.pick_fields(page['chars'], fields + ext)
         if page.get('images'):
@@ -391,16 +391,20 @@ class PageHandler(Page, TaskHandler, Box):
 
     @classmethod
     def get_cmb_txt(cls, ch):
-        """ 选择综合文本。char的ocr_txt字段作为综合文本"""
+        """ 选择综合文本"""
         cmb_txt = ch.get('alternatives', '')[:1]
-        if cls.is_valid_txt(ch.get('ocr_col')):
-            if ch['ocr_col'] == ch.get('cmp_txt'):
-                cmb_txt = ch['ocr_col']
-            elif ch.get('cc') < 0.6 and ch.get('lc') > 0.9:
-                cmb_txt = ch['ocr_col']
-        elif cls.is_valid_txt(ch.get('cmp_txt')):
-            if ch.get('cc') < 0.8:  # 相信比对文本
-                cmb_txt = ch['cmp_txt']
+        if cls.is_valid_txt(ch.get('cmp_txt')):
+            if cmb_txt != ch['cmp_txt']:
+                if ch['cmp_txt'] == ch.get('ocr_col') or ch['cmp_txt'] in ch.get('alternatives', ''):
+                    cmb_txt = ch['cmp_txt']
+                elif ch.get('cc') and ch['cc'] < 0.6:  # 相信比对文本
+                    cmb_txt = ch['cmp_txt']
+        elif cls.is_valid_txt(ch.get('ocr_col')):
+            if cmb_txt != ch['ocr_col']:
+                if ch['ocr_col'] in ch.get('alternatives', ''):
+                    cmb_txt = ch['ocr_col']
+                elif ch.get('cc') and ch.get('lc') and ch['cc'] < 0.6 and ch['lc'] > 0.9:
+                    cmb_txt = ch['ocr_col']
         return cmb_txt
 
     @classmethod

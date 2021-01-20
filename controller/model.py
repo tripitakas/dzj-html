@@ -192,14 +192,12 @@ class Model(object):
             return dict(status='failed', errors=errs)
 
         if doc.get('_id'):  # 修改
-            item = db[collection].find_one({'_id': doc.get('_id')})
-            if item:
-                r = db[collection].update_one({'_id': doc.get('_id')}, {'$set': doc})
-                if not r.modified_count:
-                    return dict(status='failed', errors=e.not_changed)
-                return dict(status='success', id=doc.get('_id'), doc=doc, update=True, insert=False)
-            else:
+            r = db[collection].update_one({'_id': doc['_id']}, {'$set': doc})
+            if not r.matched_count:
                 return dict(status='failed', errors=e.no_object)
+            elif not r.modified_count:
+                return dict(status='failed', errors=e.not_changed)
+            return dict(status='success', id=doc['_id'], doc=doc, update=True, insert=False)
         else:  # 新增
             condition = {cls.primary: doc.get(cls.primary, '')}
             if cls.ignore_existed_check(doc) is False and not db[collection].find_one(condition):

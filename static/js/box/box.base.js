@@ -347,7 +347,7 @@
 
   function findBoxByPoint(pt, boxType, func) {
     if (!pt || !pt.x) return;
-    if (status.curBox && isInRect(pt, status.curBox.elem, 5))
+    if (status.curBox && isInRect(pt, status.curBox.elem, 8))
       return status.curBox;
 
     let ret = null, dist = 1e5;
@@ -456,6 +456,7 @@
   }
 
   function isInRect(pt, el, tol) {
+    tol *= data.ratio; // tol为向外的延伸量
     if (el && el.elem) el = el.elem;
     let box = el && el.getBBox && el.getBBox();
     return box && pt.x > box.x - tol && pt.y > box.y - tol &&
