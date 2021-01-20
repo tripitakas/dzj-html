@@ -121,7 +121,7 @@ class AddPage(object):
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
             fields2 = ['blocks', 'columns', 'chars', 'txt', 'cmp_txt']
             meta.update({k: v for k, v in info.items() if v and k in fields2})
-            fields3 = ['ocr', 'ocr_col']
+            fields3 = ['ocr_chr', 'ocr_col']
             meta.update({k: Ph.get_txt(meta, k).replace(' ', '') for k in fields3})
             Ph.update_page_cid(meta)
             if info.get('create_time'):

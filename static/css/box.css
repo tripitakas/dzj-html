@@ -303,12 +303,18 @@
 }
 
 /*--2.用户、时间痕迹--*/
+.user-hint .box-hint {
+  display: block;
+}
+
+.user-hint .box-hint.h-added,
 .user-hint .hint.h-added,
 .time-hint .hint.h-added {
   stroke: #BA55D3 !important;
   stroke-opacity: 0.7 !important;
 }
 
+.user-hint .box-hint.h-deleted,
 .user-hint .hint.h-deleted,
 .time-hint .hint.h-deleted {
   fill: white;
@@ -318,12 +324,14 @@
   stroke-opacity: 0.7 !important;
 }
 
+.user-hint .box-hint.h-changed,
 .user-hint .hint.h-changed,
 .time-hint .hint.h-changed {
   stroke: red !important;
   stroke-opacity: 0.7 !important;
 }
 
+.user-hint .hint.h-former,
 .time-hint .hint.h-former {
   display: block;
   stroke-dasharray: 3, 3;
