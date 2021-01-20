@@ -103,7 +103,7 @@
     cStatus.isDragging = true;
     cStatus.dragElem && cStatus.dragElem.remove();
     if (!cStatus.dragMode) {
-      cStatus.dragMode = (status.curBox && self.isInRect(pt, status.curBox, 5)) ? 1 : 2;
+      cStatus.dragMode = (status.curBox && self.isInRect(pt, status.curBox, 8)) ? 1 : 2;
       cStatus.dragHandleIndex = setActiveHandle(pt);
     }
     if (cStatus.dragMode === 1) { // 1.修改字框
@@ -173,14 +173,13 @@
     multi = multi || !cStatus.isMulti;
     cStatus.isMulti = !!multi;
     if (cStatus.isMulti) {
-      bsShow('', '多选模式 已开启！', 'info', 1000);
+      bsShow('', '多选模式 已开启！', 'info', 600);
       $(data.holder).addClass('multi');
       if (status.curBox) {
         self.addClass(status.curBox, 'u-selected');
         self.switchCurBox(null);
       }
     } else {
-      bsShow('', '多选模式 已关闭！', 'info', 1000);
       data.boxes.forEach(function (box) {
         if (self.hasClass(box, 'u-selected')) self.removeClass(box, 'u-selected');
       });

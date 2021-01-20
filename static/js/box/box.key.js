@@ -17,7 +17,7 @@
       let on = self.bindKey;
 
       // 图片操作
-      on('h', () => $('#help').click());
+      // on('h', () => $('#help').click());
       on('space', () => $('#toggle-blur').click());
       on('p', () => $('#toggle-img').click());
       on('+', () => self.zoomImg(self.data.ratio * 1.2));
