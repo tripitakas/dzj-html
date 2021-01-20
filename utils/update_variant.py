@@ -16,7 +16,6 @@ sys.path.append(BASE_DIR)
 
 from controller import helper as h
 from controller.page.tool.variant import variants
-from controller.page.base import PageHandler as Ph
 
 
 def init_variants(db):
@@ -29,29 +28,27 @@ def init_variants(db):
     print('add %s variants' % len(variants2insert))
 
 
-def update_v_code(db, update_img=True):
+def update_variant(db, fields='v_code,user_txt,img_name'):
     """ 重置v_code编码"""
     img_root = path.join(h.BASE_DIR, 'static/img')
     salt = h.prop(h.load_config(), 'web_img.salt')
-    variant_list = list(db.variant.find({'uid': {'$ne': None}}, {'uid': 1, 'img_name': 1}))
-    for v in variant_list:
+    vts = list(db.variant.find({'uid': {'$ne': None}}, {'uid': 1, 'img_name': 1, 'user_txt': 1, 'normal_txt': 1}))
+    for v in vts:
+        update = {}
         v_code = 'v' + h.dec2code36(v['uid'])
-        db.variant.update_one({'_id': v['_id']}, {'$set': {'v_code': v_code}})
-        if update_img and v.get('img_name'):
+        if 'v_code' in fields:
+            update['v_code'] = v_code
+        if 'user_txt' in fields and v.get('normal_txt'):
+            update['user_txt'] = v.get('user_txt') or v['normal_txt']
+        if 'img_name' in fields and v.get('img_name'):
             inner_path = '/'.join(v['img_name'].split('_')[:-1])
             suffix = ('_' + h.md5_encode(v['img_name'], salt)) if salt else ''
             src_fn = 'chars/%s/%s%s.jpg' % (inner_path, v['img_name'], suffix)
             shutil.copy(path.join(img_root, src_fn), path.join(img_root, 'variants/%s.jpg' % v_code))
+        db.variant.update_one({'_id': v['_id']}, {'$set': update})
 
 
-def update_user_txt(db):
-    variant_list = list(db.variant.find({'img_name': {'$ne': None}}, {'img_name': 1, 'user_txt': 1, 'normal_txt': 1}))
-    for v in variant_list:
-        if v.get('img_name') and v.get('normal_txt'):
-            db.variant.update_one({'_id': v['_id']}, {'$set': {'user_txt': v['normal_txt']}})
-
-
-def main(db_name='tripitaka', uri='localhost', func='update_v_code', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='update_variant', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
