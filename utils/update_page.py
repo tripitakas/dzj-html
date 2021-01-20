@@ -17,6 +17,15 @@ from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
+def reset_variant(page):
+    changed = False
+    for c in page.get('chars') or []:
+        if len(c.get('txt') or '') > 1 and c['txt'][0] == 'Y':
+            c['txt'] = 'v' + hp.dec2code36(int(c['txt'][1:]))
+            changed = True
+    return changed
+
+
 def reset_txt_type(page):
     # txt_types = {'Y': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
     changed = False
@@ -126,10 +135,7 @@ def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
         pages = list(db.page.find(cond, {k: 1 for k in fields}).limit(size))
         for p in pages:
             print('[%s]%s' % (hp.get_date_time(), p['name']))
-            r1 = reset_ocr_txt(p)
-            r2 = reset_txt_type(p)
-            r = r1 or r2
-            # r = eval(func)(p, **kwargs)
+            r = eval(func)(p, **kwargs)
             update = {'updated': True}
             r and update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
             db.page.update_one({'_id': p['_id']}, {'$set': update})
