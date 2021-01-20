@@ -17,45 +17,49 @@ from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
-def update_sub_columns(db, name=None):
-    """ 对于未设置sub_columns的情况，算法排序后，更新sub_columns"""
-    size = 10
-    cond = {'name': {'$regex': name}} if name else {}
-    page_count = math.ceil(db.page.count_documents(cond) / size)
-    print('[%s]%s pages to process' % (hp.get_date_time(), page_count))
-    for i in range(page_count):
-        fields = ['name', 'width', 'height', 'blocks', 'columns', 'chars']
-        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
-        for page in pages:
-            print('[%s]processing %s' % (hp.get_date_time(), page['name']))
-            if not page.get('columns'):
-                continue
-            has_sub_columns = [c for c in page['columns'] if c.get('sub_columns')]
-            if has_sub_columns:
-                continue
-            Ph.reorder_boxes(page=page)
-            new_sub_columns = [c for c in page['columns'] if c.get('sub_columns')]
-            if not new_sub_columns:
-                print('algorithm no sub columns')
-                continue
-            db.page.update_one({'_id': page['_id']}, {'$set': {'columns': page['columns']}})
-            print('sub columns updated')
+def reset_txt_type(page):
+    # txt_types = {'Y': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+    changed = False
+    for c in page.get('chars', []):
+        # reset char
+        txt_type = c.pop('txt_type', 0)
+        if txt_type == 'M':
+            c['is_vague'] = True
+        elif txt_type in ['N', '*']:
+            c['uncertain'] = True
+        # reset logs
+        for log in c.get('txt_logs') or []:
+            changed = True
+            txt_type = log.pop('txt_type', 0)
+            if txt_type == 'M':
+                log['is_vague'] = True
+            elif txt_type in ['N', '*']:
+                log['uncertain'] = True
+    return changed
 
 
 def reset_ocr_pos(page):
+    changed = False
     for f in ['blocks', 'columns', 'chars']:
         boxes = page.get(f) or []
         for b in boxes:
             for k in ['x', 'y', 'w', 'h']:
-                if b.get(k):
+                if b.get(k) and b[k] != round(b[k], 1):
+                    changed = True
                     b[k] = round(b[k], 1)
+    return changed
 
 
 def reset_ocr_txt(page):
-    for c in page.get('chars', []):
+    changed = False
+    for c in page.get('chars') or []:
         c['ocr_txt'] = Ph.get_cmb_txt(c)
-        if not c.get('txt_logs'):
+        txts = [c[k] for k in ['ocr_txt', 'ocr_col', 'cmp_txt'] if c.get(k)]
+        c.get('alternatives') and txts.append(c.get('alternatives')[:1])
+        if not c.get('txt_logs') and c['txt'] in txts:
+            changed = True
             c['txt'] = c['ocr_txt']
+    return changed
 
 
 def reset_box_log(page):
@@ -102,33 +106,33 @@ def reset_box_log(page):
                     b['box_logs'][0].pop('create_time', 0)
                 else:
                     b['box_logs'].sort(key=itemgetter('create_time'))
-
-
-def update_pages(db):
-    """ 更新page表。注：更新之前去掉updated字段"""
-    size = 1000
-    cond = {'updated': None}
-    item_count = db.page.count_documents(cond)
-    page_count = math.ceil(item_count / size)
-    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
-    for i in range(page_count):
-        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        fields = ['name', 'blocks', 'columns', 'chars']
-        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
-        for p in pages:
-            print('[%s]%s' % (hp.get_date_time(), p['name']))
-            reset_box_log(p)
-            reset_ocr_pos(p)
-            reset_ocr_txt(p)
-            if p.get('chars'):
-                p['txt'] = Ph.get_char_txt(p, 'txt')
-            update = {k: p[k] for k in ['blocks', 'columns', 'chars', 'txt'] if p.get(k)}
-            db.page.update_one({'_id': p['_id']}, {'$set': {**update, 'updated1': True}})
+    return True
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+    """ 更新page表
+        注：更新之前去掉updated字段
+    """
+    size, i = 1000, 0
+    cond = {'updated': None}
     db = pymongo.MongoClient(uri)[db_name]
-    eval(func)(db, **kwargs)
+    item_count = db.page.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    while db.page.find_one(cond):
+        i += 1
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i, page_count))
+        fields = ['name', 'blocks', 'columns', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).limit(size))
+        for p in pages:
+            print('[%s]%s' % (hp.get_date_time(), p['name']))
+            r1 = reset_ocr_txt(p)
+            r2 = reset_txt_type(p)
+            r = r1 or r2
+            # r = eval(func)(p, **kwargs)
+            update = {'updated': True}
+            r and update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
+            db.page.update_one({'_id': p['_id']}, {'$set': update})
 
 
 if __name__ == '__main__':
