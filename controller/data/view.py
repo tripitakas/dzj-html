@@ -100,10 +100,11 @@ class VariantListHandler(BaseHandler, Variant):
     URL = '/data/variant'
 
     page_title = '异体字管理'
-    search_fields = ['source', 'txt', 'img_name', 'normal_txt']
-    update_fields = ['txt', 'source', 'img_name', 'normal_txt', 'remark']
-    table_fields = ['uid', 'source', 'txt', 'img_name', 'normal_txt', 'remark', 'create_by', 'create_time',
-                    'updated_time']
+    hide_fields = ['uid', 'img_name']
+    search_fields = ['source', 'txt', 'v_code', 'normal_txt']
+    update_fields = ['source', 'txt', 'img_name', 'normal_txt', 'remark']
+    table_fields = ['source', 'uid', 'v_code', 'txt', 'img_name', 'user_txt', 'normal_txt', 'remark',
+                    'create_by', 'create_time', 'updated_time']
     operations = [
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -113,10 +114,11 @@ class VariantListHandler(BaseHandler, Variant):
     ]
     img_operations = ['config']
 
-    def format_value(self, value, key=None, doc=None):
+    @staticmethod
+    def format_value(value, key=None, doc=None):
         """格式化输出"""
-        if key == 'img_name' and value:
-            return '<div><img src="%s"></div><div>%s</div>' % (self.get_web_img(value, 'char'), value)
+        if key == 'v_code' and value:
+            return '<div><img src="/static/img/variants/%s.jpg"></div><div>%s</div>' % (value, value)
         return h.format_value(value, key, doc)
 
     def get(self):

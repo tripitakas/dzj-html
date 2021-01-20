@@ -12,13 +12,13 @@
       <div class="modal-body">
         <form class="form-horizontal">
           <div class="form-group">
-            <h4 class="col-sm-2 control-label">编码</h4>
-            <div class="col-sm-10">
-              <input type="text" class="form-control uid" value="{{params.get('uid') or ''}}" placeholder="请输入整数编码">
-            </div>
             <h4 class="col-sm-2 control-label">分类</h4>
             <div class="col-sm-10">
               <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
+            </div>
+            <h4 class="col-sm-2 control-label">编码</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control v_code" value="{{params.get('v_code') or ''}}" placeholder="请输入编码">
             </div>
             <h4 class="col-sm-2 control-label">异体字</h4>
             <div class="col-sm-10">
@@ -53,7 +53,7 @@
 <script>
   /*---综合检索---*/
   let $searchModal = $("#searchModal");
-  let inputFields = ['uid', 'txt', 'source', 'img_name', 'normal_txt', 'remark'];
+  let inputFields = ['source', 'v_code', 'txt', 'img_name', 'normal_txt', 'remark'];
   $searchModal.find('.modal-confirm').on('click', function () {
     let search = '';
     inputFields.forEach(function (field) {

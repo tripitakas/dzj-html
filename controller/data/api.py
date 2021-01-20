@@ -80,18 +80,17 @@ class DataDeleteApi(BaseHandler):
 
         def pre_variant():
             if self.data.get('_id'):
-                vt = self.db.variant.find_one({'_id': ObjectId(self.data['_id'])})
-                if self.db.char.find_one({'txt': 'Y%s' % vt['uid'] if vt.get('uid') else vt['txt']}):
-                    return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
+                vt = self.db.variant.find_one({'_id': ObjectId(self.data['_id'])}, {'v_code': 1})
+                if vt.get('v_code') and self.db.char.find_one({'txt': vt['v_code']}):
+                    return self.send_error_response(e.unauthorized, message='不能删除使用中的图片异体字')
             else:
                 can_delete = []
                 vts = list(self.db.variant.find({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}))
                 for vt in vts:
-                    if not self.db.char.find_one({'txt': 'Y%s' % vt['uid'] if vt.get('uid') else vt['txt']}):
+                    if not vt.get('v_code') or not self.db.char.find_one({'txt': vt['v_code']}):
                         can_delete.append(str(vt['_id']))
-                if can_delete:
-                    self.data['_ids'] = can_delete
-                else:
+                self.data['_ids'] = can_delete
+                if not can_delete:
                     return self.send_error_response(e.unauthorized, message='所有异体字均被使用中，不能删除')
 
         try:
@@ -117,19 +116,18 @@ class VariantDeleteApi(BaseHandler):
     URL = '/api/variant/delete'
 
     def post(self):
-        """删除图片异体字"""
+        """用户删除图片异体字"""
         try:
-            rules = [(v.not_empty, 'uid'), (v.is_char_uid, 'uid')]
+            rules = [(v.not_empty, 'v_code')]
             self.validate(self.data, rules)
-            uid = self.data['uid']
-            if self.db.char.find_one({'txt': uid}):
+
+            if self.db.char.find_one({'txt': self.data['v_code']}):
                 return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
-            vt = self.db.variant.find_one({'uid': int(uid.strip('Y'))})
-            if not vt:
-                return self.send_error_response(e.no_object, message='没有找到%s相关的异体字' % uid)
-            self.db.variant.delete_one({'_id': vt['_id']})
+            r = self.db.variant.delete_one({'v_code': self.data['v_code']})
+            if not r.deleted_count:
+                return self.send_error_response(e.no_object, message='没有找到%s相关的异体字' % self.data['v_code'])
             self.send_data_response()
-            self.add_log('delete_variant', target_id=vt['_id'])
+            self.add_log('delete_variant', target_name=self.data['v_code'])
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -146,12 +144,12 @@ class VariantMergeApi(BaseHandler):
             img_names, main = self.data['img_names'], self.data['main']
             assert main in img_names
             names2merge = [name for name in img_names if name != main]
-            variants = list(self.db.variant.find({'img_name': {'$in': img_names}}))
-            if not names2merge or not variants:
+            vts = list(self.db.variant.find({'img_name': {'$in': img_names}}))
+            if not names2merge or not vts:
                 return self.send_error_response(e.no_object, message='没有找到待合并的异体字字图')
 
             # 更新字数据
-            maps = {t['img_name']: 'Y%s' % t['uid'] for t in variants}
+            maps = {t['img_name']: t['v_code'] for t in vts}
             self.db.char.update_many({'txt': {'$in': [maps[n] for n in names2merge]}}, {'$set': {'txt': maps[main]}})
             # 删除异体字图
             self.db.variant.delete_many({'img_name': {'$in': names2merge}})

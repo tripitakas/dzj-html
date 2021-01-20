@@ -4,10 +4,10 @@
 import re
 from datetime import datetime
 from functools import cmp_to_key
+from controller import errors
 from controller.model import Model
 from controller import helper as h
 from controller import validate as v
-from controller import errors
 
 
 class Tripitaka(Model):
@@ -185,10 +185,12 @@ class Variant(Model):
     primary = '_id'
     collection = 'variant'
     fields = {
-        'uid': {'name': '编码'},
+        'uid': {'name': '序号'},
+        'v_code': {'name': '编码'},
         'source': {'name': '分类'},
         'txt': {'name': '异体字'},
         'img_name': {'name': '异体字图'},
+        'user_txt': {'name': '用户字头'},
         'normal_txt': {'name': '所属正字'},
         'remark': {'name': '备注'},
         'create_user_id': {'name': '创建人id'},
@@ -203,31 +205,35 @@ class Variant(Model):
         if doc.get('_id'):  # 更新
             doc['updated_time'] = datetime.now()
         else:  # 新增
-            # 如果不是汉字，则转为图片字
-            if doc.get('txt') and not re.match(r'^[^\x00-\xff]$', doc['txt']):
-                doc['img_name'] = doc['txt'].strip()
-                doc.pop('txt', 0)
-            cond = {'img_name': doc['img_name']} if doc.get('img_name') else {'txt': doc['txt']}
-            r = self.db.variant.find_one(cond)
-            if r:
-                return self.send_error_response(errors.variant_exist)
-            if doc.get('img_name'):  # 如果是图片，则进行编码
+            if re.match(r'^[0-9a-zA-Z_]+$', doc.get('txt') or ''):
+                doc['img_name'] = doc.pop('txt').strip()
+            if doc.get('img_name'):
+                if self.db.variant.find_one({'img_name': doc['img_name']}):
+                    return self.send_error_response(errors.variant_exist, message='异体字图已存在')
                 v_max = self.db.variant.find_one({'uid': {'$ne': None}}, sort=[('uid', -1)])
                 doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
-                if self.db.char.find_one({'txt': 'Y%s' % doc['uid']}):
+                doc['v_code'] = 'v' + h.dec2code36(doc['uid'])
+                if self.db.char.find_one({'txt': doc['v_code']}):
                     return self.send_error_response(errors.variant_exist, message='编号已错乱，请联系管理员！')
+            else:
+                if self.db.variant.find_one({'txt': doc['txt']}):
+                    return self.send_error_response(errors.variant_exist, message='异体字已存在')
+            doc['user_txt'] = doc.get('user_txt') or doc.get('normal_txt')
             doc['create_by'] = self.username
             doc['create_time'] = datetime.now()
             doc['create_user_id'] = self.user_id
+
         if doc.get('uid'):
             doc['uid'] = int(doc['uid'])
+            doc['v_code'] = 'v' + h.dec2code36(doc['uid'])
         if doc.get('txt'):
             doc['txt'] = doc['txt'].strip()
-        if doc.get('normal_txt'):
-            nt = doc['normal_txt']
-            variant = self.db.variant.find_one({'uid': int(nt.strip('Y'))} if 'Y' in nt else {'txt': nt})
-            if variant:
-                doc['normal_txt'] = variant.get('normal_txt')
+        nor_txt = doc['normal_txt']
+        cond = {'v_code': nor_txt[1:]} if nor_txt[0] == 'v' else {'txt': nor_txt}
+        variant = self.db.variant.find_one(cond, {'normal_txt': 1})
+        if variant and variant.get('normal_txt'):
+            doc['normal_txt'] = variant['normal_txt']
+
         doc = super().pack_doc(doc)
         return doc
 
@@ -238,11 +244,11 @@ class Variant(Model):
         if q and cls.search_fields:
             m = re.match(r'["\'](.*)["\']', q)
             condition['$or'] = [{k: m.group(1) if m else {'$regex': q}} for k in cls.search_fields]
-        for field in ['uid']:
+        for field in ['v_code']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field: int(value.strip('Y'))})
+                condition.update({field: value})
         for field in ['txt', 'normal_txt']:
             value = h.get_url_param(field, request_query)
             if value:

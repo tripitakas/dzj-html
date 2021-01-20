@@ -114,7 +114,7 @@ class Model(object):
         return name
 
     @classmethod
-    def pack_doc(cls, doc, self=None, exclude_none=False):
+    def pack_doc(cls, doc, self=None, exclude_none=True):
         d = {f: cls.prop(doc, f) for f in cls.fields}
         if exclude_none:
             d = {k: v for k, v in d.items() if v is not None}
@@ -186,7 +186,7 @@ class Model(object):
     @classmethod
     def save_one(cls, db, collection, doc, rules=None, self=None):
         """新增或修改一条记录"""
-        doc = cls.pack_doc(doc, self)
+        doc = cls.pack_doc(doc, self, True)
         errs = cls.validate(doc, rules)
         if errs:
             return dict(status='failed', errors=errs)

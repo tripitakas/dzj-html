@@ -20,7 +20,7 @@ from controller.page.base import PageHandler as Ph
 def reset_txt_type(page):
     # txt_types = {'Y': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
     changed = False
-    for c in page.get('chars', []):
+    for c in page.get('chars') or []:
         # reset char
         txt_type = c.pop('txt_type', 0)
         if txt_type == 'M':
