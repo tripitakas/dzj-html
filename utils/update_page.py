@@ -20,9 +20,15 @@ from controller.page.base import PageHandler as Ph
 def reset_variant(page):
     changed = False
     for c in page.get('chars') or []:
+        # reset char
         if len(c.get('txt') or '') > 1 and c['txt'][0] == 'Y':
             c['txt'] = 'v' + hp.dec2code36(int(c['txt'][1:]))
             changed = True
+        # reset logs
+        for log in c.get('txt_logs') or []:
+            if len(log.get('txt') or '') > 1 and log['txt'][0] == 'Y':
+                log['txt'] = 'v' + hp.dec2code36(int(log['txt'][1:]))
+                changed = True
     return changed
 
 
@@ -134,7 +140,7 @@ def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
         for p in pages:
             print('[%s]%s' % (hp.get_date_time(), p['name']))
             r = eval(func)(p, **kwargs)
-            update = {'need_updated': False}
+            update = {'need_updated': None}
             r and update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
             db.page.update_one({'_id': p['_id']}, {'$set': update})
 

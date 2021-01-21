@@ -75,6 +75,20 @@ def update_variant(db):
         db.char.update_many({'txt': vt}, {'$set': {'txt': v_code}})
 
 
+def update_log_variant(db):
+    cond = {'txt_logs.txt': {'$regex': 'Y'}}
+    chars = list(db.char.find(cond, {'txt_logs': 1}))
+    for c in chars:
+        if c.get('txt_logs'):
+            changed = False
+            for log in c['txt_logs']:
+                if len(log.get('txt') or '') > 1 and log['txt'][0] == 'Y':
+                    log['txt'] = 'v' + hp.dec2code36(int(log['txt'][1:]))
+                    changed = True
+            if changed:
+                db.char.update_one({'_id': c['_id']}, {'$set': {'txt_logs': c['txt_logs']}})
+
+
 def update_txt_log(db):
     size, i = 20000, 0
     cond = {'need_updated': True}
