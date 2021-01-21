@@ -76,11 +76,11 @@
           <div class="form-group">
             <h4 class="col-sm-2 control-label">批次号</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="请输入批次号">
+              <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">页编码</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control doc_id" value="{{params.get('doc_id') or ''}}" placeholder="请输入页编码">
+              <input type="text" class="form-control doc_id" value="{{params.get('doc_id') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class=" col-sm-2 control-label">任务类型</h4>
             <div class="col-sm-10">
@@ -153,7 +153,7 @@
             </div>
             <h4 class="col-sm-2 control-label">备　注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
+              <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
           </div>
         </form>
@@ -256,6 +256,8 @@
     });
   });
 
+</script>
+<script>
   /*---综合检索---*/
   let $searchModal = $("#searchModal");
   let searchFields = [
@@ -288,11 +290,8 @@
   // 提交
   $searchModal.find('.modal-confirm').click(function () {
     let data = getModal($searchModal, searchFields);
-    let search = $.map(data, function (v, k) {
-      return '&' + k + '=' + v;
-    }).join('');
-    if (!search.length)
-      return showTips('提示', '请输入查询条件', 3000);
+    let search = $.map(data, (v, k) => `&${k}=${v}`).join('');
+    if (!search.length) return showTips('提示', '请输入查询条件', 3000);
     location.href = location.pathname + '?' + search.substr(1);
   });
   // 重置
@@ -300,5 +299,6 @@
     $searchModal.find('.picked_user_id').val(null).trigger('change');
     resetModal($searchModal, searchFields);
   });
+
 </script>
 {% end %}

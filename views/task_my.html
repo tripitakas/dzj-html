@@ -101,19 +101,18 @@
       </div>
       <div class="modal-body">
         <form class="form-horizontal">
-          <div class="notes">注：批次、页编码和我的备注，带''时进行精确匹配，否则模糊匹配</div>
           <div class="form-group">
             <h4 class="col-sm-2 control-label">批次</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="请输入批次">
+              <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">页编码</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control doc_id" value="{{params.get('doc_id') or ''}}" placeholder="请输入页编码">
+              <input type="text" class="form-control doc_id" value="{{params.get('doc_id') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">我的备注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control my_remark" value="{{params.get('my_remark') or ''}}" placeholder="请输入我的备注">
+              <input type="text" class="form-control my_remark" value="{{params.get('my_remark') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">领取时间</h4>
             <div class="col-sm-10 time picked_time">
