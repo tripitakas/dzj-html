@@ -68,7 +68,7 @@ def update_variant(db):
         {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
         {'$sort': {'count': -1}},
     ]))
-    vts = [c['txt'] for c in counts]
+    vts = [c['_id'] for c in counts]
     for vt in vts:
         v_code = 'v' + hp.dec2code36(int(vt[1:]))
         print(vt, v_code)
