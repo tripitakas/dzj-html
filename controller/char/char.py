@@ -14,19 +14,19 @@ class Char(Model):
         'name': {'name': '字编码'},
         'page_name': {'name': '页编码'},
         'char_id': {'name': '序号'},
-        'uid': {'name': 'uid', 'remark': 'page_name和char_id的对齐编码'},
+        'uid': {'name': 'uid', 'remark': '对齐编码'},
         'cid': {'name': 'cid'},
         'source': {'name': '分类'},
         'has_img': {'name': '字图'},
-        'img_need_updated': {'name': '是否需要更新字图'},
+        'img_need_updated': {'name': '需要更新字图'},
         'cc': {'name': '字置信度'},
         'lc': {'name': '列置信度'},
         'pos': {'name': '坐标'},
         'column': {'name': '所属列'},
-        'ocr_txt': {'name': '综合OCR'},
         'alternatives': {'name': '字框OCR'},
         'ocr_col': {'name': '列框OCR'},
         'cmp_txt': {'name': '比对文字'},
+        'ocr_txt': {'name': '综合OCR'},
         'is_diff': {'name': '不一致'},
         'un_required': {'name': '不必校对'},
         'txt': {'name': '原字'},
@@ -73,8 +73,7 @@ class Char(Model):
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                m = re.match(r'["\'](.*)["\']', value)
-                condition.update({field: m.group(1) if m else {'$regex': value}})
+                condition.update({field: value[1:] if value[0] == '=' and len(value) > 1 else {'$regex': value}})
         for field in ['cc', 'lc']:
             value = h.get_url_param(field, request_query)
             if value:
