@@ -27,8 +27,8 @@ class Char(Model):
         'alternatives': {'name': '字框OCR'},
         'ocr_col': {'name': '列框OCR'},
         'cmp_txt': {'name': '比对文字'},
-        'is_diff': {'name': '是否不一致'},
-        'un_required': {'name': '是否不必校对'},
+        'is_diff': {'name': '不一致'},
+        'un_required': {'name': '不必校对'},
         'txt': {'name': '原字'},
         'nor_txt': {'name': '正字'},
         'is_vague': {'name': '笔画残损'},
@@ -57,14 +57,12 @@ class Char(Model):
         if q and cls.search_fields:
             m = re.match(r'["\'](.*)["\']', q)
             condition['$or'] = [{k: m.group(1) if m else {'$regex': q}} for k in cls.search_fields]
-        for field in ['txt', 'ocr_txt', ]:
+        for field in ['txt', 'ocr_txt']:
             value = h.get_url_param(field, request_query)
             if value:
-                trans = {'True': True, 'False': False, 'None': None}
-                value = trans.get(value) if value in trans else value
                 params[field] = value
                 condition.update({field: value})
-        for field in ['txt', 'ocr_txt', 'txt_type', 'diff', 'un_required', 'is_vague', 'is_deform', 'uncertain']:
+        for field in ['diff', 'un_required', 'is_vague', 'is_deform', 'uncertain']:
             value = h.get_url_param(field, request_query)
             if value:
                 trans = {'True': True, 'False': False, 'None': None}
@@ -77,7 +75,7 @@ class Char(Model):
                 params[field] = value
                 m = re.match(r'["\'](.*)["\']', value)
                 condition.update({field: m.group(1) if m else {'$regex': value}})
-        for field in ['cc', 'sc']:
+        for field in ['cc', 'lc']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

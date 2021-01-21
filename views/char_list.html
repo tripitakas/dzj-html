@@ -341,8 +341,13 @@
     location.href = '/char/browse' + setQueryString('from', location.pathname, true);
   });
 
-  // 查看
+  // 详情
   $('.btn-detail').on('click', function () {
+    location.href = '/char/info/' + $(this).parent().parent().find('.name').text();
+  });
+
+  // 查看
+  $('.btn-my-view').on('click', function () {
     location.href = '/char/' + $(this).parent().parent().find('.name').text();
   });
 
