@@ -117,9 +117,12 @@ def migrate_char_to_page(db):
         print('[%s]processing page %s / %s' % (hp.get_date_time(), i, page_count))
         page_dict = dict()
         pages = list(db.page.find(cond, {k: 1 for k in ['name', 'chars']}).limit(size))
+        db.page.update_many({'_id': {'$in': [p['_id'] for p in pages]}}, {'$set': {'need_updated': None}})
         # 同步更新以下字段
         fields = ['name', 'txt', 'nor_txt', 'is_vague', 'uncertain', 'is_deform', 'txt_level', 'txt_logs']
         chars = list(db.char.find({'page_name': {'$in': [p['name'] for p in pages]}}, {k: 1 for k in fields}))
+        if not chars:
+            continue
         for c in chars:
             c.pop('_id', 0)
             page_name, cid = c.pop('name', '').rsplit('_', 1)
@@ -127,12 +130,10 @@ def migrate_char_to_page(db):
             page_dict[page_name][cid] = c
         for p in pages:
             print(p['name'])
-            for c in p['chars']:
-                txt = c.get('txt')
-                c.update(page_dict[p['name']].get(str(c['cid'])))
-                if not is_valid(c.get('txt')):
-                    c['txt'] = txt
-            db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars'], 'need_updated': None}})
+            if page_dict.get(p['name']):
+                for c in p['chars']:
+                    c.update(page_dict[p['name']].get(str(c['cid'])) or {})
+                db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
