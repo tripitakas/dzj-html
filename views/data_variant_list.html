@@ -114,8 +114,8 @@
   $('.btn-view-chars').on('click', function () {
     let tr = $(this).parent().parent();
     let txt = tr.find('.v_code').text().trim();
-    if (txt) location.href = '/char/list?txt==' + txt;
-    else location.href = '/char/list?txt=' + tr.find('.txt').text().trim();
+    if (txt) window.open('/char/list?txt==' + txt, '_blank');
+    else window.open('/char/list?txt=' + tr.find('.txt').text().trim(), '_blank');
   });
 
 </script>
