@@ -8,7 +8,7 @@
   $.box && $.box.onBoxChanged(function (box, reason, param) {
     if (reason === 'switch') {
       if (box && box.boxType === 'char') {
-        $.txt.setChar(box);
+        $.charTxt.setChar(box);
       }
     }
   });
@@ -22,7 +22,7 @@
     hint: null,               // 当前显示修改痕迹
   };
 
-  $.txt = {
+  $.charTxt = {
     status: status,
     init: init,
     setChar: setChar,
@@ -147,17 +147,19 @@
     $('.char-txt .cur-name').val(char.name || pageName + '_' + char.cid);
   }
 
+  // 显隐box对应的框
   function toggleHint(box, show) {
     status.hint && status.hint.remove();
     status.hint = null;
     if (!show) {
-      $($.box.data.holder).removeClass('user-hint');
+      $($.box.data.holder).removeClass('show-hint user-hint');
     } else if (box) {
-      $($.box.data.holder).addClass('user-hint');
+      $($.box.data.holder).addClass('show-hint user-hint');
       status.hint = $.box.createBox(box, 'box hint current');
     }
   }
 
+  // 选中文字
   $(document).on('click', '.txt-item', function () {
     let txt = $(this).text();
     $('.proof #p-txt').val(txt);
@@ -166,6 +168,7 @@
     });
   });
 
+  // 展开收缩信息
   $(document).on('click', '.toggle-info', function () {
     let target = $(this).attr('id').replace('toggle-', '');
     if ($(this).hasClass('icon-up')) {
@@ -177,6 +180,7 @@
     }
   });
 
+  // 显示坐标对应的框
   $(document).on('click', 'span.pos', function () {
     let txt = $(this).text(), box = {x: 0, y: 0, w: 0, h: 0, cid: 0};
     if (txt.split(',').length > 3) {
@@ -190,6 +194,7 @@
     }
     box.boxType = box.cid ? 'column' : 'char';
     toggleHint(box, true);
+    $('#reset-box').removeClass('hide');
   });
 
 

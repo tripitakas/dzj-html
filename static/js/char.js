@@ -95,7 +95,7 @@ $('.char-panel .char-img').on('click', function () {
   let id = $(this).parent().attr('data-id');
   let ch = chars[id] || {};
   updateColumnImg(ch);
-  $.txt.setChar(ch);
+  $.charTxt.setChar(ch);
 });
 
 $('.char-panel .char-info, .char-panel .char-check').on('click', function () {

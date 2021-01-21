@@ -131,16 +131,18 @@
         </div>
       </div>
       <div class="right">
-        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-v-code" class="btn-txt icon-images hide" data-toggle="tooltip" data-placement="bottom" title="显隐字图对应的图片"></div>
         <div id="toggle-txts" class="btn-group" title="切换文本">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
             <li id="txt" class="toggle-txt active"><a>校对文本</a></li>
-            <li id="ocr_txt" class="toggle-txt"><a>字框OCR</a></li>
+            <li id="ocr_txt" class="toggle-txt"><a>综合OCR</a></li>
+            <li id="ocr_chr" class="toggle-txt"><a>字框OCR</a></li>
             <li id="ocr_col" class="toggle-txt"><a>列框OCR</a></li>
             <li id="cmp_txt" class="toggle-txt"><a>比对文本</a></li>
           </ul>
         </div>
+        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
         <div id="toggle-proof-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
         <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?from={{current_path}}" target="_blank">经目</a>
         <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}?from={{current_path}}" target="_blank">卷目</a>
@@ -254,6 +256,7 @@
 <script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
 <script src="{{static_url('js/box/box.base.js')}}"></script>
 <script src="{{static_url('js/box/box.cut.js')}}"></script>
+<script src="{{static_url('js/box/box.txt.js')}}"></script>
 <script src="{{static_url('js/box/box.page.js')}}"></script>
 <script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/page-box.js')}}"></script>
@@ -287,7 +290,7 @@
     blurImage: getStorage('tptkBlur', false) ? 0.2 : 1,
   });
   $.box.bindBaseKeys(true);
-  $.txt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
+  $.charTxt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
   if ('{{cid}}'.length) $.box.switchCurBox($.box.findFirstBox('char', '{{cid}}'));
   $('#toggle-blur').toggleClass('active', getStorage('tptkBlur', false));
   if (getStorage('tptkBox', '')) $('#toggle-' + getStorage('tptkBox')).addClass('active');
@@ -312,6 +315,10 @@
     $(this).toggleClass('active');
     $('.proof-panel').toggleClass('hide', !$(this).hasClass('active'));
     setStorage('tptkProof', $(this).hasClass('active'));
+  });
+  $('#toggle-v-code').on('click', function () {
+    $(this).toggleClass('active');
+    $.box.toggleVCode($(this).hasClass('active'));
   });
   // 图片导航
   $('.m-pager .btn-page:not(.to)').on('click', function () {
@@ -348,7 +355,7 @@
       location.href = setAnchor(name);
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
       $('.txt-holder .current-char').text(data.txt).addClass('changed');
-      $.txt.setTxtLogs(res['txt_logs']);
+      $.charTxt.setTxtLogs(res['txt_logs']);
       data['txt_logs'] = res['txt_logs'];
       Object.assign($.box.data.boxes[parseInt(idx)], data);
     }, function (err) {
