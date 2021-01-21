@@ -113,6 +113,11 @@ class VariantListHandler(BaseHandler, Variant):
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
     ]
     img_operations = ['config']
+    actions = [
+        {'action': 'btn-view-chars', 'label': '相关字数据'},
+        {'action': 'btn-update', 'label': '更新'},
+        {'action': 'btn-remove', 'label': '删除'},
+    ]
 
     @staticmethod
     def format_value(value, key=None, doc=None):

@@ -2,6 +2,11 @@
 
 {% block custom-css %}
 <link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
+<style>
+  td.txt, td.user_txt, td.normal_txt {
+    font-size: 36px;
+  }
+</style>
 {% end %}
 
 {% block custom-modal %}
@@ -51,6 +56,12 @@
 
 {% block custom-js %}
 <script>
+  // 查看字数据
+  $('.btn-view-chars').on('click', function () {
+    let tr = $(this).parent().parent();
+    let txt = tr.find('.v_code').text().trim() || tr.find('.txt').text().trim();
+    if (txt) location.href = '/char/list?txt=' + txt;
+  });
   /*---综合检索---*/
   let $searchModal = $("#searchModal");
   let inputFields = ['source', 'v_code', 'txt', 'img_name', 'normal_txt', 'remark'];
