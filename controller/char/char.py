@@ -57,11 +57,18 @@ class Char(Model):
         if q and cls.search_fields:
             m = len(q) > 1 and q[0] == '='
             condition['$or'] = [{k: q[1:] if m else {'$regex': q}} for k in cls.search_fields]
-        for field in ['txt', 'ocr_txt']:
+        for field in ['ocr_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: value})
+        for field in ['txt']:
+            value = h.get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: value})
+                if 'v' in value:  # v_code
+                    condition.update({field: value[1:] if value[0] == '=' else {'$regex': value}})
         for field in ['diff', 'un_required', 'is_vague', 'is_deform', 'uncertain']:
             value = h.get_url_param(field, request_query)
             if value:
