@@ -147,6 +147,7 @@
     $('.char-txt .cur-name').val(char.name || pageName + '_' + char.cid);
   }
 
+  // 显隐box对应的框
   function toggleHint(box, show) {
     status.hint && status.hint.remove();
     status.hint = null;
@@ -158,6 +159,7 @@
     }
   }
 
+  // 选中文字
   $(document).on('click', '.txt-item', function () {
     let txt = $(this).text();
     $('.proof #p-txt').val(txt);
@@ -166,6 +168,7 @@
     });
   });
 
+  // 展开收缩信息
   $(document).on('click', '.toggle-info', function () {
     let target = $(this).attr('id').replace('toggle-', '');
     if ($(this).hasClass('icon-up')) {
@@ -177,6 +180,7 @@
     }
   });
 
+  // 显示坐标对应的框
   $(document).on('click', 'span.pos', function () {
     let txt = $(this).text(), box = {x: 0, y: 0, w: 0, h: 0, cid: 0};
     if (txt.split(',').length > 3) {

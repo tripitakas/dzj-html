@@ -23,6 +23,7 @@
     initTxt: initTxt,
     toggleTxt: toggleTxt,
     hasTxtType: hasTxtType,
+    toggleVCode: toggleVCode,
   });
 
   function initTxt(txtHolder, txtType, useToolTip) {
@@ -32,8 +33,12 @@
     let lastBlockNo = boxes.blocks[boxes.blocks.length - 1]['block_no'];
     let lastColumnNo = boxes.columns[boxes.columns.length - 1]['column_no'];
     boxes.chars.forEach((b) => {
-      b['txt'] = b['txt'] || b['ocr_txt'];
+      // 设置txt、ocr_chr
+      b['txt'] = b['txt'] || b['ocr_txt'] || '■';
       b['ocr_chr'] = b['alternatives'] && Array.from(b['alternatives'])[0];
+      // 设置toggle-v-code
+      if (b['txt'].indexOf('v') === 0) $('#toggle-v-code').removeClass('hide');
+      // html
       if (blockNo !== b.block_no) {
         html += (!blockNo ? '</div></div>' : '') + '<div class="block"><div class="line">';
         blockNo = b.block_no;
@@ -90,10 +95,19 @@
       tStatus.curTxtType = txtType;
       $.map($(tStatus.txtHolder).find('.char'), function (item) {
         let idx = $(item).attr('id').split('-')[1];
-        let box = data.boxes[idx];
-        $(item).text(box[txtType] || '■');
+        $(item).text(data.boxes[idx][txtType] || '■');
       })
     }
+  }
+
+  function toggleVCode(show) {
+    if (tStatus.curTxtType !== 'txt') return;
+    $.map($(tStatus.txtHolder).find('.char'), function (item) {
+      if (show && $(item).text().trim().indexOf('v') === 0)
+        $(item).html(`<img src="/static/img/variants/${$(item).text().trim()}.jpg">`);
+      if (!show && $(item).find('img').length)
+        $(item).text($(item).find('img').attr('src').split('/').pop().replace('.jpg', ''));
+    })
   }
 
   function switchCurTxt(box) {
