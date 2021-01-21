@@ -126,6 +126,14 @@
               <span>~</span>
               <input type="text" class="form-control flatpickr finished_end" value="{{params.get('finished_end') or ''}}" data-enable-time=true data-enable-seconds=true placeholder="请选择结束时间">
             </div>
+            <h4 class="col-sm-2 control-label"></h4>
+            <div class="col-sm-10 btn-time">
+              <span type="button" id="last-month" class="btn btn-default">上月</span>
+              <span type="button" id="last-week" class="btn btn-default">上周</span>
+              <span type="button" id="this-week" class="btn btn-default">本周</span>
+              <span type="button" id="this-month" class="btn btn-default">本月</span>
+              <span type="button" id="clear" class="btn btn-default">清空</span>
+            </div>
           </div>
         </form>
       </div>
@@ -140,8 +148,9 @@
 {% end %}
 
 {% block custom-js %}
-<script src="{{static_url('assets/flatpickr/flatpickr.js')}}"></script>
+<script src="{{static_url('assets/flatpickr/flatpickr.min.js')}}"></script>
 <script src="{{static_url('assets/flatpickr/zh.js')}}"></script>
+<script src="{{static_url('js/time-select.js')}}"></script>
 <script>
   let taskType = '{{task_type}}';
   // 查看
@@ -186,16 +195,13 @@
     });
   });
 
-  //---综合检索---
+</script>
+<script>
+  // 综合检索
   let searchFields = [
     {id: 'batch'}, {id: 'doc_id'}, {id: 'picked_start'}, {id: 'picked_end'},
     {id: 'finished_start'}, {id: 'finished_end'}, {id: 'my_remark'}
   ];
-  // 设置时间选择器
-  $("#searchModal .picked_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
-  $("#searchModal .picked_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
-  $("#searchModal .finished_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
-  $("#searchModal .finished_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
   // 提交
   $("#searchModal .modal-confirm").on('click', function () {
     let data = getModal($("#searchModal"), searchFields);
@@ -208,5 +214,6 @@
     $("#searchModal .picked_user_id").val(null).trigger('change');
     resetModal($("#searchModal"), searchFields);
   });
+
 </script>
 {% end %}
