@@ -24,7 +24,7 @@ def reset_variant(page):
         if len(c.get('txt') or '') > 1 and c['txt'][0] == 'Y':
             c['txt'] = 'v' + hp.dec2code36(int(c['txt'][1:]))
             changed = True
-            # reset logs
+        # reset logs
         for log in c.get('txt_logs') or []:
             if len(log.get('txt') or '') > 1 and log['txt'][0] == 'Y':
                 log['txt'] = 'v' + hp.dec2code36(int(log['txt'][1:]))
