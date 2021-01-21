@@ -40,9 +40,9 @@
           </div>
           <div class="block">
             <div class="block-head">页数据中的字信息</div>
-            {% for t, status in p_char.items() %}
+            {% for k, v in p_char.items() %}
             <div class="info">
-              <label class="label">{{Char.get_task_name(t)}}</label>
+              <label class="label">{{Char.get_field_name(k)}}</label>
               <div class="value">{% raw format_value(v, k) %}</div>
             </div>
             {% end %}
