@@ -114,7 +114,7 @@ class Model(object):
         return name
 
     @classmethod
-    def pack_doc(cls, doc, self=None, exclude_none=False):
+    def pack_doc(cls, doc, self=None, exclude_none=True):
         d = {k: v for k, v in doc.items() if k in cls.get_fields()}
         if exclude_none:
             d = {k: v for k, v in d.items() if v is not None}

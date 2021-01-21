@@ -157,13 +157,13 @@ class CharTaskClusterHandler(CharHandler):
             return int(float(c) * 1000)
 
         def get_user_filter():
-            # 异文
-            un_equal = self.get_query_argument('diff', 0)
-            if un_equal == 'true':
+            # 是否不一致
+            diff = self.get_query_argument('diff', 0)
+            if diff:
                 cond['diff'] = True
             # 是否不必校对
             un_required = self.get_query_argument('un_required', 0)
-            if un_required == 'true':
+            if un_required:
                 cond['un_required'] = True
             else:
                 cond['un_required'] = {'$in': [False, None]}
@@ -199,9 +199,10 @@ class CharTaskClusterHandler(CharHandler):
         try:
             # 1.根据任务参数，设置字数据的过滤条件
             params = self.task['params']
-            ocr_txts = [c['ocr_txt'] for c in params]
+            base = 'ocr_txt' if 'proof' in task_type else 'rvw_txt'
+            base_txts = [c[base] for c in params]
             user_level = self.get_user_txt_level(self, task_type)
-            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts} if len(ocr_txts) > 1 else ocr_txts[0],
+            cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0],
                     'txt_level': {'$lte': user_level}}
             # 统计任务相关字种
             counts = list(self.db.char.aggregate([
@@ -237,7 +238,7 @@ class CharTaskClusterHandler(CharHandler):
             char_count = self.task.get('char_count')
             show_char_info = json_util.loads(self.get_secure_cookie('cluster_char_info') or '0') or '是'
             self.render(
-                'char_cluster.html', docs=docs, pager=pager, q=q, order=order, chars=chars, ocr_txts=ocr_txts,
+                'char_cluster.html', docs=docs, pager=pager, q=q, order=order, chars=chars, base_txts=base_txts,
                 txts=txts, v_txts=v_txts, cur_txt=cur_txt, variants=variants, char_count=char_count,
                 show_char_info=show_char_info, Char=Char
             )
