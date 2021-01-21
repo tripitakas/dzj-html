@@ -57,8 +57,8 @@
     <div class="m-body flex pfread">
       <div id="left-region" class="left bd">
         <div class="box-holder"></div>
-        <button class="btn btn-default" id="reset-box">恢复</button>
-        <button class="btn btn-primary{{'' if box_auth else ' disabled'}}" id="submit-box">确认</button>
+        <button id="reset-box" class="btn btn-default hide">恢复</button>
+        <button id="submit-box" class="btn btn-primary{{'' if box_auth else ' disabled'}}">确认</button>
       </div>
       <div id="panel-region" class="right bd proof-panel">
         {% include com/_char_txt.html %}
@@ -148,9 +148,9 @@
   });
   $.box.bindBaseKeys();
 
-  $.txt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
   let char = $.box.data.boxes[0];
-  $.txt.setChar(char);
+  $.charTxt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
+  $.charTxt.setChar(char);
   $.box.switchCurBox(char);
 
   $.box.onBoxChanged(function (box, reason, param) {
@@ -170,7 +170,7 @@
   });
 
   $('#reset-box').on('click', function () {
-    $.txt.toggleHint(null, false);
+    $.charTxt.toggleHint(null, false);
     $.box.switchCurBox(char);
   });
 
@@ -189,7 +189,7 @@
     postApi('/page/char/txt/' + char.name, {data: data}, function (res) {
       $this.removeClass('disabled');
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
-      $.txt.setTxtLogs(res['txt_logs']);
+      $.charTxt.setTxtLogs(res['txt_logs']);
       data['txt_logs'] = res['txt_logs'];
       Object.assign(char, data);
     }, function (err) {

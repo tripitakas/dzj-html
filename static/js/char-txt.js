@@ -8,7 +8,7 @@
   $.box && $.box.onBoxChanged(function (box, reason, param) {
     if (reason === 'switch') {
       if (box && box.boxType === 'char') {
-        $.txt.setChar(box);
+        $.charTxt.setChar(box);
       }
     }
   });
@@ -22,7 +22,7 @@
     hint: null,               // 当前显示修改痕迹
   };
 
-  $.txt = {
+  $.charTxt = {
     status: status,
     init: init,
     setChar: setChar,
@@ -151,9 +151,9 @@
     status.hint && status.hint.remove();
     status.hint = null;
     if (!show) {
-      $($.box.data.holder).removeClass('user-hint');
+      $($.box.data.holder).removeClass('show-hint user-hint');
     } else if (box) {
-      $($.box.data.holder).addClass('user-hint');
+      $($.box.data.holder).addClass('show-hint user-hint');
       status.hint = $.box.createBox(box, 'box hint current');
     }
   }
@@ -190,6 +190,7 @@
     }
     box.boxType = box.cid ? 'column' : 'char';
     toggleHint(box, true);
+    $('#reset-box').removeClass('hide');
   });
 
 

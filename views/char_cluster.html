@@ -290,7 +290,7 @@
   // 公共参数
   let chars = decodeJSON('{{dumps(chars)}}');
   let taskType = "{{handler.task_type if hasattr(handler, 'task_type') else ''}}";
-  $.txt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
+  $.charTxt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
 
   // 初始化
   $('#taskConfigModal .page-size').val('{{handler.page_size}}');
@@ -463,7 +463,7 @@
       location.href = setAnchor(name);
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
       $('.char-item.current .txt').text(data.txt);
-      $.txt.setTxtLogs(res['txt_logs']);
+      $.charTxt.setTxtLogs(res['txt_logs']);
     }, function (err) {
       $this.removeClass('disabled');
       if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');

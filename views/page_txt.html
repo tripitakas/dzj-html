@@ -201,6 +201,8 @@
 <script src="{{static_url('js/box/raphael.js')}}"></script>
 <script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
 <script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.cut.js')}}"></script>
+<script src="{{static_url('js/box/box.txt.js')}}"></script>
 <script src="{{static_url('js/box/box.page.js')}}"></script>
 <script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/page-box.js')}}"></script>
@@ -211,6 +213,7 @@
     readonly: true,
     holder: '.box-holder',
     txtHolder: '.txt-holder',
+    useTooTips: true,
     showMode: 'height-full',
     imgUrl: '{{page["img_url"]}}',
     curBoxType: getStorage('pageBox', ''),
@@ -223,7 +226,7 @@
     blurImage: getStorage('pageBlur', false) ? 0.2 : 1,
   });
   $.box.bindBaseKeys();
-  $.txt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
+  $.charTxt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
 
 </script>
 <script>
@@ -277,7 +280,7 @@
       location.href = setAnchor(name);
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
       $('.txt-holder .current-char').text(data.txt).addClass('changed');
-      $.txt.setTxtLogs(res['txt_logs']);
+      $.charTxt.setTxtLogs(res['txt_logs']);
       data['txt_logs'] = res['txt_logs'];
       Object.assign($.box.data.boxes[parseInt(idx)], data);
     }, function (err) {
@@ -286,6 +289,7 @@
       else bsShow('失败', err.message, 'warning', 1000);
     });
   });
+
   // 提交任务
   $('#task-submit,#task-submit-back').on('click', function () {
     let $this = $(this), id = $this.attr('id');
