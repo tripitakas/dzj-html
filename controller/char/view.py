@@ -61,11 +61,13 @@ class CharListHandler(CharHandler):
         """格式化page表的字段输出"""
 
         def log2str(log):
-            val = [log[f] for f in ['user_name', 'txt', 'remark'] if log.get(f)]
-            val.extend([self.get_field_name(log[f]) for f in ['is_vague', 'is_deform', 'uncertain'] if log.get(f)])
-            if log.get('updated_time'):
-                val.append(h.get_date_time('%Y-%m-%d %H:%M:%S', log['updated_time']))
-            return '|'.join(val)
+            val, log_time = [], log.get('updated_time') or log.get('create_time')
+            log_time and val.append(h.get_date_time('%Y-%m-%d %H:%M:%S', log_time))
+            log.get('username') and val.append('@' + log['username'] + ': ')
+            log.get('txt') and val.append(log['txt'])
+            val.extend(['/' + self.get_field_name(f) for f in ['is_vague', 'is_deform', 'uncertain'] if log.get(f)])
+            log.get('remark') and val.append('/' + log['remark'])
+            return ''.join(val)
 
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
