@@ -11,8 +11,8 @@ from controller.task.base import TaskHandler
 
 class CharHandler(Char, TaskHandler):
     txt_level = {
-        'task': dict(text_proof=1, text_review=10, cluster_proof=1, cluster_review=10, rare_proof=1, rare_review=10),
-        'role': dict(文字校对员=1, 文字审定员=10, 聚类校对员=1, 聚类审定员=10, 生僻校对员=1, 生僻审定员=10, 文字专家=100),
+        'task': dict(text_proof=1, text_review=10, cluster_proof=1, cluster_review=10),
+        'role': dict(文字校对员=1, 文字审定员=10, 聚类校对员=1, 聚类审定员=10, 文字专家=100),
     }
     default_level = 1
 
@@ -41,8 +41,8 @@ class CharHandler(Char, TaskHandler):
     @staticmethod
     def get_required_type_and_point(char):
         """计算修改char的txt所需的积分"""
-        ratio = {'cluster_proof': 2000, 'cluster_review': 1000, 'rare_proof': 2000, 'rare_review': 1000}
-        for task_type in ['rare_review', 'rare_proof', 'cluster_review', 'cluster_proof']:
+        ratio = {'cluster_proof': 2000, 'cluster_review': 1000}
+        for task_type in ['cluster_review', 'cluster_proof']:
             tasks = hp.prop(char, 'tasks.' + task_type, [])
             if tasks:
                 return task_type, len(tasks) * ratio.get(task_type)

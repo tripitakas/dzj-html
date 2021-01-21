@@ -119,11 +119,9 @@ def reset_box_log(page):
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
-    """ 更新page表
-        注：更新之前去掉updated字段
-    """
+    """ 更新page表（注：更新之前去掉updated字段"""
     size, i = 1000, 0
-    cond = {'updated': None}
+    cond = {'need_updated': True}
     db = pymongo.MongoClient(uri)[db_name]
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
@@ -136,7 +134,7 @@ def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
         for p in pages:
             print('[%s]%s' % (hp.get_date_time(), p['name']))
             r = eval(func)(p, **kwargs)
-            update = {'updated': True}
+            update = {'need_updated': False}
             r and update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
             db.page.update_one({'_id': p['_id']}, {'$set': update})
 
