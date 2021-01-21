@@ -204,6 +204,7 @@ class Variant(Model):
 
     @classmethod
     def pack_doc(cls, doc, self=None, exclude_none=False):
+        doc = super().pack_doc(doc)
         new_img, v_code = '', ''
         if doc.get('_id'):  # 更新
             vt = self.db.variant.find_one({'_id': doc.get('_id')})
@@ -249,8 +250,6 @@ class Variant(Model):
         variant = self.db.variant.find_one(cond, {'normal_txt': 1})
         if variant and variant.get('normal_txt'):
             doc['normal_txt'] = variant['normal_txt']
-
-        doc = super().pack_doc(doc)
         return doc
 
     @classmethod
