@@ -14,13 +14,14 @@ class CharListHandler(CharHandler):
     URL = '/char/list'
 
     page_title = '字数据管理'
-    table_fields = ['has_img', 'source', 'page_name', 'cid', 'name', 'char_id', 'uid', 'data_level', 'cc',
-                    'sc', 'pos', 'column', 'txt_type', 'txt', 'nor_txt', 'ocr_txt', 'ocr_col', 'cmp_txt',
-                    'alternatives', 'diff', 'un_required', 'txt_level', 'txt_logs', 'tasks', 'remark']
-    update_fields = ['txt_type', 'source', 'txt', 'nor_txt', 'remark']
-    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'data_level', 'cc', 'sc', 'pos', 'column', 'diff',
-                   'txt_logs', 'tasks', 'remark']
-    info_fields = ['has_img', 'source', 'txt', 'nor_txt', 'txt_type', 'remark']
+    table_fields = ['has_img', 'source', 'page_name', 'cid', 'name', 'char_id', 'uid', 'box_level', 'cc', 'lc',
+                    'pos', 'column', 'alternatives', 'ocr_col', 'cmp_txt', 'ocr_txt', 'diff', 'un_required',
+                    'is_vague', 'is_deform', 'uncertain', 'txt', 'nor_txt', 'txt_level', 'txt_logs',
+                    'tasks', 'remark']
+    update_fields = ['source', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
+    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'box_level', 'cc', 'lc', 'pos', 'column', 'diff',
+                   'un_required', 'is_vague', 'is_deform', 'uncertain', 'txt_logs', 'tasks', 'remark']
+    info_fields = ['source', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},
@@ -43,6 +44,7 @@ class CharListHandler(CharHandler):
     ]
     actions = [
         {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-my-view', 'label': '查看'},
         {'action': 'btn-remove', 'label': '删除', 'url': '/api/char/delete'},
     ]
 
@@ -59,16 +61,17 @@ class CharListHandler(CharHandler):
         """格式化page表的字段输出"""
 
         def log2str(log):
-            val = '|'.join(log[f] for f in ['txt', 'nor_txt', 'txt_type', 'remark', 'user_name'] if log.get(f))
+            val = [log[f] for f in ['user_name', 'txt', 'remark'] if log.get(f)]
+            val.extend([self.get_field_name(log[f]) for f in ['is_vague', 'is_deform', 'uncertain'] if log.get(f)])
             if log.get('updated_time'):
-                val = val + '|' + h.get_date_time('%Y-%m-%d %H:%M:%S', log.get('updated_time'))
-            return val
+                val.append(h.get_date_time('%Y-%m-%d %H:%M:%S', log['updated_time']))
+            return '|'.join(val)
 
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key in ['diff', 'un_required']:
             return self.yes_no.get(value) or ''
-        if key in ['cc', 'sc'] and value:
+        if key in ['cc', 'lc'] and value:
             return value / 1000
         if key == 'txt_logs' and value:
             return '<br/>'.join([log2str(log) for log in value])
@@ -122,6 +125,31 @@ class CharViewHandler(CharHandler):
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
             page['img_url'] = self.get_web_img(page_name, 'page')
             self.render('char_view.html', Char=Char, char=char, page=page, txt_auth=txt_auth, box_auth=box_auth)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class CharInfoHandler(CharHandler):
+    URL = '/char/info/@char_name'
+
+    @classmethod
+    def format_value(cls, value, key=None, doc=None):
+        """格式化字段输出"""
+        if key in ['pos', 'column'] and value:
+            return ','.join(['%s: %s' % (k, v) for k, v in value.items()])
+        return h.format_value(value, key, doc)
+
+    def get(self, char_name):
+        """查看Char信息"""
+        try:
+            page_name, cid = char_name.rsplit('_', 1)
+            char = self.db.char.find_one({'name': char_name}) or {}
+            project = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
+            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, project)
+            p_char = page and page.get('chars') and page['chars'][0] or {}
+            self.render('char_info.html', Char=Char, char=char, p_char=p_char, char_name=char_name,
+                        format_value=self.format_value)
 
         except Exception as error:
             return self.send_db_error(error)

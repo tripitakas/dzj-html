@@ -2,6 +2,11 @@
 
 {% block custom-css %}
 <link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
+<style>
+  td.txt, td.user_txt, td.nor_txt {
+    font-size: 36px;
+  }
+</style>
 {% end %}
 
 {% block custom-modal %}
@@ -14,27 +19,27 @@
           <div class="form-group">
             <h4 class="col-sm-2 control-label">分类</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
+              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">编码</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control v_code" value="{{params.get('v_code') or ''}}" placeholder="请输入编码">
+              <input type="text" class="form-control v_code" value="{{params.get('v_code') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">异体字</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入异体字">
+              <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">异体字图</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control img_name" value="{{params.get('img_name') or ''}}" placeholder="请输入异体字的字图编码">
+              <input type="text" class="form-control img_name" value="{{params.get('img_name') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">所属正字</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control normal_txt" value="{{params.get('normal_txt') or ''}}" placeholder="请输入所属正字">
+              <input type="text" class="form-control nor_txt" value="{{params.get('nor_txt') or ''}}" placeholder="精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">备注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
+              <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
           </div>
         </form>
@@ -53,36 +58,31 @@
 <script>
   /*---综合检索---*/
   let $searchModal = $("#searchModal");
-  let inputFields = ['source', 'v_code', 'txt', 'img_name', 'normal_txt', 'remark'];
+  let inputFields = ['source', 'v_code', 'txt', 'img_name', 'nor_txt', 'remark'];
   $searchModal.find('.modal-confirm').on('click', function () {
     let search = '';
     inputFields.forEach(function (field) {
       let value = $searchModal.find('.' + field).val();
       if (value) search += '&' + field + '=' + value;
     });
-    if (!search.length)
-      return showTips('提示', '请输入查询条件', 1000);
+    if (!search.length) return showTips('提示', '请输入查询条件', 1000);
     location.href = location.pathname + '?' + search.substr(1);
   });
 
   // 重置检索条件
   $searchModal.find('.reset').on('click', function () {
-    inputFields.forEach(function (field) {
-      $searchModal.find('.' + field).val('');
-    });
+    inputFields.forEach((field) => $searchModal.find('.' + field).val(''));
   });
 
   // 合并字图
   $('.operation .btn-merge').on('click', function () {
     let $checked = $('table tbody :checked');
-    if (!$checked.length)
-      return showTips('提示', '当前没有选中任何记录', 1000);
-    let normalTxts = $.map($checked, (item) => $(item).parent().parent().find('.normal_txt').text().trim());
+    if (!$checked.length) return showTips('提示', '当前没有选中任何记录', 1000);
+    let normalTxts = $.map($checked, (item) => $(item).parent().parent().find('.nor_txt').text().trim());
     if ((normalTxts.filter((item) => item !== normalTxts[0])).length)
       return showTips('提示', '当前选中有多个正字。只能合并同一个正字下的字图！', 3000);
     let imgNames = $.map($checked, (item) => $(item).parent().parent().find('.img_name div:last-child').text());
-    if ((imgNames.filter((item) => item === "")).length)
-      return showTips('提示', '有些选中项没有字图，无法合并！', 1000);
+    if ((imgNames.filter((item) => item === "")).length) return showTips('提示', '有些选中项没有字图，无法合并！', 1000);
 
     imgNames = imgNames.filter((item) => item !== "");
     Swal2.fire({title: '请选择合并到哪个字图', input: 'select', inputOptions: imgNames}).then((result) => {
@@ -102,13 +102,19 @@
   // 更新分类
   $('.bat-source').on('click', function () {
     let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    if (!ids.length)
-      return showTips('请选择', '当前没有选中任何记录', 1000);
+    if (!ids.length) return showTips('请选择', '当前没有选中任何记录', 1000);
     Swal2.fire({title: '请输入分类', input: 'text'}).then((result) => {
       if (result.value) {
         postApi('/variant/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
       }
     });
+  });
+
+  // 查看字数据
+  $('.btn-view-chars').on('click', function () {
+    let tr = $(this).parent().parent();
+    let txt = tr.find('.v_code').text().trim() || tr.find('.txt').text().trim();
+    if (txt) location.href = '/char/list?txt=' + txt;
   });
 
 </script>

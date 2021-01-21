@@ -10,7 +10,7 @@ from datetime import datetime
 def statistic_task(db, dst_dir):
     """ 统计用户工作量"""
     head = ['页编码', '字框数据', '领取时间', '完成时间', '执行秒数']
-    fields = ['doc_id', 'char_count', 'picked_time', 'finished_time', 'exe_time']
+    fields = ['doc_id', 'char_count', 'picked_time', 'finished_time', 'used_time']
     head2 = ['日期', '姓名', '任务总数', '字框总数', '有效任务数', '有效执行时间', '秒/任务', '任务/分钟']
     fields2 = ['data', 'name', 'task_count', 'char_count', 'valid_count', 'valid_time', 'speed1', 'speed2']
     daily = []
@@ -24,11 +24,11 @@ def statistic_task(db, dst_dir):
                     'picked_time': {'$gt': start, '$lt': end}}
             tasks = list(db.task.find(cond, {k: 1 for k in fields}).sort('picked_time', 1))
             for t in tasks:
-                t['exe_time'] = (t['finished_time'] - t['picked_time']).seconds
+                t['used_time'] = (t['finished_time'] - t['picked_time']).seconds
                 t['picked_time'] = t['picked_time'].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
                 t['finished_time'] = t['finished_time'].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            valid = [t for t in tasks if t['exe_time'] < 60 * 4]
-            valid_time = sum([t['exe_time'] for t in valid])
+            valid = [t for t in tasks if t['used_time'] < 60 * 4]
+            valid_time = sum([t['used_time'] for t in valid])
             daily.append({'data': '2020-12-%s' % i, 'name': u['name'], 'task_count': len(tasks),
                           'valid_count': len(valid), 'valid_time': valid_time,
                           'char_count': sum([t['char_count'] for t in tasks]),

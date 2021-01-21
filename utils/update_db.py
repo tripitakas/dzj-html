@@ -17,7 +17,7 @@ def index_db(db):
         'task': ['batch', 'task_type', 'num', 'collection', 'id_name', 'doc_id', 'txt_kind', 'status', 'is_oriented',
                  'picked_user_id'],
         'log': ['create_time', 'user_id', 'op_type'],
-        'variant': ['txt', 'normal_txt'],
+        'variant': ['txt', 'nor_txt'],
     }
     for collection, fields in fields2index.items():
         for field in fields:

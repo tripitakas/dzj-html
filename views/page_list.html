@@ -109,23 +109,23 @@
           <div class="form-group">
             <h4 class="col-sm-2 control-label">页编码</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="请输入页编码">
+              <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">分　类</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
+              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">文　本</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入文本">
+              <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="搜索页面文本，模糊匹配">
             </div>
             <h4 class="col-sm-2 control-label">切分备注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark_box" value="{{params.get('remark_box') or ''}}" placeholder="请输入切分备注">
+              <input type="text" class="form-control remark_box" value="{{params.get('remark_box') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">文字备注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark_txt" value="{{params.get('remark_txt') or ''}}" placeholder="请输入文字备注">
+              <input type="text" class="form-control remark_txt" value="{{params.get('remark_txt') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">任务类型</h4>
             <div class="col-sm-10">
@@ -375,8 +375,7 @@
 
   $('#sourceModal .modal-confirm11').on('click', function () {
     let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    if (!ids.length)
-      return showTips('请选择', '当前没有选中任何记录', 1000);
+    if (!ids.length) return showTips('请选择', '当前没有选中任何记录', 1000);
     Swal2.fire({title: '请输入分类', input: 'text'}).then((result) => {
       if (result.value) {
         postApi('/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
@@ -386,8 +385,7 @@
 
   $sourceModal.find('.modal-confirm').on('click', function () {
     let source = $sourceModal.find('.source').val().trim();
-    if (!source.length)
-      return showTips('请输入分类', '分类不允许为空', 1000);
+    if (!source.length) return showTips('请输入分类', '分类不允许为空', 1000);
 
     let isFile = false;
     let data = {'source': source};
@@ -414,9 +412,7 @@
         isFile = true;
         break;
     }
-    postApi('/page/source', isFile ? formData : {data: data}, function (res) {
-      location.reload();
-    }, null, isFile);
+    postApi('/page/source', isFile ? formData : {data: data}, () => location.reload(), null, isFile);
   });
 
   // 生成字数据
@@ -424,14 +420,11 @@
     let pageNames = $.map($('table tbody :checked'), (item) => {
       return $(item).parent().parent().find('.name').text().trim();
     });
-    if (!pageNames.length)
-      return showTips('请选择', '当前没有选中任何记录', 1000);
+    if (!pageNames.length) return showTips('请选择', '当前没有选中任何记录', 1000);
     showConfirm('提示', `将对选中的${pageNames.length}条记录生成字表`, function () {
       postApi('/page/start_gen_chars', {data: {page_names: pageNames}}, (res) => {
-        Swal0.fire({
-          type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
-          footer: '详情可以查看<a href="/sys/oplog/latest/gen_chars">日志</a>'
-        });
+        let info = '详情可以查看<a href="/sys/oplog/latest/gen_chars">日志</a>';
+        Swal0.fire({type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。', footer: info});
       });
     });
   });
@@ -445,8 +438,7 @@
           showSuccess('成功', '数据已删除', 1000);
           refresh(1000);
         }
-        if (res['existed_count'])
-          showError('失败', '数据有关联任务，不能删除', 1000);
+        if (res['existed_count']) showError('失败', '数据有关联任务，不能删除', 1000);
       }, function (err) {
         showError('失败', err.message, 2000);
       });
@@ -457,16 +449,13 @@
     let names = $.map($('table tbody :checked'), function (item) {
       return $(item).parent().parent().find('.name').text().trim();
     });
-    if (!names.length)
-      return showTips('请选择', '当前没有选中任何记录', 1000);
+    if (!names.length) return showTips('请选择', '当前没有选中任何记录', 1000);
     showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
       postApi('/api/page/delete', {data: {page_names: names}}, function (res) {
         let msg = `已删除${res['deleted_count']}条数据。`;
         if (res['existed_count']) msg += `${res['existed_count']}条数据有关联任务，不能直接删除。`;
         showSuccess('成功', msg, 1000);
-        if (res['deleted_count']) {
-          refresh(1000);
-        }
+        if (res['deleted_count']) refresh(1000);
       }, function (err) {
         showError('失败', err.message, 2000);
       });
@@ -480,10 +469,8 @@
     let fields = $.map($('#checkModal .field :checked'), (item) => $(item).attr('title'));
     let publishTask = $('#checkModal .publish_task :checked').val() === '是';
     postApi('/page/start_check_match', {data: {field: fields, publish_task: publishTask}}, (res) => {
-      Swal0.fire({
-        type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
-        footer: '详情可以查看<a href="/sys/oplog/latest/check_match">日志</a>'
-      });
+      let info = '详情可以查看<a href="/sys/oplog/latest/check_match">日志</a>';
+      Swal0.fire({type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。', footer: info});
     });
   });
 
@@ -528,27 +515,20 @@
     let search = '';
     inputFields.forEach(function (field) {
       let value = $searchModal.find('.' + field).val();
-      if (value)
-        search += '&' + field + '=' + value;
+      if (value) search += '&' + field + '=' + value;
     });
     selectFields.forEach(function (field) {
       let value = $searchModal.find('.' + field + ' :selected').val();
-      if (value)
-        search += '&' + field + '=' + value;
+      if (value) search += '&' + field + '=' + value;
     });
-    if (!search.length)
-      return showTips('提示', '请输入查询条件', 3000);
+    if (!search.length) return showTips('提示', '请输入查询条件', 3000);
     location.href = location.pathname + '?' + search.substr(1);
   });
 
   // 重置检索条件
   $searchModal.find('.reset').on('click', function () {
-    inputFields.forEach(function (field) {
-      $searchModal.find('.' + field).val('');
-    });
-    selectFields.forEach(function (field) {
-      $searchModal.find('.' + field + ' :selected').removeAttr('selected');
-    });
+    inputFields.forEach((field) => $searchModal.find('.' + field).val(''));
+    selectFields.forEach((field) => $searchModal.find('.' + field + ' :selected').removeAttr('selected'));
   });
 
 </script>
@@ -574,11 +554,8 @@
     let preTasks = taskTypes[taskType].pre_tasks || [];
     $.map($publishModal.find('.pre_tasks :checkbox'), function (item) {
       $(item).parent().toggleClass('hide', $(item).attr('title') === taskType);
-      if (preTasks.indexOf($(item).attr('title')) > -1) {
-        $(item).prop('checked', true);
-      } else {
-        $(item).removeAttr('checked');
-      }
+      if (preTasks.indexOf($(item).attr('title')) > -1) $(item).prop('checked', true);
+      else $(item).removeAttr('checked');
     });
     // 子步骤
     let steps = taskTypes[taskType]['steps'] || [];
@@ -605,9 +582,7 @@
     $publishModal.modal();
   });
   // 刷新
-  $publishModal.find('.modal-refresh').on('click', function () {
-    location.reload();
-  });
+  $publishModal.find('.modal-refresh').on('click', () => location.reload());
   // 提交
   $publishModal.find('.modal-confirm').on('click', function () {
     let isFile = false;
@@ -641,13 +616,12 @@
         break;
     }
     let $this = $(this);
-    $this.text('进行中...');
+    if ($this.hasClass('disabled')) return;
+    $this.addClass('disabled').text('进行中...');
     postApi('/page/task/publish', isFile ? formData : {data: data}, function (res) {
-      $this.text('发布');
-      Swal0.fire({
-        type: 'success', title: '成功', html: res.message,
-        footer: `详情可查看<a href="/sys/oplog/${res.id}">日志</a>`
-      });
+      $this.removeClass('disabled').text('发布');
+      let info = `详情可查看<a href="/sys/oplog/${res.id}">日志</a>`;
+      Swal0.fire({type: 'success', title: '成功', html: res.message, footer: info});
     }, null, isFile);
   });
 </script>

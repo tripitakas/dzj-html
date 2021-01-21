@@ -4,7 +4,6 @@
 @desc: 任务基础表
 @time: 2019/10/16
 """
-import re
 from datetime import datetime
 from bson.objectid import ObjectId
 from controller.model import Model
@@ -190,19 +189,24 @@ class Task(Model):
         """获取任务的查询条件"""
         # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        for field in ['task_type', 'collection', 'status', 'priority', 'txt_kind', 'is_oriented']:
-            value = h.get_url_param(field, request_query)
-            if value not in ['', None]:
-                params[field] = value
-                value = int(value) if field == 'priority' else value
-                value = None if field == 'is_oriented' and not value else value
-                condition.update({field: value})
-        for field in ['batch', 'doc_id', 'remark', 'my_remark']:
+        for field in ['task_type', 'collection', 'status', 'priority']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                m = re.match(r'["\'](.*)["\']', value)
-                condition.update({field: m.group(1) if m else {'$regex': value}})
+                condition.update({field: int(value) if field == 'priority' else value})
+        for field in ['is_oriented']:
+            value = h.get_url_param(field, request_query)
+            if value:
+                trans = {'True': True, 'False': False, 'None': None}
+                value = trans.get(value) if value in trans else value
+                params[field] = value
+                condition.update({field: value})
+        for field in ['batch', 'doc_id', 'txt_kind', 'remark', 'my_remark']:
+            value = h.get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: value[1:] if len(value) > 1 and value[0] == '=' else {'$regex': value}})
+
         picked_user_id = h.get_url_param('picked_user_id', request_query)
         if picked_user_id:
             params['picked_user_id'] = picked_user_id

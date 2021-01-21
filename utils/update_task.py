@@ -42,8 +42,8 @@ def update_page_task(db):
                 continue
             # op no
             update = Ph.get_user_op_no(page, t['picked_user_id'])
-            # exe time
-            update['exe_time'] = (t['finished_time'] - t['picked_time']).seconds
+            # used time
+            update['used_time'] = (t['finished_time'] - t['picked_time']).seconds
             db.task.update_one({'_id': t['_id']}, {'$set': update})
     if invalid:
         print('invalid: %s' % invalid)

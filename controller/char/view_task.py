@@ -221,7 +221,7 @@ class CharTaskClusterHandler(CharHandler):
             cur_txt = cur_txt if cur_txt and cur_txt in txts else ''
             if cur_txt:
                 cond.update({'txt': cur_txt})
-                variants = list(self.db.variant.find({'$or': [{'txt': cur_txt}, {'normal_txt': cur_txt}]}))
+                variants = list(self.db.variant.find({'$or': [{'txt': cur_txt}, {'nor_txt': cur_txt}]}))
             # 设置用户过滤条件
             get_user_filter()
             # 2.查找单字数据

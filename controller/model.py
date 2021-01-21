@@ -129,8 +129,8 @@ class Model(object):
         q = self.get_query_argument('q', '')
         search_fields = search_fields or cls.search_fields
         if q and search_fields:
-            m = re.match(r'["\'](.*)["\']', q)
-            condition['$or'] = [{k: m.group(1) if m else {'$regex': q}} for k in search_fields]
+            m = len(q) > 1 and q[0] == '='
+            condition['$or'] = [{k: q[1:] if m else {'$regex': q}} for k in search_fields]
 
         query = self.db[cls.collection].find(condition)
         if projection:
@@ -159,7 +159,8 @@ class Model(object):
         aggregates = aggregates or []
         q = self.get_query_argument('q', '')
         if q and cls.search_fields:
-            condition['$or'] = [{k: {'$regex': q}} for k in cls.search_fields]
+            m = len(q) > 1 and q[0] == '='
+            condition['$or'] = [{k: q[1:] if m else {'$regex': q}} for k in cls.search_fields]
         aggregates.append({'$match': condition})
         if projection:
             aggregates.append({'$project': projection})
