@@ -3,7 +3,7 @@
 {% block custom-css %}
 <link href="{{static_url('css/data-list.css')}}" rel="stylesheet"/>
 <style>
-  td.txt, td.user_txt, td.normal_txt {
+  td.txt, td.user_txt, td.nor_txt {
     font-size: 36px;
   }
 </style>
@@ -35,7 +35,7 @@
             </div>
             <h4 class="col-sm-2 control-label">所属正字</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control normal_txt" value="{{params.get('normal_txt') or ''}}" placeholder="请输入所属正字">
+              <input type="text" class="form-control nor_txt" value="{{params.get('nor_txt') or ''}}" placeholder="请输入所属正字">
             </div>
             <h4 class="col-sm-2 control-label">备注</h4>
             <div class="col-sm-10">
@@ -64,7 +64,7 @@
   });
   /*---综合检索---*/
   let $searchModal = $("#searchModal");
-  let inputFields = ['source', 'v_code', 'txt', 'img_name', 'normal_txt', 'remark'];
+  let inputFields = ['source', 'v_code', 'txt', 'img_name', 'nor_txt', 'remark'];
   $searchModal.find('.modal-confirm').on('click', function () {
     let search = '';
     inputFields.forEach(function (field) {
@@ -88,7 +88,7 @@
     let $checked = $('table tbody :checked');
     if (!$checked.length)
       return showTips('提示', '当前没有选中任何记录', 1000);
-    let normalTxts = $.map($checked, (item) => $(item).parent().parent().find('.normal_txt').text().trim());
+    let normalTxts = $.map($checked, (item) => $(item).parent().parent().find('.nor_txt').text().trim());
     if ((normalTxts.filter((item) => item !== normalTxts[0])).length)
       return showTips('提示', '当前选中有多个正字。只能合并同一个正字下的字图！', 3000);
     let imgNames = $.map($checked, (item) => $(item).parent().parent().find('.img_name div:last-child').text());

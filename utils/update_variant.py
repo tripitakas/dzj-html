@@ -23,7 +23,7 @@ def init_variants(db):
     variants2insert = []
     for v_str in variants:
         for item in v_str:
-            variants2insert.append(dict(txt=item, normal_txt=v_str[0]))
+            variants2insert.append(dict(txt=item, nor_txt=v_str[0]))
     db.variant.insert_many(variants2insert, ordered=False)
     print('add %s variants' % len(variants2insert))
 
@@ -32,14 +32,14 @@ def update_variant(db, fields='v_code,user_txt,img_name'):
     """ 重置v_code编码"""
     img_root = path.join(h.BASE_DIR, 'static/img')
     salt = h.prop(h.load_config(), 'web_img.salt')
-    vts = list(db.variant.find({'uid': {'$ne': None}}, {'uid': 1, 'img_name': 1, 'user_txt': 1, 'normal_txt': 1}))
+    vts = list(db.variant.find({'uid': {'$ne': None}}, {'uid': 1, 'img_name': 1, 'user_txt': 1, 'nor_txt': 1}))
     for v in vts:
         update = {}
         v_code = 'v' + h.dec2code36(v['uid'])
         if 'v_code' in fields:
             update['v_code'] = v_code
-        if 'user_txt' in fields and v.get('normal_txt'):
-            update['user_txt'] = v.get('user_txt') or v['normal_txt']
+        if 'user_txt' in fields and v.get('nor_txt'):
+            update['user_txt'] = v.get('user_txt') or v['nor_txt']
         if 'img_name' in fields and v.get('img_name'):
             inner_path = '/'.join(v['img_name'].split('_')[:-1])
             suffix = ('_' + h.md5_encode(v['img_name'], salt)) if salt else ''

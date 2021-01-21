@@ -17,13 +17,13 @@ class Char(Model):
         'uid': {'name': 'uid', 'remark': 'page_name和char_id的对齐编码'},
         'cid': {'name': 'cid'},
         'source': {'name': '分类'},
-        'has_img': {'name': '是否已有字图'},
+        'has_img': {'name': '字图'},
         'img_need_updated': {'name': '是否需要更新字图'},
-        'cc': {'name': '置信度'},
-        'sc': {'name': '相似度'},
+        'cc': {'name': '字置信度'},
+        'lc': {'name': '列置信度'},
         'pos': {'name': '坐标'},
         'column': {'name': '所属列'},
-        'ocr_txt': {'name': 'OCR文字'},
+        'ocr_txt': {'name': '综合OCR'},
         'alternatives': {'name': '字框OCR'},
         'ocr_col': {'name': '列框OCR'},
         'cmp_txt': {'name': '比对文字'},
@@ -57,10 +57,14 @@ class Char(Model):
         if q and cls.search_fields:
             m = re.match(r'["\'](.*)["\']', q)
             condition['$or'] = [{k: m.group(1) if m else {'$regex': q}} for k in cls.search_fields]
-        if 'txt_type' in request_query and not h.get_url_param('txt_type', request_query):
-            params['txt_type'] = ''
-            condition.update({'txt_type': None})
-        for field in ['txt', 'ocr_txt', 'txt_type', 'diff', 'un_required']:
+        for field in ['txt', 'ocr_txt', ]:
+            value = h.get_url_param(field, request_query)
+            if value:
+                trans = {'True': True, 'False': False, 'None': None}
+                value = trans.get(value) if value in trans else value
+                params[field] = value
+                condition.update({field: value})
+        for field in ['txt', 'ocr_txt', 'txt_type', 'diff', 'un_required', 'is_vague', 'is_deform', 'uncertain']:
             value = h.get_url_param(field, request_query)
             if value:
                 trans = {'True': True, 'False': False, 'None': None}

@@ -193,14 +193,14 @@ class Variant(Model):
         'txt': {'name': '异体字'},
         'img_name': {'name': '异体字图'},
         'user_txt': {'name': '用户字头'},
-        'normal_txt': {'name': '所属正字'},
+        'nor_txt': {'name': '所属正字'},
         'remark': {'name': '备注'},
         'create_user_id': {'name': '创建人id'},
         'create_by': {'name': '创建人'},
         'create_time': {'name': '创建时间'},
         'updated_time': {'name': '更新时间'},
     }
-    rules = [(v.not_empty, 'normal_txt')]
+    rules = [(v.not_empty, 'nor_txt')]
 
     @classmethod
     def pack_doc(cls, doc, self=None, exclude_none=False):
@@ -229,7 +229,7 @@ class Variant(Model):
             else:
                 if self.db.variant.find_one({'txt': doc['txt']}):
                     return self.send_error_response(errors.variant_exist, message='异体字已存在')
-            doc['user_txt'] = doc.get('user_txt') or doc.get('normal_txt')
+            doc['user_txt'] = doc.get('user_txt') or doc.get('nor_txt')
             doc['create_by'] = self.username
             doc['create_time'] = datetime.now()
             doc['create_user_id'] = self.user_id
@@ -242,14 +242,14 @@ class Variant(Model):
                 shutil.copy(path.join(h.BASE_DIR, src_fn), path.join(h.BASE_DIR, dst_fn))
             except Exception as err:
                 self.send_error_response(e.no_object, message=str(err))
-        # txt、normal_txt
+        # txt、nor_txt
         if doc.get('txt'):
             doc['txt'] = doc['txt'].strip()
-        nor_txt = doc['normal_txt']
+        nor_txt = doc['nor_txt']
         cond = {'v_code': nor_txt[1:]} if nor_txt[0] == 'v' else {'txt': nor_txt}
-        variant = self.db.variant.find_one(cond, {'normal_txt': 1})
-        if variant and variant.get('normal_txt'):
-            doc['normal_txt'] = variant['normal_txt']
+        variant = self.db.variant.find_one(cond, {'nor_txt': 1})
+        if variant and variant.get('nor_txt'):
+            doc['nor_txt'] = variant['nor_txt']
         return doc
 
     @classmethod
@@ -264,7 +264,7 @@ class Variant(Model):
             if value:
                 params[field] = value
                 condition.update({field: value})
-        for field in ['txt', 'normal_txt']:
+        for field in ['txt', 'nor_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

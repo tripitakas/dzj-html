@@ -101,9 +101,9 @@ class VariantListHandler(BaseHandler, Variant):
 
     page_title = '异体字管理'
     hide_fields = ['uid', 'img_name']
-    search_fields = ['source', 'txt', 'v_code', 'normal_txt']
-    update_fields = ['source', 'txt', 'img_name', 'normal_txt', 'remark']
-    table_fields = ['source', 'uid', 'v_code', 'txt', 'img_name', 'user_txt', 'normal_txt', 'remark',
+    search_fields = ['source', 'txt', 'v_code', 'nor_txt']
+    update_fields = ['source', 'txt', 'img_name', 'nor_txt', 'remark']
+    table_fields = ['source', 'uid', 'v_code', 'txt', 'img_name', 'user_txt', 'nor_txt', 'remark',
                     'create_by', 'create_time', 'updated_time']
     operations = [
         {'operation': 'btn-add', 'label': '新增记录'},

@@ -249,7 +249,7 @@
               </div>
               <h4 class="col-sm-3 control-label hide" style="margin-top: 10px">所属正字</h4>
               <div class="col-sm-8 hide" style="margin-top: 10px">
-                <input type="text" class="form-control normal-txt" placeholder="请输入所属正字" readonly="readonly">
+                <input type="text" class="form-control nor-txt" placeholder="请输入所属正字" readonly="readonly">
               </div>
             </div>
           </form>
@@ -337,15 +337,15 @@
   // 新增异体字
   $('#add-variant').on('click', function () {
     let normalTxt = $('.txt-kind.current').attr('data-value'), currentName = $('.char-name').text();
-    $('#variantModal .normal-txt').val(normalTxt);
+    $('#variantModal .nor-txt').val(normalTxt);
     $('#variantModal .txt').val(currentName);
     $('#variantModal').modal();
   });
   $('#variantModal .modal-confirm').on('click', function () {
-    let data = {txt: $('#variantModal .txt').val(), normal_txt: $('#variantModal .normal-txt').val()};
+    let data = {txt: $('#variantModal .txt').val(), nor_txt: $('#variantModal .nor-txt').val()};
     if (!data.txt.length) {
       return showTips('提示', '请输入异体字文字或字图编码', 3000);
-    } else if (!data.normal_txt.length) {
+    } else if (!data.nor_txt.length) {
       return showTips('提示', '请输入异体字所属正字', 3000);
     } else {
       $(this).text('进行中...');
