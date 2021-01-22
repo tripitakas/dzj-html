@@ -127,6 +127,10 @@ span.pos {
   width: calc(100% - 80px);
 }
 
+#s-alert .title {
+  margin-right: 8px;
+}
+
 #s-alert .close {
   line-height: 16px;
 }
