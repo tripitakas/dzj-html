@@ -33,7 +33,6 @@
     isMulti: false,                                 // 是否为多选模式
     downPt: null,                                   // 点击的坐标
     curHandles: [],                                 // 当前box的控制点
-    sensitiveGap: 8,                                // 控制点的敏感距离
     dragPt: null,                                   // 当前拖拽的坐标
     dragElem: null,                                 // 当前拖拽box的Raphael元素
     hoverElem: null,                                // 掠过box的Raphael元素
@@ -458,7 +457,7 @@
   function setActiveHandle(pt) {
     let index = -1, gap = -1;
     if (!status.curBox) return index;
-    if (pt && self.isInRect(pt, status.curBox, cStatus.sensitiveGap)) {
+    if (pt && self.isInRect(pt, status.curBox, 8)) {
       cStatus.curHandles.forEach(function (h, i) {
         self.removeClass(h, 'active');
         let d = self.getDistance(pt, h.getBBox());

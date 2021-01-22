@@ -136,17 +136,19 @@
         </div>
       </div>
       <div class="right">
-        <div id="toggle-v-code" class="btn-txt icon-images hide" data-toggle="tooltip" data-placement="bottom" title="显隐编码对应的字图"></div>
         <div id="toggle-txts" class="btn-group" title="切换文本">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
             <li id="txt" class="toggle-txt active"><a>校对文本</a></li>
+            <li id="nor_txt" class="toggle-txt"><a>正字文本</a></li>
+            <li class="divider"></li>
             <li id="ocr_txt" class="toggle-txt"><a>综合OCR</a></li>
             <li id="ocr_chr" class="toggle-txt"><a>字框OCR</a></li>
             <li id="ocr_col" class="toggle-txt"><a>列框OCR</a></li>
             <li id="cmp_txt" class="toggle-txt"><a>比对文本</a></li>
           </ul>
         </div>
+        <div id="toggle-v-code" class="btn-txt icon-images active hide" data-toggle="tooltip" data-placement="bottom" title="显隐编码对应的字图"></div>
         <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
         <div id="toggle-proof-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
         <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?from={{current_path}}" target="_blank">经目</a>
@@ -364,9 +366,10 @@
       data['txt_logs'] = res['txt_logs'];
       Object.assign($.box.data.boxes[parseInt(idx)], data);
     }, function (err) {
+      debugger;
       $this.removeClass('disabled');
       if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
-      else bsShow('失败', err.message, 'warning', 1000);
+      else bsShow('失败', err.message, 'warning', 1000, '#s-alert');
     });
   });
 

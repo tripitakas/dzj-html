@@ -181,6 +181,21 @@ class VariantSourceApi(BaseHandler):
             return self.send_db_error(error)
 
 
+class VariantCode2NorTxtApi(BaseHandler):
+    URL = '/api/variant/code2nor'
+
+    def post(self):
+        """ 获取所属正字"""
+        try:
+            rules = [(v.not_empty, 'codes')]
+            self.validate(self.data, rules)
+            vts = list(self.db.variant.find({'v_code': {'$in': self.data['codes']}}, {'v_code': 1, 'nor_txt': 1}))
+            self.send_data_response(dict(code2nor={vt['v_code']: vt['nor_txt'] for vt in vts if vt.get('nor_txt')}))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'
 

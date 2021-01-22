@@ -258,23 +258,21 @@ def is_article(**kw):
 def is_digit(**kw):
     """检查是否为数字。"""
     code, message = e.invalid_digit
-    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(r'^\d+$', str(v))}
+    if len(kw) == 1:
+        errs = {k: (code, message) for k, v in kw.items() if v and not re.match(r'^\d+$', str(v))}
+    else:
+        errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(r'^\d+$', str(v))}
     return errs or None
 
 
 def is_txt(**kw):
     """检查是否为校对文字。"""
     code, message = e.invalid_txt
-    regex = r'^([^\x00-\xff]|Y\d+)$'
-    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
-    return errs or None
-
-
-def is_txt_type(**kw):
-    """检查文字类型。"""
-    code, message = e.invalid_txt_type
-    regex = r'^[YMN*]$'
-    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    regex = r'^([^\x00-\xff]|v[0-9a-z]+)$'
+    if len(kw) == 1:
+        errs = {k: (code, message) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    else:
+        errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
     return errs or None
 
 
@@ -282,7 +280,10 @@ def is_char_uid(**kw):
     """检查是否为char的uid。"""
     code, message = e.invalid_txt_type
     regex = r'^Y\d+$'
-    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    if len(kw) == 1:
+        errs = {k: (code, message) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    else:
+        errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
     return errs or None
 
 
