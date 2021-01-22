@@ -156,6 +156,7 @@ def update_char_fields(db):
                 ch['is_diff'] = True
             # fields
             ch = {k: v for k, v in ch.items() if k in fields}
+            ch['updated'] = True
             # unset
             unset = ['diff', 'txt_type']
             if not ch.get('txt_logs'):
@@ -165,7 +166,7 @@ def update_char_fields(db):
             db.char.update_one({'_id': ch.pop('_id')}, {'$set': ch, '$unset': {k: 0 for k in unset}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='update_char_fields', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
