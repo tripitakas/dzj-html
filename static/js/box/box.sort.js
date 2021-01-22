@@ -31,13 +31,13 @@
     let b = self.getBoxes();
     let cover1 = boxesOutOfBoxes(b.chars, b.columns, 0.1);
     if (cover1.outBoxes.length)
-      return {status: false, msg: '字框不在列框内', outBoxes: cover1.outBoxes};
+      return {status: false, msg: '列框没有覆盖住字框', outBoxes: cover1.outBoxes};
     let cover2 = boxesOutOfBoxes(b.columns, b.blocks, 0.2);
     if (cover2.outBoxes.length)
-      return {status: false, msg: '列框不在栏框内', outBoxes: cover2.outBoxes};
+      return {status: false, msg: '栏框没有覆盖住列框', outBoxes: cover2.outBoxes};
     // let cover3 = boxesOutOfBoxes(b.chars, b.blocks, 0.2);
     // if (cover3.outBoxes.length)
-    //   return {status: false, msg: '字框不在栏框内', outBoxes: cover3.outBoxes};
+    //   return {status: false, msg: '栏框没有覆盖住字框', outBoxes: cover3.outBoxes};
     return {status: true};
   }
 
