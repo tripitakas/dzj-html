@@ -342,9 +342,7 @@
 
   function findBoxByPoint(pt, boxType, func) {
     if (!pt || !pt.x) return;
-    if (status.curBox && isInRect(pt, status.curBox.elem, 3))
-      return status.curBox;
-
+    // if (status.curBox && isInRect(pt, status.curBox.elem, 3)) return status.curBox;
     let ret = null, dist = 1e5;
     data.boxes.forEach(function (box) {
       if (box.elem && (boxType === 'all' || box.boxType === boxType)
