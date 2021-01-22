@@ -104,7 +104,7 @@ class Task(Model):
         'picked_user_id': {'name': '领取人id'},
         'picked_by': {'name': '领取人'},
         'finished_time': {'name': '完成时间'},
-        'used_time': {'name': '执行时间'},
+        'used_time': {'name': '执行时间(分)'},
         'remark': {'name': '管理备注'},
         'my_remark': {'name': '我的备注'},
         'is_sample': {'name': '是否示例任务'},
