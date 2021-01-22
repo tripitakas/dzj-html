@@ -29,12 +29,15 @@ class CharTaskListHandler(TaskHandler, Char):
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
-        {'id': 'publish_time', 'name': '发布时间'},
         {'id': 'publish_by', 'name': '发布人'},
-        {'id': 'picked_time', 'name': '领取时间'},
+        {'id': 'publish_time', 'name': '发布时间'},
         {'id': 'picked_by', 'name': '领取人'},
+        {'id': 'picked_time', 'name': '领取时间'},
         {'id': 'finished_time', 'name': '完成时间'},
-        {'id': 'remark', 'name': '备注'},
+        {'id': 'used_time', 'name': '执行时间(分)'},
+        {'id': 'remark', 'name': '管理备注'},
+        {'id': 'my_remark', 'name': '用户备注'},
+
     ]
     search_fields = ['txt_kind', 'batch', 'remark']
     hide_fields = ['_id', 'params', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
@@ -71,6 +74,8 @@ class CharTaskListHandler(TaskHandler, Char):
 
     def format_value(self, value, key=None, doc=None):
         """格式化page表的字段输出"""
+        if key == 'used_time' and value:
+            return round(value / 60.0, 2)
         if key == 'txt_kind' and value:
             return (value[:5] + '...') if len(value) > 5 else value
         return super().format_value(value, key, doc)

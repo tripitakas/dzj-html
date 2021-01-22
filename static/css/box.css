@@ -389,6 +389,12 @@
   word-break: break-all;
 }
 
+.txt-holder .char img {
+  height: 20px;
+  margin-top: -2px;
+  vertical-align: middle;
+}
+
 .txt-holder .char.current-char {
   background: rgba(255, 0, 0, 0.2);
 }

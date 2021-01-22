@@ -82,9 +82,13 @@
             <div class="col-sm-10">
               <input type="text" class="form-control txt_kind" value="{{params.get('txt_kind') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
-            <h4 class="col-sm-2 control-label">备　注</h4>
+            <h4 class="col-sm-2 control-label">管理备注</h4>
             <div class="col-sm-10">
               <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
+            </div>
+            <h4 class="col-sm-2 control-label">用户备注</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control my_remark" value="{{params.get('my_remark') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
             <h4 class="col-sm-2 control-label">领取人</h4>
             <div class="col-sm-10">
@@ -228,7 +232,7 @@
     {id: 'batch'}, {id: 'txt_kind'}, {id: 'status', input_type: 'select'}, {id: 'task_type', input_type: 'select'},
     {id: 'picked_user_id', input_type: 'select'}, {id: 'is_oriented', input_type: 'select'},
     {id: 'publish_start'}, {id: 'publish_end'}, {id: 'picked_start'}, {id: 'picked_end'},
-    {id: 'finished_start'}, {id: 'finished_end'}, {id: 'remark'}
+    {id: 'finished_start'}, {id: 'finished_end'}, {id: 'remark'}, {id: 'my_remark'}
   ];
   // 设置领取人
   let $searchModal = $("#searchModal");
