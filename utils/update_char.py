@@ -136,7 +136,7 @@ def update_char_fields(db):
               'box_level', 'box_point', 'box_logs', 'txt_level', 'txt_point', 'txt_logs',
               'img_time', 'tasks', 'remark']
 
-    cond = {'name': ''}
+    cond = {}
     size = 20000
     item_count = db.char.count_documents(cond)
     page_count = math.ceil(item_count / size)
@@ -145,23 +145,27 @@ def update_char_fields(db):
         chars = list(db.char.find(cond).sort('_id', 1).skip(i * size).limit(size))
         print('[%s]processing task %s/%s' % (hp.get_date_time(), i + 1, page_count))
         for ch in chars:
-            # fields
-            for k, v in ch.items():
-                if k not in fields:
-                    ch.pop(k, 0)
-            # diff
-            diff = ch.pop('diff', 0)
-            if diff:
-                ch['is_diff'] = True
+            print(ch['name'])
             update_txt_variant(ch)
             update_txt_type(ch)
             update_txt_logs(ch)
             update_ocr_txt(ch)
-            _id = ch.pop('_id')
-            db.char.update_one({'_id': _id}, {'$set': ch})
+            # diff
+            diff = ch.pop('diff', 0)
+            if diff:
+                ch['is_diff'] = True
+            # fields
+            ch = {k: v for k, v in ch.items() if k in fields}
+            # unset
+            unset = ['diff', 'txt_type']
+            if not ch.get('txt_logs'):
+                unset.append('txt_logs')
+            if not ch.get('txt_level'):
+                unset.append('txt_level')
+            db.char.update_one({'_id': ch.pop('_id')}, {'$set': ch, '$unset': {k: 0 for k in unset}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='update_char_fields', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
