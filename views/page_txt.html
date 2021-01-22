@@ -242,11 +242,13 @@
     let $div = $('.txt-holder .char');
     $div.css('font-size', (parseInt($div.css('font-size')) + 1) + 'px');
     $div.css('line-height', (parseInt($div.css('line-height')) + 1) + 'px');
+    $div.find('img').css('height', (parseInt($div.find('img').css('height')) + 1) + 'px');
   });
   $('#reduce-font').on('click', function () {
     let $div = $('.txt-holder .char');
     $div.css('font-size', (parseInt($div.css('font-size')) - 1) + 'px');
     $div.css('line-height', (parseInt($div.css('line-height')) - 1) + 'px');
+    $div.find('img').css('height', (parseInt($div.find('img').css('height')) - 1) + 'px');
   });
   $('#toggle-more').on('click', function () {
     $('#more-group').toggleClass('hide');

@@ -235,17 +235,15 @@ class PageCharTxtApi(PageHandler):
             char = page['chars'][0]
             CharHandler.check_txt_level_and_point(self, char, self.data.get('task_type'))
             # 检查参数，设置更新
-            char['is_vague'] = char.get('is_vague') or False
-            char['is_deform'] = char.get('is_deform') or False
-            char['uncertain'] = char.get('uncertain') or False
-            fields = ['txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
-            cmp_info = {k: self.data[k] for k in fields if self.data.get(k) not in [None, '']}
-            if h.cmp_obj(cmp_info, char, fields):
+            fields = ['txt', 'is_vague', 'is_deform', 'uncertain']
+            if not [f for f in fields + ['remark'] if (char.get(f) or False) != (self.data.get(f) or False)]:
                 return self.send_error_response(e.not_changed, message='没有任何修改')
             # 更新page表
             update = {k: self.data[k] for k in fields if self.data.get(k)}
+            if self.data.get('remark') or char.get('remark'):
+                update['remark'] = self.data.get('remark') or ''
             char.update(update)
-            my_log = {k: self.data[k] for k in fields + ['task_type'] if self.data.get(k)}
+            my_log = {k: self.data[k] for k in fields + ['remark', 'task_type'] if self.data.get(k)}
             char['txt_logs'] = self.merge_txt_logs(my_log, char)
             char['txt_level'] = CharHandler.get_user_txt_level(self, self.data.get('task_type'))
             self.db.page.update_one(cond, {'$set': {'chars.$': char}})
