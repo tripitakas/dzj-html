@@ -124,7 +124,7 @@
         hint.create_time = create_time;
         hint.elem = self.createBox(curLogs[0].pos, `box ${box.boxType} hint h-${curLogs[0].op}`);
         let idx = logs.indexOf(curLogs[0]);
-        if (idx > 0) {
+        if (idx > 0 && curLogs[0].op === 'changed') {
           hint.former = self.createBox(logs[idx - 1].pos, `box ${box.boxType} hint h-former`);
         }
       } else if (prevLogs.length) { // #3
@@ -149,20 +149,25 @@
     data.boxes.forEach(function (box) {
       let logs = box['box_logs'] || [], hint = box.hint || {};
       let uLogs = logs.filter((log) => log['user_id'] === user_id);
-      hint.former && hint.former.remove();
       if (uLogs.length) {
         if (boxTypes.indexOf(box.boxType) < 0) boxTypes.push(box.boxType);
         self.removeClass(box, 'box-hint');
         let log = uLogs[uLogs.length - 1];
         if (hint.user_id === user_id && hint.create_time === log.create_time) return;
         hint.elem && hint.elem.remove();
+        hint.former && hint.former.remove();
         hint.elem = self.createBox(log.pos, `box ${box.boxType} hint h-${log.op}`);
+        let idx = logs.indexOf(log);
+        if (idx > 0 && log.op === 'changed') {
+          hint.former = self.createBox(logs[idx - 1].pos, `box ${box.boxType} hint h-former`);
+        }
         hint.create_time = log.create_time;
         hint.user_id = log.user_id;
         box.hint = hint;
       } else {
         self.addClass(box, 'box-hint');
         hint.elem && hint.elem.remove();
+        hint.former && hint.former.remove();
         box.hint = {};
       }
     });
