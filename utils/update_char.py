@@ -62,7 +62,7 @@ def update_un_required(db, source):
         un_required and db.char.update_many({'_id': {'$in': un_required}}, {'$set': {'un_required': True}})
 
 
-def update_variant(db):
+def group_update_variant(db):
     counts = list(db.char.aggregate([
         {'$match': {'txt': {'$regex': r'Y\d+'}}},
         {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
@@ -75,51 +75,125 @@ def update_variant(db):
         db.char.update_many({'txt': vt}, {'$set': {'txt': v_code}})
 
 
-def update_log_variant(db):
-    cond = {'txt_logs.txt': {'$regex': 'Y'}}
-    chars = list(db.char.find(cond, {'txt_logs': 1}))
-    for c in chars:
-        if c.get('txt_logs'):
-            changed = False
-            for log in c['txt_logs']:
-                if len(log.get('txt') or '') > 1 and log['txt'][0] == 'Y':
-                    log['txt'] = 'v' + hp.dec2code36(int(log['txt'][1:]))
-                    changed = True
-            if changed:
-                db.char.update_one({'_id': c['_id']}, {'$set': {'txt_logs': c['txt_logs']}})
+def update_txt_variant(ch):
+    changed = False
+    if len(ch.get('txt') or '') > 1 and ch['txt'][0] == 'Y':
+        ch['txt'] = 'v' + hp.dec2code36(int(ch['txt'][1:]))
+        changed = True
+    if ch.get('txt_logs'):
+        for log in ch.get('txt_logs'):
+            if len(log.get('txt') or '') > 1 and log['txt'][0] == 'Y':
+                log['txt'] = 'v' + hp.dec2code36(int(log['txt'][1:]))
+                changed = True
+    return changed
 
 
-def update_txt_log(db):
-    size, i = 20000, 0
-    cond = {'need_updated': True}
+def update_txt_type(ch):
+    changed = False
+    txt_type = ch.pop('txt_type', 0)
+    if txt_type:
+        changed = True
+    if txt_type == 'M':
+        ch['is_vague'] = True
+    elif txt_type in ['N', '*']:
+        ch['uncertain'] = True
+    if ch.get('txt_logs'):
+        for log in ch.get('txt_logs'):
+            txt_type = log.pop('txt_type', 0)
+            if txt_type:
+                changed = True
+            if txt_type == 'M':
+                log['is_vague'] = True
+            elif txt_type in ['N', '*']:
+                log['uncertain'] = True
+            if log.get('task_type') == 'rare_proof':
+                log['task_type'] = 'cluster_proof'
+                changed = True
+    for f in ['is_vague', 'is_deform', 'uncertain', 'remark']:
+        if f in ch and not ch.get(f):
+            ch.pop(f, 0)
+            changed = True
+    return changed
+
+
+def update_txt_logs(ch):
+    changed = False
+    logs = ch.get('txt_logs') or []
+    for i, log in enumerate(logs):
+        for f in ['nor_txt', 'txt_type']:
+            if log.get(f):
+                log.pop(f, 0)
+                changed = True
+        for f in ['is_vague', 'is_deform', 'uncertain', 'remark']:
+            if not log.get(f):
+                log.pop(f, 0)
+                changed = True
+        valid = [f for f in ['is_vague', 'is_deform', 'uncertain', 'remark'] if log.get(f)]
+        if not valid:
+            if not log.get('txt') or log['txt'] == ch['ocr_txt']:
+                log['invalid'] = True
+                changed = True
+    logs = [log for log in logs if not log.get('invalid')]
+    if not logs:
+        for f in ['txt_logs', 'txt_level']:
+            if f in ch:
+                ch.pop(f, 0)
+                changed = True
+    else:
+        ch['txt_logs'] = logs
+    return changed
+
+
+def update_ocr_txt(ch):
+    changed = False
+    cmb_txt = Ph.get_cmb_txt(ch)
+    if cmb_txt != ch['ocr_txt']:
+        ch['ocr_txt'] = cmb_txt
+        changed = True
+    txts = [ch[k] for k in ['ocr_txt', 'ocr_col', 'cmp_txt'] if ch.get(k)]
+    ch.get('alternatives') and txts.append(ch.get('alternatives')[:1])
+    if not ch.get('txt_logs') and (not ch.get('txt') or ch['txt'] in txts):
+        if ch['txt'] != cmb_txt:
+            ch['txt'] = cmb_txt
+            changed = True
+    return changed
+
+
+def update_char(db):
+    fields = ['_id', 'name', 'page_name', 'char_id', 'uid', 'cid', 'source', 'has_img', 'img_need_updated',
+              'lc', 'cc', 'pos', 'column', 'alternatives', 'ocr_col', 'cmp_txt', 'ocr_txt', 'is_diff',
+              'un_required', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain',
+              'box_level', 'box_point', 'box_logs', 'txt_level', 'txt_point', 'txt_logs',
+              'img_time', 'tasks', 'remark']
+
+    cond = {}
+    size = 20000
     item_count = db.char.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
-    while db.char.find_one(cond):
-        i += 1
-        print('[%s]processing page %s / %s' % (hp.get_date_time(), i, page_count))
-        chars = list(db.char.find(cond, {'name': 1, 'txt_logs': 1, 'txt_type': 1}).limit(size))
-        for c in chars:
-            print(c.get('name'))
-            update = {'need_updated': False}
-            # reset char
-            txt_type = c.pop('txt_type', 0)
-            if txt_type == 'M':
-                update['is_vague'] = True
-            elif txt_type in ['N', '*']:
-                update['uncertain'] = True
-            # reset logs
-            if c.get('txt_logs'):
-                for log in c.get('txt_logs'):
-                    txt_type = log.pop('txt_type', 0)
-                    if txt_type == 'M':
-                        log['is_vague'] = True
-                    elif txt_type in ['N', '*']:
-                        log['uncertain'] = True
-                    if log.get('task_type') == 'rare_proof':
-                        log['task_type'] = 'cluster_proof'
-                update['txt_logs'] = c['txt_logs']
-            db.char.update_one({'_id': c['_id']}, {'$set': update})
+    for i in range(page_count):
+        chars = list(db.char.find(cond).sort('_id', 1).skip(i * size).limit(size))
+        print('[%s]processing task %s/%s' % (hp.get_date_time(), i + 1, page_count))
+        for ch in chars:
+            print(ch['name'])
+            update_txt_variant(ch)
+            update_txt_type(ch)
+            update_txt_logs(ch)
+            update_ocr_txt(ch)
+            # diff
+            diff = ch.pop('diff', 0)
+            if diff:
+                ch['is_diff'] = True
+            # fields
+            ch = {k: v for k, v in ch.items() if k in fields}
+            ch['updated'] = True
+            # unset
+            unset = ['diff', 'txt_type']
+            if not ch.get('txt_logs'):
+                unset.append('txt_logs')
+            if not ch.get('txt_level'):
+                unset.append('txt_level')
+            db.char.update_one({'_id': ch.pop('_id')}, {'$set': ch, '$unset': {k: 0 for k in unset}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):

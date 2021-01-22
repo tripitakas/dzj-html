@@ -132,10 +132,10 @@
           <div class="form-group">
             <h4 class="col-sm-2 control-label">不一致</h4>
             <div class="col-sm-10">
-              <select class="form-control diff">
+              <select class="form-control is_diff">
                 <option value=""></option>
                 {% for k,v in {True: '是', False: '否'}.items() %}
-                {% if params.get('diff', '') == k %}
+                {% if params.get('is_diff', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>

@@ -15,11 +15,11 @@ class CharListHandler(CharHandler):
 
     page_title = '字数据管理'
     table_fields = ['has_img', 'source', 'page_name', 'cid', 'name', 'char_id', 'uid', 'box_level', 'cc', 'lc',
-                    'pos', 'column', 'alternatives', 'ocr_col', 'cmp_txt', 'ocr_txt', 'diff', 'un_required',
+                    'pos', 'column', 'alternatives', 'ocr_col', 'cmp_txt', 'ocr_txt', 'is_diff', 'un_required',
                     'is_vague', 'is_deform', 'uncertain', 'txt', 'nor_txt', 'txt_level', 'txt_logs',
                     'tasks', 'remark']
     update_fields = ['source', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
-    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'box_level', 'cc', 'lc', 'pos', 'column', 'diff',
+    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'box_level', 'cc', 'lc', 'pos', 'column', 'is_diff',
                    'un_required', 'is_vague', 'is_deform', 'uncertain', 'txt_logs', 'tasks', 'remark']
     info_fields = ['source', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
     operations = [
@@ -71,7 +71,7 @@ class CharListHandler(CharHandler):
 
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
-        if key in ['diff', 'un_required']:
+        if key in ['is_diff', 'un_required']:
             return self.yes_no.get(value) or ''
         if key in ['cc', 'lc'] and value:
             return value / 1000

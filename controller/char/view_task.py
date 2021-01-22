@@ -158,9 +158,9 @@ class CharTaskClusterHandler(CharHandler):
 
         def get_user_filter():
             # 是否不一致
-            diff = self.get_query_argument('diff', 0)
-            if diff:
-                cond['diff'] = True
+            is_diff = self.get_query_argument('is_diff', 0)
+            if is_diff:
+                cond['is_diff'] = True
             # 是否不必校对
             un_required = self.get_query_argument('un_required', 0)
             if un_required:

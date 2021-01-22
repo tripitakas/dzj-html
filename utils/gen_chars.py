@@ -73,7 +73,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                         # un_required
                         m['un_required'] = Ph.is_un_required(c)
                         # diff
-                        m['diff'] = Ph.is_source_txt_diff(c)
+                        m['is_diff'] = Ph.is_source_txt_diff(c)
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         if 'column_no' not in c:
                             c['column_no'] = c.pop('line_no')

@@ -4,7 +4,7 @@ $('#btn-cc-up').on('click', () => location.href = setQueryString('order', 'cc'))
 $('#btn-cc-down').on('click', () => location.href = setQueryString('order', '-cc'));
 
 // 过滤
-$('#btn-diff').on('click', () => location.href = setQueryString('diff', 'true'));
+$('#btn-diff').on('click', () => location.href = setQueryString('is_diff', 'true'));
 $('#btn-un-required').on('click', () => location.href = setQueryString('un_required', 'true'));
 $('#btn-un-update').on('click', () => location.href = setQueryString('update', 'un'));
 $('#btn-my-update').on('click', () => location.href = setQueryString('update', 'my'));
