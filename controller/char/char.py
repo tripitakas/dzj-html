@@ -69,7 +69,7 @@ class Char(Model):
                 condition.update({field: value})
                 if 'v' in value:  # v_code
                     condition.update({field: value[1:] if value[0] == '=' else {'$regex': value}})
-        for field in ['diff', 'un_required', 'is_vague', 'is_deform', 'uncertain']:
+        for field in ['is_diff', 'un_required', 'is_vague', 'is_deform', 'uncertain']:
             value = h.get_url_param(field, request_query)
             if value:
                 trans = {'True': True, 'False': False, 'None': None}

@@ -115,7 +115,7 @@
         </div>
         <div class="char-items">
           {% for d in docs %}
-          <div class="char-item proof{{len(d.get('txt_logs') or [])}}{{' diff' if d.get('diff') else ''}}" id="{{d['name']}}" data-id="{{d['name']}}">
+          <div class="char-item proof{{len(d.get('txt_logs') or [])}}{{' is-diff' if d.get('is_diff') else ''}}" id="{{d['name']}}" data-id="{{d['name']}}">
             <div class="char-img">
               <img src="{{handler.get_char_img(d)}}"/>
             </div>
