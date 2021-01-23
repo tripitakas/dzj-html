@@ -2,19 +2,23 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{handler.page_name if hasattr(handler, 'page_name') else '聚类校对'}}</title>
+  <title>{{globals().get('page_name') or '聚类校对'}}</title>
   {% include com/_base_css.html %}
-  <link href="{{static_url('css/char.css')}}" rel="stylesheet">
+  <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/cluster.css')}}" rel="stylesheet">
   <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-  {% import re %}
   <style>
     #panel-region {
       width: 260px;
       max-width: 260px;
+    }
+
+    .add-gap li:first-child {
+      margin-top: 18px;
     }
   </style>
 </head>
@@ -28,20 +32,13 @@
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
         <div class="btn-group title">
-          {{handler.page_name if hasattr(handler, 'page_name') else '聚类校对'}}
+          {{globals().get('page_name') or '聚类校对'}}
         </div>
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-        <div class="btn-group" title="按置信度排序">
-          <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
-          <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-cc-up" href="#">按置信度升序</a></li>
-            <li><a id="btn-cc-down" href="#">按置信度降序</a></li>
-          </ul>
-        </div>
-        <div class="btn-group" title="按置信度过滤">
-          <i class="btn-txt icon-cc dropdown-toggle" data-toggle="dropdown"></i>
+        <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按置信度过滤">
+          <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <div class="dropdown-menu filter-menu" data-stopPropagation="true">
             <div class="menu-title">按置信度过滤</div>
             <li class="divider"></li>
@@ -53,116 +50,120 @@
             <button id="btn-filter" type="button" class="btn btn-primary btn-sm">确定</button>
           </div>
         </div>
-        <div id="bat-select" class="btn-txt icon-checkbox2" data-toggle="tooltip" data-placement="bottom" title="全部选择"></div>
-        <div class="btn-group" title="按条件过滤">
-          <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
+        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="按置信度排序">
+          <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-diff" href="#">异文</a></li>
-            <li><a id="btn-submitted" href="#">已提交</a></li>
-            <li><a id="btn-not-submitted" href="#">未提交</a></li>
-            <li><a id="btn-un-required" href="#">不必校对</a></li>
-            <li class="divider"></li>
-            <li><a id="btn-un-update" href="#">未修改</a></li>
-            <li><a id="btn-my-update" href="#">我的修改</a></li>
-            <li><a id="btn-all-update" href="#">所有修改</a></li>
-            <li class="divider"></li>
-            <li><a id="btn-no-problem" href="#">没问题</a></li>
-            <li><a id="btn-vague" href="#">模糊或残损</a></li>
-            <li><a id="btn-not-sure" href="#">不确定</a></li>
-            <li><a id="btn-not-know" href="#">不认识</a></li>
+            <li><a id="btn-cc-up">按置信度升序</a></li>
+            <li><a id="btn-cc-down">按置信度降序</a></li>
+            <li class="divider hide"></li>
+            <li><a id="btn-lc-up" class="hide">按列置信度升序</a></li>
+            <li><a id="btn-lc-down" class="hide">按列置信度降序</a></li>
           </ul>
         </div>
-        <div id="bat-update-txt" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="批量修改文字"></div>
-        <div id="toggle-column-panel" class="btn-txt icon-panel-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐中间列图"></div>
-        <div id="bat-update-type" class="btn-txt icon-edit1" data-toggle="tooltip" data-placement="bottom" title="批量修改类型"></div>
-        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
-        <div class="search">
+        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="按系统建议标记过滤">
+          <i class="btn-txt icon-ai dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li><a id="btn-un-diff">一致</a></li>
+            <li><a id="btn-diff">不一致</a></li>
+            <li class="divider"></li>
+            <li><a id="btn-required">需要校对</a></li>
+            <li><a id="btn-un-required">不必校对</a></li>
+          </ul>
+        </div>
+        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="按人工校对标记过滤">
+          <i class="btn-txt icon-man dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li><a id="btn-vague">笔画残损</a></li>
+            <li><a id="btn-un-vague">笔画完整</a></li>
+            <li class="divider"></li>
+            <li><a id="btn-deform">异形字</a></li>
+            <li><a id="btn-un-deform">非异形字</a></li>
+            <li class="divider"></li>
+            <li><a id="btn-certain">确定</a></li>
+            <li><a id="btn-uncertain">不确定</a></li>
+            <li class="divider"></li>
+            <li><a id="btn-has-remark">有备注</a></li>
+            <li><a id="btn-un-remark">无备注</a></li>
+          </ul>
+        </div>
+        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="按提交、修改过滤">
+          <i class="btn-txt icon-submit1 dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li><a id="btn-un-submitted">未提交</a></li>
+            <li><a id="btn-submitted">已提交</a></li>
+            <li class="divider"></li>
+            <li><a id="btn-un-updated">未修改</a></li>
+            <li><a id="btn-updated">已修改</a></li>
+            <li><a id="btn-my-updated">我的修改</a></li>
+            <li><a id="btn-other-updated">其它修改</a></li>
+          </ul>
+        </div>
+        <div id="btn-multi" class="btn-txt icon-all-select" data-toggle="tooltip" data-placement="bottom" title="多选模式"></div>
+        <div id="bat-select" class="btn-txt icon-all-select1" data-toggle="tooltip" data-placement="bottom" title="全部选择"></div>
+        <div id="bat-update" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="批量修改"></div>
+        <div class="search hide">
           <input id="search-variant" type="text" placeholder="搜索异体字字典">
           <i id="icon-search" class="icon-search"></i>
         </div>
-      </div>
+      </div><!--center-->
       <div class="right">
-        {% include com/_task_btns.html %}
+        {% set mode = globals().get('mode') or '' %}
+        {% set readonly = globals().get('readonly') or False %}
+        {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
+        <div id="toggle-column-panel" class="btn-txt icon-panel-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐中间列图"></div>
+        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
+        <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
+        <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
+        <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
+        <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
+        <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
+        <div id="task-prev" class="btn-txt icon-arrow-left {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]]"></div>
+        <div id="task-next" class="btn-txt icon-arrow-right {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="后一个任务[[]"></div>
       </div><!--right-->
-    </div>
+    </div><!--m-header-->
+
     <div class="m-body flex">
       <div class="char-panel">
-        <div class="txt-kinds">
-          <span class="txt-kind{{' current' if not cur_txt else ''}}"></span>
-          {% for t in txts %}
-          <span class="txt-kind{{' current' if t == cur_txt else ''}}" data-value="{{t}}">
-          {% if t and t[0] == 'Y' %}
-            <img src="{{handler.get_web_img(v_txts.get(t), 'char')}}"/>
-          {% else %}
-            {{t}}
-          {% end %}
-          </span>
-          {% end %}
-        </div>
-        <div class="variants{{'' if cur_txt else ' hide'}}">
-          <span id="add-variant" class="variant">+</span>
-          {% for v in variants %}
-          {% if v.get('txt') %}
-          <span class="variant txt-item" data-value="{{v['txt']}}">
-            {{v['txt']}}
-          </span>
-          {% else %}
-          <span class="variant variant-img txt-item" data-value="{{'Y%s' % v.get('uid')}}">
-            <img src="{{handler.get_char_img(v)}}"/>
-          </span>
-          {% end %}
-          {% end %}
-        </div>
-        <div class="char-items">
-          {% for d in docs %}
-          <div class="char-item proof{{len(d.get('txt_logs') or [])}}{{' is-diff' if d.get('is_diff') else ''}}" id="{{d['name']}}" data-id="{{d['name']}}">
-            <div class="char-img">
-              <img src="{{handler.get_char_img(d)}}"/>
-            </div>
-            <div class="char-info{{' hide' if show_char_info == '否' else ''}}">
-              <span class="txt">{{d.get('txt', '')}}</span>
-              <span class="submitted {{'' if hasattr(handler, 'task') and handler.task.get('_id') in prop(d, 'tasks.'+handler.task_type, []) else 'hide'}}">
-                <i class="icon-check"></i>
-              </span>
-            </div>
-            <div class="char-check">
-              <span class="cc{{' hide' if show_char_info == '否' else ''}}">{{d.get('cc', 0)/1000}}</span>
-              <input type="checkbox" title="{{d['name']}}">
-            </div>
-          </div>
-          {% end %}
-        </div>
+        <div class="txt-kinds slim-bar"></div>
+        <div class="variants slim-bar"></div>
+        <div class="char-items slim-bar"></div>
         {% module Pager(pager) %}
-      </div>
+      </div><!--char-panel-->
       <div class="column-panel">
-        <div id="col-holder">
-          <div id="col-holder-inner"></div>
+        <div class="box-holder slim-bar"></div>
+        <div class="btn-group">
+          <div id="zoom-in" class="btn-txt icon-zoom-in" title="放大图片[+]"></div>
+          <div id="save" class="btn-txt icon-save" title="保存修改[ctrl+s]"></div>
+          <div id="zoom-out" class="btn-txt icon-zoom-out" title="缩小图片[-]"></div>
         </div>
-        <div class="btn-group" role="group" aria-label="column panel buttons" style="margin-top: 6px">
-          <button id="zoom-out" class="btn btn-default btn-sm" title="缩小">-</button>
-          <button id="submit-box" class="btn btn-primary btn-sm">确认</button>
-          <button id="zoom-in" class="btn btn-default btn-sm" title="放大">+</button>
-        </div>
-      </div>
+      </div><!--column-panel-->
       <div id="panel-region" class="right bd proof-panel">
         {% include com/_char_txt.html %}
-      </div>
-    </div>
+      </div><!--char-panel-->
+    </div><!--m-body-->
+
     <div class="m-alert alert alert-info hide" id="m-alert">
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
       <strong class="title"></strong><span class="text"></span>
-    </div>
+    </div><!--m-alert-->
+
     <div class="m-footer">
       <span class="fl">
-        总字数：{{char_count}}　聚类字种：{{'、'.join(ocr_txts)}}
+        <span class="cluster-info">
+          总字数：<span class="char-count">{{char_count}}</span>
+          聚类字种：<span class="page-name">{{'、'.join(base_txts)}}</span>
+        </span>
+      </span>
+      <span class="center">
       </span>
       <span class="fr">
         <span class="page-info" style="margin-right: 15px">页编码：<span class="page-name"></span></span>
         <span class="char-info">字编码：<span class="char-name">未选中</span></span>
       </span>
-    </div>
+    </div><!--m-footer-->
   </div>
 </div>
+
 <div class="panel-body" style="padding: 0">
   <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
@@ -279,22 +280,37 @@
       </div>
     </div>
   </div>
+  {% if hasattr(handler, 'task_type') and handler.task_type %}
+  {% module ReturnModal() %}
+  {% module TaskRemarkModal() %}
+  {% module TaskConfigModal(handler.config_fields if hasattr(handler, 'config_fields') else []) %}
+  {% end %}
 </div>
 
 {% include com/_base_js.html %}
-{% include com/_base_cut.html %}
-{% include com/_base_task.html %}
-<script src="{{static_url('js/char.js')}}"></script>
+<script src="{{static_url('js/box/jquery.mapKey.js')}}"></script>
+<script src="{{static_url('js/box/raphael.js')}}"></script>
+<script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.cut.js')}}"></script>
+<script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/char-txt.js')}}"></script>
+<script src="{{static_url('js/cluster.js')}}"></script>
+<script src="{{static_url('js/btn-cluster.js')}}"></script>
+{% include com/_base_task.html %}
 <script>
-  // 公共参数
-  let chars = decodeJSON('{{dumps(chars)}}');
-  let taskType = "{{handler.task_type if hasattr(handler, 'task_type') else ''}}";
   $.charTxt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
+  $.cluster.init({
+    curTxt: '{{cur_txt}}',
+    variants: decodeJSON('{{variants}}'),
+    txtKinds: decodeJSON('{{txt_kinds}}'),
+    chars: decodeJSON('{{chars}}'),
+    colHolder: '.box-holder',
+  });
+
 
   // 初始化
   $('#taskConfigModal .page-size').val('{{handler.page_size}}');
-  $('#taskConfigModal .show-char-info :radio[value="{{show_char_info}}"]').prop('checked', true);
   if (!getStorage('toggle-column-panel', true)) {
     $('#toggle-column-panel').removeClass('active');
     $('.column-panel').addClass('hide');

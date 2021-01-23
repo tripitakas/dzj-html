@@ -33,7 +33,7 @@
   border-bottom: 1px solid #ccc;
 }
 
-.txt-item {
+.char-txt .txt-item {
   width: 42px;
   height: 55px;
   font-size: 36px;

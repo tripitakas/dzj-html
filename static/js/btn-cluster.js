@@ -108,8 +108,6 @@ $('.char-check input').on('click', function (e) {
 
 /** 中间列图面板 */
 // 更新列图
-let paper, charBox, getBox;
-
 function updateColumnImg(ch) {
   let column = ch.column; // 列框
   let columnImg = $('#col-holder'); // 列框容器DIV

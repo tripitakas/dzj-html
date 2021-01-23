@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import re
-from bson import json_util
 from .char import Char
 from .base import CharHandler
 from controller import helper as h
