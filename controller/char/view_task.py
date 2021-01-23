@@ -211,6 +211,7 @@ class CharTaskClusterHandler(CharHandler):
             if cur_txt and cur_txt in txts:
                 cond.update({'txt': cur_txt})
                 vts = list(self.db.variant.find({'$or': [{'nor_txt': cur_txt}, {'user_txt': cur_txt}]}))
+                vts = [v.get('txt') or v.get('v_code') for v in vts]
             # 2.根据检索参数，设置用户过滤条件
             get_user_filter()
             # 3.查找单字数据

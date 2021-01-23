@@ -41,7 +41,7 @@
 
   $.extend($.box, {
     cStatus: cStatus,
-    initCut: initCut,
+    bindCut: bindCut,
     moveBox: moveBox,
     copyBox: copyBox,
     isCutMode: isCutMode,
@@ -62,7 +62,7 @@
     return status.boxMode === 'cut';
   }
 
-  function initCut(p) {
+  function bindCut(p) {
     if (p && p.onlyChange) cStatus.onlyChange = true;
     $(data.holder).find('svg').on('dblclick', dblclick).mousedown(mouseDown).mouseup(mouseUp).mousemove(function (e) {
       if (!cStatus.isMouseDown) mouseHover(e);

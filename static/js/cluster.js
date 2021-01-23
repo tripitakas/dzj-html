@@ -13,11 +13,14 @@
     colHolder: null,                                // 画布所在的页面元素
     curChar: null,                                  // 当前框
     curColImgUrl: null,                             // 当前列框url
+    multiMode: false,                               // 是否多选模式
   };
 
   $.cluster = {
     status: status,
     init: init,
+    switchCurChar: switchCurChar,
+    exportSubmitData: exportSubmitData,
   };
 
   function init(p) {
@@ -30,26 +33,30 @@
     if (p.colHolder) status.colHolder = p.colHolder;
     // $.box
     $.box.status.readonly = false;
-    $.box.setCurBoxType('char');
-    $.box.initCut({onlyChange: true});
-    $('#idx-0').click();
+    $.box.status.curBoxType = 'char';
+    $.box.bindBaseKeys();
   }
 
-  $(document).on('click', '.char-items .char-item', function () {
-    $('.char-item.current').removeClass('current');
-    $(this).addClass('current');
-    let ch = status.chars[$(this).attr('id').split('-').pop()];
-    updateColumn(ch);
-    $.charTxt.setChar(ch);
-  });
+  function exportSubmitData() {
+    let chars = $.box.exportSubmitData()['op']['chars'];
+    let char = chars && chars[0];
+    if (!char || char.op !== 'changed') return bsShow('', '字框未发生修改', 'warning', 1000);
+    char['name'] = status.curChar['name'];
+    char['x'] += status.curChar['column']['x'];
+    char['y'] += status.curChar['column']['y'];
+    return char;
+  }
 
-  function updateColumn(ch) {
+  function switchCurChar(ch) {
+    status.curChar = ch;
     let col = ch['column'];
     if (status.curColImgUrl !== col['img_url']) {
       status.curColImgUrl = col['img_url'];
       $.box.initSvg(status.colHolder, status.curColImgUrl, col.w, col.h, 'width-full');
+      $.box.bindCut({onlyChange: true});
     }
-    $.box.setBoxes({chars: [{x: ch.pos.x - col.x, y: ch.pos.y - col.y, w: ch.pos.w, h: ch.pos.h}]});
+    $.box.setBoxes({chars: [{x: ch.pos.x - col.x, y: ch.pos.y - col.y, w: ch.pos.w, h: ch.pos.h}]}, true);
+    $.box.switchCurBox($.box.data.boxes[0]);
   }
 
   function setTxtKinds(txtKinds) {
@@ -82,7 +89,7 @@
     let html = chars.map((ch, i) => {
       let tasks = ch['tasks'] && ch['tasks'][taskType] || [];
       return [
-        `<div class="char-item proof${(ch['txt_logs'] || []).length}${ch['is_diff'] ? ' is-diff' : ''}" id="$idx-${i}">`,
+        `<div class="char-item proof${(ch['txt_logs'] || []).length}${ch['is_diff'] ? ' is-diff' : ''}" id="idx-${i}">`,
         `<div class="char-img"><img src="${ch['img_url']}"/></div>`,
         `<div class="char-info"><span class="txt">${ch['txt'] || ch['ocr_txt']}</span>`,
         `<span class="submitted${tasks.indexOf(taskId) > -1 ? '' : ' hide'}"><i class="icon-check"></i></span></div>`,

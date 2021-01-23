@@ -83,7 +83,7 @@
             <li><a id="btn-uncertain">不确定</a></li>
             <li class="divider"></li>
             <li><a id="btn-has-remark">有备注</a></li>
-            <li><a id="btn-un-remark">无备注</a></li>
+            <li><a id="btn-no-remark">无备注</a></li>
           </ul>
         </div>
         <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="按提交、修改过滤">
@@ -111,7 +111,7 @@
         {% set readonly = globals().get('readonly') or False %}
         {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
         <div id="toggle-column-panel" class="btn-txt icon-panel-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐中间列图"></div>
-        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
+        <div id="toggle-proof-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
         <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
         <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
@@ -133,7 +133,7 @@
         <div class="box-holder slim-bar"></div>
         <div class="btn-group">
           <div id="zoom-in" class="btn-txt icon-zoom-in" title="放大图片[+]"></div>
-          <div id="save" class="btn-txt icon-save" title="保存修改[ctrl+s]"></div>
+          <div id="submit-box" class="btn-txt icon-save" title="保存修改[ctrl+s]"></div>
           <div id="zoom-out" class="btn-txt icon-zoom-out" title="缩小图片[-]"></div>
         </div>
       </div><!--column-panel-->
@@ -151,7 +151,7 @@
       <span class="fl">
         <span class="cluster-info">
           总字数：<span class="char-count">{{char_count}}</span>
-          聚类字种：<span class="page-name">{{'、'.join(base_txts)}}</span>
+          聚类字种：<span class="txt-kinds">{{'、'.join(base_txts)}}</span>
         </span>
       </span>
       <span class="center">
@@ -302,10 +302,14 @@
   $.charTxt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
   $.cluster.init({
     curTxt: '{{cur_txt}}',
+    colHolder: '.box-holder',
+    chars: decodeJSON('{{chars}}'),
     variants: decodeJSON('{{variants}}'),
     txtKinds: decodeJSON('{{txt_kinds}}'),
-    chars: decodeJSON('{{chars}}'),
-    colHolder: '.box-holder',
+  });
+
+  $(document).ready(function () {
+    getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
   });
 
 
@@ -319,10 +323,6 @@
     $('#toggle-work-panel').removeClass('active');
     $('.work-panel').addClass('hide');
   }
-
-  $(document).ready(function () {
-    getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
-  });
 
   // 配置项
   $('#taskConfigModal .modal-confirm').on('click', function () {

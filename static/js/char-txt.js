@@ -5,9 +5,9 @@
 (function () {
   'use strict';
 
-  $.box && $.box.onBoxChanged(function (box, reason, param) {
+  $.box.onBoxChanged(function (box, reason, param) {
     if (reason === 'switch') {
-      if (box && box.boxType === 'char') {
+      if ($.box.tStatus && box && box.boxType === 'char') {
         $.charTxt.setChar(box);
       }
     }
@@ -143,6 +143,7 @@
   function setPageParams(char) {
     let pageName = $('.m-footer .page-name').text();
     $('#search-variant').val(char.txt || char['ocr_txt']);
+    if (char.name) $('.m-footer .char-name').text(char.name);
     if (char.page_name) $('.m-footer .page-name').text(char.page_name);
     $('.char-txt .cur-name').val(char.name || pageName + '_' + char.cid);
   }

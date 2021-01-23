@@ -30,7 +30,7 @@
 
   $.extend($.box, {
     oStatus: oStatus,
-    initOrder: initOrder,
+    bindOrder: bindOrder,
     toggleLink: toggleLink,
     drawLink: drawLink,
     checkLinks: checkLinks,
@@ -47,7 +47,7 @@
     return status.boxMode === 'order';
   }
 
-  function initOrder(p) {
+  function bindOrder(p) {
     if (p && p.userLinks) oStatus.userLinks = p.userLinks;
     // bind event
     $(data.holder).on('mousedown', mouseDown).mouseup(mouseUp).mousemove(function (e) {

@@ -68,8 +68,8 @@
     // 3. 设置图片
     $.box.toggleImage(p.showImage || true);
     $.box.setImageOpacity(p.blurImage || 0.2);
-    $.box.initCut && $.box.initCut(p);
-    $.box.initOrder && $.box.initOrder();
+    $.box.bindCut && $.box.bindCut(p);
+    $.box.bindOrder && $.box.bindOrder();
     if (p.mayWrong) $.box.eStatus.mayWrong = p.mayWrong;
     if (p.userLinks) $.box.oStatus.userLinks = p.userLinks;
     if ($.box.eStatus) {

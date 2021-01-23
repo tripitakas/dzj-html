@@ -179,10 +179,10 @@ class PageCharBoxApi(PageHandler):
 
             name, cid = char_name.rsplit('_', 1)
             page = self.db.page.find_one({'name': name, 'chars.cid': int(cid)}, {'name': 1, 'tasks': 1, 'chars.$': 1})
-            if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s' % name)
+            char = page and page['chars'][0] or self.db.char.find_one({'name': char_name})
+            if not char:
+                return self.send_error_response(e.no_object, message='没有找到字符%s' % char_name)
             # 检查数据等级和积分
-            char = page['chars'][0]
             self.check_box_level_and_point(self, char, page, self.data.get('task_type'))
             pos = {k: self.data['pos'].get(k) for k in ['x', 'y', 'w', 'h']}
             if h.cmp_obj(char, pos, ['x', 'y', 'w', 'h']):
@@ -199,7 +199,7 @@ class PageCharBoxApi(PageHandler):
                     break
             log = dict(op='changed', pos=pos, user_id=self.user_id, username=self.username, create_time=self.now())
             update = {**pos, 'changed': True, 'box_level': user_level, 'box_logs': ori_logs + [log]}
-            r1 = self.db.page.update_one({'_id': page['_id'], 'chars.cid': int(cid)}, {'$set': {
+            r1 = page and self.db.page.update_one({'_id': page['_id'], 'chars.cid': int(cid)}, {'$set': {
                 'chars.$.' + k: update[k] for k in ['x', 'y', 'w', 'h', 'changed', 'box_level', 'box_logs']
             }})
             # 更新char表
@@ -207,7 +207,7 @@ class PageCharBoxApi(PageHandler):
             self.add_log('update_box', None, char_name, update)
             # 设置返回
             ret = dict(box_logs=update['box_logs'])
-            if r1.modified_count and r2.modified_count:  # 立即生成字图
+            if r1 and r1.modified_count and r2.modified_count:  # 立即生成字图
                 char = self.db.char.find_one({'name': char_name})
                 extract_img(db=self.db, username=self.username, regen=True, chars=[char])
                 ret['img_url'] = self.get_web_img(char_name, 'char') + '?v=%d' % random.randint(0, 9999)
