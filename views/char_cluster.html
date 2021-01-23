@@ -299,6 +299,7 @@
 <script src="{{static_url('js/btn-cluster.js')}}"></script>
 {% include com/_base_task.html %}
 <script>
+  // 初始化
   $.charTxt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
   $.cluster.init({
     curTxt: '{{cur_txt}}',
@@ -307,22 +308,19 @@
     variants: decodeJSON('{{variants}}'),
     txtKinds: decodeJSON('{{txt_kinds}}'),
   });
-
+  $('#taskConfigModal .page-size').val('{{handler.page_size}}');
+  if (!getStorage('clusterColumnPanel', true)) {
+    $('#toggle-column-panel').removeClass('active');
+    $('.column-panel').addClass('hide');
+  }
+  if (!getStorage('clusterProofPanel', true)) {
+    $('#toggle-work-panel').removeClass('active');
+    $('.work-panel').addClass('hide');
+  }
   $(document).ready(function () {
     getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
   });
 
-
-  // 初始化
-  $('#taskConfigModal .page-size').val('{{handler.page_size}}');
-  if (!getStorage('toggle-column-panel', true)) {
-    $('#toggle-column-panel').removeClass('active');
-    $('.column-panel').addClass('hide');
-  }
-  if (!getStorage('toggle-work-panel', true)) {
-    $('#toggle-work-panel').removeClass('active');
-    $('.work-panel').addClass('hide');
-  }
 
   // 配置项
   $('#taskConfigModal .modal-confirm').on('click', function () {
@@ -456,35 +454,6 @@
   // 方向键移动
   $.mapKey('right', function () {
     $('.char-item.current').next().find('.char-img').click();
-  });
-
-  // 单字提交
-  $('.char-txt .btn-submit').on('click', function () {
-    let $this = $(this);
-    if ($this.hasClass('disabled')) return;
-    let name = $('.char-txt .cur-name').val();
-    if (!name.length) return bsShow('', '请选择校对文字', 'warning', 1000, '#s-alert');
-    if (!$('#p-txt').val().length) return bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
-    let data = {
-      txt: $('#p-txt').val() || '',
-      remark: $('#p-remark').val() || '',
-      is_vague: $('.is-vague :checked').val() === '1',
-      is_deform: $('.is-deform :checked').val() === '1',
-      uncertain: $('.uncertain :checked').val() === '1',
-      task_type: typeof gTaskType === 'undefined' ? '' : gTaskType
-    };
-    $this.addClass('disabled');
-    postApi('/char/txt/' + name, {data: data}, function (res) {
-      $this.removeClass('disabled');
-      location.href = setAnchor(name);
-      bsShow('', '已保存成功', 'success', 1000, '#s-alert');
-      $('.char-item.current .txt').text(data.txt);
-      $.charTxt.setTxtLogs(res['txt_logs']);
-    }, function (err) {
-      $this.removeClass('disabled');
-      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
-      else bsShow('失败', err.message, 'warning', 1000);
-    });
   });
 
 </script>

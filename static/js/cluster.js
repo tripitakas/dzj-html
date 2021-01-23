@@ -64,7 +64,7 @@
     let html = txtKinds.map((item) => {
       let cls = item === status.curTxt ? ' current' : '';
       if (item.indexOf('v') === 0 && item.length > 1)
-        return `<span class="txt-kind img-kind${cls}"><img src="/static/img/variants/${item}.jpg"/></span>`;
+        return `<span class="txt-kind img-kind${cls}" data-value="${item}"><img src="/static/img/variants/${item}.jpg"/></span>`;
       else
         return `<span class="txt-kind${cls}">${item}</span>`;
     }).join('');
@@ -75,7 +75,7 @@
     status.variants = variants;
     let html = status.variants.map((item) => {
       if (item.indexOf('v') === 0 && item.length > 1)
-        return `<span class="variant img-variant txt-item"><img src="/static/img/variants/${item}.jpg"/></span>`;
+        return `<span class="variant txt-item" data-value="${item}"><img src="/static/img/variants/${item}.jpg"/></span>`;
       else
         return `<span class="variant txt-item">${item}</span>`;
     }).join('');

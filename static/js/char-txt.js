@@ -162,10 +162,11 @@
 
   // 选中文字
   $(document).on('click', '.txt-item', function () {
-    let txt = $(this).text();
+    let txt = $(this).attr('data-value') || $(this).text().trim();
     $('.proof #p-txt').val(txt);
     $('.txt-item').map(function (i, item) {
-      $(item).toggleClass('active', $(item).text() === txt);
+      let txt2 = $(item).attr('data-value') || $(item).text();
+      $(item).toggleClass('active', txt2 === txt);
     });
   });
 
