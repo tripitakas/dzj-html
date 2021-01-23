@@ -197,7 +197,7 @@
         <div class="down">
           <div id="undo" class="btn-txt icon-undo disabled cut" data-toggle="tooltip" data-placement="left" title="撤销[ctrl+z]"></div>
           <div id="redo" class="btn-txt icon-redo disabled cut" data-toggle="tooltip" data-placement="left" title="重做[ctrl+x]"></div>
-          <div id="toggle-multi" class="btn-txt icon-multi cut" data-toggle="tooltip" data-placement="left" title="多选模式[v]"></div>
+          <div id="toggle-multi" class="btn-txt icon-all-select cut" data-toggle="tooltip" data-placement="left" title="多选模式[v]"></div>
           <div id="adjust-columns" class="btn-txt icon-columns2 cut hide" data-toggle="tooltip" data-placement="left" title="自适应调整列框"></div>
           <div id="adjust-blocks" class="btn-txt icon-blocks2 cut hide" data-toggle="tooltip" data-placement="left" title="自适应调整栏框"></div>
           <div id="toggle-link-column" class="btn-txt icon-column-order order toggle-link" data-toggle="tooltip" data-placement="left" title="显隐列框序线"></div>
@@ -229,7 +229,7 @@
         </span>
         {% end %}
       </span>
-      <span class="hint-info hide">
+      <span class="center hint-info hide">
         <span class="added">新增(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
         <span class="changed">修改(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
         <span class="deleted">删除(<span class="s-no">0</span>)：<span class="symbol icon-box1"></span></span>
@@ -312,7 +312,7 @@
 <script src="{{static_url('js/box/box.ext.js')}}"></script>
 <script src="{{static_url('js/box/box.page.js')}}"></script>
 <script src="{{static_url('js/box/box.key.js')}}"></script>
-<script src="{{static_url('js/page-box.js')}}"></script>
+<script src="{{static_url('js/btn-box.js')}}"></script>
 {% include com/_base_task.html %}
 <script>
   // 初始化。注：先设置右侧，后设置$.page.init

@@ -98,6 +98,7 @@
     // init image param
     let r = initImageRatio(showMode, width, height);
     // set paper and image
+    data.paper && data.paper.remove();
     data.paper = Raphael(data.holder, width * r, height * r);
     Object.assign(data.image, {width: width, height: height});
     data.image.elem = imgUrl && imgUrl.indexOf('err=1') < 0 && data.paper.image(imgUrl, 0, 0, width * r, height * r);

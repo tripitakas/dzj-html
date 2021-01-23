@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?rcp6c6');
-  src:  url('fonts/icomoon.eot?rcp6c6#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?rcp6c6') format('truetype'),
-    url('fonts/icomoon.woff?rcp6c6') format('woff'),
-    url('fonts/icomoon.svg?rcp6c6#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?p5s3c4');
+  src:  url('fonts/icomoon.eot?p5s3c4#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?p5s3c4') format('truetype'),
+    url('fonts/icomoon.woff?p5s3c4') format('woff'),
+    url('fonts/icomoon.svg?p5s3c4#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,36 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-all-select1:before {
+  content: "\e9b5";
+}
+.icon-all-select:before {
+  content: "\e9bb";
+}
+.icon-multi-select:before {
+  content: "\e9be";
+}
+.icon-ai:before {
+  content: "\e9b2";
+}
+.icon-check1:before {
+  content: "\e9b3";
+}
+.icon-man:before {
+  content: "\e9b6";
+}
+.icon-submit1:before {
+  content: "\e9b7";
+}
+.icon-submit2:before {
+  content: "\e9b8";
+}
+.icon-system:before {
+  content: "\e9b9";
+}
+.icon-system1:before {
+  content: "\e9ba";
+}
 .icon-images:before {
   content: "\e9b1";
 }
