@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import re
 from bson import json_util
+from datetime import datetime
 from operator import itemgetter
 from controller import errors as e
 from controller.task.task import Task
@@ -164,8 +165,11 @@ class CharTaskClusterHandler(CharHandler):
         def get_user_filter():
             # 过滤标记
             for f in ['is_diff', 'un_required', 'is_vague', 'is_deform', 'uncertain']:
-                if self.get_query_argument(f, 0):
+                v = self.get_query_argument(f, 0)
+                if v == 'true':
                     cond[f] = True
+                elif v == 'false':
+                    cond[f] = None
             # 字列置信度
             for ac in ['cc', 'lc']:
                 ac = self.get_query_argument(ac, 0)
@@ -181,6 +185,8 @@ class CharTaskClusterHandler(CharHandler):
             update = self.get_query_argument('update', 0)
             if update == 'my':
                 cond['txt_logs.user_id'] = self.user_id
+            elif update == 'other':
+                cond['txt_logs.user_id'] = {'$ne': self.user_id}
             elif update == 'all':
                 cond['txt_logs'] = {'$nin': [None, []]}
             elif update == 'un':
@@ -200,18 +206,22 @@ class CharTaskClusterHandler(CharHandler):
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0],
                     'txt_level': {'$lte': user_level}}
+
+            debug, start = True, datetime.now()
             # 按校对文字统计“校对字头”
             counts = list(self.db.char.aggregate([
                 {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
                 {'$sort': {'count': -1}},
             ]))
             txts = [c['_id'] for c in counts]
+            debug and print('[1]aggregate:', (datetime.now() - start).total_seconds())
             # 设置“当前字头”及相关的异体字
             cur_txt, vts = self.get_query_argument('txt', ''), []
             if cur_txt and cur_txt in txts:
                 cond.update({'txt': cur_txt})
                 vts = list(self.db.variant.find({'$or': [{'nor_txt': cur_txt}, {'user_txt': cur_txt}]}))
                 vts = [v.get('txt') or v.get('v_code') for v in vts]
+            debug and print('[2]variant:', (datetime.now() - start).total_seconds())
             # 2.根据检索参数，设置用户过滤条件
             get_user_filter()
             # 3.查找单字数据
@@ -219,6 +229,7 @@ class CharTaskClusterHandler(CharHandler):
             if self.mode in ['do', 'update']:
                 self.page_size = 100 if self.page_size > 100 else self.page_size
             chars, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
+            debug and print('[3]find chars:', (datetime.now() - start).total_seconds(), cond)
             # 设置单字列图
             for ch in chars:
                 column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
