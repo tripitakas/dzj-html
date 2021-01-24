@@ -423,9 +423,10 @@ body.widescreen {
   color: #b33c2b;
 }
 
-.sty-table a.disabled, .sty-table a.disabled:hover {
+.sty-table a.disabled,
+.sty-table a.disabled:hover {
   color: #797979;
-  cursor: not-allowed
+  cursor: not-allowed;
 }
 
 .sty-table td.action a {

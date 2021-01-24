@@ -37,7 +37,7 @@
     if ('showBoxLogs' in p) status.showBoxLogs = p.showBoxLogs;
     if (p.char) setChar(p.char);
     if ('readonly' in p) status.readonly = p.readonly;
-    $('.user-panel .btn-submit').toggleClass('hide', status.readonly);
+    $('.user-panel .btn-submit').toggleClass('unauthorized', true);
   }
 
   function setChar(char) {

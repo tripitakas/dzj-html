@@ -21,7 +21,7 @@
     }
 
     .m-header .m-pager {
-      margin-left: 15px;
+      margin-right: 30px;
     }
 
     .m-pager .btn-page {
@@ -75,10 +75,6 @@
       right: 0;
     }
 
-    .sutra-menu {
-      margin-left: 15px;
-    }
-
     .m-footer {
       display: flex;
       justify-content: space-between;
@@ -123,20 +119,6 @@
         <div id="toggle-column" class="btn-txt icon-columns toggle-box{{'' if page.get('columns') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框[k]"></div>
         <div id="toggle-block" class="btn-txt icon-blocks toggle-box{{'' if page.get('blocks') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框[l]"></div>
         <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序[n]"></div>
-        <div id="edit-box" class="btn-txt icon-edit1{{'' if page.get('chars') and box_auth else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="修改切分"></div>
-        <div class="btn-group m-pager">
-          <div class="btn-page first{{'' if nav.get('first') else ' hide'}}" data-value="{{nav.get('first')}}">首页</div>
-          <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" data-value="{{nav.get('prev')}}"><</div>
-          <div class="btn-page to">
-            <input type="text" value="{{nav.get('cur')}}"/>
-            <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last', '')}}</span>
-          </div>
-          <div class="btn-page next{{'' if nav.get('next') else ' hide'}}" data-value="{{nav.get('next')}}">></div>
-          <div class="btn-page last{{'' if nav.get('last') else ' hide'}}" data-value="{{nav.get('last')}}">末页</div>
-        </div>
-      </div>
-      <div class="right">
-        <div id="toggle-v-code" class="btn-txt icon-images active hide" data-toggle="tooltip" data-placement="bottom" title="显隐编码对应的字图"></div>
         <div id="toggle-txts" class="btn-group" title="切换文本">
           <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
@@ -149,8 +131,27 @@
             <li id="cmp_txt" class="toggle-txt"><a>比对文本</a></li>
           </ul>
         </div>
-        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
-        <div id="toggle-proof-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
+        <div id="toggle-v-code" class="btn-txt icon-images active hide" data-toggle="tooltip" data-placement="bottom" title="显隐编码对应的字图"></div>
+        <div id="toggle-config" class="btn-group" title="配置">
+          <i class="btn-txt icon-config dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li id="toggle-right" class="toggle-config active"><a>显隐文本</a></li>
+            <li id="toggle-proof-panel" class="toggle-config active"><a>显隐校对面板</a></li>
+          </ul>
+        </div>
+        <div id="edit-box" class="btn-txt icon-edit1{{'' if page.get('chars') and box_auth else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="修改切分"></div>
+      </div>
+      <div class="right">
+        <div class="btn-group m-pager">
+          <div class="btn-page first{{'' if nav.get('first') else ' hide'}}" data-value="{{nav.get('first')}}">首页</div>
+          <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" data-value="{{nav.get('prev')}}"><</div>
+          <div class="btn-page to">
+            <input type="text" value="{{nav.get('cur')}}"/>
+            <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last', '')}}</span>
+          </div>
+          <div class="btn-page next{{'' if nav.get('next') else ' hide'}}" data-value="{{nav.get('next')}}">></div>
+          <div class="btn-page last{{'' if nav.get('last') else ' hide'}}" data-value="{{nav.get('last')}}">末页</div>
+        </div>
         <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?from={{current_path}}" target="_blank">经目</a>
         <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}?from={{current_path}}" target="_blank">卷目</a>
         <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}?from={{current_path}}" target="_blank">册目</a>
@@ -349,6 +350,7 @@
   $('.char-txt .btn-submit').on('click', function () {
     let $this = $(this);
     if ($this.hasClass('disabled')) return;
+    if ($this.hasClass('unauthorized')) return bsShow('', '没有权限', 'warning', 800, '#s-alert');
     let name = $('.char-txt .cur-name').val();
     if (!name.length) return bsShow('', '请选择校对文字', 'warning', 1000, '#s-alert');
     if (!$('#p-txt').val().length) return bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');

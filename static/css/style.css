@@ -714,6 +714,18 @@ a:focus {
   padding: 6px 18px;
 }
 
+.btn.unauthorized,
+.btn.unauthorized:hover,
+.btn.unauthorized:focus {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #b88f6f;
+  border: 1px solid #b88b6b;
+}
+
+.btn.unauthorized:hover {
+  opacity: 0.8;
+}
 
 /* 2.3 Choose-button */
 
