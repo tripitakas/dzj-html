@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
+from controller import auth
 from functools import cmp_to_key
 from controller import errors as e
 from controller.base import BaseHandler
 from controller.helper import cmp_page_code
+from controller.char.base import CharHandler
 from controller.page.base import PageHandler
 from controller.data.data import Sutra, Volume, Reel
 
@@ -74,10 +76,16 @@ class TripitakaPageHandler(PageHandler):
                 if nav['next'] > nav['last']:
                     nav['next'] = nav['last']
 
+            # 检查权限
+            roles = auth.get_all_roles(self.current_user['roles'])
+            box_auth = CharHandler.check_open_edit_role(roles) is True
+            txt_auth = PageHandler.check_open_edit_role(roles) is True
+
             cid = self.get_query_argument('cid', '')
             book_meta = self.get_book_meta(page) or ''
             self.render('tptk_page.html', tripitaka=tripitaka, page=page, book_meta=book_meta, nav=nav,
-                        tripitaka_code=name_slice[0], volume_code=volume_code, cid=cid)
+                        tripitaka_code=name_slice[0], volume_code=volume_code, cid=cid,
+                        box_auth=box_auth, txt_auth=txt_auth)
 
         except Exception as error:
             return self.send_db_error(error)

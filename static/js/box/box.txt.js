@@ -59,7 +59,10 @@
     $(txtHolder).html(html);
     tStatus.txtHolder = txtHolder;
     if (useToolTip) $('[data-toggle="tooltip"]').tooltip();
-    if (tStatus.vCodes.length) $('#toggle-v-code').removeClass('hide');
+    if (tStatus.vCodes.length) {
+      $('#nor_txt').removeClass('hide');
+      $('#toggle-v-code').removeClass('hide');
+    }
   }
 
   function getHtml(box, txtType) {
@@ -119,10 +122,11 @@
   }
 
   function showTxt(txtType) {
+    $('#toggle-v-code').toggleClass('hide', !(txtType === 'txt' && tStatus.vCodes.length));
     $.map($(tStatus.txtHolder).find('.char'), function (item) {
       let idx = $(item).attr('id').split('-')[1];
       $(item).html(getHtml(data.boxes[idx], txtType));
-    })
+    });
   }
 
   function toggleVCode(show) {

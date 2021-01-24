@@ -32,11 +32,12 @@
   };
 
   function init(p) {
-    if ('readonly' in p) status.readonly = p.readonly;
     if ('showBase' in p) status.showBase = p.showBase;
     if ('showTxtLogs' in p) status.showTxtLogs = p.showTxtLogs;
     if ('showBoxLogs' in p) status.showBoxLogs = p.showBoxLogs;
     if (p.char) setChar(p.char);
+    if ('readonly' in p) status.readonly = p.readonly;
+    $('.user-panel .btn-submit').toggleClass('hide', status.readonly);
   }
 
   function setChar(char) {
