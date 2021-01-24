@@ -59,19 +59,29 @@ class CharHandler(Char, TaskHandler):
         return points
 
     @classmethod
-    def check_txt_level_and_point(cls, self, char, task_type=None, send_error_response=True):
+    def check_open_edit_role(cls, user_roles):
+        if '文字专家' in user_roles or '文字审定员' in user_roles or '聚类审定员' in user_roles:
+            return True
+        else:
+            return e.unauthorized[0], '需要文字审定员、聚类审定员或文字专家角色，您没有权限'
+
+    @classmethod
+    def check_txt_level_and_point(cls, self, char, task_type=None, response_error=True):
         """检查数据等级和积分"""
+        # 1.检查数据等级
         required_level = cls.get_required_txt_level(char)
         user_level = cls.get_user_txt_level(self, task_type)
         if int(user_level) < int(required_level):
             msg = '该字符的文字数据等级为%s，您的文字数据等级%s不够' % (required_level, user_level)
-            if send_error_response:
-                return self.send_error_response(e.data_level_unqualified, message=msg)
-            else:
-                return e.data_level_unqualified[0], msg
+            return self.send_error_msg(e.data_level_unqualified[0], msg, response_error)
+        # 2.检查权限
         roles = auth.get_all_roles(self.current_user['roles'])
         if '文字专家' in roles:
             return True
+        r = cls.check_open_edit_role(roles)
+        if r is not True:
+            return self.send_error_msg(r[0], r[1], response_error)
+        # 3. 检查积分
         task_types = list(cls.txt_level['task'].keys())
         if int(user_level) == int(required_level) and (not task_type or task_type not in task_types):
             if char.get('txt_logs') and char['txt_logs'][-1].get('user_id') == self.user_id:
@@ -80,10 +90,7 @@ class CharHandler(Char, TaskHandler):
             user_point = cls.get_user_point(self, required_type)
             if int(user_point) < int(required_point):
                 msg = '该字符需要%s的%s积分，您的积分%s不够' % (self.get_task_name(required_type), required_point, user_point)
-                if send_error_response:
-                    return self.send_error_response(e.data_point_unqualified, message=msg)
-                else:
-                    return e.data_point_unqualified[0], msg
+                return self.send_error_msg(e.data_point_unqualified[0], msg, response_error)
         return True
 
     def get_char_img(self, char):

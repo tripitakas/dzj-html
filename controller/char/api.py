@@ -75,8 +75,7 @@ class CharTxtApi(CharHandler):
         return ori_logs + [user_log]
 
     def post(self, char_name):
-        """更新字符的txt"""
-
+        """聚类校对-更新单字的txt"""
         try:
             rules = [(v.not_empty, 'txt'), (v.is_txt, 'txt')]
             self.validate(self.data, rules)

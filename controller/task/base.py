@@ -98,6 +98,12 @@ class TaskHandler(BaseHandler, Task):
     def step_name(self):
         return self.get_step_name(self.steps.get('current')) or ''
 
+    def send_error_msg(self, e_code, msg, response=True):
+        if response:
+            return self.send_error_response((e_code, msg), message=msg)
+        else:
+            return e_code, msg
+
     def find_many(self, task_type=None, status=None, size=None, order=None):
         """查找任务"""
         condition = dict()
