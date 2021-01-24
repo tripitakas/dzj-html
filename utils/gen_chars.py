@@ -66,7 +66,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                         m = dict(page_name=p['name'], source=p.get('source'), txt_level=0, img_need_updated=True)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
-                        m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
+                        m.update({k: int(c[k] * 1000) for k in ['cc', 'lc'] if c.get(k)})
                         # ocr_txt
                         m['ocr_txt'] = Ph.get_cmb_txt(c)
                         m['txt'] = c.get('txt') or m['ocr_txt']

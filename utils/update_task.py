@@ -20,6 +20,23 @@ from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
+def update_task_time(db):
+    """更新任务执行时间"""
+    size = 10000
+    task_types = ['cut_proof', 'cut_review', 'cluster_proof', 'cluster_review']
+    cond = {'task_type': {'$in': task_types}, 'status': 'finished'}
+    item_count = db.task.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['picked_time', 'finished_time']
+        tasks = list(db.task.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for t in tasks:
+            used_time = (t['finished_time'] - t['picked_time']).total_seconds()
+            db.task.update_one({'_id': t['_id']}, {'$set': {'used_time': used_time}})
+
+
 def update_page_task(db):
     """更新页任务"""
     size = 100
@@ -43,7 +60,7 @@ def update_page_task(db):
             # op no
             update = Ph.get_user_op_no(page, t['picked_user_id'])
             # used time
-            update['used_time'] = (t['finished_time'] - t['picked_time']).seconds
+            update['used_time'] = (t['finished_time'] - t['picked_time']).total_seconds()
             db.task.update_one({'_id': t['_id']}, {'$set': update})
     if invalid:
         print('invalid: %s' % invalid)

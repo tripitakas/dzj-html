@@ -11,7 +11,7 @@ from controller import helper as h
 from controller import validate as v
 from controller.base import BaseHandler
 from utils.upload_oss import upload_oss
-from utils import update_exam_data as exam
+from utils import update_exam as exam
 
 
 class LogDeleteApi(BaseHandler):
@@ -86,7 +86,7 @@ class ResetExamUserApi(BaseHandler):
                 exam.reset_user_data_and_tasks(self.db, user_no)
                 self.send_data_response(dict(status='success'))
             else:
-                script = 'nohup python3 %s/utils/update_exam_data.py --func=reset_user_data_and_tasks >> log/update_exam_data_%s.log 2>&1 &'
+                script = 'nohup python3 %s/utils/update_exam.py --func=reset_user_data_and_tasks >> log/update_exam_%s.log 2>&1 &'
                 script = script % (h.BASE_DIR, h.get_date_time(fmt='%Y%m%d%H%M%S'))
                 print(script)
                 os.system(script)
