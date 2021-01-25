@@ -81,13 +81,13 @@
     let norTxts = $.map($checked, (item) => $(item).parent().parent().find('.nor_txt').text().trim());
     if ((norTxts.filter((item) => item !== norTxts[0])).length)
       return showTips('提示', '当前选中有多个正字。只能合并同一个正字下的字图！', 3000);
-    let imgNames = $.map($checked, (item) => $(item).parent().parent().find('.img_name div:last-child').text());
-    if ((imgNames.filter((item) => item === "")).length) return showTips('提示', '有些选中项没有字图，无法合并！', 3000);
-    imgNames = imgNames.filter((item) => item !== "");
-    Swal2.fire({title: '请选择合并到哪个字图', input: 'select', inputOptions: imgNames}).then((result) => {
+    let vCodes = $.map($checked, (item) => $(item).parent().parent().find('.v_code div:last-child').text());
+    if ((vCodes.filter((item) => item === "")).length) return showTips('提示', '有些选中项没有字图，无法合并！', 3000);
+    vCodes = vCodes.filter((item) => item !== "");
+    Swal2.fire({title: '请选择主编码', input: 'select', inputOptions: vCodes}).then((result) => {
       if (result.dismiss || !result.value) return;
       showConfirm('提示', '请慎重！将修改字数据，同时将删除其它字图', function () {
-        postApi('/variant/merge', {data: {img_names: imgNames, main: imgNames[result.value]}}, function (res) {
+        postApi('/variant/merge', {data: {v_codes: vCodes, main_code: vCodes[result.value]}}, function (res) {
           showSuccess('成功', '合并成功', 1000);
           refresh(1000);
         }, function (err) {

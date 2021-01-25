@@ -230,22 +230,18 @@ class VariantMergeApi(BaseHandler):
     def post(self):
         """合并图片异体字"""
         try:
-            rules = [(v.not_empty, 'img_names', 'main')]
+            rules = [(v.not_empty, 'v_codes', 'main_code')]
             self.validate(self.data, rules)
-            img_names, main = self.data['img_names'], self.data['main']
-            assert main in img_names
-            names2merge = [name for name in img_names if name != main]
-            vts = list(self.db.variant.find({'img_name': {'$in': img_names}}))
-            if not names2merge or not vts:
-                return self.send_error_response(e.no_object, message='没有找到待合并的异体字字图')
 
-            # 更新字数据
-            maps = {t['img_name']: t['v_code'] for t in vts}
-            self.db.char.update_many({'txt': {'$in': [maps[n] for n in names2merge]}}, {'$set': {'txt': maps[main]}})
-            # 删除异体字图
-            self.db.variant.delete_many({'img_name': {'$in': names2merge}})
-            self.send_data_response()
-            self.add_log('merge_variant', target_name=names2merge, content='merge to ' + self.data['main'])
+            assert self.data['main_code'] in self.data['v_codes']
+            sub_codes = [code for code in self.data['v_codes'] if code != self.data['main_code']]
+            if not sub_codes:
+                return self.send_error_response(e.no_object, message='没有找到待合并的编码')
+
+            self.db.char.update_many({'txt': {'$in': sub_codes}}, {'$set': {'txt': self.data['main_code']}})
+            r = self.db.variant.delete_many({'v_code': {'$in': sub_codes}})
+            self.send_data_response(dict(count=r.deleted_count))
+            self.add_log('merge_variant', target_name=sub_codes, content='merge to ' + self.data['main'])
 
         except self.DbError as error:
             return self.send_db_error(error)
