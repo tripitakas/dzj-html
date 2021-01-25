@@ -76,7 +76,7 @@ function getModal(modal, fields) {
     } else {
       info[item.id] = modal.find('.' + item.id).val();
     }
-    if (typeof info[item.id] === 'undefined' || !info[item.id]) {
+    if (typeof info[item.id] === 'undefined') {
       delete info[item.id];
     }
   });
@@ -132,7 +132,7 @@ let fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_i
 // 新增-弹框
 $('.btn-add').on('click', function () {
   $('#updateModal .modal-title').html('新增数据');
-  $('#updateModal .update-url').val($(this).attr('url') || location.pathname);
+  $('#updateModal .update-url').val($(this).attr('url') || $('a', this).attr('url') || location.pathname);
   toggleModal($('#updateModal'), fields, false);
   resetModal($('#updateModal'), fields);
   $('#updateModal').modal();

@@ -106,7 +106,7 @@ class VariantListHandler(BaseHandler, Variant):
     table_fields = ['source', 'uid', 'v_code', 'txt', 'img_name', 'user_txt', 'nor_txt', 'remark',
                     'create_by', 'create_time', 'updated_time']
     operations = [
-        {'operation': 'btn-add', 'label': '新增记录'},
+        {'operation': 'btn-add', 'label': '新增记录', 'url': '/variant/upsert'},
         {'operation': 'bat-remove', 'label': '批量删除'},
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'btn-merge', 'label': '合并字图'},
@@ -115,8 +115,8 @@ class VariantListHandler(BaseHandler, Variant):
     img_operations = ['config']
     actions = [
         {'action': 'btn-view-chars', 'label': '相关字数据'},
-        {'action': 'btn-update', 'label': '更新'},
-        {'action': 'btn-remove', 'label': '删除'},
+        {'action': 'btn-update', 'label': '更新', 'url': '/variant/upsert'},
+        {'action': 'btn-remove', 'label': '删除', 'url': '/variant/delete'},
     ]
 
     @staticmethod

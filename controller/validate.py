@@ -70,7 +70,10 @@ def i18n(key):
         'blocks': '栏框',
         'columns': '列框',
         'chars': '字框',
+        'txt': '文字',
+        'img_name': '图片',
         'nor_txt': '正字',
+        'user_txt': '用户字头',
         'remark': '备注',
     }
     return maps[key] if key in maps else key
@@ -278,7 +281,7 @@ def is_txt(**kw):
 
 def is_char_uid(**kw):
     """检查是否为char的uid。"""
-    code, message = e.invalid_txt_type
+    code, message = e.field_error
     regex = r'^Y\d+$'
     if len(kw) == 1:
         errs = {k: (code, message) for k, v in kw.items() if v and not re.match(regex, str(v))}

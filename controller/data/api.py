@@ -100,28 +100,9 @@ class DataDeleteApi(BaseHandler):
 
     def post(self, collection):
         """批量删除"""
-
-        def pre_variant():
-            if self.data.get('_id'):
-                vt = self.db.variant.find_one({'_id': ObjectId(self.data['_id'])}, {'v_code': 1})
-                if vt.get('v_code') and self.db.char.find_one({'txt': vt['v_code']}):
-                    return self.send_error_response(e.unauthorized, message='不能删除使用中的图片异体字')
-            else:
-                can_delete = []
-                vts = list(self.db.variant.find({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}))
-                for vt in vts:
-                    if not vt.get('v_code') or not self.db.char.find_one({'txt': vt['v_code']}):
-                        can_delete.append(str(vt['_id']))
-                self.data['_ids'] = can_delete
-                if not can_delete:
-                    return self.send_error_response(e.unauthorized, message='所有异体字均被使用中，不能删除')
-
         try:
             rules = [(v.not_both_empty, '_id', '_ids')]
             self.validate(self.data, rules)
-
-            if collection == 'variant':
-                pre_variant()
 
             if self.data.get('_id'):
                 r = self.db[collection].delete_one({'_id': ObjectId(self.data['_id'])})
@@ -144,7 +125,8 @@ class VariantUpsertApi(BaseHandler, Variant):
             rules = [(v.not_both_empty, 'img_name', 'txt'), (v.not_both_empty, 'nor_txt', 'user_txt')]
             self.validate(self.data, rules)
 
-            doc = self.pack_doc(self.data)
+            doc = self.pack_doc(self.data, exclude_none=False)
+            doc['nor_txt'] = doc.get('nor_txt') or doc.get('user_txt')
             if doc.get('_id'):  # 更新
                 vt = self.db.variant.find_one({'_id': doc['_id']})
                 if not vt:
@@ -152,6 +134,8 @@ class VariantUpsertApi(BaseHandler, Variant):
                 doc.pop('uid', 0)  # 不能更新uid
                 doc.pop('v_code', 0)  # 不能更新v_code
                 doc['updated_time'] = self.now()
+                if doc['nor_txt'] and doc['nor_txt'] != vt.get('nor_txt'):
+                    doc['nor_txt'] = self.recurse_nor_txt(doc['nor_txt'])
                 if vt.get('v_code') and doc.get('img_name') != vt.get('img_name'):  # 更新图片
                     self.update_variant_img(doc['img_name'], vt['v_code'])
                 self.db.variant.update_one({'_id': doc['_id']}, {'$set': doc})
@@ -168,7 +152,7 @@ class VariantUpsertApi(BaseHandler, Variant):
             else:  # 文字
                 if self.db.variant.find_one({'txt': doc['txt']}):
                     return self.send_error_response(e.variant_exist, message='异体字%s已存在' % doc['txt'])
-            doc['nor_txt'] = self.recurse_nor_txt(doc.get('nor_txt') or doc.get('user_txt'))
+            doc['nor_txt'] = self.recurse_nor_txt(doc['nor_txt'])
             doc.update(dict(create_user_id=self.user_id, create_by=self.username, create_time=self.now()))
             r = self.db.variant.insert_one(doc)
             self.send_data_response(dict(id=r.inserted_id, v_code=doc.get('v_code')))
@@ -205,17 +189,36 @@ class VariantDeleteApi(BaseHandler):
 
     def post(self):
         """用户删除图片异体字"""
-        try:
-            rules = [(v.not_empty, 'v_code')]
-            self.validate(self.data, rules)
 
-            if self.db.char.find_one({'txt': self.data['v_code']}):
-                return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
-            r = self.db.variant.delete_one({'v_code': self.data['v_code']})
-            if not r.deleted_count:
-                return self.send_error_response(e.no_object, message='没有找到%s相关的异体字' % self.data['v_code'])
-            self.send_data_response()
-            self.add_log('delete_variant', target_name=self.data['v_code'])
+        try:
+            if self.data.get('v_code'):
+                if self.db.char.find_one({'txt': self.data['v_code']}):
+                    return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
+                r = self.db.variant.delete_one({'v_code': self.data['v_code']})
+                if not r.deleted_count:
+                    return self.send_error_response(e.no_object, message='没有找到异体字%s' % self.data['v_code'])
+                self.send_data_response(dict(count=r.deleted_count))
+                self.add_log('delete_variant', target_name=self.data['v_code'])
+            elif self.data.get('_id'):
+                vt = self.db.variant.find_one({'_id': ObjectId(self.data['_id'])}, {'v_code': 1})
+                if vt.get('v_code') and self.db.char.find_one({'txt': vt['v_code']}):
+                    return self.send_error_response(e.unauthorized, message='不能删除使用中的图片异体字')
+                r = self.db.variant.delete_one({'_id': ObjectId(self.data['_id'])})
+                self.send_data_response(dict(count=r.deleted_count))
+                self.add_log('delete_variant', target_id=self.data['_id'])
+            elif self.data.get('_ids'):
+                deleted, un_deleted = [], []
+                vts = list(self.db.variant.find({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}))
+                for vt in vts:
+                    if not vt.get('v_code') or not self.db.char.find_one({'txt': vt['v_code']}):
+                        deleted.append(str(vt['_id']))
+                    else:
+                        un_deleted.append(str(vt['_id']))
+                if not deleted:
+                    return self.send_error_response(e.unauthorized, message='所有异体字均被使用中，不能删除')
+                r = self.db.variant.delete_many({'_id': {'$in': [ObjectId(i) for i in deleted]}})
+                self.send_data_response(dict(deleted=deleted, un_deleted=un_deleted, count=r.deleted_count))
+                self.add_log('delete_variant', target_id=deleted)
 
         except self.DbError as error:
             return self.send_db_error(error)

@@ -225,6 +225,7 @@ role_route_maps = {
             '/data/@metadata': ['GET'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/(delete|upload)': ['POST'],
+            '/data/variant': ['GET'],
             '/api/variant/(upsert|delete|merge|source)': ['POST'],
             '/api/page': ['POST'],
             '/page/(list|statistic)': ['GET'],

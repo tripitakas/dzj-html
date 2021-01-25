@@ -12,7 +12,6 @@ let l10n = {
   published_before: '任务曾被发布',
   finished_before: '任务已经完成',
   data_level_unqualified: '数据等级不够',
-  data_is_locked: '数据被锁定',
   published: '任务发布成功',
   pending: '等待前置任务',
   unauthorized: '用户无权访问',
