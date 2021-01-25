@@ -6,7 +6,7 @@ views = [
 ]
 
 handlers = [
-    api.VariantDeleteApi, api.VariantMergeApi, api.VariantSourceApi, api.VariantCode2NorTxtApi,
-    api.DataUpsertApi, api.DataUploadApi, api.DataDeleteApi,
-    api.DataGenJsApi, api.PublishImportImageApi,
+    api.VariantUpsertApi, api.VariantDeleteApi, api.VariantMergeApi, api.VariantSourceApi,
+    api.VariantCode2NorTxtApi, api.DataUpsertApi, api.DataUploadApi, api.DataDeleteApi,
+    api.PublishImportImageApi,
 ]
