@@ -350,7 +350,7 @@
     bsLoading('保存中‧‧‧');
     $this.addClass('disabled');
     data.submit = id !== 'save';
-    postApi(location.pathname, {data: data}, function (res) {
+    postApi(location.pathname.replace('/edit', ''), {data: data}, function (res) {
       bsShow('成功!', '已保存。', 'info', 1000);
       $this.removeClass('disabled');
       if (id === 'task-submit') {
