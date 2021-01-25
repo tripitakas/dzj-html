@@ -54,11 +54,11 @@
 }
 
 .ocr-col {
-  border-bottom: 2px solid rgba(255, 0, 0, .4);
+  border-bottom: 2px solid rgba(255, 0, 0, .4) !important;
 }
 
 .cmp-txt {
-  border-bottom: 2px solid rgba(0, 255, 0, .4);
+  border-bottom: 2px solid rgba(0, 255, 0, .4) !important;;
 }
 
 .meta {
