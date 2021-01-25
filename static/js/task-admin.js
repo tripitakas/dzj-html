@@ -3,9 +3,8 @@ $('.operation .bat-batch').on('click', function () {
   let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
   if (!ids.length) return showTips('请选择', '当前没有选中任何记录', 1000);
   Swal2.fire({title: '请输入批次', input: 'text'}).then((result) => {
-    if (result.value) {
-      postApi('/task/batch', {data: {_ids: ids, batch: result.value}}, () => location.reload());
-    }
+    if (result.dismiss || !result.value) return;
+    postApi('/task/batch', {data: {_ids: ids, batch: result.value}}, () => location.reload());
   });
 });
 // 统计检索结果

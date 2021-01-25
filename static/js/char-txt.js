@@ -22,13 +22,23 @@
     hint: null,               // 当前显示修改痕迹
   };
 
+  let fields = {
+    'name': '字编码', 'char_id': '序号', 'source': '分类', 'cc': '置信度', 'sc': '相似度', 'pos': '坐标',
+    'column': '所属列', 'is_diff': '是否不一致', 'un_required': '是否不必校对', 'txt': '文字',
+    'nor_txt': '正字', 'is_vague': '笔画残损', 'is_deform': '异形字', 'uncertain': '不确定',
+    'box_level': '切分等级', 'box_point': '切分积分', 'txt_level': '文字等级',
+    'txt_point': '文字积分', 'remark': '备注'
+  };
+
   $.charTxt = {
     status: status,
+    fields: fields,
     init: init,
     setChar: setChar,
     setTxtLogs: setTxtLogs,
     setBoxLogs: setBoxLogs,
     toggleHint: toggleHint,
+    checkAndExport: checkAndExport
   };
 
   function init(p) {
@@ -37,7 +47,7 @@
     if ('showBoxLogs' in p) status.showBoxLogs = p.showBoxLogs;
     if (p.char) setChar(p.char);
     if ('readonly' in p) status.readonly = p.readonly;
-    $('.user-panel .btn-submit').toggleClass('unauthorized', true);
+    $('.user-panel .btn-submit').toggleClass('unauthorized', status.readonly);
   }
 
   function setChar(char) {
@@ -57,14 +67,6 @@
   function setBaseInfo(char) {
     $('#base-info').toggleClass('hide', !status.showBase);
     if (!status.showBase) return;
-    let fields = {
-      'name': '字编码', 'char_id': '序号', 'source': '分类', 'cc': '置信度', 'sc': '相似度', 'pos': '坐标',
-      'column': '所属列', 'is_diff': '是否不一致', 'un_required': '是否不必校对', 'txt': '原字',
-      'nor_txt': '正字', 'is_vague': '笔画残损', 'is_deform': '异形字', 'uncertain': '不确定',
-      'box_level': '切分等级', 'box_point': '切分积分',
-      'txt_level': '文字等级', 'txt_point': '文字积分',
-      'remark': '备注'
-    };
     $('#base-info .meta').html(Object.keys(fields).map((f) => {
       if (!char[f]) return '';
       if (['pos', 'column'].indexOf(f) > -1) {
@@ -161,6 +163,28 @@
     }
   }
 
+  // 检查并导出数据
+  function checkAndExport() {
+    let $this = $('.char-txt .btn-submit');
+    if (status.readonly || $this.hasClass('disabled')) return false;
+    else if (!$('.char-txt .cur-name').val().length) {
+      bsShow('', '请选择校对文字', 'warning', 1000, '#s-alert');
+      return false;
+    } else if (!$('#p-txt').val().length) {
+      bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
+      return false;
+    }
+    return {
+      txt: $('#p-txt').val() || '',
+      remark: $('#p-remark').val() || '',
+      name: $('.char-txt .cur-name').val(),
+      is_vague: $('.is-vague :checked').val() === '1',
+      is_deform: $('.is-deform :checked').val() === '1',
+      uncertain: $('.uncertain :checked').val() === '1',
+      task_type: typeof gTaskType === 'undefined' ? '' : gTaskType
+    };
+  }
+
   // 选中文字
   $(document).on('click', '.txt-item', function () {
     let txt = $(this).attr('data-value') || $(this).text().trim();
@@ -199,6 +223,5 @@
     toggleHint(box, true);
     $('#reset-box').removeClass('hide');
   });
-
 
 }());

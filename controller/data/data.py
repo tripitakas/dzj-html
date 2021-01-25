@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
-import shutil
-from os import path
-from datetime import datetime
 from functools import cmp_to_key
-from controller import errors
 from controller.model import Model
 from controller import helper as h
-from controller import errors as e
 from controller import validate as v
 
 
@@ -200,57 +195,7 @@ class Variant(Model):
         'create_time': {'name': '创建时间'},
         'updated_time': {'name': '更新时间'},
     }
-    rules = [(v.not_empty, 'nor_txt')]
-
-    @classmethod
-    def pack_doc(cls, doc, self=None, exclude_none=False):
-        doc = super().pack_doc(doc)
-        new_img, v_code = '', ''
-        if doc.get('_id'):  # 更新
-            vt = self.db.variant.find_one({'_id': doc.get('_id')})
-            if doc.get('img_name') and doc.get('img_name') != vt.get('img_name'):
-                new_img, v_code = doc['img_name'], doc.get('v_code')
-            if doc.get('uid'):
-                doc['uid'] = int(doc['uid'])
-                doc['v_code'] = 'v' + h.dec2code36(doc['uid'])
-            doc['updated_time'] = datetime.now()
-        else:  # 新增
-            if re.match(r'^[0-9a-zA-Z_]+$', doc.get('txt') or ''):
-                doc['img_name'] = doc.pop('txt').strip()
-            if doc.get('img_name'):
-                if self.db.variant.find_one({'img_name': doc['img_name']}):
-                    return self.send_error_response(errors.variant_exist, message='异体字图已存在')
-                v_max = self.db.variant.find_one({'uid': {'$ne': None}}, sort=[('uid', -1)])
-                doc['uid'] = int(v_max['uid']) + 1 if v_max else 1
-                doc['v_code'] = 'v' + h.dec2code36(doc['uid'])
-                new_img, v_code = doc['img_name'], doc.get('v_code')
-                if self.db.char.find_one({'txt': doc['v_code']}):
-                    return self.send_error_response(errors.variant_exist, message='编号已错乱，请联系管理员！')
-            else:
-                if self.db.variant.find_one({'txt': doc['txt']}):
-                    return self.send_error_response(errors.variant_exist, message='异体字已存在')
-            doc['user_txt'] = doc.get('user_txt') or doc.get('nor_txt')
-            doc['create_by'] = self.username
-            doc['create_time'] = datetime.now()
-            doc['create_user_id'] = self.user_id
-        # 检查字图
-        if new_img and v_code:
-            src_url = self.get_web_img(new_img, 'char')
-            src_fn = 'static/img/' + src_url[src_url.index('chars'):]
-            dst_fn = 'static/img/variants/%s.jpg' % v_code
-            try:
-                shutil.copy(path.join(h.BASE_DIR, src_fn), path.join(h.BASE_DIR, dst_fn))
-            except Exception as err:
-                self.send_error_response(e.no_object, message=str(err))
-        # txt、nor_txt
-        if doc.get('txt'):
-            doc['txt'] = doc['txt'].strip()
-        nor_txt = doc['nor_txt']
-        cond = {'v_code': nor_txt[1:]} if nor_txt[0] == 'v' else {'txt': nor_txt}
-        variant = self.db.variant.find_one(cond, {'nor_txt': 1})
-        if variant and variant.get('nor_txt'):
-            doc['nor_txt'] = variant['nor_txt']
-        return doc
+    rules = [(v.not_both_empty, 'img_name', 'txt'), (v.not_both_empty, 'nor_txt', 'user_txt')]
 
     @classmethod
     def get_variant_search_condition(cls, request_query):

@@ -109,20 +109,22 @@ class CharTaskClusterApi(CharHandler):
         try:
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'tasks.' + task_type: {'$ne': self.task['_id']}, 'txt_level': {'$lte': user_level}}
-            char_names = self.data.get('char_names')
-            if char_names:  # 提交当前页
-                cond.update({'name': {'$in': char_names}})
+            if self.data.get('char_names'):  # 提交单页
+                cond.update({'name': {'$in': self.data.get('char_names')}})
                 self.db.char.update_many(cond, {'$addToSet': {'tasks.' + task_type: self.task['_id']}})
                 return self.send_data_response()
-            # 提交任务
-            params = self.task['params']
-            ocr_txts = [c['ocr_txt'] for c in params]
-            cond.update({'un_required': None, 'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}})
-            if self.db.char.count_documents(cond):
-                return self.send_error_response(e.task_submit_error, message='还有未提交的字图，不能提交任务')
 
-            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                'status': self.STATUS_FINISHED, 'finished_time': self.now()}})
+            if self.data.get('submit'):  # 提交任务
+                params = self.task['params']
+                base = 'ocr_txt' if 'proof' in task_type else 'rvw_txt'
+                base_txts = [c[base] for c in params]  # 聚类字种
+                cond.update({'un_required': None, 'source': params[0]['source'], base: {'$in': base_txts}})
+                if self.db.char.find_one(cond):
+                    return self.send_error_response(e.task_submit_error, message='还有未提交的字图，不能提交任务')
+                used_time = (self.now() - self.task['picked_time']).total_seconds()
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
+                    'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'used_time': used_time}})
+
             return self.send_data_response()
 
         except self.DbError as error:

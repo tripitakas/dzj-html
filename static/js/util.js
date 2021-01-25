@@ -89,6 +89,10 @@ function deleteQueryString(names) {
   return url;
 }
 
+function toggleQueryString(name, value, show) {
+  return show ? setQueryString(name, value) : deleteQueryString(name);
+}
+
 function deleteParam(query, name) {
   query = query.replace(new RegExp(name + '=.*?&', 'i'), '');
   query = query.replace(new RegExp('[?&]' + name + '=.*?$', 'i'), '');

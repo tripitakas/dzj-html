@@ -106,7 +106,7 @@ class PageListHandler(PageHandler):
 
 
 class PageBoxHandler(PageHandler):
-    URL = '/page/box/@page_name'
+    URL = ['/page/box/@page_name', '/page/box/edit/@page_name']
 
     def get(self, page_name):
         """切分校对页面"""
@@ -118,14 +118,14 @@ class PageBoxHandler(PageHandler):
             self.pack_cut_boxes(page)
             self.set_box_access(page)
             page['img_url'] = self.get_page_img(page)
-            self.render('page_box.html', page=page)
+            self.render('page_box.html', page=page, readonly='edit' not in self.request.uri)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
 class PageTxtHandler(PageHandler):
-    URL = '/page/txt/@page_name'
+    URL = ['/page/txt/@page_name', '/page/txt/edit/@page_name']
 
     def get(self, page_name):
         """单字修改页面"""
@@ -136,7 +136,7 @@ class PageTxtHandler(PageHandler):
 
             self.pack_txt_boxes(page)
             page['img_url'] = self.get_page_img(page)
-            self.render('page_txt.html', page=page)
+            self.render('page_txt.html', page=page, readonly='edit' not in self.request.uri)
 
         except Exception as error:
             return self.send_db_error(error)

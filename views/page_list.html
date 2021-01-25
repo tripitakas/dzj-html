@@ -377,9 +377,8 @@
     let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     if (!ids.length) return showTips('请选择', '当前没有选中任何记录', 1000);
     Swal2.fire({title: '请输入分类', input: 'text'}).then((result) => {
-      if (result.value) {
-        postApi('/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
-      }
+      if (result.dismiss || !result.value) return;
+      postApi('/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
     });
   });
 

@@ -90,9 +90,8 @@ class CharTxtApi(CharHandler):
             if not [f for f in fields + ['remark'] if (char.get(f) or False) != (self.data.get(f) or False)]:
                 return self.send_error_response(e.not_changed, message='没有任何修改')
 
-            update = {k: self.data[k] for k in fields if self.data.get(k)}
-            if self.data.get('remark') or char.get('remark'):
-                update['remark'] = self.data.get('remark') or ''
+            update = {k: self.data[k] for k in fields if k in self.data}
+            update['remark'] = self.data.get('remark') or None
             my_log = {k: self.data[k] for k in fields + ['remark', 'task_type'] if self.data.get(k)}
             update['txt_logs'] = self.merge_txt_logs(my_log, char)
             update['txt_level'] = self.get_user_txt_level(self, self.data.get('task_type'))
@@ -105,22 +104,24 @@ class CharTxtApi(CharHandler):
 
 
 class CharsTxtApi(CharHandler):
-    URL = '/api/chars/(txt|txt_type)'
+    URL = '/api/chars/txt'
 
-    def post(self, field):
-        """批量更新txt"""
+    def post(self):
+        """批量更新char"""
         try:
-            rules = [(v.not_empty, 'names', field)]
+            fields = ['txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
+            rules = [(v.not_empty, 'names', 'field', 'value'), (v.in_list, 'field', fields)]
             self.validate(self.data, rules)
 
-            task_type = self.data.get('task_type')
+            field, value = self.data['field'], self.data['value']
+            cond = {'name': {'$in': self.data['names']}, field: {'$ne': value}}
+            chars = list(self.db.char.find(cond, {'name': 1, 'txt_level': 1, 'txt_logs': 1, 'tasks': 1}))
             log = dict(un_changed=[], level_unqualified=[], point_unqualified=[])
-            chars = list(self.db.char.find({'name': {'$in': self.data['names']}, field: {'$ne': self.data[field]}}))
             log['un_changed'] = set(self.data['names']) - set(c['name'] for c in chars)
             # 检查数据权限和积分
             qualified = []
             for char in chars:
-                r = self.check_txt_level_and_point(self, char, task_type, False)
+                r = self.check_txt_level_and_point(self, char, self.data.get('task_type'), False)
                 if isinstance(r, tuple):
                     if r[0] == e.data_level_unqualified[0]:
                         log['level_unqualified'].append(char['name'])
@@ -137,10 +138,11 @@ class CharsTxtApi(CharHandler):
                 else:
                     new_update.append(char['name'])
 
-            # 更新char表的txt/txt_level/txt_logs字段
-            info = {field: self.data[field], 'txt_level': self.get_user_txt_level(self, task_type)}
+            # 更新char表的txt/txt_level等字段
+            info = {field: value, 'txt_level': self.get_user_txt_level(self, self.data.get('task_type'))}
             self.db.char.update_many({'name': {'$in': new_update + old_update}}, {'$set': info})
             log['updated'] = new_update + old_update
+            print(new_update, old_update)
             if new_update:
                 self.db.char.update_many({'name': {'$in': new_update}, 'txt_logs': None}, {'$set': {'txt_logs': []}})
                 self.db.char.update_many({'name': {'$in': new_update}}, {'$addToSet': {'txt_logs': {

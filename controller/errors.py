@@ -69,11 +69,8 @@ box_not_identical = 3018, '切分信息不一致'
 cid_not_identical = 3019, '字框有增减'
 col_not_identical = 3020, '列框有增减'
 
-data_is_locked = 4001, '数据已经被其他人锁定'
-data_lock_failed = 4002, '数据锁定失败'
-data_lock_unqualified = 4003, '没有数据资质'
-data_level_unqualified = 4004, '数据等级不够'
-data_point_unqualified = 4005, '任务积分不够'
+data_level_unqualified = 4001, '数据等级不够'
+data_point_unqualified = 4002, '任务积分不够'
 
 img_unavailable = 5001, '图片尚未就绪'
 page_code_error = 5002, '页面编码有误'
@@ -83,8 +80,7 @@ code_existed = 5006, '编码已存在'
 upload_fail = 5100, '上传失败'
 
 invalid_txt = 6001, '文字格式有误'
-invalid_txt_type = 6002, '文字类型有误'
-variant_exist = 6003, '异体字已存在'
+variant_exist = 6002, '异体字已存在'
 
 oss_not_readable = 7001, 'OSS不可读'
 oss_not_writeable = 7002, 'OSS不可写'

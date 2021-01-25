@@ -288,7 +288,7 @@
     }, function (err) {
       $this.removeClass('disabled');
       if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
-      else bsShow('失败', err.message, 'warning', 1000);
+      else bsShow('失败', err.message, 'warning', 1000, '#s-alert');
     });
   });
 
@@ -298,7 +298,7 @@
     if ($this.hasClass('disabled')) return;
     bsLoading('提交中‧‧‧');
     $this.addClass('disabled');
-    postApi(location.pathname, {data: {submit: true}}, function (res) {
+    postApi(location.pathname.replace('/edit', ''), {data: {submit: true}}, function (res) {
       bsShow('成功!', '已提交。', 'info', 1000);
       $this.removeClass('disabled');
       if (id === 'task-submit') {

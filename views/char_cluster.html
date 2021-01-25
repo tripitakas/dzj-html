@@ -20,6 +20,48 @@
     .add-gap li:first-child {
       margin-top: 18px;
     }
+
+    .m-panel {
+      display: flex;
+      overflow: auto;
+      flex-direction: column;
+      background: var(--Grey_Content);
+      border-right: 1px solid var(--Grey_Light);
+    }
+
+    .panel-list > li > a {
+      clear: both;
+      color: #333;
+      display: block;
+      cursor: pointer;
+      font-weight: 400;
+      padding: 3px 10px;
+      white-space: nowrap;
+      line-height: 1.42857143;
+    }
+
+    .panel-list li:hover {
+      background-color: var(--Grey_Line);
+    }
+
+    .panel-list li.active a {
+      color: green;
+    }
+
+    .panel-list .head {
+      font-weight: 500;
+      text-align: center;
+      color: var(--Brown_Darker);
+      background-color: var(--Grey_Lighter);
+    }
+
+    .panel-list .divider {
+      height: 1px;
+      margin: 2px 0;
+      overflow: hidden;
+      background-color: #e5e5e5;
+    }
+
   </style>
 </head>
 
@@ -37,7 +79,17 @@
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-        <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按置信度过滤">
+        <div class="btn-group" title="显隐设置">
+          <i class="btn-txt icon-config dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li id="toggle-filter-panel" class="active"><a>显隐排序过滤[1]</a></li>
+            <li id="toggle-char-info" class="active"><a>显隐字符信息[2]</a></li>
+            <li id="toggle-column-panel" class="active"><a>显隐字框列图[3]</a></li>
+            <li id="toggle-proof-panel" class="active"><a>显隐校对面板[4]</a></li>
+            <li id="toggle-proof-color" class="active"><a>显隐校对颜色[5]</a></li>
+          </ul>
+        </div>
+        <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按置信度筛选">
           <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <div class="dropdown-menu filter-menu" data-stopPropagation="true">
             <div class="menu-title">按置信度过滤</div>
@@ -50,57 +102,26 @@
             <button id="btn-filter" type="button" class="btn btn-primary btn-sm">确定</button>
           </div>
         </div>
-        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="按置信度排序">
-          <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
+        <div class="btn-group" title="批量修改">
+          <i class="btn-txt icon-pencil dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-cc-up">按置信度升序</a></li>
-            <li><a id="btn-cc-down">按置信度降序</a></li>
-            <li class="divider hide"></li>
-            <li><a id="btn-lc-up" class="hide">按列置信度升序</a></li>
-            <li><a id="btn-lc-down" class="hide">按列置信度降序</a></li>
+            <li id="bat-update-txt" class="bat-update" data-value="txt"><a>文字[a]</a></li>
+            <li id="bat-update-deform" class="bat-update" data-value="is_deform"><a>异形字[s]</a></li>
+            <li id="bat-update-uncertain" class="bat-update" data-value="uncertain"><a>不确定[d]</a></li>
+            <li id="bat-update-vague" class="bat-update" data-value="is_vague"><a>笔画残损[f]</a></li>
+            <li id="bat-update-remark" class="bat-update" data-value="remark"><a>备注[r]</a></li>
           </ul>
         </div>
-        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="按系统建议标记过滤">
-          <i class="btn-txt icon-ai dropdown-toggle" data-toggle="dropdown"></i>
+        <div id="bat-select" class="btn-txt icon-all-select1" data-toggle="tooltip" data-placement="bottom" title="全部选择[a]"></div>
+        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="鼠标滑选">
+          <i class="btn-txt icon-all-select dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-un-diff">一致</a></li>
-            <li><a id="btn-diff">不一致</a></li>
-            <li class="divider"></li>
-            <li><a id="btn-required">需要校对</a></li>
-            <li><a id="btn-un-required">不必校对</a></li>
+            <li id="do-multi" class="toggle-multi"><a>正选[v]</a></li>
+            <li id="de-multi" class="toggle-multi"><a>反选[z]</a></li>
+            <li id="un-multi" class="toggle-multi active"><a>取消[x]</a></li>
           </ul>
         </div>
-        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="按人工校对标记过滤">
-          <i class="btn-txt icon-man dropdown-toggle" data-toggle="dropdown"></i>
-          <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-vague">笔画残损</a></li>
-            <li><a id="btn-un-vague">笔画完整</a></li>
-            <li class="divider"></li>
-            <li><a id="btn-deform">异形字</a></li>
-            <li><a id="btn-un-deform">非异形字</a></li>
-            <li class="divider"></li>
-            <li><a id="btn-certain">确定</a></li>
-            <li><a id="btn-uncertain">不确定</a></li>
-            <li class="divider"></li>
-            <li><a id="btn-has-remark">有备注</a></li>
-            <li><a id="btn-no-remark">无备注</a></li>
-          </ul>
-        </div>
-        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="按提交、修改过滤">
-          <i class="btn-txt icon-submit1 dropdown-toggle" data-toggle="dropdown"></i>
-          <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-un-submitted">未提交</a></li>
-            <li><a id="btn-submitted">已提交</a></li>
-            <li class="divider"></li>
-            <li><a id="btn-un-updated">未修改</a></li>
-            <li><a id="btn-updated">已修改</a></li>
-            <li><a id="btn-my-updated">我的修改</a></li>
-            <li><a id="btn-other-updated">其它修改</a></li>
-          </ul>
-        </div>
-        <div id="btn-multi" class="btn-txt icon-all-select" data-toggle="tooltip" data-placement="bottom" title="多选模式"></div>
-        <div id="bat-select" class="btn-txt icon-all-select1" data-toggle="tooltip" data-placement="bottom" title="全部选择"></div>
-        <div id="bat-update" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="批量修改"></div>
+        <div id="toggle-config" class="btn-txt icon-eye" data-toggle="tooltip" data-placement="bottom" title="设置每页字图条数"></div>
         <div class="search hide">
           <input id="search-variant" type="text" placeholder="搜索异体字字典">
           <i id="icon-search" class="icon-search"></i>
@@ -110,10 +131,9 @@
         {% set mode = globals().get('mode') or '' %}
         {% set readonly = globals().get('readonly') or False %}
         {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
-        <div id="toggle-column-panel" class="btn-txt icon-panel-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐中间列图"></div>
-        <div id="toggle-proof-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
         <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
+        <div id="page-submit" class="btn-txt icon-done{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="提交当前页"></div>
         <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
         <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
         <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
@@ -123,7 +143,40 @@
     </div><!--m-header-->
 
     <div class="m-body flex">
-      <div class="char-panel">
+      <div class="m-panel slim-bar hide">
+        <ul id="filter-panel" class="panel-list">
+          <li><a class="head">排序</a></li>
+          <li id="btn-cc-up"><a>按置信度升序</a></li>
+          <li id="btn-cc-down"><a>按置信度降序</a></li>
+          <li><a class="head">按系统标记过滤</a></li>
+          <li id="btn-un-diff"><a>一致</a></li>
+          <li id="btn-diff"><a>不一致</a></li>
+          <li class="divider"></li>
+          <li id="btn-required"><a>需要校对</a></li>
+          <li id="btn-un-required"><a>不必校对</a></li>
+          <li><a class="head">按校对标记过滤</a></li>
+          <li id="btn-vague"><a>笔画残损</a></li>
+          <li id="btn-un-vague"><a>笔画完整</a></li>
+          <li class="divider"></li>
+          <li id="btn-deform"><a>异形字</a></li>
+          <li id="btn-un-deform"><a>非异形字</a></li>
+          <li class="divider"></li>
+          <li id="btn-certain"><a>确定</a></li>
+          <li id="btn-uncertain"><a>不确定</a></li>
+          <li class="divider"></li>
+          <li id="btn-has-remark"><a>有备注</a></li>
+          <li id="btn-no-remark"><a>无备注</a></li>
+          <li><a class="head">按是否提交过滤</a></li>
+          <li id="btn-un-submitted"><a>未提交</a></li>
+          <li id="btn-submitted"><a>已提交</a></li>
+          <li><a class="head">按修改情况过滤</a></li>
+          <li id="btn-un-updated"><a>未修改</a></li>
+          <li id="btn-updated"><a>已修改</a></li>
+          <li id="btn-my-updated"><a>我的修改</a></li>
+          <li id="btn-other-updated"><a>他人修改</a></li>
+        </ul>
+      </div><!--m-panel-->
+      <div class="char-panel show-mark">
         <div class="txt-kinds slim-bar"></div>
         <div class="variants slim-bar"></div>
         <div class="char-items slim-bar"></div>
@@ -242,16 +295,10 @@
         <div class="modal-header"><h4 class="modal-title">新增图片字</h4></div>
         <div class="modal-body">
           <form class="form-horizontal">
-            <div class="form-group">
-              <h4 class="col-sm-3 control-label">图片字</h4>
-              <div class="col-sm-8">
-                <input type="text" class="form-control txt" placeholder="请输入图片字的编码">
-                <div style="font-style: italic; color: grey">注：默认选择当前图片编码，您可以自行修改</div>
-              </div>
-              <h4 class="col-sm-3 control-label hide" style="margin-top: 10px">所属正字</h4>
-              <div class="col-sm-8 hide" style="margin-top: 10px">
-                <input type="text" class="form-control nor-txt" placeholder="请输入所属正字" readonly="readonly">
-              </div>
+            <div class="form-group" style="text-align: center">
+              <div class="col-sm-12"><img id="v-img" src="#"/></div>
+              <div class="col-sm-12"><span id="v-img-name"></span></div>
+              <input id="v-user-txt" type="hidden">
             </div>
           </form>
         </div>
@@ -283,7 +330,6 @@
   {% if hasattr(handler, 'task_type') and handler.task_type %}
   {% module ReturnModal() %}
   {% module TaskRemarkModal() %}
-  {% module TaskConfigModal(handler.config_fields if hasattr(handler, 'config_fields') else []) %}
   {% end %}
 </div>
 
@@ -308,152 +354,161 @@
     variants: decodeJSON('{{variants}}'),
     txtKinds: decodeJSON('{{txt_kinds}}'),
   });
-  $('#taskConfigModal .page-size').val('{{handler.page_size}}');
-  if (!getStorage('clusterColumnPanel', true)) {
-    $('#toggle-column-panel').removeClass('active');
-    $('.column-panel').addClass('hide');
-  }
-  if (!getStorage('clusterProofPanel', true)) {
-    $('#toggle-work-panel').removeClass('active');
-    $('.work-panel').addClass('hide');
-  }
+  togglePanels();
+
+  if (getQueryString('order') === 'cc') $('#btn-cc-up').addClass('active');
+  if (getQueryString('order') === '-cc') $('#btn-cc-down').addClass('active');
+  if (getQueryString('is_diff') === 'true') $('#btn-diff').addClass('active');
+  if (getQueryString('is_diff') === 'false') $('#btn-un-diff').addClass('active');
+  if (getQueryString('un_required') === 'true') $('#btn-un-required').addClass('active');
+  if (getQueryString('un_required') === 'false') $('#btn-required').addClass('active');
+  if (getQueryString('is_vague') === 'true') $('#btn-vague').addClass('active');
+  if (getQueryString('is_vague') === 'false') $('#btn-un-vague').addClass('active');
+  if (getQueryString('is_deform') === 'true') $('#btn-deform').addClass('active');
+  if (getQueryString('is_deform') === 'false') $('#btn-un-deform').addClass('active');
+  if (getQueryString('uncertain') === 'true') $('#btn-uncertain').addClass('active');
+  if (getQueryString('uncertain') === 'false') $('#btn-certain').addClass('active');
+  if (getQueryString('remark') === 'true') $('#btn-has-remark').addClass('active');
+  if (getQueryString('remark') === 'false') $('#btn-no-remark').addClass('active');
+  if (getQueryString('submitted') === 'true') $('#btn-submitted').addClass('active');
+  if (getQueryString('submitted') === 'false') $('#btn-un-submitted').addClass('active');
+  if (getQueryString('updated') === 'my') $('#btn-my-updated').addClass('active');
+  if (getQueryString('updated') === 'other') $('#btn-other-updated').addClass('active');
+  if (getQueryString('updated') === 'all') $('#btn-updated').addClass('active');
+  if (getQueryString('updated') === 'un') $('#btn-un-updated').addClass('active');
+
   $(document).ready(function () {
     getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
   });
 
-
-  // 配置项
-  $('#taskConfigModal .modal-confirm').on('click', function () {
-    let data = {};
-    let pageSize = $('#taskConfigModal .page-size').val();
-    if (pageSize.length) {
-      if (!/^\d+$/.test(pageSize)) {
-        return showTips('提示', '每页条数中请输入数字', 3000);
-      } else if (parseInt(pageSize) > 100) {
-        return showTips('提示', '每页条数不能超过100', 3000);
-      } else {
-        data['cluster_page_size'] = pageSize;
-      }
-    }
-    let showCharInfo = $('#taskConfigModal .show-char-info :checked');
-    if (showCharInfo) {
-      data['cluster_char_info'] = showCharInfo.val();
-      $('.char-info, .cc').toggleClass('hide', showCharInfo.val() !== '是');
-    }
-    if (JSON.stringify(data) !== '{}') {
-      $(this).text('进行中...');
-      postApi('/session/config', {data: data}, function () {
+  // 配置每页显示字图数量
+  let pageSize = '{{handler.page_size}}';
+  $('#toggle-config').on('click', function () {
+    Swal2.fire({title: '请输入每页字图数量', input: 'text', inputValue: pageSize.trim()}).then((result) => {
+      if (result.dismiss || !result.value) return;
+      if (!/^\d+$/.test(result.value)) return showTips('提示', '每页条数中请输入数字', 3000);
+      if (parseInt(result.value) > 100) return showTips('提示', '每页条数不能超过100', 3000);
+      postApi('/session/config', {data: {cluster_page_size: result.value}}, function () {
+        pageSize = result.value;
         location.reload();
       });
-    }
+    });
   });
 
-  // 新增异体字
+  // 新增图片字-弹框
   $('#add-variant').on('click', function () {
-    let normalTxt = $('.txt-kind.current').attr('data-value'), currentName = $('.char-name').text();
-    $('#variantModal .nor-txt').val(normalTxt);
-    $('#variantModal .txt').val(currentName);
+    let $this = $('.txt-kind.current');
+    $('#v-user-txt').text($this.attr('data-value') || $this.text().trim());
+    $('#v-img').attr('src', $('.char-item.current img').attr('src'));
+    $('#v-img-name').text($('.char-name').text());
     $('#variantModal').modal();
   });
+
+  // 新增图片字-提交
   $('#variantModal .modal-confirm').on('click', function () {
-    let data = {txt: $('#variantModal .txt').val(), nor_txt: $('#variantModal .nor-txt').val()};
-    if (!data.txt.length) {
-      return showTips('提示', '请输入异体字文字或字图编码', 3000);
-    } else if (!data.nor_txt.length) {
-      return showTips('提示', '请输入异体字所属正字', 3000);
-    } else {
-      $(this).text('进行中...');
-      postApi('/data/variant', {data: data}, function (res) {
-        $("#variantModal").modal('hide');
-        if (/[0-9a-zA-Z_]+/.test(data.txt)) {
-          let imgUrl = $('#' + data.txt).find('img').attr('src');
-          $('.variants').append(`<span class="variant variant-img txt-item" data-value="Y${res.doc.uid}"><img src="${imgUrl}"/></span>`);
-        } else {
-          $('.variants').append(`<span class="variant txt-item" data-value="${data.txt}">${data.txt}</span>`);
-        }
-      });
-    }
+    let $this = $(this), $txt = $this.text();
+    if ($this.hasClass('disabled')) return;
+    $this.addClass('disabled').text('进行中...');
+    let data = {img_name: $('#v-img-name').text(), user_txt: $('#v-user-txt').text()};
+    postApi('/variant/upsert', {data: data}, function (res) {
+      $this.removeClass('disabled').text($txt);
+      $.cluster.addVariant(res['v_code']);
+      $('#variantModal').modal('hide');
+    });
   });
 
-  // 删除异体字
-  $(document).on('dblclick', '.variant-img', function () {
+  // 删除图片字
+  $(document).on('dblclick', '.variant', function () {
     let $this = $(this);
+    if (!$this.find('img').length) return;
     showConfirm('提示', '确定删除该图片字吗？', function () {
-      postApi('/variant/delete', {data: {uid: $this.attr('data-value')}}, function (res) {
+      postApi('/variant/delete', {data: {v_code: $this.attr('data-value')}}, function (res) {
         $this.remove();
       });
     });
   });
 
-  // 批量修改文字
-  $('#bat-update-txt').on('click', function () {
-    let names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
-    if (!names.length)
-      return showTips('请选择', '当前没有选中任何记录', 3000);
-    Swal2.fire({title: '请输入文字', input: 'text', inputValue: $('.proof .txt').val()}).then((result) => {
-      if (result.value) {
-        let data = {names: names, txt: result.value, task_type: taskType};
-        postApi('/chars/txt', {data: data}, function (res) {
-          if (res.data.level_unqualified || res.data.level_unqualified) {
-            $('#resultModal .form-group').html($.map(res.data, function (value, key) {
-              return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
-            }).join(''));
-            $('#resultModal').modal();
-          } else {
-            location.reload();
-          }
-        });
-      }
+</script>
+<script>
+  // 单字提交
+  $('.char-txt .btn-submit').on('click', function () {
+    let data = $.charTxt.checkAndExport(), $this = $(this);
+    if (!data) return;
+    $this.addClass('disabled').text('保存中...');
+    postApi('/char/txt/' + data.name, {data: data}, function (res) {
+      $this.removeClass('disabled').text('确定');
+      bsShow('', '已保存成功', 'success', 1000, '#s-alert');
+      // 更新当前字图、字图数据、校对面板和锚点
+      $('.char-item.current').addClass('changed').find('.txt').text(data.txt);
+      data['txt_logs'] = res['txt_logs'];
+      $.cluster.updateChar(data.name, data);
+      $.charTxt.setTxtLogs(res['txt_logs']);
+      location.href = setAnchor(data.name);
+    }, function (err) {
+      $this.removeClass('disabled').text('确定');
+      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
+      else bsShow('失败', err.message, 'warning', 1000, '#s-alert');
     });
   });
 
-  // 批量修改类型
-  $('#bat-update-type').on('click', function () {
-    let names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
-    if (!names.length)
-      return showTips('请选择', '当前没有选中任何记录', 3000);
-    Swal2.fire({title: '请选择类型', input: 'radio', inputOptions: txtTypes}).then((result) => {
-      if (result.value) {
-        let data = {names: names, txt_type: result.value, task_type: taskType};
-        postApi('/chars/txt_type', {data: data}, function (res) {
-          if (res.data.level_unqualified || res.data.level_unqualified) {
-            $('#resultModal .form-group').html($.map(res.data, function (value, key) {
-              return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
-            }).join(''));
-            $('#resultModal').modal();
-          } else {
-            location.reload();
-          }
-        });
-      }
+  // 批量提交-修改文字
+  $.mapKey('s', () => $('#bat-update-txt').click());
+  $.mapKey('d', () => $('#bat-update-deform').click());
+  $.mapKey('f', () => $('#bat-update-uncertain').click());
+  $.mapKey('e', () => $('#bat-update-vague').click());
+  $.mapKey('r', () => $('#bat-update-remark').click());
+  $('#resultModal .modal-confirm').on('click', () => location.reload());
+  $('.bat-update').on('click', function () {
+    let names = $.map($('.char-check :checked'), (item) => $(item).parent().parent().attr('id'));
+    if (!names.length) return showTips('请选择', '当前没有选中任何记录', 3000);
+    let field = $(this).attr('data-value'), name = $.charTxt.fields[field];
+    let isTxtField = ['txt', 'remark'].indexOf(field) > -1;
+    let info = {title: `是否${name}`, input: 'radio', inputOptions: {1: '是', 0: '否'}};
+    if (isTxtField) info = {title: `请输入${name}`, input: 'text', inputValue: $(`#p-${field}`).val()};
+    let data = {names: names, field: field, task_type: gTaskType};
+    Swal2.fire(info).then((result) => {
+      if (result.dismiss || !result.value) return;
+      data['value'] = isTxtField ? result.value : result.value === '1';
+      postApi('/chars/txt', {data: data}, function (res) {
+        if (res.data.level_unqualified || res.data.point_unqualified) {
+          $('#resultModal .form-group').html($.map(res.data, function (value, key) {
+            return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
+          }).join(''));
+          $('#resultModal').modal();
+        } else {
+          location.reload();
+        }
+      });
     });
-  });
-
-  $('#resultModal .modal-confirm').on('click', function () {
-    location.reload();
   });
 
   // 提交当前页
   $('#page-submit').on("click", function () {
-    $('#progress').removeClass('hide');
-    let charNames = $.map($('.char-item'), function (item) {
-      return $(item).attr('data-id');
-    });
+    let charNames = $.map($('.char-item'), (item) => $(item).attr('id'));
     postApi(location.pathname, {data: {char_names: charNames}}, function () {
-      $('#progress').addClass('hide');
       $('.char-item .submitted').removeClass('hide');
-      showSuccess('成功', '页面已提交。', 2000);
+      showSuccess('成功', '页面已提交。', 1000);
     });
   });
 
-  // 方向键移动
-  $.mapKey('left', function () {
-    $('.char-item.current').prev().find('.char-img').click();
-  });
-
-  // 方向键移动
-  $.mapKey('right', function () {
-    $('.char-item.current').next().find('.char-img').click();
+  // 提交任务
+  $('#task-submit,#task-submit-back').on('click', function () {
+    let $this = $(this), id = $this.attr('id');
+    if ($this.hasClass('disabled')) return;
+    bsLoading('提交中‧‧‧');
+    $this.addClass('disabled');
+    postApi(location.pathname, {data: {submit: true}}, function (res) {
+      bsShow('成功!', '已提交。', 'info', 1000);
+      $this.removeClass('disabled');
+      if (id === 'task-submit') {
+        pick(gTaskType);
+      } else if (id === 'task-submit-back') {
+        location.href = '/task/lobby/' + gTaskType;
+      }
+    }, function (err) {
+      $this.removeClass('disabled');
+      bsShow('失败', err.message, 'warning', 2000);
+    });
   });
 
 </script>

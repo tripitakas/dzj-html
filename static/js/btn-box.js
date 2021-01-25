@@ -263,7 +263,7 @@ $('#hint-list #play-hint').on('click', function () {
   if (!$.box.eStatus.times.length)
     return bsShow('提示', '没有修改历史', 'warning', 800);
   $.page.toggleCurBoxType('all', true);
-  $('#op-hint').removeClass('active');
+  // $('#op-hint').removeClass('active');
   $('#toggle-my-hint').removeClass('active');
   let play = (i) => {
     let t = $.box.eStatus.times[i];
