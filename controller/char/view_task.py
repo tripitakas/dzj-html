@@ -183,14 +183,14 @@ class CharTaskClusterHandler(CharHandler):
             elif remark == 'false':
                 cond['remark'] = None
             # 按修改过滤
-            update = self.get_query_argument('update', 0)
-            if update == 'my':
+            updated = self.get_query_argument('updated', 0)
+            if updated == 'my':
                 cond['txt_logs.user_id'] = self.user_id
-            elif update == 'other':
+            elif updated == 'other':
                 cond['txt_logs.user_id'] = {'$ne': self.user_id}
-            elif update == 'all':
+            elif updated == 'all':
                 cond['txt_logs'] = {'$nin': [None, []]}
-            elif update == 'un':
+            elif updated == 'un':
                 cond['txt_logs'] = {'$in': [None, []]}
             # 是否已提交
             submitted = self.get_query_argument('submitted', 0)
@@ -236,9 +236,10 @@ class CharTaskClusterHandler(CharHandler):
                 column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
                 ch['column']['img_url'] = self.get_web_img(column_name, 'column')
                 ch['img_url'] = self.get_web_img(ch['name'], 'char')
-            self.render('char_cluster.html', Char=Char, chars=chars, pager=pager, q=q, order=order,
-                        base_txts=base_txts, txt_kinds=txts, cur_txt=cur_txt, variants=vts,
-                        page_name=self.get_task_name(task_type),
+
+            self.render('char_cluster.html', Char=Char, chars=chars, pager=pager, q=q, order=order, variants=vts,
+                        base_txts=base_txts, txt_kinds=txts, cur_txt=cur_txt, readonly=self.readonly,
+                        mode=self.mode, page_name=self.get_task_name(task_type),
                         char_count=self.task.get('char_count'))
 
         except Exception as error:

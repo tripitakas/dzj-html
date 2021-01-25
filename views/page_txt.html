@@ -288,7 +288,7 @@
     }, function (err) {
       $this.removeClass('disabled');
       if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
-      else bsShow('失败', err.message, 'warning', 1000);
+      else bsShow('失败', err.message, 'warning', 1000, '#s-alert');
     });
   });
 

@@ -967,16 +967,21 @@ body.widescreen {
 /*swal2*/
 .swal2-file:focus, .swal2-input:focus, .swal2-textarea:focus {
   outline: 0;
-  border: 1px solid var(--Brown_Dark);
-  box-shadow: 0 0 3px var(--Brown);
+  border: 1px solid #d9d9d9;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .06);
 }
 
 .swal2-title {
-  font-size: 1.8em;
+  /*font-size: 1.8em;*/
+  font-size: 22px;
 }
 
 .swal2-label {
-  font-size: 16px;
+  font-size: 18px;
+}
+
+.swal2-radio > label:first-child {
+  margin-left: 0;
 }
 
 .swal2-footer a {

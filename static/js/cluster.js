@@ -19,6 +19,7 @@
     status: status,
     init: init,
     addVariant: addVariant,
+    updateChar: updateChar,
     switchCurChar: switchCurChar,
     exportSubmitData: exportSubmitData,
   };
@@ -44,18 +45,6 @@
     char['x'] += status.curChar['column']['x'];
     char['y'] += status.curChar['column']['y'];
     return char;
-  }
-
-  function switchCurChar(ch) {
-    status.curChar = ch;
-    let col = ch['column'];
-    if (status.curColImgUrl !== col['img_url']) {
-      status.curColImgUrl = col['img_url'];
-      $.box.initSvg(status.colHolder, status.curColImgUrl, col.w, col.h, 'width-full');
-      $.box.bindCut({onlyChange: true});
-    }
-    $.box.setBoxes({chars: [{x: ch.pos.x - col.x, y: ch.pos.y - col.y, w: ch.pos.w, h: ch.pos.h}]}, true);
-    $.box.switchCurBox($.box.data.boxes[0]);
   }
 
   function setTxtKinds(txtKinds) {
@@ -94,12 +83,12 @@
     let taskId = typeof gTaskId === 'undefined' ? '' : gTaskId;
     let taskType = typeof gTaskType === 'undefined' ? '' : gTaskType;
     let html = chars.map((ch, i) => {
-      let cls = (ch['txt_logs'] || []).length ? 'changed' : '';
-      cls += ch['is_diff'] ? ' is-diff' : '';
+      let cls = ch['is_diff'] ? 'is-diff' : '';
       cls += ch['un_required'] ? ' un-required' : '';
+      cls += ch['txt'] !== ch['ocr_txt'] ? ' changed' : '';
       let tasks = ch['tasks'] && ch['tasks'][taskType] || [];
       return [
-        `<div class="char-item ${cls}" id="idx-${i}">`,
+        `<div class="char-item ${cls.trim()}" id="${ch.name}" data-value="${i}">`,
         `<div class="char-img"><img src="${ch['img_url']}"/></div>`,
         `<div class="char-info"><span class="txt">${ch['txt'] || ch['ocr_txt']}</span>`,
         `<span class="submitted${tasks.indexOf(taskId) > -1 ? '' : ' hide'}"><i class="icon-check"></i></span></div>`,
@@ -108,6 +97,30 @@
       ].join('');
     }).join('');
     $('.char-panel .char-items').html(html);
+  }
+
+  function switchCurChar(ch) {
+    // 更新列图
+    let col = ch['column'];
+    if (status.curColImgUrl !== col['img_url']) {
+      status.curColImgUrl = col['img_url'];
+      $.box.initSvg(status.colHolder, status.curColImgUrl, col.w, col.h, 'width-full');
+      $.box.bindCut({onlyChange: true});
+    }
+    // 更新字框
+    $.box.setBoxes({chars: [{x: ch.pos.x - col.x, y: ch.pos.y - col.y, w: ch.pos.w, h: ch.pos.h}]}, true);
+    $.box.switchCurBox($.box.data.boxes[0]);
+    status.curChar = ch;
+  }
+
+  function updateChar(charName, info) {
+    for (let i = 0, len = status.chars.length; i < len; i++) {
+      let ch = status.chars[i];
+      if (ch.name === charName) {
+        Object.assign(ch, info);
+        return;
+      }
+    }
   }
 
 }());

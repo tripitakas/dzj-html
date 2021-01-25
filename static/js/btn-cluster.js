@@ -84,17 +84,17 @@ $('#btn-submitted').on('click', function () {
 $('#btn-un-submitted').on('click', function () {
   location.href = toggleQueryString('submitted', 'false', !$(this).hasClass('active'));
 });
-$('#btn-un-update').on('click', function () {
-  location.href = toggleQueryString('update', 'un', !$(this).hasClass('active'));
+$('#btn-updated').on('click', function () {
+  location.href = toggleQueryString('updated', 'all', !$(this).hasClass('active'));
 });
-$('#btn-my-update').on('click', function () {
-  location.href = toggleQueryString('update', 'my', !$(this).hasClass('active'));
+$('#btn-un-updated').on('click', function () {
+  location.href = toggleQueryString('updated', 'un', !$(this).hasClass('active'));
 });
-$('#btn-all-update').on('click', function () {
-  location.href = toggleQueryString('update', 'all', !$(this).hasClass('active'));
+$('#btn-my-updated').on('click', function () {
+  location.href = toggleQueryString('updated', 'my', !$(this).hasClass('active'));
 });
-$('#btn-other-update').on('click', function () {
-  location.href = toggleQueryString('update', 'other', !$(this).hasClass('active'));
+$('#btn-other-updated').on('click', function () {
+  location.href = toggleQueryString('updated', 'other', !$(this).hasClass('active'));
 });
 
 
@@ -205,16 +205,17 @@ $(document).on('click', '.txt-kind', function () {
 $(document).on('click', '.char-items .char-item', function () {
   $('.char-item.current').removeClass('current');
   $(this).addClass('current');
-  let ch = $.cluster.status.chars[$(this).attr('id').split('-').pop()];
+  let ch = $.cluster.status.chars[$(this).attr('data-value')];
   $.cluster.switchCurChar(ch);
   $.charTxt.setChar(ch);
 });
 
-$('.char-panel .char-info, .char-panel .char-check').on('click', function () {
+// 选中字图
+$(document).on('click', '.char-item .char-info, .char-item .char-check', function () {
   $(this).parent().find(':checkbox').click();
 });
 
-$('.char-check input').on('click', function (e) {
+$(document).on('click', '.char-check input', function (e) {
   e.stopPropagation();
 });
 
