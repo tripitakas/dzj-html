@@ -110,20 +110,35 @@
       </div>
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助[h]"></div>
+        <div class="btn-group" title="显隐设置">
+          <i class="btn-txt icon-config dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li id="toggle-left" class="toggle-panel active"><a>显隐左侧图片[a]</a></li>
+            <li id="toggle-right" class="toggle-panel active"><a>显隐中间文本[s]</a></li>
+            <li id="toggle-proof-panel" class="toggle-panel active"><a>显隐校对面板[d]</a></li>
+          </ul>
+        </div>
         <div id="toggle-img" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片[p]"></div>
         <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片[m]"></div>
         <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片[+]"></div>
         <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小[1]"></div>
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片[-]"></div>
-        <div id="toggle-char" class="btn-txt icon-chars toggle-box{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框[j]"></div>
-        <div id="toggle-column" class="btn-txt icon-columns toggle-box{{'' if page.get('columns') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框[k]"></div>
-        <div id="toggle-block" class="btn-txt icon-blocks toggle-box{{'' if page.get('blocks') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框[l]"></div>
-        <div id="toggle-no-char" class="btn-txt icon-char-no toggle-no{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序[n]"></div>
-        <div id="toggle-txts" class="btn-group" title="切换文本">
-          <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
+        <div class="btn-group" title="切分">
+          <i class="btn-txt icon-view-tile dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li id="toggle-char" class="toggle-box"><a>显隐字框[j]</a></li>
+            <li id="toggle-column" class="toggle-box"><a>显隐列框[k]</a></li>
+            <li id="toggle-block" class="toggle-box"><a>显隐栏框[l]</a></li>
+            <li id="toggle-no-char" class="toggle-no"><a>显隐字序[n]</a></li>
+          </ul>
+        </div>
+        <div id="view-box" class="btn-txt icon-chars{{'' if page.get('chars') and box_auth else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="切分数据"></div>
+        <div id="toggle-txts" class="btn-group" title="文本">
+          <i class="btn-txt icon-task-lobby dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
             <li id="txt" class="toggle-txt active"><a>校对文本</a></li>
-            <li id="nor_txt" class="toggle-txt hide"><a>正字文本</a></li>
+            <li id="nor_txt" class="toggle-txt hide"><a>规范文本</a></li>
+            <li id="toggle-v-code" class="hide"><a>显隐编码</a></li>
             <li class="divider"></li>
             <li id="ocr_txt" class="toggle-txt"><a>综合OCR</a></li>
             <li id="ocr_chr" class="toggle-txt"><a>字框OCR</a></li>
@@ -131,15 +146,6 @@
             <li id="cmp_txt" class="toggle-txt"><a>比对文本</a></li>
           </ul>
         </div>
-        <div id="toggle-v-code" class="btn-txt icon-images active hide" data-toggle="tooltip" data-placement="bottom" title="显隐编码对应的字图"></div>
-        <div id="toggle-config" class="btn-group" title="配置">
-          <i class="btn-txt icon-config dropdown-toggle" data-toggle="dropdown"></i>
-          <ul class="dropdown-menu" data-stopPropagation="true">
-            <li id="toggle-right" class="toggle-config active"><a>显隐文本</a></li>
-            <li id="toggle-proof-panel" class="toggle-config active"><a>显隐校对面板</a></li>
-          </ul>
-        </div>
-        <div id="edit-box" class="btn-txt icon-edit1{{'' if page.get('chars') and box_auth else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="修改切分"></div>
       </div>
       <div class="right">
         <div class="btn-group m-pager">
@@ -280,6 +286,10 @@
     $('#toggle-proof-panel').removeClass('active');
     $('#panel-region').addClass('hide');
   }
+  if (!getStorage('tptkLeft', true)) {
+    $('#toggle-left').removeClass('active');
+    $('#left-region').addClass('hide');
+  }
 
   $.page.init({
     readonly: true,
@@ -298,7 +308,8 @@
     blurImage: getStorage('tptkBlur', false) ? 0.2 : 1,
   });
   $.box.bindBaseKeys(true);
-  $.charTxt.init({readonly: '{{txt_auth}}' !== 'True', showBase: true, showTxtLogs: true, showBoxLogs: true});
+  let boxAuth = '{{box_auth}}' === 'True', txtAuth = '{{txt_auth}}' === 'True';
+  $.charTxt.init({readonly: !txtAuth, showBase: true, showTxtLogs: true, showBoxLogs: true});
   if ('{{cid}}'.length) $.box.switchCurBox($.box.findFirstBox('char', '{{cid}}'));
   $('#toggle-blur').toggleClass('active', getStorage('tptkBlur', false));
   if (getStorage('tptkBox', '')) $('#toggle-' + getStorage('tptkBox')).addClass('active');
@@ -306,12 +317,17 @@
 
 </script>
 <script>
-  $('#toggle-blur').on('click', function () {
-    setStorage('tptkBlur', $(this).hasClass('active'));
-  });
-  $('.toggle-box').on('click', function () {
-    let boxType = $(this).attr('id').replace('toggle-', '');
-    setStorage('tptkBox', $(this).hasClass('active') ? boxType : '');
+  $.mapKey('a', () => $('#toggle-left').click());
+  $.mapKey('s', () => $('#toggle-right').click());
+  $.mapKey('d', () => $('#toggle-proof-panel').click());
+  $.mapKey(',', () => $('#pic-left').click());
+  $.mapKey('.', () => $('#pic-right').click());
+  $.mapKey('g', () => $('.m-pager .to input').focus());
+
+  $('#toggle-left').on('click', function () {
+    $(this).toggleClass('active');
+    $('#left-region').toggleClass('hide', !$(this).hasClass('active'));
+    setStorage('tptkLeft', $(this).hasClass('active'));
   });
   $('#toggle-right').on('click', function () {
     $(this).toggleClass('active');
@@ -324,12 +340,20 @@
     $('.proof-panel').toggleClass('hide', !$(this).hasClass('active'));
     setStorage('tptkProof', $(this).hasClass('active'));
   });
+  $('#toggle-blur').on('click', function () {
+    setStorage('tptkBlur', $(this).hasClass('active'));
+  });
+  $('.toggle-box').on('click', function () {
+    let boxType = $(this).attr('id').replace('toggle-', '');
+    setStorage('tptkBox', $(this).hasClass('active') ? boxType : '');
+  });
   $('#toggle-v-code').on('click', function () {
     $(this).toggleClass('active');
     $.box.toggleVCode($(this).hasClass('active'));
   });
-  $('#edit-box').on('click', function () {
-    window.open('/page/box/{{page["name"]}}', '_blank');
+  $('#view-box').on('click', function () {
+    let edit = boxAuth ? '/edit' : '';
+    window.open(`/page/box${edit}/{{page["name"]}}`, '_blank');
   });
 
   // 图片导航
@@ -342,9 +366,6 @@
   });
   $('#pic-left').on('click', () => $('.btn-page.prev').click());
   $('#pic-right').on('click', () => $('.btn-page.next').click());
-  $.mapKey(',', () => $('#pic-left').click());
-  $.mapKey('.', () => $('#pic-right').click());
-  $.mapKey('g', () => $('.m-pager .to input').focus());
 
   // 单字提交
   $('.char-txt .btn-submit').on('click', function () {
