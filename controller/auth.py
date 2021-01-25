@@ -21,7 +21,7 @@ url_placeholder = {
     'page_name': r'[a-zA-Z]{2}_[_fb0-9]+',
     'tripitaka_code': r'[a-zA-Z]{2}',
     'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
-    'metadata': r'tripitaka|sutra|volume|reel|variant',
+    'metadata': r'tripitaka|sutra|volume|reel',
     'char_task': r'cluster_proof|cluster_review',
     'ocr_task': r'import_image|ocr_box|ocr_text|upload_cloud',
     'page_task': r'cut_proof|cut_review|text_proof|text_review',
