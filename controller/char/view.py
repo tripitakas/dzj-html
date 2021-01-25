@@ -110,9 +110,14 @@ class CharViewHandler(CharHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             page['img_url'] = self.get_web_img(page_name, 'page')
-            char = page.get('chars') and page['chars'][0] or {}
-            ch = self.db.char.find_one({'name': char_name}) or {}
-            char.update({k: ch[k] for k in ['txt', 'txt_level', 'txt_logs'] if ch.get(k)})
+            ch = page.get('chars') and page['chars'][0] or {}
+            char = self.db.char.find_one({'name': char_name})
+            if char:
+                char.update({k: ch[k] for k in ['x', 'y', 'w', 'h', 'box_level', 'box_logs'] if ch.get(k)})
+                if not char.get('x') and char.get('pos'):
+                    char.update(char.get('pos') or {})
+            else:
+                char = ch
             char['txt_point'] = self.get_required_type_and_point(char)
             char['box_point'] = PageHandler.get_required_type_and_point(page)
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
