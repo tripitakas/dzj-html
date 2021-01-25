@@ -91,8 +91,7 @@ class CharTxtApi(CharHandler):
                 return self.send_error_response(e.not_changed, message='没有任何修改')
 
             update = {k: self.data[k] for k in fields if self.data.get(k)}
-            if self.data.get('remark') or char.get('remark'):
-                update['remark'] = self.data.get('remark') or ''
+            update['remark'] = self.data.get('remark') or None
             my_log = {k: self.data[k] for k in fields + ['remark', 'task_type'] if self.data.get(k)}
             update['txt_logs'] = self.merge_txt_logs(my_log, char)
             update['txt_level'] = self.get_user_txt_level(self, self.data.get('task_type'))

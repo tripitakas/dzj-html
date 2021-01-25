@@ -76,7 +76,6 @@ role_route_maps = {
             '/task/nav/@task_type/@task_id': ['GET'],
             '/api/task/statistic/@task_type': ['POST'],
             '/api/task/(return|my_remark)/@task_id': ['POST'],
-            '/api/variant/delete': ['POST'],
             '/page/@page_name': ['GET'],
             '/api/page/txt_match/diff': ['POST'],
             '/api/page/find_cmp/neighbor': ['POST'],
@@ -116,6 +115,7 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
+            '/api/variant/(upsert|delete)': ['POST'],
             '/task/(lobby|my)/text_proof': ['GET'],
             '/api/task/pick/text_proof': ['POST'],
             '/task/(do|update)/text_proof/@task_id': ['GET'],
@@ -126,33 +126,33 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
+            '/api/variant/(upsert|delete)': ['POST'],
             '/task/(lobby|my)/text_review': ['GET'],
             '/api/task/pick/text_review': ['POST'],
             '/task/(do|update)/text_review/@task_id': ['GET'],
             '/api/task/(do|update)/text_review/@task_id': ['POST'],
-            '/api/data/variant': ['POST'],
         }
     },
     '聚类校对员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
+            '/api/variant/(upsert|delete)': ['POST'],
             '/task/(lobby|my)/cluster_proof': ['GET'],
             '/api/task/pick/cluster_proof': ['POST'],
             '/task/(do|update)/cluster_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cluster_proof/@task_id': ['POST'],
-            '/api/data/variant': ['POST'],
         }
     },
     '聚类审定员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
+            '/api/variant/(upsert|delete)': ['POST'],
             '/task/(lobby|my)/cluster_review': ['GET'],
             '/api/task/pick/cluster_review': ['POST'],
             '/task/(do|update)/cluster_review/@task_id': ['GET'],
             '/api/task/(do|update)/cluster_review/@task_id': ['POST'],
-            '/api/data/variant': ['POST'],
         }
     },
     '文字专家': {
@@ -225,7 +225,7 @@ role_route_maps = {
             '/data/@metadata': ['GET'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/(delete|upload)': ['POST'],
-            '/api/variant/(delete|merge|source)': ['POST'],
+            '/api/variant/(upsert|delete|merge|source)': ['POST'],
             '/api/page': ['POST'],
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
@@ -266,7 +266,6 @@ role_route_maps = {
             '/api': ['GET'],
             '/api/code/(.+)': ['GET'],
             '/sys/script': ['GET'],
-            '/api/data/gen_js': ['POST'],
             '/sys/upload_oss': ['GET'],
             '/sys/(oplog|log)': ['GET'],
             '/sys/oplog/latest': ['GET'],

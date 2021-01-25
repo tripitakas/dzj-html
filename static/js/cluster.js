@@ -7,18 +7,18 @@
 
   let status = {
     chars: [],                                      // 字数据
-    txtKinds: [],                                   // 字头数据
-    curTxt: [],                                     // 当前字头
+    txtKinds: [],                                   // 校对字头
+    curTxt: '',                                     // 当前字头
     variants: [],                                   // 当前字头的异体字列表
     colHolder: null,                                // 画布所在的页面元素
     curChar: null,                                  // 当前框
     curColImgUrl: null,                             // 当前列框url
-    multiMode: false,                               // 是否多选模式
   };
 
   $.cluster = {
     status: status,
     init: init,
+    addVariant: addVariant,
     switchCurChar: switchCurChar,
     exportSubmitData: exportSubmitData,
   };
@@ -34,7 +34,6 @@
     // $.box
     $.box.status.readonly = false;
     $.box.status.curBoxType = 'char';
-    $.box.bindBaseKeys();
   }
 
   function exportSubmitData() {
@@ -72,14 +71,22 @@
   }
 
   function setVariants(variants) {
-    status.variants = variants;
-    let html = status.variants.map((item) => {
+    if (!status.curTxt.length) return $('.char-panel .variants').addClass('hide');
+    let html = variants.map((item) => {
       if (item.indexOf('v') === 0 && item.length > 1)
         return `<span class="variant txt-item" data-value="${item}"><img src="/static/img/variants/${item}.jpg"/></span>`;
       else
         return `<span class="variant txt-item">${item}</span>`;
     }).join('');
     $('.char-panel .variants').html('<span id="add-variant" class="variant">+</span>' + html);
+    status.variants = variants;
+  }
+
+  function addVariant(item) {
+    let html = `<span class="variant txt-item">${item}</span>`;
+    if (item.indexOf('v') === 0 && item.length > 1)
+      html = `<span class="variant txt-item" data-value="${item}"><img src="/static/img/variants/${item}.jpg"/></span>`;
+    $('.char-panel .variants').append(html);
   }
 
   function setChars(chars) {
@@ -87,9 +94,12 @@
     let taskId = typeof gTaskId === 'undefined' ? '' : gTaskId;
     let taskType = typeof gTaskType === 'undefined' ? '' : gTaskType;
     let html = chars.map((ch, i) => {
+      let cls = 'proof' + (ch['txt_logs'] || []).length;
+      cls += ch['is_diff'] ? ' is-diff' : '';
+      cls += ch['un_required'] ? ' un-required' : '';
       let tasks = ch['tasks'] && ch['tasks'][taskType] || [];
       return [
-        `<div class="char-item proof${(ch['txt_logs'] || []).length}${ch['is_diff'] ? ' is-diff' : ''}" id="idx-${i}">`,
+        `<div class="char-item ${cls}" id="idx-${i}">`,
         `<div class="char-img"><img src="${ch['img_url']}"/></div>`,
         `<div class="char-info"><span class="txt">${ch['txt'] || ch['ocr_txt']}</span>`,
         `<span class="submitted${tasks.indexOf(taskId) > -1 ? '' : ' hide'}"><i class="icon-check"></i></span></div>`,

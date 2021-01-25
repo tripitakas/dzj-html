@@ -118,11 +118,12 @@ class CharTaskClusterApi(CharHandler):
             params = self.task['params']
             ocr_txts = [c['ocr_txt'] for c in params]
             cond.update({'un_required': None, 'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}})
-            if self.db.char.count_documents(cond):
+            if self.db.char.find_one(cond):
                 return self.send_error_response(e.task_submit_error, message='还有未提交的字图，不能提交任务')
 
+            used_time = (self.now() - self.task['picked_time']).total_seconds()
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                'status': self.STATUS_FINISHED, 'finished_time': self.now()}})
+                'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'used_time': used_time}})
             return self.send_data_response()
 
         except self.DbError as error:

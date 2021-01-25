@@ -118,6 +118,7 @@
 
 .variant img, .txt-kind img {
   width: 43px;
+  max-height: 53px;
 }
 
 .char-items .char-item {
@@ -153,8 +154,16 @@
   background: #99FF99;
 }
 
-.char-item.diff .txt {
+.char-item.changed .txt {
   color: rgba(255, 0, 0, 0.8);
+}
+
+.char-item.is-diff {
+  background: var(--Grey_Content);
+}
+
+.char-item.un-required {
+  background: var(--Grey_Lighter);
 }
 
 .char-item .char-img {

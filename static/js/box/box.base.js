@@ -172,7 +172,6 @@
     if (reset) {
       data.boxes.forEach((b) => b.elem.remove());
       data.boxes = [];
-      1
     }
     // set boxType
     if (param.boxes) {
