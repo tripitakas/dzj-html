@@ -1,6 +1,33 @@
 /**
  @desc 聚类相关操作
  */
+//----------------------快捷键----------------------
+$.mapKey('a', () => $('#bat-select').click());
+$.mapKey('v', () => $('#do-multi').click());
+$.mapKey('z', () => $('#de-multi').click());
+$.mapKey('x', () => $('#un-multi').click());
+$.mapKey('1', () => $('#toggle-filter-panel').click());
+$.mapKey('2', () => $('#toggle-char-info').click());
+$.mapKey('3', () => $('#toggle-column-panel').click());
+$.mapKey('4', () => $('#toggle-proof-panel').click());
+$.mapKey('5', () => $('#toggle-proof-color').click());
+$.mapKey('esc', () => togglePanels(true));
+$.mapKey('left', () => $('.char-item.current').prev().find('.char-img').click());
+$.mapKey('right', () => $('.char-item.current').next().find('.char-img').click());
+
+//----------------------初始化----------------------
+function togglePanels(init) {
+  $('#toggle-filter-panel').toggleClass('active', init ? true : getStorage('clusterFilterPanel', true));
+  $('.m-panel').toggleClass('hide', init ? false : !getStorage('clusterFilterPanel', true));
+  $('#toggle-char-info').toggleClass('active', init ? true : getStorage('clusterCharInfo', true));
+  $('.char-info, .char-check').toggleClass('hide', init ? false : !getStorage('clusterCharInfo', true));
+  $('#toggle-column-panel').toggleClass('active', init ? true : getStorage('clusterColumnPanel', true));
+  $('.column-panel').toggleClass('hide', init ? false : !getStorage('clusterColumnPanel', true));
+  $('#toggle-proof-panel').toggleClass('active', init ? true : getStorage('clusterProofPanel', true));
+  $('.proof-panel').toggleClass('hide', init ? false : !getStorage('clusterProofPanel', true));
+  $('#toggle-proof-color').toggleClass('active', init ? true : getStorage('clusterProofColor', true));
+  $('.char-panel').toggleClass('show-mark', init ? true : getStorage('clusterProofColor', true));
+}
 
 //----------------------左侧导航：排序及过滤----------------------
 $('#btn-cc-up').on('click', function () {
@@ -100,7 +127,6 @@ $('#bat-select').on('click', function () {
     $('.char-check :checkbox').removeAttr('checked');
   }
 });
-$.mapKey('a', () => $('#bat-select').click());
 
 // 多选模式-鼠标滑选
 $('.toggle-multi').on('click', function () {
@@ -112,9 +138,6 @@ $('.toggle-multi').on('click', function () {
     bsShow('', '鼠标滑选 / 反选 已打开', 'info', 800);
   }
 });
-$.mapKey('v', () => $('#do-multi').click());
-$.mapKey('z', () => $('#de-multi').click());
-$.mapKey('x', () => $('#un-multi').click());
 
 // 鼠标滑选
 $(document).on('mouseenter', '.char-item', function () {
@@ -127,10 +150,10 @@ $(document).on('mouseenter', '.char-item', function () {
 });
 
 // 显隐排序过滤
-$('#toggle-filter').on('click', function () {
+$('#toggle-filter-panel').on('click', function () {
   $(this).toggleClass('active');
   setStorage('clusterFilterPanel', $(this).hasClass('active'));
-  $('#filter-panel').toggleClass('hide', !$(this).hasClass('active'));
+  $('.m-panel').toggleClass('hide', !$(this).hasClass('active'));
 });
 // 显隐字图信息
 $('#toggle-char-info').on('click', function () {
@@ -150,10 +173,12 @@ $('#toggle-proof-panel').on('click', function () {
   setStorage('clusterProofPanel', $(this).hasClass('active'));
   $('.proof-panel').toggleClass('hide', !$(this).hasClass('active'));
 });
-$.mapKey('1', () => $('#toggle-filter').click());
-$.mapKey('2', () => $('#toggle-char-info').click());
-$.mapKey('3', () => $('#toggle-column-panel').click());
-$.mapKey('4', () => $('#toggle-proof-panel').click());
+// 显隐校对颜色
+$('#toggle-proof-color').on('click', function () {
+  $(this).toggleClass('active');
+  setStorage('clusterProofColor', $(this).hasClass('active'));
+  $('.char-panel').toggleClass('show-mark', $(this).hasClass('active'));
+});
 
 // 检索异体字
 $('#search-variant').on('keydown', function (event) {
@@ -235,7 +260,3 @@ $('.m-footer .char-name').on('click', function () {
   if ($(this).hasClass('disabled') || charName === '未选中') return;
   window.open('/char/' + charName, '_blank');
 });
-
-//----------------------快捷键----------------------
-$.mapKey('left', () => $('.char-item.current').prev().find('.char-img').click());
-$.mapKey('right', () => $('.char-item.current').next().find('.char-img').click());

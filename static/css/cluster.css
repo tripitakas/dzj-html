@@ -138,31 +138,16 @@
   transform: scale(1.25);
 }
 
-.char-item.current {
+.show-mark .char-item.current {
   border: 1px solid red;
+  /*background: rgba(255, 0, 0, 0.5);*/
 }
 
-.char-item.proof3 {
-  background: #EEFFBB;
+.show-mark .char-item.changed .txt {
+  color: red;
 }
 
-.char-item.proof2 {
-  background: #CCFF99;
-}
-
-.char-item.proof1 {
-  background: #99FF99;
-}
-
-.char-item.changed .txt {
-  color: rgba(255, 0, 0, 0.8);
-}
-
-.char-item.is-diff {
-  background: var(--Grey_Content);
-}
-
-.char-item.un-required {
+.show-mark .char-item.un-required {
   background: var(--Grey_Lighter);
 }
 

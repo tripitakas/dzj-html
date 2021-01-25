@@ -94,7 +94,7 @@
     let taskId = typeof gTaskId === 'undefined' ? '' : gTaskId;
     let taskType = typeof gTaskType === 'undefined' ? '' : gTaskType;
     let html = chars.map((ch, i) => {
-      let cls = 'proof' + (ch['txt_logs'] || []).length;
+      let cls = (ch['txt_logs'] || []).length ? 'changed' : '';
       cls += ch['is_diff'] ? ' is-diff' : '';
       cls += ch['un_required'] ? ' un-required' : '';
       let tasks = ch['tasks'] && ch['tasks'][taskType] || [];

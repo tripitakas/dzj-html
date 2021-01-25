@@ -81,7 +81,7 @@
         <div class="btn-group" title="显隐设置">
           <i class="btn-txt icon-eye dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
-            <li id="toggle-filter" class="active"><a>显隐排序过滤[1]</a></li>
+            <li id="toggle-filter-panel" class="active"><a>显隐排序过滤[1]</a></li>
             <li id="toggle-char-info" class="active"><a>显隐字符信息[2]</a></li>
             <li id="toggle-column-panel" class="active"><a>显隐字框列图[3]</a></li>
             <li id="toggle-proof-panel" class="active"><a>显隐校对面板[4]</a></li>
@@ -165,7 +165,7 @@
           <li id="btn-other-updated"><a>他人修改</a></li>
         </ul>
       </div><!--m-panel-->
-      <div class="char-panel">
+      <div class="char-panel show-mark">
         <div class="txt-kinds slim-bar"></div>
         <div class="variants slim-bar"></div>
         <div class="char-items slim-bar"></div>
@@ -344,21 +344,7 @@
     txtKinds: decodeJSON('{{txt_kinds}}'),
   });
 
-  $('#toggle-filter').toggleClass('active', getStorage('clusterFilterPanel', false));
-  $('.m-panel').toggleClass('hide', !getStorage('clusterFilterPanel', false));
-
-  if (!getStorage('clusterCharInfo', true)) {
-    $('#toggle-char-info').removeClass('active');
-    $('.char-info, .char-check').addClass('hide');
-  }
-  if (!getStorage('clusterColumnPanel', true)) {
-    $('#toggle-column-panel').removeClass('active');
-    $('.column-panel').addClass('hide');
-  }
-  if (!getStorage('clusterProofPanel', true)) {
-    $('#toggle-work-panel').removeClass('active');
-    $('.work-panel').addClass('hide');
-  }
+  togglePanels();
   if (getQueryString('order') === 'cc') $('#btn-cc-up').addClass('active');
   if (getQueryString('order') === '-cc') $('#btn-cc-down').addClass('active');
   if (getQueryString('is_diff') === 'true') $('#btn-diff').addClass('active');
@@ -386,7 +372,7 @@
 
 </script>
 <script>
-  // 配置每页显示条数
+  // 配置每页显示字图数量
   let pageSize = '{{handler.page_size}}';
   $('#toggle-config').on('click', function () {
     Swal2.fire({title: '请输入每页字图数量', input: 'text', inputValue: pageSize.trim()}).then((result) => {
@@ -415,7 +401,7 @@
     if ($this.hasClass('disabled')) return;
     $this.addClass('disabled').text('进行中...');
     let data = {img_name: $('#v-img-name').text(), user_txt: $('#v-user-txt').text()};
-    postApi('/variant/add', {data: data}, function (res) {
+    postApi('/variant/upsert', {data: data}, function (res) {
       $this.removeClass('disabled').text($txt);
       $.cluster.addVariant(res['v_code']);
       $('#variantModal').modal('hide');
