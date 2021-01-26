@@ -62,6 +62,8 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                 id2col = {col['column_id']: {k: col[k] for k in ['cid', 'x', 'y', 'w', 'h']} for col in p['columns']}
                 for c in p['chars']:
                     try:
+                        if c['deleted']:
+                            continue
                         char_names.append('%s_%s' % (p['name'], c['cid']))
                         m = dict(page_name=p['name'], source=p.get('source'), txt_level=0, img_need_updated=True)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])

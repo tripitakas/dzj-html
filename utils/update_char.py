@@ -176,17 +176,14 @@ def update_char(db):
         print('[%s]processing task %s/%s' % (hp.get_date_time(), i + 1, page_count))
         for ch in chars:
             print(ch['name'])
-            update_txt_variant(ch)
-            update_txt_type(ch)
-            update_txt_logs(ch)
-            update_ocr_txt(ch)
-            # diff
-            diff = ch.pop('diff', 0)
-            if diff:
-                ch['is_diff'] = True
-            # fields
+            # set
             ch = {k: v for k, v in ch.items() if k in fields}
             ch['updated'] = True
+            ch['ocr_txt'] = Ph.get_cmb_txt(ch)
+            if Ph.is_source_txt_diff(ch):
+                ch['is_diff'] = Ph.is_source_txt_diff(ch)
+            if Ph.is_un_required(ch):
+                ch['un_required'] = True
             # unset
             unset = ['diff', 'txt_type']
             if not ch.get('txt_logs'):
