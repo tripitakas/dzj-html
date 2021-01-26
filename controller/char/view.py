@@ -105,23 +105,26 @@ class CharViewHandler(CharHandler):
         """查看Char页面"""
         try:
             page_name, cid = char_name.rsplit('_', 1)
-            project = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
-            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, project)
+            project = {'name': 1, 'chars': 1, 'width': 1, 'height': 1, 'tasks': 1}
+            page = self.db.page.find_one({'name': page_name}, project)
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            page['img_url'] = self.get_web_img(page_name, 'page')
-            ch = page.get('chars') and page['chars'][0] or {}
+            chars = [c for c in page.get('chars') or [] if str(c['cid']) == cid]
+            if not chars:
+                self.send_error_response(e.no_object, message='页面%s中没有字符%s' % (page_name, cid))
+            ch = chars[0]
             char = self.db.char.find_one({'name': char_name})
             if char:
                 char.update({k: ch[k] for k in ['x', 'y', 'w', 'h', 'box_level', 'box_logs'] if ch.get(k)})
-                if not char.get('x') and char.get('pos'):
-                    char.update(char.get('pos') or {})
             else:
                 char = ch
+            if not char.get('x') and char.get('pos'):
+                char.update(char['pos'])
             char['txt_point'] = self.get_required_type_and_point(char)
             char['box_point'] = PageHandler.get_required_type_and_point(page)
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
+            page['img_url'] = self.get_web_img(page_name, 'page')
             self.render('char_view.html', Char=Char, char=char, page=page, txt_auth=txt_auth, box_auth=box_auth)
 
         except Exception as error:

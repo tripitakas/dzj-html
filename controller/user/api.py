@@ -390,7 +390,7 @@ class ChangeUserFieldsApi(BaseHandler):
     def post(self, field):
         """修改用户角色"""
         try:
-            rules = [(v.not_empty, '_id', field)]
+            rules = [(v.not_none, '_id', field)]
             self.validate(self.data, rules)
 
             user = self.db.user.find_one(dict(_id=ObjectId(self.data['_id'])))
