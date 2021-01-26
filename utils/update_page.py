@@ -13,11 +13,12 @@ from operator import itemgetter
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from utils import update_char as uc
 from controller import helper as hp
+from controller.page.base import PageHandler as Ph
 
 
 def update_txt(page):
+    from utils import update_char as uc
     changed = set()
     for c in page.get('chars') or []:
         changed.add(uc.update_txt_variant(c))
@@ -91,8 +92,8 @@ def update_box_log(page):
 
 def update_page(db):
     """ 更新page表（注：更新之前去掉updated字段"""
-    size, i = 1000, 0
-    cond = {'source': {'$in': ['法华经-9版本', '60华严', '径山藏目录']}}
+    size = 1000
+    cond = {}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
@@ -101,13 +102,21 @@ def update_page(db):
         fields = ['name', 'blocks', 'columns', 'chars']
         pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
-            r1 = update_txt(p)
-            r2 = update_box_level(p)
-            if r1 or r2:
-                print('[%s]%s' % (hp.get_date_time(), p['name']))
-                update = {'updated': True}
-                update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
-                db.page.update_one({'_id': p['_id']}, {'$set': update})
+            for b in p.get('chars') or []:
+                b['txt'] = Ph.get_cmb_txt(b)
+            for k in ['blocks', 'columns', 'chars']:
+                for b in p.get(k) or []:
+                    b.pop('box_level', 0)
+                    b.pop('box_logs', 0)
+                    b.pop('txt_level', 0)
+                    b.pop('txt_logs', 0)
+                    b.pop('added', 0)
+                    b.pop('changed', 0)
+                    b.pop('deleted', 0)
+            print('[%s]%s' % (hp.get_date_time(), p['name']))
+            update = {'updated': True}
+            update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
+            db.page.update_one({'_id': p['_id']}, {'$set': update})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
