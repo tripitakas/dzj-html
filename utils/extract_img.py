@@ -212,8 +212,7 @@ class Cut(object):
         raise OSError('oss not exist or not writeable')
 
 
-def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
-                regen=False, username=None):
+def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None, regen=False, username=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
     cfg = hp.load_config()
     db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
@@ -231,22 +230,19 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
 
     condition = json.loads(condition) if isinstance(condition, str) else {}
     condition['img_need_updated'] = True
-
-    once_size = 5000
     chars = list(db.char.find(condition, {'name': 1}))
     names = [c['name'] for c in chars]
-    total_count = len(names)
-    # total_count = db.char.count_documents(condition)
-    print('[%s]%s chars to generate.' % (hp.get_date_time(), total_count))
-    for i in range(math.ceil(total_count / once_size)):
+    print('[%s]%s chars to generate.' % (hp.get_date_time(), len(names)))
+    once_size = 5000
+    page_count = math.ceil(len(names) / once_size)
+    for i in range(page_count):
         start = i * once_size
         chars = list(db.char.find({'name': {'$in': names[start: start + once_size]}}))
-        # chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         log = cut.cut_img(chars)
-        _names = (log.get('cut_char_success') or []) + (log.get('cut_char_existed') or [])
-        if _names:
+        u_names = (log.get('cut_char_success') or []) + (log.get('cut_char_existed') or [])
+        if u_names:
             update = {'has_img': True, 'img_need_updated': False, 'img_time': hp.get_date_time('%m%d%H%M%S')}
-            db.char.update_many({'name': {'$in': _names}}, {'$set': update})
+            db.char.update_many({'name': {'$in': u_names}}, {'$set': update})
         Bh.add_op_log(db, 'extract_img', 'finished', log, username)
 
 
