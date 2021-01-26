@@ -9,6 +9,7 @@
   let myRemark = '{{handler.task.get("my_remark") or ""}}';
   let adminRemark = '{{handler.task.get("remark") or ""}}';
   let isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
+  let doTaskType = '/do/update/nav'.indexOf(gMode) > -1 ? gTaskType : '';
 
   // 模态框
   $('#task-return').on('click', () => $("#returnModal").modal());

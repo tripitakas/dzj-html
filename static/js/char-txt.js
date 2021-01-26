@@ -174,15 +174,14 @@
       bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
       return false;
     }
-    let taskType = (typeof gTaskType === 'undefined' && 'do/update/nav'.indexOf(gMode) > -1) ? gTaskType : '';
     return {
-      task_type: taskType,
       txt: $('#p-txt').val() || '',
       remark: $('#p-remark').val() || '',
       name: $('.char-txt .cur-name').val(),
       is_vague: $('.is-vague :checked').val() === '1',
       is_deform: $('.is-deform :checked').val() === '1',
       uncertain: $('.uncertain :checked').val() === '1',
+      task_type: typeof doTaskType !== 'undefined' ? doTaskType : '',
     };
   }
 

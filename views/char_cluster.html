@@ -131,13 +131,13 @@
       <div class="right">
         {% set mode = globals().get('mode') or '' %}
         {% set readonly = globals().get('readonly') or False %}
-        {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
-        <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
+        {% set do_task = globals().get('mode') in ['do', 'update', 'nav'] %}
+        <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
-        <div id="page-submit" class="btn-txt icon-done{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="提交当前页"></div>
-        <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
-        <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
-        <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
+        <div id="page-submit" class="btn-txt icon-done{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="提交当前页"></div>
+        <div id="task-return" class="btn-txt icon-return-task{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
+        <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
+        <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
         <div id="task-prev" class="btn-txt icon-arrow-left {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]]"></div>
         <div id="task-next" class="btn-txt icon-arrow-right {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="后一个任务[[]"></div>
       </div><!--right-->
@@ -466,7 +466,7 @@
     let isTxtField = ['txt', 'remark'].indexOf(field) > -1;
     let info = {title: `是否${name}`, input: 'radio', inputOptions: {1: '是', 0: '否'}};
     if (isTxtField) info = {title: `请输入${name}`, input: 'text', inputValue: $(`#p-${field}`).val()};
-    let data = {names: names, field: field, task_type: gTaskType};
+    let data = {names: names, field: field, task_type: typeof doTaskType !== 'undefined' ? doTaskType : ''};
     Swal2.fire(info).then((result) => {
       if (result.dismiss || !result.value) return;
       data['value'] = isTxtField ? result.value : result.value === '1';
