@@ -586,7 +586,7 @@
   $publishModal.find('.modal-confirm').on('click', function () {
     let isFile = false;
     let formData = new FormData();
-    let data = getModal($publishModal, publishFields);
+    let data = getModal($publishModal, publishFields, true);
     let source = $publishModal.find('.tab-pane.active').attr('id');
     switch (source) {
       case 'source-search':

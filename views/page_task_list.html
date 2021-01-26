@@ -109,6 +109,19 @@
                 {% end %}
               </select>
             </div>
+            <h4 class="col-sm-2 control-label">任务校次</h4>
+            <div class="col-sm-10">
+              <select class="form-control num">
+                <option value=""></option>
+                {% for k in range(1,7) %}
+                {% if params.get('num') and params.get('num') == str(k) %}
+                <option value="{{k}}" selected="selected">{{k}}</option>
+                {% else %}
+                <option value="{{k}}">{{k}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
             <h4 class="col-sm-2 control-label">任务状态</h4>
             <div class="col-sm-10">
               <select class="form-control status">
@@ -269,7 +282,8 @@
 <script>
   // 综合检索
   let searchFields = [
-    {id: 'batch'}, {id: 'doc_id'}, {id: 'status', input_type: 'select'}, {id: 'task_type', input_type: 'select'},
+    {id: 'batch'}, {id: 'doc_id'}, {id: 'task_type', input_type: 'select'},
+    {id: 'num', input_type: 'select'}, {id: 'status', input_type: 'select'},
     {id: 'picked_user_id', input_type: 'select'}, {id: 'is_oriented', input_type: 'select'},
     {id: 'publish_start'}, {id: 'publish_end'}, {id: 'picked_start'}, {id: 'picked_end'},
     {id: 'finished_start'}, {id: 'finished_end'}, {id: 'remark'}, {id: 'my_remark'}
@@ -291,7 +305,7 @@
   });
   // 提交
   $searchModal.find('.modal-confirm').click(function () {
-    let data = getModal($searchModal, searchFields);
+    let data = getModal($searchModal, searchFields, true);
     let search = $.map(data, (v, k) => `&${k}=${v}`).join('');
     if (!search.length) return showTips('提示', '请输入查询条件', 3000);
     location.href = location.pathname + '?' + search.substr(1);

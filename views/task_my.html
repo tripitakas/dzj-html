@@ -204,7 +204,7 @@
   ];
   // 提交
   $("#searchModal .modal-confirm").on('click', function () {
-    let data = getModal($("#searchModal"), searchFields);
+    let data = getModal($("#searchModal"), searchFields, true);
     let search = $.map(data, (v, k) => '&' + k + '=' + v).join('');
     if (!search.length) return showTips('提示', '请输入查询条件');
     location.href = location.pathname + '?' + search.substr(1);
