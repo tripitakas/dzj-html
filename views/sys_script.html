@@ -126,36 +126,38 @@
   $.fn.modal.Constructor.prototype.enforceFocus = function () {
   };
   /*---重置考核数据---*/
-  let $resetExamUser = $('#resetExamUser');
-  $resetExamUser.find(".select-user").select2({
-    dropdownParent: $resetExamUser,
+  let $reset = $('#resetExamUser');
+  $(".select-user", $reset).select2({
+    dropdownParent: $reset,
     ajax: {
       type: 'POST', url: '/api/user/list', dataType: 'json', delay: 1000, language: 'zh-CN',
       allowClear: true, width: "100%", placeholder: "请选择", maximumSelectionLength: 2,
       data: function (params) {
-        return {'q': params.term || '考核', 'page': params.page || 1};
+        return {q: params.term || '考核', page: params.page || 1};
       },
       processResults: function (res, params) {
-        let data = res.data;
-        if (!params.page || params.page === 1) data.results.splice(0, 0, {id: 'all', text: '所有考核账号'});
-        return data;
+        if (!params.page || params.page === 1) res.data.results.splice(0, 0, {id: 'all', text: '所有考核账号'});
+        return res.data;
       }
     }
   });
 
-  $resetExamUser.find('.modal-confirm').click(function () {
-    $(this).text('进行中...');
-    let data = {'user_id': $resetExamUser.find(".select-user").val()};
+  $('.modal-confirm', $reset).on('click', function () {
+    let $this = $(this), $txt = $this.text();
+    if ($this.hasClass('disabled')) return;
+    $this.addClass('disabled').text('进行中...');
+    let data = {'user_id': $reset.find(".select-user").val()};
     postApi('/sys/reset_exam_user', {'data': data}, function (res) {
+      $this.removeClass('disabled').text($txt);
       if (res.status === 'success') {
         showSuccess('成功', '重置成功', 2000);
-        $resetExamUser.modal('hide');
+        $reset.modal('hide');
       } else if (res.status === 'script') {
         Swal0.fire({
           type: 'success', title: '成功', html: `已启动脚本，请稍后查看任务管理。`,
           footer: '详情可以查看<a href="/sys/oplog/latest/reset_exam">日志</a>'
         });
-        $resetExamUser.modal('hide');
+        $reset.modal('hide');
       }
     });
   });
@@ -164,7 +166,7 @@
   $('#bat-gen-chars').on('click', function () {
     Swal2.fire({title: '请输入页数据的分类', input: 'text'}).then((result) => {
       if (result.dismiss || !result.value) return;
-      postApi('/page/start_gen_chars', {data: {search: '?source="' + result.value + '"'}}, (res) => {
+      postApi('/page/start_gen_chars', {data: {search: '?source==' + result.value}}, (res) => {
         Swal0.fire({
           type: 'success', title: '成功', html: `已启动脚本，将针对${res.count}个页面生成字数据。<br/>请稍后查看字数据管理页面。`,
           footer: '详情可以查看<a href="/sys/oplog/latest/gen_chars">日志</a>'
@@ -177,7 +179,7 @@
   $('#bat-gen-images').on('click', function () {
     Swal2.fire({title: '请输入字数据的分类', input: 'text'}).then((result) => {
       if (result.dismiss || !result.value) return;
-      postApi('/char/extract_img', {data: {type: 'search', search: '?source="' + result.value + '"'}}, (res) => {
+      postApi('/char/extract_img', {data: {type: 'search', search: '?source==' + result.value}}, (res) => {
         Swal0.fire({
           type: 'success', title: '成功', html: `已启动脚本，将针对${res.count}个字数据生成字图。<br/>请稍后查看字数据管理页面。`,
           footer: '详情可以查看<a href="/sys/oplog/latest/extract_img">日志</a>'
