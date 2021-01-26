@@ -62,7 +62,7 @@ function setModal(modal, info, fields) {
   });
 }
 
-function getModal(modal, fields) {
+function getModal(modal, fields, noEmpty) {
   let info = {};
   fields.forEach(function (item) {
     if ('input_type' in item && item['input_type'] === 'checkbox') {
@@ -77,6 +77,8 @@ function getModal(modal, fields) {
       info[item.id] = modal.find('.' + item.id).val();
     }
     if (typeof info[item.id] === 'undefined') {
+      delete info[item.id];
+    } else if (noEmpty && !info[item.id]) {
       delete info[item.id];
     }
   });

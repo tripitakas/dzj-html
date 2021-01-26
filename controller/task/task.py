@@ -189,11 +189,11 @@ class Task(Model):
         """获取任务的查询条件"""
         # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        for field in ['task_type', 'collection', 'status', 'priority']:
+        for field in ['collection', 'task_type', 'num', 'status', 'priority']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field: int(value) if field == 'priority' else value})
+                condition.update({field: int(value) if field in ['priority', 'num'] else value})
         for field in ['is_oriented']:
             value = h.get_url_param(field, request_query)
             if value:
