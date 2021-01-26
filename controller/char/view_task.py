@@ -187,7 +187,7 @@ class CharTaskClusterHandler(CharHandler):
             if updated == 'my':
                 cond['txt_logs.user_id'] = self.user_id
             elif updated == 'other':
-                cond['txt_logs.user_id'] = {'$ne': self.user_id}
+                cond['txt_logs.user_id'] = {'$nin': [None, self.user_id]}
             elif updated == 'all':
                 cond['txt_logs'] = {'$nin': [None, []]}
             elif updated == 'un':
