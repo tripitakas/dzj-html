@@ -181,13 +181,16 @@ class CharBrowseHandler(CharHandler):
     def get(self):
         """浏览字图"""
         try:
-            condition = Char.get_char_search_condition(self.request.query)[0]
-            docs, pager, q, order = Char.find_by_page(self, condition, default_order='_id')
-            chars = {str(d['name']): d for d in docs}
-            for d in docs:
-                column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
-                d['column']['img_url'] = self.get_web_img(column_name, 'column')
-            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order, chars=chars)
+            cond = self.get_user_filter()
+            cond.update(self.get_char_search_condition(self.request.query)[0])
+            chars, pager, q, order = Char.find_by_page(self, cond, default_order='_id')
+            # 设置单字列图
+            for ch in chars:
+                column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
+                ch['column']['img_url'] = self.get_web_img(column_name, 'column')
+                ch['img_url'] = self.get_web_img(ch['name'], 'char')
+
+            self.render('char_browse.html', chars=chars, pager=pager, q=q, order=order)
 
         except Exception as error:
             return self.send_db_error(error)

@@ -98,3 +98,57 @@ class CharHandler(Char, TaskHandler):
         if url and char.get('img_time'):
             url += '?v=%s' % char['img_time']
         return url
+
+    def get_user_filter(self, task_type=None):
+        """ 获取聚类校对的用户过滤条件"""
+
+        def c2int(c):
+            return int(float(c) * 1000)
+
+        cond = {}
+        # 按相同程度、校对等级
+        for f in ['sc', 'pc']:
+            v = self.get_query_argument(f, 0)
+            if v:
+                cond[f] = int(v)
+        # 按字置信度、列置信度
+        for ac in ['cc', 'lc']:
+            ac = self.get_query_argument(ac, 0)
+            if ac:
+                m1 = re.search(r'^([><]=?)(0|1|[01]\.\d+)$', ac)
+                m2 = re.search(r'^(0|1|[01]\.\d+),(0|1|[01]\.\d+)$', ac)
+                if m1:
+                    op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m1.group(1))
+                    cond.update({ac: {op: c2int(m1.group(2))} if op else ac})
+                elif m2:
+                    cond.update({ac: {'$gte': c2int(m2.group(1)), '$lte': c2int(m2.group(2))}})
+        # 按用户校对标记
+        for f in ['is_vague', 'is_deform', 'uncertain']:
+            v = self.get_query_argument(f, 0)
+            if v == 'true':
+                cond[f] = True
+            elif v == 'false':
+                cond[f] = None
+        # 按是否备注过滤
+        remark = self.get_query_argument('remark', 0)
+        if remark == 'true':
+            cond['remark'] = {'$ne': None}
+        elif remark == 'false':
+            cond['remark'] = None
+        # 按用户修改过滤
+        updated = self.get_query_argument('updated', 0)
+        if updated == 'my':
+            cond['txt_logs.user_id'] = self.user_id
+        elif updated == 'other':
+            cond['txt_logs.user_id'] = {'$nin': [None, self.user_id]}
+        elif updated == 'all':
+            cond['txt_logs'] = {'$nin': [None, []]}
+        elif updated == 'un':
+            cond['txt_logs'] = {'$in': [None, []]}
+        # 是否已提交
+        submitted = self.get_query_argument('submitted', 0)
+        if task_type and submitted == 'true':
+            cond['tasks.' + task_type] = self.task['_id']
+        elif task_type and submitted == 'false':
+            cond['tasks.' + task_type] = {'$ne': self.task['_id']}
+        return cond

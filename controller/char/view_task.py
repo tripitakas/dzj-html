@@ -153,57 +153,6 @@ class CharTaskClusterHandler(CharHandler):
 
     def get(self, task_type, task_id):
         """聚类校对页面"""
-
-        def c2int(c):
-            return int(float(c) * 1000)
-
-        def get_user_filter():
-            # 按相同程度、校对等级
-            for f in ['sc', 'pc']:
-                v = self.get_query_argument(f, 0)
-                if v:
-                    cond[f] = v
-            # 字列置信度
-            for ac in ['cc', 'lc']:
-                ac = self.get_query_argument(ac, 0)
-                if ac:
-                    m1 = re.search(r'^([><]=?)(0|1|[01]\.\d+)$', ac)
-                    m2 = re.search(r'^(0|1|[01]\.\d+),(0|1|[01]\.\d+)$', ac)
-                    if m1:
-                        op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m1.group(1))
-                        cond.update({ac: {op: c2int(m1.group(2))} if op else ac})
-                    elif m2:
-                        cond.update({ac: {'$gte': c2int(m2.group(1)), '$lte': c2int(m2.group(2))}})
-            # 按校对标记
-            for f in ['is_vague', 'is_deform', 'uncertain']:
-                v = self.get_query_argument(f, 0)
-                if v == 'true':
-                    cond[f] = True
-                elif v == 'false':
-                    cond[f] = None
-            # 按备注过滤
-            remark = self.get_query_argument('remark', 0)
-            if remark == 'true':
-                cond['remark'] = {'$ne': None}
-            elif remark == 'false':
-                cond['remark'] = None
-            # 按修改过滤
-            updated = self.get_query_argument('updated', 0)
-            if updated == 'my':
-                cond['txt_logs.user_id'] = self.user_id
-            elif updated == 'other':
-                cond['txt_logs.user_id'] = {'$nin': [None, self.user_id]}
-            elif updated == 'all':
-                cond['txt_logs'] = {'$nin': [None, []]}
-            elif updated == 'un':
-                cond['txt_logs'] = {'$in': [None, []]}
-            # 是否已提交
-            submitted = self.get_query_argument('submitted', 0)
-            if submitted == 'true':
-                cond['tasks.' + task_type] = self.task['_id']
-            elif submitted == 'false':
-                cond['tasks.' + task_type] = {'$ne': self.task['_id']}
-
         try:
             # 1.根据任务参数，设置任务过滤条件
             params = self.task['params']
@@ -230,7 +179,7 @@ class CharTaskClusterHandler(CharHandler):
                 vts = [v.get('txt') or v.get('v_code') for v in vts]
             debug and print('[2]find variants:', (datetime.now() - start).total_seconds())
             # 2.根据检索参数，设置用户过滤条件
-            get_user_filter()
+            cond.update(self.get_user_filter(task_type))
             # 3.查找单字数据
             self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
             if self.mode in ['do', 'update']:

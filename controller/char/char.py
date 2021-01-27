@@ -60,7 +60,7 @@ class Char(Model):
         if q and cls.search_fields:
             m = len(q) > 1 and q[0] == '='
             condition['$or'] = [{k: q[1:] if m else {'$regex': q}} for k in cls.search_fields]
-        for field in ['ocr_txt', 'sc']:
+        for field in ['ocr_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
@@ -84,7 +84,7 @@ class Char(Model):
             if value:
                 params[field] = value
                 condition.update({field: value[1:] if len(value) > 1 and value[0] == '=' else {'$regex': value}})
-        for field in ['cc', 'lc', 'pc']:
+        for field in ['cc', 'lc', 'pc', 'sc']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
@@ -95,4 +95,5 @@ class Char(Model):
                     condition.update({field: {op: c2int(m1.group(2))} if op else value})
                 elif m2:
                     condition.update({field: {'$gte': c2int(m2.group(1)), '$lte': c2int(m2.group(2))}})
+
         return condition, params
