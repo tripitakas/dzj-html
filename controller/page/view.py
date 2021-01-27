@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import math
-from bson import json_util
+from controller import auth
 from controller import errors as e
 from controller import helper as h
 from controller.task.task import Task
@@ -106,7 +106,7 @@ class PageListHandler(PageHandler):
 
 
 class PageBoxHandler(PageHandler):
-    URL = ['/page/box/@page_name', '/page/box/edit/@page_name']
+    URL = '/page/box/@page_name'
 
     def get(self, page_name):
         """切分校对页面"""
@@ -118,14 +118,16 @@ class PageBoxHandler(PageHandler):
             self.pack_cut_boxes(page)
             self.set_box_access(page)
             page['img_url'] = self.get_page_img(page)
-            self.render('page_box.html', page=page, readonly='edit' not in self.request.uri)
+            roles = auth.get_all_roles(self.current_user['roles'])
+            box_auth = self.check_open_edit_role(roles) is True
+            self.render('page_box.html', page=page, readonly=not box_auth)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
 class PageTxtHandler(PageHandler):
-    URL = ['/page/txt/@page_name', '/page/txt/edit/@page_name']
+    URL = '/page/txt/@page_name'
 
     def get(self, page_name):
         """单字修改页面"""
@@ -136,7 +138,9 @@ class PageTxtHandler(PageHandler):
 
             self.pack_txt_boxes(page)
             page['img_url'] = self.get_page_img(page)
-            self.render('page_txt.html', page=page, readonly='edit' not in self.request.uri)
+            roles = auth.get_all_roles(self.current_user['roles'])
+            txt_auth = CharHandler.check_open_edit_role(roles) is True
+            self.render('page_txt.html', page=page, readonly=not txt_auth)
 
         except Exception as error:
             return self.send_db_error(error)

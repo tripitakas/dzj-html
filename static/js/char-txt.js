@@ -164,7 +164,7 @@
       $($.box.data.holder).removeClass('show-hint user-hint');
     } else if (box) {
       $($.box.data.holder).addClass('show-hint user-hint');
-      status.hint = $.box.createBox(box, 'box hint current');
+      status.hint = $.box.createBox(box, 'box hint h-former');
     }
   }
 
@@ -212,21 +212,5 @@
     }
   });
 
-  // 显示坐标对应的框
-  $(document).on('click', 'span.pos', function () {
-    let txt = $(this).text(), box = {x: 0, y: 0, w: 0, h: 0, cid: 0};
-    if (txt.split(',').length > 3) {
-      txt.split(',').forEach((item) => {
-        let a = item.split(':');
-        if (a.length === 2) box[a[0]] = parseInt(a[1]);
-      });
-    } else if (txt.split('/').length > 3) {
-      let a = txt.split('/');
-      box = {x: parseInt(a[0]), y: parseInt(a[1]), w: parseInt(a[2]), h: parseInt(a[3]), cid: 0};
-    }
-    box.boxType = box.cid ? 'column' : 'char';
-    toggleHint(box, true);
-    $('#reset-box').removeClass('hide');
-  });
 
 }());

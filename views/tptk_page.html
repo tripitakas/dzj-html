@@ -352,8 +352,7 @@
     $.box.toggleVCode($(this).hasClass('active'));
   });
   $('#view-box').on('click', function () {
-    let edit = boxAuth ? '/edit' : '';
-    window.open(`/page/box${edit}/{{page["name"]}}`, '_blank');
+    window.open(`/page/box/{{page["name"]}}`, '_blank');
   });
 
   // 图片导航
