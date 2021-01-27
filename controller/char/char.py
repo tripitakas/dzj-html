@@ -21,6 +21,7 @@ class Char(Model):
         'img_need_updated': {'name': '需要更新字图'},
         'cc': {'name': '字置信度'},
         'lc': {'name': '列置信度'},
+        'pc': {'name': '校对等级'},
         'pos': {'name': '坐标'},
         'column': {'name': '所属列'},
         'alternatives': {'name': '字框OCR'},
@@ -42,6 +43,7 @@ class Char(Model):
         'txt_logs': {'name': '文字校对历史'},
         'tasks': {'name': '校对任务'},
         'remark': {'name': '备注'},
+        'updated_time': {'name': '更新时间'},
     }
     rules = [(v.is_page, 'page_name')]
     # search_fields在这里定义，这样find_by_page时q参数才会起作用
@@ -81,7 +83,7 @@ class Char(Model):
             if value:
                 params[field] = value
                 condition.update({field: value[1:] if len(value) > 1 and value[0] == '=' else {'$regex': value}})
-        for field in ['cc', 'lc']:
+        for field in ['cc', 'lc', 'pc']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

@@ -12,13 +12,12 @@ class CharListHandler(CharHandler):
     URL = '/char/list'
 
     page_title = '字数据管理'
-    table_fields = ['has_img', 'source', 'page_name', 'cid', 'name', 'char_id', 'uid', 'box_level', 'cc', 'lc',
-                    'pos', 'column', 'alternatives', 'ocr_col', 'cmp_txt', 'ocr_txt', 'is_diff', 'un_required',
-                    'is_vague', 'is_deform', 'uncertain', 'txt', 'nor_txt', 'txt_level', 'txt_logs',
-                    'tasks', 'remark']
-    update_fields = ['source', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
-    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'box_level', 'cc', 'lc', 'pos', 'column', 'is_diff',
-                   'un_required', 'is_vague', 'is_deform', 'uncertain', 'txt_logs', 'tasks', 'remark']
+    table_fields = ['has_img', 'source', 'page_name', 'cid', 'name', 'char_id', 'uid', 'box_level', 'pos', 'column',
+                    'alternatives', 'ocr_col', 'cmp_txt', 'ocr_txt', 'cc', 'lc', 'pc', 'is_vague', 'is_deform',
+                    'uncertain', 'txt', 'nor_txt', 'txt_level', 'txt_logs', 'tasks', 'remark', 'updated_time']
+    update_fields = ['source', 'txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
+    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'box_level', 'pos', 'column', 'cc', 'lc', 'is_vague',
+                   'is_deform', 'uncertain', 'nor_txt', 'txt_logs', 'tasks', 'remark', 'updated_time']
     info_fields = ['source', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
