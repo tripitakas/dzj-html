@@ -22,6 +22,7 @@ class Char(Model):
         'cc': {'name': '字置信度'},
         'lc': {'name': '列置信度'},
         'pc': {'name': '校对等级'},
+        'sc': {'name': '相同程度'},
         'pos': {'name': '坐标'},
         'column': {'name': '所属列'},
         'alternatives': {'name': '字框OCR'},
@@ -59,7 +60,7 @@ class Char(Model):
         if q and cls.search_fields:
             m = len(q) > 1 and q[0] == '='
             condition['$or'] = [{k: q[1:] if m else {'$regex': q}} for k in cls.search_fields]
-        for field in ['ocr_txt']:
+        for field in ['ocr_txt', 'sc']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

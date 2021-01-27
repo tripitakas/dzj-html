@@ -371,20 +371,11 @@
   $('.char-txt .btn-submit').on('click', function () {
     let $this = $(this);
     if ($this.hasClass('disabled')) return;
-    if ($this.hasClass('unauthorized')) return bsShow('', '没有权限', 'warning', 800, '#s-alert');
-    let name = $('.char-txt .cur-name').val();
-    if (!name.length) return bsShow('', '请选择校对文字', 'warning', 1000, '#s-alert');
-    if (!$('#p-txt').val().length) return bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
-    let data = {
-      txt: $('#p-txt').val() || '',
-      remark: $('#p-remark').val() || '',
-      is_vague: $('.is-vague :checked').val() === '1',
-      is_deform: $('.is-deform :checked').val() === '1',
-      uncertain: $('.uncertain :checked').val() === '1',
-    };
+    let data = $.charTxt.checkAndExport();
+    if (!data) return;
+    $this.addClass('disabled').text('保存中...');
     let idx = $('.txt-holder .current-char').attr('id').split('-').pop();
-    $this.addClass('disabled');
-    postApi('/page/char/txt/' + name, {data: data}, function (res) {
+    postApi('/page/char/txt/' + data.name, {data: data}, function (res) {
       $this.removeClass('disabled');
       location.href = setAnchor(name);
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
@@ -394,8 +385,8 @@
       Object.assign($.box.data.boxes[parseInt(idx)], data);
     }, function (err) {
       $this.removeClass('disabled');
-      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
-      else bsShow('失败', err.message, 'warning', 1000, '#s-alert');
+      if (err.code === 2007) showTips('', err.message, 1000);
+      else showWarning('失败', err.message, 2000);
     });
   });
 

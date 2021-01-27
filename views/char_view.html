@@ -177,15 +177,9 @@
   $('.char-txt .btn-submit').on('click', function () {
     let $this = $(this);
     if ($this.hasClass('disabled')) return;
-    if (!$('#p-txt').val().length) return bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
-    let data = {
-      txt: $('#p-txt').val() || '',
-      remark: $('#p-remark').val() || '',
-      is_vague: $('.is-vague :checked').val() === '1',
-      is_deform: $('.is-deform :checked').val() === '1',
-      uncertain: $('.uncertain :checked').val() === '1',
-    };
-    $this.addClass('disabled');
+    let data = $.charTxt.checkAndExport();
+    if (!data) return;
+    $this.addClass('disabled').text('保存中...');
     postApi('/page/char/txt/' + char.name, {data: data}, function (res) {
       $this.removeClass('disabled');
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
@@ -194,8 +188,8 @@
       Object.assign(char, data);
     }, function (err) {
       $this.removeClass('disabled');
-      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
-      else bsShow('失败', err.message, 'warning', 1000);
+      if (err.code === 2007) showTips('', err.message, 1000);
+      else showWarning('失败', err.message, 2000);
     });
   });
 

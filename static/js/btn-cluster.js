@@ -42,17 +42,14 @@ $('#btn-lc-up').on('click', function () {
 $('#btn-lc-down').on('click', function () {
   location.href = toggleQueryString('order', '-lc', !$(this).hasClass('active'));
 });
-$('#btn-diff').on('click', function () {
-  location.href = toggleQueryString('is_diff', 'true', !$(this).hasClass('active'));
+$('#btn-sc-2').on('click', function () {
+  location.href = toggleQueryString('sc', '2', !$(this).hasClass('active'));
 });
-$('#btn-un-diff').on('click', function () {
-  location.href = toggleQueryString('is_diff', 'false', !$(this).hasClass('active'));
+$('#btn-sc-1').on('click', function () {
+  location.href = toggleQueryString('sc', '1', !$(this).hasClass('active'));
 });
-$('#btn-required').on('click', function () {
-  location.href = toggleQueryString('un_required', 'false', !$(this).hasClass('active'));
-});
-$('#btn-un-required').on('click', function () {
-  location.href = toggleQueryString('un_required', 'true', !$(this).hasClass('active'));
+$('#btn-sc-0').on('click', function () {
+  location.href = toggleQueryString('sc', '0', !$(this).hasClass('active'));
 });
 $('#btn-vague').on('click', function () {
   location.href = toggleQueryString('is_vague', 'true', !$(this).hasClass('active'));
@@ -95,6 +92,9 @@ $('#btn-my-updated').on('click', function () {
 });
 $('#btn-other-updated').on('click', function () {
   location.href = toggleQueryString('updated', 'other', !$(this).hasClass('active'));
+});
+$('#btn-unauthorized').on('click', function () {
+  location.href = toggleQueryString('authorized', 'un', !$(this).hasClass('active'));
 });
 
 

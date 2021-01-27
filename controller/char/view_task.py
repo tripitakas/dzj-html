@@ -158,13 +158,11 @@ class CharTaskClusterHandler(CharHandler):
             return int(float(c) * 1000)
 
         def get_user_filter():
-            # 过滤标记
-            for f in ['is_diff', 'un_required', 'is_vague', 'is_deform', 'uncertain']:
+            # 按相同程度、校对等级
+            for f in ['sc', 'pc']:
                 v = self.get_query_argument(f, 0)
-                if v == 'true':
-                    cond[f] = True
-                elif v == 'false':
-                    cond[f] = None
+                if v:
+                    cond[f] = v
             # 字列置信度
             for ac in ['cc', 'lc']:
                 ac = self.get_query_argument(ac, 0)
@@ -176,6 +174,13 @@ class CharTaskClusterHandler(CharHandler):
                         cond.update({ac: {op: c2int(m1.group(2))} if op else ac})
                     elif m2:
                         cond.update({ac: {'$gte': c2int(m2.group(1)), '$lte': c2int(m2.group(2))}})
+            # 按校对标记
+            for f in ['is_vague', 'is_deform', 'uncertain']:
+                v = self.get_query_argument(f, 0)
+                if v == 'true':
+                    cond[f] = True
+                elif v == 'false':
+                    cond[f] = None
             # 按备注过滤
             remark = self.get_query_argument('remark', 0)
             if remark == 'true':
@@ -205,8 +210,9 @@ class CharTaskClusterHandler(CharHandler):
             base = 'ocr_txt' if 'proof' in task_type else 'rvw_txt'
             base_txts = [c[base] for c in params]  # 聚类字种
             user_level = self.get_user_txt_level(self, task_type)
-            cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0],
-                    'txt_level': {'$lte': user_level}}
+            cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
+            authorized = self.get_query_argument('authorized', 0)
+            cond['txt_level'] = {'$gt': user_level} if authorized == 'un' else {'$lte': user_level}
 
             debug, start = False, datetime.now()
             # 按校对文字统计“校对字头”

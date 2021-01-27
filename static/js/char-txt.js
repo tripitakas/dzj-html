@@ -16,6 +16,7 @@
   let status = {
     readonly: true,           // 是否只读
     showBase: true,           // 是否显示字符基本信息
+    baseFields: '',           // 显示哪些字符基本信息
     showTxtLogs: true,        // 是否显示文字校对历史
     showBoxLogs: true,        // 是否显示切分校对历史
     char: null,               // 当前校对字符数据
@@ -23,11 +24,10 @@
   };
 
   let fields = {
-    'name': '字编码', 'char_id': '序号', 'source': '分类', 'cc': '置信度', 'sc': '相似度', 'pos': '坐标',
-    'column': '所属列', 'is_diff': '是否不一致', 'un_required': '是否不必校对', 'txt': '文字',
-    'nor_txt': '正字', 'is_vague': '笔画残损', 'is_deform': '异形字', 'uncertain': '不确定',
-    'box_level': '切分等级', 'box_point': '切分积分', 'txt_level': '文字等级',
-    'txt_point': '文字积分', 'remark': '备注'
+    'name': '字编码', 'char_id': '序号', 'source': '分类', 'cc': '置信度', 'sc': '相似度', 'pc': '校对等级',
+    'pos': '坐标', 'column': '所属列', 'txt': '文字', 'nor_txt': '正字', 'is_vague': '笔画残损',
+    'is_deform': '异形字', 'uncertain': '不确定', 'box_level': '切分等级', 'box_point': '切分积分',
+    'txt_level': '文字等级', 'txt_point': '文字积分', 'remark': '备注'
   };
 
   $.charTxt = {
@@ -43,6 +43,7 @@
 
   function init(p) {
     if ('showBase' in p) status.showBase = p.showBase;
+    if ('baseFields' in p) status.baseFields = p.baseFields;
     if ('showTxtLogs' in p) status.showTxtLogs = p.showTxtLogs;
     if ('showBoxLogs' in p) status.showBoxLogs = p.showBoxLogs;
     if (p.char) setChar(p.char);
@@ -69,9 +70,12 @@
     if (!status.showBase) return;
     $('#base-info .meta').html(Object.keys(fields).map((f) => {
       if (!char[f]) return '';
-      if (['pos', 'column'].indexOf(f) > -1) {
-        let info = JSON.stringify(char[f]).replace(/["{}]/g, '');
+      if (status.baseFields.length && status.baseFields.indexOf(f) < 0) return '';
+      if (f === 'pos' || f === 'column') {
+        let info = ['x', 'y', 'w', 'h'].map((k) => `${k}:${char[f][k]}`).join(',');
         return `<label>${fields[f]}</label><span class="pos">${info}</span><br/>`;
+      } else if (f === 'cc' || f === 'lc') {
+        return `<label>${fields[f]}</label><span class="pos">${char[f]/1000}</span><br/>`;
       } else {
         return `<label>${fields[f]}</label><span>${char[f]}</span><br/>`;
       }
@@ -79,10 +83,11 @@
   }
 
   function setAlternatives(char) {
-    let html = isValid(char['ocr_col']) ? `<span class="txt-item ocr-col${char['ocr_col'] === char.txt ? ' active' : ''}">${char['ocr_col']}</span>` : '';
-    html += isValid(char['cmp_txt']) ? `<span class="txt-item cmp-txt${char['cmp_txt'] === char.txt ? ' active' : ''}">${char['cmp_txt']}</span>` : '';
+    let getCls = (txt) => (txt === char['ocr_txt'] ? ' ocr_txt' : '') + (txt === char['txt'] ? ' active' : '');
+    let html = isValid(char['ocr_col']) ? `<span class="txt-item ocr-col${getCls(char['ocr_col'])}">${char['ocr_col']}</span>` : '';
+    html += isValid(char['cmp_txt']) ? `<span class="txt-item cmp-txt${getCls(char['cmp_txt'])}">${char['cmp_txt']}</span>` : '';
     html += Array.from(char['alternatives'] || '').map(function (c, n) {
-      return `<span class="txt-item${n ? '' : ' ocr-char'}${c === char.txt ? ' active' : ''}">${c}</span>`;
+      return `<span class="txt-item${n ? '' : ' ocr-chr'}${getCls(c)}">${c}</span>`;
     }).join('');
     $('#txt-alternatives .body').html(html);
     $('#txt-alternatives .body').toggleClass('hide', !html.length);

@@ -149,12 +149,10 @@
           <li><a class="head">排序</a></li>
           <li id="btn-cc-up"><a>按置信度升序</a></li>
           <li id="btn-cc-down"><a>按置信度降序</a></li>
-          <li><a class="head">按系统标记过滤</a></li>
-          <li id="btn-un-diff"><a>一致</a></li>
-          <li id="btn-diff"><a>不一致</a></li>
-          <li class="divider"></li>
-          <li id="btn-required"><a>需要校对</a></li>
-          <li id="btn-un-required"><a>不必校对</a></li>
+          <li><a class="head">按相同程度过滤</a></li>
+          <li id="btn-sc-2"><a>全部相同</a></li>
+          <li id="btn-sc-1"><a>部分相同</a></li>
+          <li id="btn-sc-0"><a>全部不同</a></li>
           <li><a class="head">按校对标记过滤</a></li>
           <li id="btn-vague"><a>笔画残损</a></li>
           <li id="btn-un-vague"><a>笔画完整</a></li>
@@ -175,6 +173,7 @@
           <li id="btn-updated"><a>已修改</a></li>
           <li id="btn-my-updated"><a>我的修改</a></li>
           <li id="btn-other-updated"><a>他人修改</a></li>
+          <li id="btn-unauthorized"><a>无权修改</a></li>
         </ul>
       </div><!--m-panel-->
       <div class="char-panel show-mark">
@@ -347,7 +346,7 @@
 {% include com/_base_task.html %}
 <script>
   // 初始化
-  $.charTxt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
+  $.charTxt.init({readonly: false, showBase: true, baseFields: 'cc,lc,pc,txt_level,box_level'.split(','), showTxtLogs: true, showBoxLogs: true});
   $.cluster.init({
     curTxt: '{{cur_txt}}',
     colHolder: '.box-holder',
@@ -359,10 +358,9 @@
 
   if (getQueryString('order') === 'cc') $('#btn-cc-up').addClass('active');
   if (getQueryString('order') === '-cc') $('#btn-cc-down').addClass('active');
-  if (getQueryString('is_diff') === 'true') $('#btn-diff').addClass('active');
-  if (getQueryString('is_diff') === 'false') $('#btn-un-diff').addClass('active');
-  if (getQueryString('un_required') === 'true') $('#btn-un-required').addClass('active');
-  if (getQueryString('un_required') === 'false') $('#btn-required').addClass('active');
+  if (getQueryString('sc') === '0') $('#btn-sc-0').addClass('active');
+  if (getQueryString('sc') === '1') $('#btn-sc-1').addClass('active');
+  if (getQueryString('sc') === '2') $('#btn-sc-2').addClass('active');
   if (getQueryString('is_vague') === 'true') $('#btn-vague').addClass('active');
   if (getQueryString('is_vague') === 'false') $('#btn-un-vague').addClass('active');
   if (getQueryString('is_deform') === 'true') $('#btn-deform').addClass('active');
@@ -377,6 +375,7 @@
   if (getQueryString('updated') === 'other') $('#btn-other-updated').addClass('active');
   if (getQueryString('updated') === 'all') $('#btn-updated').addClass('active');
   if (getQueryString('updated') === 'un') $('#btn-un-updated').addClass('active');
+  if (getQueryString('authorized') === 'un') $('#btn-unauthorized').addClass('active');
 
   $(document).ready(function () {
     getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
@@ -447,8 +446,8 @@
       location.href = setAnchor(data.name);
     }, function (err) {
       $this.removeClass('disabled').text('确定');
-      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
-      else bsShow('失败', err.message, 'warning', 1000, '#s-alert');
+      if (err.code === 2007) showTips('', err.message, 1000);
+      else showWarning('失败', err.message, 2000);
     });
   });
 
