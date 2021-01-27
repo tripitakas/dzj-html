@@ -155,19 +155,22 @@
   let taskType = '{{task_type}}';
   // 查看
   $('.action .my-task-view').on('click', function () {
+    setStorage('from', location.href);
     let taskId = $(this).parent().parent().attr('id');
-    location.href = `/task/${taskType}/${taskId}?from=` + encodeFrom();
+    location.href = `/task/${taskType}/${taskId}?from=1`;
   });
   // 修改
   $('.action .my-task-update').on('click', function () {
+    setStorage('from', location.href);
     let taskId = $(this).parent().parent().attr('id');
-    location.href = `/task/update/${taskType}/${taskId}?from=` + encodeFrom();
+    location.href = `/task/update/${taskType}/${taskId}?from=1`;
   });
   // 浏览
   $('.operation .btn-browse').on('click', function () {
     if (!$('tbody tr').first()) return;
+    setStorage('from', location.href);
     let taskId = $('tbody tr').first().attr('id');
-    location.href = `/task/nav/${taskType}/${taskId}?my=true&from=` + encodeFrom();
+    location.href = `/task/nav/${taskType}/${taskId}?my=true&from=1`;
   });
   // 统计
   $('.operation .btn-dashboard').on('click', function () {

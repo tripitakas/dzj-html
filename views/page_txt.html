@@ -254,10 +254,12 @@
     $('#more-group').toggleClass('hide');
   });
   $('#btn-box').on('click', function () {
-    location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    location.href = '/page/box/{{page["name"]}}?from=1';
   });
   $('#btn-column-mode').on('click', function () {
-    location.href = '/page/txt1/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    location.href = '/page/txt1/{{page["name"]}}?from=1';
   });
 
   // 单字提交

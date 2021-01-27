@@ -69,7 +69,8 @@
   });
   $('.item').on('click', function () {
     if ($(this).text()) {
-      location.href = '/char/browse?{{kind}}=' + $(this).text() + '&from=' + encodeFrom();
+      setStorage('from', location.href);
+      location.href = '/char/browse?{{kind}}=' + $(this).text() + '&from=1';
     }
   });
 </script>

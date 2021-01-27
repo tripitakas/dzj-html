@@ -476,26 +476,30 @@
   // 修改字框
   $('.btn-box').on('click', function () {
     let name = $(this).parent().parent().find('.name').text();
-    location.href = `/page/box/${name}?from=` + encodeFrom();
+    setStorage('from', location.href);
+    location.href = `/page/box/${name}?from=1`;
   });
 
   // 修改文字
   $('.btn-text').on('click', function () {
     let name = $(this).parent().parent().find('.name').text();
-    location.href = `/page/txt/${name}?from=` + encodeFrom();
+    setStorage('from', location.href);
+    location.href = `/page/txt/${name}?from=1`;
   });
 
   // 文本匹配-OCR列文、比对文本、校对文本
   $('.txt_match a').on('click', function () {
     let name = $(this).parent().parent().find('.name').text();
-    location.href = `/page/txt_match/${name}?field=${$(this).attr("title")}&from=` + encodeFrom();
+    setStorage('from', location.href);
+    location.href = `/page/txt_match/${name}?field=${$(this).attr("title")}&from=1`;
   });
 
   // 浏览页面
   $('.action .btn-browse').on('click', function () {
-    let name = $(this).parent().siblings('.name').text();
+    setStorage('from', location.href);
     let symbol = location.search ? '&' : '?';
-    location.href = '/page/browse/' + name + location.search + symbol + 'from=' + encodeFrom();
+    let name = $(this).parent().siblings('.name').text();
+    location.href = '/page/browse/' + name + location.search + symbol + 'from=1';
   });
 
   // 查看详情

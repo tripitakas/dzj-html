@@ -217,13 +217,16 @@
     $('#more-group').toggleClass('hide');
   });
   $('#btn-box').on('click', function () {
-    location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    location.href = '/page/box/{{page["name"]}}?from=1';
   });
   $('#btn-txt').on('click', function () {
-    location.href = '/page/txt/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    location.href = '/page/txt/{{page["name"]}}?from=1';
   });
   $('#btn-cmp').on('click', function () {
-    location.href = '/page/find_cmp/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    location.href = '/page/find_cmp/{{page["name"]}}?from=1';
   });
   $('#btn-prev').on('click', () => go('prev'));
   $('#btn-next').on('click', () => go('next'));

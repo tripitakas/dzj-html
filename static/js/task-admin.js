@@ -21,14 +21,16 @@ $('.sty-table td.return_reason').on('click', function () {
 // 查看页面
 $('.sty-table td.doc_id').on('click', function () {
   if ($(this).text().length) {
-    location.href = '/page/browse/' + $(this).text() + '?from=' + encodeFrom();
+    setStorage('from', location.href);
+    location.href = '/page/browse/' + $(this).text() + '?from=1';
   }
 });
 // 浏览任务
 $('.sty-table .action .btn-browse').on('click', function () {
+  setStorage('from', location.href);
   let node = $(this).parent().parent();
   let taskType = node.find('.task_type').attr('title');
-  location.href = '/task/browse/' + taskType + '/' + node.attr('id') + '?from=' + encodeFrom();
+  location.href = '/task/browse/' + taskType + '/' + node.attr('id') + '?from=1';
 });
 // 任务详情
 $('.sty-table .action .btn-detail').on('click', function () {

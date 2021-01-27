@@ -123,9 +123,11 @@ function decodeFrom() {
     if (from.indexOf('?') === -1)
       from = from.replace('&', '?');
   }
+  
   return from;
   // return deleteParam(from, 'to');
 }
+
 
 /* 时间相关*/
 function toLocalTime(isoTimeStamp) {
