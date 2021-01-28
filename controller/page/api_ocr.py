@@ -167,8 +167,7 @@ class SubmitTasksApi(PageHandler):
         if not page:
             return e.no_object
         # 更新列框文本
-        self.update_box_cid(self.prop(task, 'result.columns'))
-        columns1 = {c['cid']: c for c in self.prop(task, 'result.columns')}
+        columns1 = {c['cid']: c for c in self.prop(task, 'result.columns') if c.get('cid')}
         for c in page['columns']:
             oc = columns1.get(c['cid'])
             if not oc:  # 报错以便通过失败的任务及时发现问题
@@ -180,7 +179,7 @@ class SubmitTasksApi(PageHandler):
                 if len(c['sub_columns']) != len(oc['sub_columns']):
                     return e.box_not_identical[0], '列框（cid：%s）的子列数量不一致' % c['cid']
                 for i, sub in enumerate(c['sub_columns']):
-                    o_sub = oc['sub_columns']
+                    o_sub = oc['sub_columns'][i]
                     sub.update({k: o_sub.get(k) or sub.get(k) for k in ['lc', 'ocr_txt']})
         # 更新字框文本
         chars1 = {c['cid']: c for c in self.prop(task, 'result.chars') if c.get('cid')}
