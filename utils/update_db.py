@@ -30,8 +30,6 @@ def index_db(db):
 
 def main(db_name='tripitaka', uri='localhost', func='index_db', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
-    uri_prod = 'mongodb://tripitaka-product:sm2019321-321.product@111.198.8.162:29019'
-    db = pymongo.MongoClient(uri_prod)['tripitaka-product']
     eval(func)(db, **kwargs)
 
 
