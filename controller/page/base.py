@@ -305,45 +305,45 @@ class PageHandler(Page, TaskHandler, Box):
                 col2chars[column_id].append(c)
             else:
                 col2chars[column_id] = [c]
-
         cid2char = {c['cid']: c for c in page['chars'] if c.get('cid')}
         for col in page['columns']:
             if not col.get('ocr_txt') or not col.get('block_no'):
                 continue
-            # 先把字数相同的情况，直接依次进行适配
-            match = True
+            # 1.先把字数相同的情况，直接依次进行适配
+            matched = None
             col_chars = col2chars.get(col['column_id'])
             ocr_col, lc_col = col.get('ocr_txt') or '', col.get('lc') or []
             if col.get('sub_columns'):
                 ocr_col, lc_col = '', []
-                ocr_col = ''.join([sub['ocr_txt'] for sub in col['sub_columns'] if sub.get('ocr_txt')])
                 for sub in col['sub_columns']:
                     lc_col += sub.get('lc') or []
                     ocr_col += sub.get('ocr_txt') or ''
-                    if sub.get('cids') and len(sub.get('ocr_txt')) == len(sub['cids']):
-                        for i, cid in enumerate(sub['cids']):
+                    if sub.get('char_cids') and len(sub.get('ocr_txt')) == len(sub['char_cids']):
+                        for i, cid in enumerate(sub['char_cids']):
                             if cid2char.get(cid):
                                 cid2char[cid]['ocr_col'] = sub['ocr_txt'][i]
                                 if sub.get('lc'):
                                     cid2char[cid]['lc'] = sub['lc'][i]
                     else:
-                        match = False
-            if not match and col_chars and len(col_chars) == len(ocr_col):
-                match = True
+                        matched = False
+            if matched in [None, False] and col_chars and len(col_chars) == len(ocr_col):
+                matched = True
                 for i, c in enumerate(col_chars):
                     c['ocr_col'] = ocr_col[i]
                     if col.get('lc'):
                         c['lc'] = lc_col[i]
-            # 次针对失配的情况，再通过diff算法进行适配
-            if not match and col_chars:
+            # 2.次针对失配的情况，再通过diff算法进行适配
+            if matched in [None, False] and col_chars:
                 base = ''.join([c['ocr_txt'] for c in col_chars])
                 segments = Diff.diff(base, ocr_col, check_variant=False)[0]
                 idx1, idx2 = 0, 0
                 for i, seg in enumerate(segments):
                     if len(seg['base']) == len(seg['cmp1']):
                         for n in range(len(seg['base'])):
-                            col_chars[idx1]['ocr_col'] = ocr_col[idx2]
-                            col_chars[idx1]['lc'] = lc_col[idx2]
+                            if not col_chars[idx1].get('ocr_col'):
+                                col_chars[idx1]['ocr_col'] = ocr_col[idx2]
+                            if not col_chars[idx1].get('lc'):
+                                col_chars[idx1]['lc'] = lc_col[idx2]
                             idx1, idx2 = idx1 + 1, idx2 + 1
                     else:
                         idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp1'])
