@@ -154,7 +154,10 @@ class SubmitTasksApi(PageHandler):
         update['page_code'] = hp.align_code(page['name'])
         update['create_time'] = self.now()
         # 将列文本适配至字框
-        self.apply_ocr_col(update)
+        try:
+            self.apply_ocr_col(update)
+        except Exception as err:
+            update['apply_error'] = str(err)
         # 更新页数据和相关任务
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
@@ -189,12 +192,14 @@ class SubmitTasksApi(PageHandler):
                 return e.box_not_identical[0], '字框（cid：%s）缺失' % c['cid']
             c.update({k: oc.get(k) or c.get(k) for k in ['cc', 'alternatives', 'ocr_txt']})
         # 将列文本适配至字框
-        self.apply_ocr_col(page)
+        try:
+            self.apply_ocr_col(page)
+        except Exception as err:
+            page['apply_error'] = str(err)
         # 更新页数据和相关任务
-        self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
-            'chars': page['chars'], 'columns': page['columns'],
-            'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED,
-        }})
+        update = {f: page[f] for f in ['chars', 'columns', 'apply_error'] if page.get(f)}
+        update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
+        self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),
