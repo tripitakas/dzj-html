@@ -326,6 +326,7 @@ class PageHandler(Page, TaskHandler, Box):
                                     cid2char[cid]['lc'] = sub['lc'][i]
                     else:
                         matched = False
+            ocr_col = ocr_col.replace(' ', '')  # 列引擎可以识别图片中的空格，适配的时候要去掉
             if matched in [None, False] and col_chars and len(col_chars) == len(ocr_col):
                 matched = True
                 for i, c in enumerate(col_chars):
