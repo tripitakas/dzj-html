@@ -288,6 +288,67 @@ class PageHandler(Page, TaskHandler, Box):
 
     # ----------文本处理----------
     @classmethod
+    def apply_ocr_col(cls, page):
+        """ 将列文本和置信度适配给字框"""
+        if not page.get('chars') or not page.get('columns'):
+            return
+        # init
+        cid2char, col2chars = {}, {}
+        for c in page['chars']:
+            c.pop('lc', 0)
+            c.pop('ocr_col', 0)
+            if c.get('deleted'):
+                continue
+            cid2char[c['cid']] = c
+            column_id = 'b%sc%s' % (c['block_no'], c['column_no'])
+            if col2chars.get(column_id):
+                col2chars[column_id].append(c)
+            else:
+                col2chars[column_id] = [c]
+
+        cid2char = {c['cid']: c for c in page['chars'] if c.get('cid')}
+        for col in page['columns']:
+            if not col.get('ocr_txt') or not col.get('block_no'):
+                continue
+            # 先把字数相同的情况，直接依次进行适配
+            match = True
+            col_chars = col2chars.get(col['column_id'])
+            ocr_col, lc_col = col.get('ocr_txt') or '', col.get('lc') or []
+            if col.get('sub_columns'):
+                ocr_col, lc_col = '', []
+                ocr_col = ''.join([sub['ocr_txt'] for sub in col['sub_columns'] if sub.get('ocr_txt')])
+                for sub in col['sub_columns']:
+                    lc_col += sub.get('lc') or []
+                    ocr_col += sub.get('ocr_txt') or ''
+                    if sub.get('cids') and len(sub.get('ocr_txt')) == len(sub['cids']):
+                        for i, cid in enumerate(sub['cids']):
+                            if cid2char.get(cid):
+                                cid2char[cid]['ocr_col'] = sub['ocr_txt'][i]
+                                if sub.get('lc'):
+                                    cid2char[cid]['lc'] = sub['lc'][i]
+                    else:
+                        match = False
+            if not match and col_chars and len(col_chars) == len(ocr_col):
+                match = True
+                for i, c in enumerate(col_chars):
+                    c['ocr_col'] = ocr_col[i]
+                    if col.get('lc'):
+                        c['lc'] = lc_col[i]
+            # 次针对失配的情况，再通过diff算法进行适配
+            if not match and col_chars:
+                base = ''.join([c['ocr_txt'] for c in col_chars])
+                segments = Diff.diff(base, ocr_col, check_variant=False)[0]
+                idx1, idx2 = 0, 0
+                for i, seg in enumerate(segments):
+                    if len(seg['base']) == len(seg['cmp1']):
+                        for n in range(len(seg['base'])):
+                            col_chars[idx1]['ocr_col'] = ocr_col[idx2]
+                            col_chars[idx1]['lc'] = lc_col[idx2]
+                            idx1, idx2 = idx1 + 1, idx2 + 1
+                    else:
+                        idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp1'])
+
+    @classmethod
     def apply_txt(cls, page, field):
         """ 将文本适配至page['chars']，包括ocr_col、cmp_txt、txt等。
         用field文本和ocr文本diff，针对异文的几种情况：
