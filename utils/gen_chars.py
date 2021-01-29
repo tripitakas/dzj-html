@@ -50,7 +50,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
     total_count = db.page.count_documents(condition)
     print('[%s]start gen chars, condition=%s, count=%s' % (hp.get_date_time(), condition, total_count))
     fields1 = ['name', 'source', 'columns', 'chars']
-    fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
+    fields2 = ['source', 'cid', 'char_id', 'txt', 'cmb_txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
     for i in range(int(math.ceil(total_count / once_size))):
         pages = list(db.page.find(condition, {k: 1 for k in fields1}).skip(i * once_size).limit(once_size))
         p_names = [p['name'] for p in pages]
@@ -69,16 +69,11 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'lc'] if c.get(k)})
-                        # ocr_txt
-                        m['ocr_txt'] = Ph.get_cmb_txt(c)
-                        m['txt'] = c.get('txt') or m['ocr_txt']
-                        # un_required
-                        m['un_required'] = Ph.is_un_required(c)
-                        # diff
-                        m['is_diff'] = Ph.is_source_txt_diff(c)
+                        m['cmb_txt'] = Ph.get_cmb_txt(c)
+                        m['sc'] = Ph.get_equal_level(c)
+                        m['pc'] = Ph.get_prf_level(c)
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
-                        if 'column_no' not in c:
-                            c['column_no'] = c.pop('line_no')
+                        c['column_no'] = c.get('column_no') or c.pop('line_no')
                         m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
                         m['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
                         chars.append(m)
