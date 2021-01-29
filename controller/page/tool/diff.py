@@ -5,7 +5,13 @@
 @time: 2019/6/4
 """
 import re
-from .variant import is_variant
+import sys
+from os import path
+
+BASE_DIR = path.dirname(path.dirname(__file__))
+sys.path.append(BASE_DIR)
+
+from controller.page.tool.variant import is_variant
 
 try:
     from cdifflib import CSequenceMatcher

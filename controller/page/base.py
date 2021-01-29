@@ -328,7 +328,7 @@ class PageHandler(Page, TaskHandler, Box):
                         col_chars[idx1]['ocr_col'] = ocr_col[idx2]
                         col_chars[idx1]['lc'] = lc_col[idx2]
                         idx1, idx2 = idx1 + 1, idx2 + 1
-                else:
+                else:  # 长度不一致，直接丢弃
                     idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp1'])
 
     @classmethod
