@@ -17,28 +17,6 @@ from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
-def update_txt(page):
-    from utils import update_char as uc
-    changed = set()
-    for c in page.get('chars') or []:
-        changed.add(uc.update_txt_variant(c))
-        changed.add(uc.update_txt_type(c))
-        changed.add(uc.update_txt_logs(c))
-        changed.add(uc.update_ocr_txt(c))
-    return True in changed
-
-
-def update_box_level(page):
-    changed = False
-    for f in ['blocks', 'columns', 'chars']:
-        boxes = page.get(f) or []
-        for b in boxes:
-            if not b.get('box_logs') and b.get('box_level'):
-                b.pop('box_level', 0)
-                changed = True
-    return changed
-
-
 def update_box_log(page):
     for f in ['blocks', 'columns', 'chars']:
         boxes = page.get(f) or []
@@ -90,7 +68,7 @@ def update_box_log(page):
     return True
 
 
-def update_page(db):
+def update_page(db, fields=None):
     """ 更新page表（注：更新之前去掉updated字段"""
     size = 10
     # 更新1200标注数据，准备聚类校对
@@ -104,17 +82,16 @@ def update_page(db):
         pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
             print('[%s]%s' % (hp.get_date_time(), p['name']))
-            Ph.apply_ocr_col(p)
-            for b in p.get('chars') or []:
-                b['ocr_txt'] = (b.get('alternatives') or '')[:1]
-                b['cmb_txt'] = Ph.get_cmb_txt(b)
-                b['pc'] = Ph.get_prf_level(b)
-                b['sc'] = Ph.get_equal_level(b)
-                if not b.get('txt_logs'):
-                    b.pop('txt', 0)
-            update = {'updated': True}
-            update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
-            db.page.update_one({'_id': p['_id']}, {'$set': update})
+            if not p.get('chars'):
+                continue
+            for b in p.get('chars'):
+                if 'cmb_txt' in fields:
+                    b['cmb_txt'] = Ph.get_cmb_txt(b)
+                if 'pc' in fields:
+                    b['pc'] = Ph.get_prf_level(b)
+                if 'sc' in fields:
+                    b['sc'] = Ph.get_equal_level(b)
+            db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars'], 'updated': True}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
