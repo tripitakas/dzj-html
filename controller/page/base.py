@@ -318,8 +318,11 @@ class PageHandler(Page, TaskHandler, Box):
                     lc_col += sub.get('lc') or []
                     ocr_col += sub.get('ocr_txt') or ''
             # 列引擎可以识别图片中的空格，适配前要去掉
+            lc_col = lc_col if isinstance(lc_col, list) else []
             lc_col = [lc for i, lc in enumerate(lc_col) if ocr_col[i] != ' ']
             ocr_col = ocr_col.replace(' ', '')
+            if not ocr_col:
+                continue
             # 通过diff算法进行适配
             ocr_txt = ''.join([c['ocr_txt'] for c in col_chars])
             segments = Diff.diff(ocr_txt, ocr_col, check_variant=False, filter_junk=False)[0]
