@@ -501,14 +501,14 @@ class PageHandler(Page, TaskHandler, Box):
             if ocr_txt == cmp_txt:
                 pc = '29005'
             else:
-                x = vt.is_variant(ocr_txt, cmp_txt)
+                x = '1' if vt.is_variant(ocr_txt, cmp_txt) else '0'
                 y = '1' if cmp_txt in ch.get('alternatives', '') else '0'
                 pc = '18%s%s5' % (x, y)
         elif cls.is_valid_txt(ocr_col):  # 字列存在，系统调整量为0
             if ocr_txt == ocr_col:
                 pc = '29000'
             else:
-                x = vt.is_variant(ocr_txt, ocr_col)
+                x = '1' if vt.is_variant(ocr_txt, ocr_col) else '0'
                 y = '1' if ocr_col in ch.get('alternatives', '') else '0'
                 pc = '18%s%s0' % (x, y)
         else:  # 仅字存在
