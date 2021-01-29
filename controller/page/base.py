@@ -315,7 +315,8 @@ class PageHandler(Page, TaskHandler, Box):
             if col.get('sub_columns'):
                 ocr_col, lc_col = '', []
                 for sub in col['sub_columns']:
-                    lc_col += sub.get('lc') or []
+                    if isinstance(sub.get('lc'), list):
+                        lc_col += sub.get('lc') or []
                     ocr_col += sub.get('ocr_txt') or ''
             # 列引擎可以识别图片中的空格，适配前要去掉
             lc_col = lc_col if isinstance(lc_col, list) else []
@@ -326,12 +327,13 @@ class PageHandler(Page, TaskHandler, Box):
             # 通过diff算法进行适配
             ocr_txt = ''.join([c['ocr_txt'] for c in col_chars])
             segments = Diff.diff(ocr_txt, ocr_col, check_variant=False, filter_junk=False)[0]
-            idx1, idx2 = 0, 0
+            idx1, idx2, lc_len = 0, 0, len(lc_col)
             for i, seg in enumerate(segments):
                 if len(seg['base']) == len(seg['cmp1']):
                     for n in range(len(seg['base'])):
                         col_chars[idx1]['ocr_col'] = ocr_col[idx2]
-                        col_chars[idx1]['lc'] = lc_col[idx2]
+                        if idx2 < lc_len:
+                            col_chars[idx1]['lc'] = lc_col[idx2]
                         idx1, idx2 = idx1 + 1, idx2 + 1
                 else:  # 长度不一致，直接丢弃
                     idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp1'])
