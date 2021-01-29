@@ -166,7 +166,7 @@ class PageTxt1Handler(PageHandler):
             nm_a = sum(ch_a) / len(ch_a)
             for ch in page['chars']:
                 ch['name'] = page['name'] + '_' + str(ch['cid'])
-                ch['alternatives'] = ch.get('alternatives', '').replace('"', '').replace("'", '')
+                ch['alternatives'] = (ch.get('alternatives') or '').replace('"', '').replace("'", '')
                 ch['ocr_txt'] = ch.get('ocr_txt', '').replace('"', '').replace("'", '')
                 ch['txt'] = ch.get('txt', '').replace('"', '').replace("'", '')
                 ch['txt'] = ch['txt'] or ch['ocr_txt'] or '■'

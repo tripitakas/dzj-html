@@ -3,6 +3,7 @@
 
 import re
 import sys
+import json
 import shutil
 import pymongo
 from glob2 import glob
@@ -21,7 +22,7 @@ from controller.page.base import PageHandler as Ph
 
 
 def case1(db):
-    name = 'GL_922_1_6'
+    name = 'YB_25_692'
     page = db.page.find_one({'name': name})
     Ph.apply_ocr_col(page)
     db.page.update_one({'name': name}, {'$set': {'chars': page['chars']}})
@@ -35,8 +36,16 @@ def case2(db):
         print(s)
 
 
-def main(db_name='tripitaka', uri='localhost', func='case1', **kwargs):
+def case3(db):
+    ch = dict(alternatives='爲磨卷上', ocr_col='為', cmp_txt='')
+    n = Ph.get_prf_level(ch)
+    print(n)
+
+
+def main(db_name='tripitaka', uri='localhost', func='case3', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
+    uri_dev = 'mongodb://tripitaka-dev:sm2019321-321.dev@111.198.8.162:29019'
+    db = pymongo.MongoClient(uri_dev)['tripitaka']
     eval(func)(db, **kwargs)
 
 

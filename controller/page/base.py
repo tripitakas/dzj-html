@@ -404,9 +404,10 @@ class PageHandler(Page, TaskHandler, Box):
             if field in ['ocr_col', 'cmp_txt', 'ocr_txt']:
                 return box.get(field) or ''
             if field == 'ocr_chr':
-                return box.get('alternatives', '')[:1]
+                return (box.get('alternatives') or '')[:1]
             if field == 'txt':
-                return box.get('txt') or box.get('alternatives', '')[:1] or box.get('ocr_col') or box.get('cmp_txt', '')
+                return box.get('txt') or (box.get('alternatives') or '')[:1] or box.get('ocr_col') or box.get('cmp_txt',
+                                                                                                              '')
 
         boxes = page.get('chars')
         if not boxes:
@@ -450,87 +451,102 @@ class PageHandler(Page, TaskHandler, Box):
     @classmethod
     def get_cmb_txt(cls, ch):
         """ 选择综合文本"""
-        cmb_txt = ch.get('alternatives', '')[:1]
+        cmb_txt = (ch.get('alternatives') or '')[:1]
         if cls.is_valid_txt(ch.get('cmp_txt')) and cmb_txt != ch['cmp_txt']:
-            if ch['cmp_txt'] == ch.get('ocr_col') or ch['cmp_txt'] in ch.get('alternatives', ''):
+            if ch['cmp_txt'] == ch.get('ocr_col') or ch['cmp_txt'] in (ch.get('alternatives') or ''):
                 cmb_txt = ch['cmp_txt']
         return cmb_txt
 
     @classmethod
     def get_equal_level(cls, ch):
         """ 获取相同等级"""
-        sc, ocr_txt = '', ch.get('alternatives', '')[:1]
-        ocr_col, cmp_txt = ch.get('ocr_col'), ch.get('cmp_txt')
-        if cls.is_valid_txt(cmp_txt) and cls.is_valid_txt(ocr_col):  # 三字存在
-            if ocr_txt == ocr_col and ocr_txt == cmp_txt:
-                sc = '39'
-            elif ocr_txt == cmp_txt:
-                sc = '28'
-            elif ocr_txt == ocr_col:
-                sc = '28'
-            elif ocr_col == cmp_txt:
-                sc = '28'
-            else:
-                sc = '06'
-        elif cls.is_valid_txt(cmp_txt):  # 字比存在
-            if ocr_txt == cmp_txt:
-                sc = '29'
-            else:
-                sc = '18'
-        elif cls.is_valid_txt(ocr_col):  # 字列存在
-            if ocr_txt == ocr_col:
-                sc = '29'
-            else:
-                sc = '18'
-        else:  # 仅字存在
-            sc = '09'
-        return int(sc)
+        ocr_txt, ocr_col, cmp_txt = (ch.get('alternatives') or '')[:1], ch.get('ocr_col'), ch.get('cmp_txt')
+        valid = [t for t in [ocr_txt, ocr_col, cmp_txt] if cls.is_valid_txt(t)]
+        uni = len(set(valid))
+        if len(valid) == 3:
+            if uni == 1:  # 三字相同
+                return 39
+            if uni == 2:  # 两同一异
+                return 28
+            if uni == 3:  # 三字不同
+                return 6
+        elif len(valid) == 2:
+            if uni == 1:  # 两字相同
+                return 29
+            if uni == 2:  # 两字不同
+                return 18
+        elif len(valid) == 1:
+            return 9  # 仅有一字
+        else:
+            return 0  # 没有文本
 
     @classmethod
     def get_prf_level(cls, ch):
         """ 获取校对等级、相同等级"""
-        pc, ocr_txt = '', ch.get('alternatives', '')[:1]
-        ocr_col, cmp_txt = ch.get('ocr_col'), ch.get('cmp_txt')
-        if cls.is_valid_txt(cmp_txt) and cls.is_valid_txt(ocr_col):  # 三字存在
-            if ocr_txt == ocr_col and ocr_txt == cmp_txt:
+        ocr_txt, ocr_col, cmp_txt = (ch.get('alternatives') or '')[:1], ch.get('ocr_col'), ch.get('cmp_txt')
+        valid = [t for t in [ocr_txt, ocr_col, cmp_txt] if cls.is_valid_txt(t)]
+        pc, uni = '', len(set(valid))
+        if len(valid) == 3:
+            if uni == 1:  # 三字相同
                 pc = '39000'
-            elif ocr_txt == cmp_txt:
-                pc = '28005'  # 系统调整量为5
-            elif ocr_txt == ocr_col:
-                pc = '28003'  # 系统调整量为3
-            elif ocr_col == cmp_txt:
-                pc = '28000'  # 系统调整量为0
+            elif uni == 2:  # 两同一异
+                if ocr_txt == cmp_txt:
+                    x = '1' if vt.is_variant(ocr_txt, ocr_col) else '0'
+                    y = '1' if ocr_col in (ch.get('alternatives') or '') else '0'
+                    pc = '28%s%s5' % (x, y)
+                elif ocr_txt == ocr_col:
+                    x = '1' if vt.is_variant(ocr_txt, cmp_txt) else '0'
+                    y = '1' if cmp_txt in (ch.get('alternatives') or '') else '0'
+                    pc = '28%s%s3' % (x, y)
+                elif ocr_col == cmp_txt:
+                    x = '1' if vt.is_variant(ocr_txt, cmp_txt) else '0'
+                    y = '1' if cmp_txt in (ch.get('alternatives') or '') else '0'
+                    pc = '28%s%s0' % (x, y)
+            elif uni == 3:  # 三字不同
+                pc = int('06000')
+        elif len(valid) == 2:
+            if cls.is_valid_txt(ocr_txt) and cls.is_valid_txt(cmp_txt):  # 字比存在，系统调整量为5
+                if ocr_txt == cmp_txt:
+                    pc = '29005'
+                else:
+                    x = '1' if vt.is_variant(ocr_txt, cmp_txt) else '0'
+                    y = '1' if cmp_txt in (ch.get('alternatives') or '') else '0'
+                    pc = '07%s%s5' % (x, y)
+            elif cls.is_valid_txt(ocr_txt) and cls.is_valid_txt(ocr_col):  # 字列存在，系统调整量为3
+                if ocr_txt == ocr_col:
+                    pc = '29003'
+                else:
+                    x = '1' if vt.is_variant(ocr_txt, ocr_col) else '0'
+                    y = '1' if ocr_col in (ch.get('alternatives') or '') else '0'
+                    pc = '07%s%s3' % (x, y)
+            elif cls.is_valid_txt(cmp_txt) and cls.is_valid_txt(ocr_col):  # 比列存在，系统调整量为0
+                if cmp_txt == ocr_col:
+                    pc = '29000'
+                else:
+                    x = '1' if vt.is_variant(cmp_txt, ocr_col) else '0'
+                    pc = '07%s%s0' % (x, 0)
+        elif len(valid) == 1:
+            if cls.is_valid_txt(ocr_txt):
+                pc = '08005'
+            elif cls.is_valid_txt(cmp_txt):
+                pc = '08003'
             else:
-                pc = '06000'
-        elif cls.is_valid_txt(cmp_txt):  # 字比存在，系统调整量为5
-            if ocr_txt == cmp_txt:
-                pc = '29005'
-            else:
-                x = '1' if vt.is_variant(ocr_txt, cmp_txt) else '0'
-                y = '1' if cmp_txt in ch.get('alternatives', '') else '0'
-                pc = '18%s%s5' % (x, y)
-        elif cls.is_valid_txt(ocr_col):  # 字列存在，系统调整量为0
-            if ocr_txt == ocr_col:
-                pc = '29000'
-            else:
-                x = '1' if vt.is_variant(ocr_txt, ocr_col) else '0'
-                y = '1' if ocr_col in ch.get('alternatives', '') else '0'
-                pc = '18%s%s0' % (x, y)
-        else:  # 仅字存在
-            pc = '09000'
+                pc = '08000'
+        else:
+            pc = '00000'
         return int(pc)
 
     @classmethod
     def is_source_txt_diff(cls, ch):
         """ 来源文本是否不一致"""
-        txts = [ch.get('alternatives', '')[:1], ch.get('ocr_col'), ch.get('cmp_txt')]
+        txts = [(ch.get('alternatives') or '')[:1], ch.get('ocr_col'), ch.get('cmp_txt')]
         return len(set(t for t in txts if cls.is_valid_txt(t))) > 1
 
     @classmethod
     def is_un_required(cls, ch):
         """ 是否不必校对"""
         return cls.is_valid_txt(ch.get('cmp_txt')) and (
-                ch['cmp_txt'] == ch.get('alternatives', '')[:1] or ch['cmp_txt'] == ch.get('ocr_col'))
+                ch['cmp_txt'] == (ch.get('alternatives') or '')[:1] or ch['cmp_txt'] == ch.get('ocr_col'))
 
     @classmethod
     def html2txt(cls, html):

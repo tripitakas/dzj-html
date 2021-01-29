@@ -92,9 +92,9 @@ def update_box_log(page):
 
 def update_page(db):
     """ 更新page表（注：更新之前去掉updated字段"""
-    size = 1000
+    size = 10
     # 更新1200标注数据，准备聚类校对
-    cond = {'source': '1200标注数据'}
+    cond = {'source': '1200标注数据', 'updated': None}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
@@ -103,16 +103,15 @@ def update_page(db):
         fields = ['name', 'blocks', 'columns', 'chars']
         pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
+            print('[%s]%s' % (hp.get_date_time(), p['name']))
             Ph.apply_ocr_col(p)
             for b in p.get('chars') or []:
-                b['ocr_txt'] = b.get('alternatives', '')[:1]
+                b['ocr_txt'] = (b.get('alternatives') or '')[:1]
                 b['cmb_txt'] = Ph.get_cmb_txt(b)
                 b['pc'] = Ph.get_prf_level(b)
                 b['sc'] = Ph.get_equal_level(b)
                 if not b.get('txt_logs'):
                     b.pop('txt', 0)
-
-            print('[%s]%s' % (hp.get_date_time(), p['name']))
             update = {'updated': True}
             update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
             db.page.update_one({'_id': p['_id']}, {'$set': update})
