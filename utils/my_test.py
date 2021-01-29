@@ -44,8 +44,6 @@ def case3(db):
 
 def main(db_name='tripitaka', uri='localhost', func='case3', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
-    uri_dev = 'mongodb://tripitaka-dev:sm2019321-321.dev@111.198.8.162:29019'
-    db = pymongo.MongoClient(uri_dev)['tripitaka']
     eval(func)(db, **kwargs)
 
 
