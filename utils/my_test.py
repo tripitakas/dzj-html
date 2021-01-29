@@ -24,7 +24,7 @@ def case1(db):
     name = 'GL_922_1_6'
     page = db.page.find_one({'name': name})
     Ph.apply_ocr_col(page)
-    db.page.update_one({'name': name}, {'$set': {'columns': page['columns'], 'chars': page['chars']}})
+    db.page.update_one({'name': name}, {'$set': {'chars': page['chars']}})
 
 
 def case2(db):
@@ -35,7 +35,7 @@ def case2(db):
         print(s)
 
 
-def main(db_name='tripitaka', uri='localhost', func='case2', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='case1', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

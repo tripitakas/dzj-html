@@ -322,7 +322,7 @@ class PageHandler(Page, TaskHandler, Box):
             ocr_col = ocr_col.replace(' ', '')
             # 通过diff算法进行适配
             ocr_txt = ''.join([c['ocr_txt'] for c in col_chars])
-            segments = Diff.diff(ocr_txt, ocr_col, check_variant=False)[0]
+            segments = Diff.diff(ocr_txt, ocr_col, check_variant=False, filter_junk=False)[0]
             idx1, idx2 = 0, 0
             for i, seg in enumerate(segments):
                 if len(seg['base']) == len(seg['cmp1']):

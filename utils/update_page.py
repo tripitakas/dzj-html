@@ -93,6 +93,7 @@ def update_box_log(page):
 def update_page(db):
     """ 更新page表（注：更新之前去掉updated字段"""
     size = 1000
+    # 更新1200标注数据，准备聚类校对
     cond = {'source': '1200标注数据'}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
@@ -102,6 +103,7 @@ def update_page(db):
         fields = ['name', 'blocks', 'columns', 'chars']
         pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
+            Ph.apply_ocr_col(p)
             for b in p.get('chars') or []:
                 b['ocr_txt'] = b.get('alternatives', '')[:1]
                 b['cmb_txt'] = Ph.get_cmb_txt(b)
