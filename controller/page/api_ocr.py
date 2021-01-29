@@ -32,8 +32,7 @@ class FetchTasksApi(TaskHandler):
                 # 把layout/width/height/blocks/columns/chars等参数传过去
                 for t in tasks:
                     page = pages.get(t['doc_id'])
-                    PageHandler.extract_sub_col(page)
-                    PageHandler.pack_cut_boxes(page)
+                    PageHandler.pack_cut_boxes(page, log=False, sub_columns=True)
                     t['params'] = page
             return [dict(task_id=str(t['_id']), num=t.get('num'), priority=t.get('priority'),
                          page_name=t.get('doc_id'), params=t.get('params')) for t in tasks]

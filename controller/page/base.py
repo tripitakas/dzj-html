@@ -223,14 +223,16 @@ class PageHandler(Page, TaskHandler, Box):
         return self.get_web_img(page_name, 'page')
 
     @classmethod
-    def pack_cut_boxes(cls, page):
-        fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed', 'box_logs', 'block_no']
+    def pack_cut_boxes(cls, page, log=True, sub_columns=False):
+        fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed']
+        log and fields.extend(['box_logs'])
         if page.get('blocks'):
-            cls.pick_fields(page['blocks'], fields + ['block_id'])
+            cls.pick_fields(page['blocks'], fields + ['block_no', 'block_id'])
         if page.get('columns'):
-            cls.pick_fields(page['columns'], fields + ['column_no', 'column_id'])
+            ext = ['sub_columns'] if sub_columns else []
+            cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id'] + ext)
         if page.get('chars'):
-            cls.pick_fields(page['chars'], fields + ['column_no', 'char_no', 'char_id', 'ocr_txt', 'txt'])
+            cls.pick_fields(page['chars'], fields + ['block_no', 'column_no', 'char_no', 'char_id', 'ocr_txt', 'txt'])
         if page.get('images'):
             cls.pick_fields(page['images'], fields + ['image_id'])
 
