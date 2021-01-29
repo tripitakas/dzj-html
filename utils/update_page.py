@@ -93,7 +93,7 @@ def update_box_log(page):
 def update_page(db):
     """ 更新page表（注：更新之前去掉updated字段"""
     size = 1000
-    cond = {}
+    cond = {'source': '1200标注数据'}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
@@ -103,16 +103,13 @@ def update_page(db):
         pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
             for b in p.get('chars') or []:
-                b['txt'] = Ph.get_cmb_txt(b)
-            for k in ['blocks', 'columns', 'chars']:
-                for b in p.get(k) or []:
-                    b.pop('box_level', 0)
-                    b.pop('box_logs', 0)
-                    b.pop('txt_level', 0)
-                    b.pop('txt_logs', 0)
-                    b.pop('added', 0)
-                    b.pop('changed', 0)
-                    b.pop('deleted', 0)
+                b['ocr_txt'] = b.get('alternatives', '')[:1]
+                b['cmb_txt'] = Ph.get_cmb_txt(b)
+                b['pc'] = Ph.get_prf_level(b)
+                b['sc'] = Ph.get_equal_level(b)
+                if not b.get('txt_logs'):
+                    b.pop('txt', 0)
+
             print('[%s]%s' % (hp.get_date_time(), p['name']))
             update = {'updated': True}
             update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
