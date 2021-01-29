@@ -78,8 +78,7 @@ def update_page(db, fields=None):
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        fields = ['name', 'blocks', 'columns', 'chars']
-        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(cond, {k: 1 for k in ['name', 'chars']}).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
             print('[%s]%s' % (hp.get_date_time(), p['name']))
             if not p.get('chars'):
