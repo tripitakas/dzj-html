@@ -14,7 +14,6 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
-from controller.page.base import PageHandler as Ph
 
 
 def update_box_log(page):
@@ -68,9 +67,9 @@ def update_box_log(page):
     return True
 
 
-def update_page(db, fields=None):
+def update_page(db):
     """ 更新page表（注：更新之前去掉updated字段"""
-    size = 10
+    size = 1000
     # 更新1200标注数据，准备聚类校对
     cond = {'source': '1200标注数据', 'updated': None}
     item_count = db.page.count_documents(cond)
@@ -84,12 +83,8 @@ def update_page(db, fields=None):
             if not p.get('chars'):
                 continue
             for b in p.get('chars'):
-                if 'cmb_txt' in fields:
-                    b['cmb_txt'] = Ph.get_cmb_txt(b)
-                if 'pc' in fields:
-                    b['pc'] = Ph.get_prf_level(b)
-                if 'sc' in fields:
-                    b['sc'] = Ph.get_equal_level(b)
+                b.pop('pc', 0)
+                b.pop('sc', 0)
             db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars'], 'updated': True}})
 
 

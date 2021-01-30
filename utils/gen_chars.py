@@ -34,7 +34,7 @@ def is_changed(a, b):
     return False
 
 
-def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, username=None):
+def gen_chars(db=None, db_name=None, uri=None, condition=None, source=None, page_names=None, username=None):
     """ 从页数据中导出字数据"""
     cfg = hp.load_config()
     db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
@@ -42,6 +42,8 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
     if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
         condition = {'name': {'$in': page_names}}
+    elif source:
+        condition = {'source': source}
     elif isinstance(condition, str):
         condition = json.loads(condition)
     elif not condition:
