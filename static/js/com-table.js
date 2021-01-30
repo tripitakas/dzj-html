@@ -202,7 +202,7 @@ $('.btn-remove').on('click', function () {
 $('.operation .bat-remove').on('click', function () {
   let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
   if (!ids.length) return showTips('提示', '当前没有选中任何记录', 3000);
-  let url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
+  let url = $(this).find('a').attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_ids: ids}}, function (res) {
       if (res.count) {
