@@ -12,21 +12,22 @@ class CharListHandler(CharHandler):
     URL = '/char/list'
 
     page_title = '字数据管理'
-    table_fields = ['has_img', 'source', 'page_name', 'cid', 'name', 'char_id', 'uid', 'box_level', 'pos', 'column',
-                    'alternatives', 'ocr_col', 'cmp_txt', 'ocr_txt', 'cc', 'lc', 'pc', 'sc', 'is_vague', 'is_deform',
-                    'uncertain', 'txt', 'nor_txt', 'txt_level', 'txt_logs', 'tasks', 'remark', 'updated_time']
+    table_fields = ['has_img', 'source', 'page_name', 'name', 'char_id', 'uid', 'pos', 'box_level', 'column',
+                    'alternatives', 'ocr_col', 'cmp_txt', 'cmb_txt', 'cc', 'lc', 'sc', 'pc',
+                    'is_vague', 'is_deform', 'uncertain', 'txt', 'nor_txt', 'remark',
+                    'txt_level', 'txt_logs', 'tasks', 'updated_time']
     update_fields = ['source', 'txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
-    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'box_level', 'pos', 'column', 'cc', 'lc', 'sc', 'is_vague',
-                   'is_deform', 'uncertain', 'nor_txt', 'txt_logs', 'tasks', 'remark', 'updated_time']
-    info_fields = ['source', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
+    hide_fields = ['page_name', 'char_id', 'uid', 'pos', 'box_level', 'column', 'cc', 'lc', 'pc',
+                   'is_vague', 'is_deform', 'uncertain', 'nor_txt', 'remark',
+                   'txt_logs', 'tasks', 'updated_time']
+    info_fields = ['source', 'txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
             {'operation': 'source', 'label': '按分类'},
-            {'operation': 'txt', 'label': '按原字'},
-            {'operation': 'ocr_txt', 'label': '按OCR'},
-            {'operation': 'nor_txt', 'label': '按正字'},
+            {'operation': 'txt', 'label': '按校对文字'},
+            {'operation': 'cmb_txt', 'label': '按综合OCR'},
         ]},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in CharHandler.task_names('char', True).items()
@@ -68,8 +69,8 @@ class CharListHandler(CharHandler):
 
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
-        if key in ['is_diff', 'un_required']:
-            return self.yes_no.get(value) or ''
+        if key in ['sc'] and value:
+            return self.equal_level.get(str(value)) or ''
         if key in ['cc', 'lc'] and value:
             return value / 1000
         if key == 'txt_logs' and value:
@@ -163,8 +164,8 @@ class CharStatHandler(CharHandler):
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
             kind = self.get_query_argument('kind', '')
-            if kind not in ['source', 'txt', 'ocr_txt', 'nor_txt']:
-                return self.send_error_response(e.statistic_type_error, message='只能按分类、正字、原字和OCR文字统计')
+            if kind not in ['source', 'txt', 'cmb_txt']:
+                return self.send_error_response(e.statistic_type_error, message='只能按分类、校对文字和综合OCR统计')
             aggregates = [{'$group': {'_id': '$' + kind, 'count': {'$sum': 1}}}]
             docs, pager, q, order = Char.aggregate_by_page(self, condition, aggregates, default_order='-count')
             self.render('char_statistic.html', docs=docs, pager=pager, q=q, order=order, kind=kind, Char=Char)

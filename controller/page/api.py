@@ -9,15 +9,15 @@ import random
 import logging
 from bson.objectid import ObjectId
 from tornado.escape import native_str, url_escape, to_basestring
-from .page import Page
-from .tool.diff import Diff
-from .base import PageHandler
 from controller import errors as e
 from controller import helper as h
 from controller import validate as v
+from controller.page.page import Page
+from controller.tool.diff import Diff
 from controller.base import BaseHandler
 from controller.char.base import CharHandler
-from .tool.esearch import find_one, find_neighbor
+from controller.page.base import PageHandler
+from controller.tool.esearch import find_one, find_neighbor
 from utils.gen_chars import gen_chars
 from utils.extract_img import extract_img
 

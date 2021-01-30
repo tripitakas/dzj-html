@@ -20,7 +20,7 @@ let l10n = {
   picked_before: '曾经领过的任务',
   lock_failed: '数据锁定失败',
   assigned: '任务指派成功',
-  txt: '原字',
+  txt: '校对文字',
   nor_txt: '正字',
   txt_type: '文字类型',
   create_time: '创建时间',

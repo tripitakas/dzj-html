@@ -11,7 +11,7 @@ from os import path
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from controller.page.tool.variant import is_variant
+from controller.tool.variant import is_variant
 
 try:
     from cdifflib import CSequenceMatcher

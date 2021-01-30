@@ -160,17 +160,20 @@ class Cut(object):
         if self.get_cfg('big_img.with_hash'):
             page_name = self.get_hash_name(page_name, salt=self.get_cfg('big_img.salt'))
         local_path = self.get_cfg('big_img.local_path')
-        img_path = '/pages/{0}/{1}.jpg'.format(inner_path, page_name)
+        img_path = 'pages/{0}/{1}.jpg'.format(inner_path, page_name)
         if local_path:
             if local_path[0] != '/':
                 local_path = path.join(hp.BASE_DIR, local_path)
-            img_file = path.join(local_path, img_path)
+            img_file, dirs = path.join(local_path, img_path), []
             if not path.exists(img_file):
+                dirs.append(img_file)
                 img_file = path.join(local_path, inner_path, page_name + '.jpg')
             if not path.exists(img_file):
+                dirs.append(img_file)
                 img_file = path.join(local_path, page_name + '.jpg')
             if not path.exists(img_file):
-                raise OSError('%s not exist' % img_file)
+                dirs.append(img_file)
+                raise OSError('%s not found in %s.' % (page_name, dirs))
             return img_file
         my_cloud = self.get_cfg('big_img.my_cloud')
         if not self.oss_big and my_cloud:
@@ -180,7 +183,7 @@ class Cut(object):
             tmp_file = path.join(hp.BASE_DIR, 'temp', 'cut', img_path)
             if not path.exists(path.dirname(tmp_file)):
                 os.makedirs(path.dirname(tmp_file))
-            self.oss_big.download_file(img_path, tmp_file)
+            self.oss_big.download_file('/' + img_path, tmp_file)
             return tmp_file
         raise OSError('oss not exist or not readable')
 

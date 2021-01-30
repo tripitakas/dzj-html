@@ -50,7 +50,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
     total_count = db.page.count_documents(condition)
     print('[%s]start gen chars, condition=%s, count=%s' % (hp.get_date_time(), condition, total_count))
     fields1 = ['name', 'source', 'columns', 'chars']
-    fields2 = ['source', 'cid', 'char_id', 'txt', 'cmb_txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
+    fields2 = ['source', 'cid', 'char_id', 'txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
     for i in range(int(math.ceil(total_count / once_size))):
         pages = list(db.page.find(condition, {k: 1 for k in fields1}).skip(i * once_size).limit(once_size))
         p_names = [p['name'] for p in pages]
@@ -62,13 +62,15 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                 id2col = {col['column_id']: {k: col[k] for k in ['cid', 'x', 'y', 'w', 'h']} for col in p['columns']}
                 for c in p['chars']:
                     try:
-                        if c['deleted']:
+                        if c.get('deleted'):
                             continue
                         char_names.append('%s_%s' % (p['name'], c['cid']))
                         m = dict(page_name=p['name'], source=p.get('source'), txt_level=0, img_need_updated=True)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
-                        m.update({k: int(c[k] * 1000) for k in ['cc', 'lc'] if c.get(k)})
+                        m.update({k: int((c.get(k) or 0) * 1000) for k in ['cc', 'lc']})
+                        m['ocr_txt'] = (c.get('alternatives') or '')[1:]
+                        m['ocr_col'] = c.get('ocr_col') or '■'
                         m['cmb_txt'] = Ph.get_cmb_txt(c)
                         m['sc'] = Ph.get_equal_level(c)
                         m['pc'] = Ph.get_prf_level(c)
