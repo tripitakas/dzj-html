@@ -146,6 +146,7 @@ class CharTaskDashBoardHandler(CharHandler):
 
 class CharTaskClusterHandler(CharHandler):
     URL = ['/task/@char_task/@task_id',
+           '/api/task/@char_task/@task_id',
            '/task/do/@char_task/@task_id',
            '/task/nav/@char_task/@task_id',
            '/task/browse/@char_task/@task_id',
@@ -154,50 +155,60 @@ class CharTaskClusterHandler(CharHandler):
     def get(self, task_type, task_id):
         """聚类校对页面"""
         try:
-            # 1.根据任务参数，设置任务过滤条件
-            params = self.task['params']
-            base = 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
-            base_txts = [c[base] for c in params]  # 聚类字种
-            user_level = self.get_user_txt_level(self, task_type)
-            cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
-            updated = self.get_query_argument('updated', 0)
-            cond['txt_level'] = {'$gt': user_level} if updated == 'unauth' else {'$lte': user_level}
-
-            debug, start = False, datetime.now()
-            # 按校对文字统计“校对字头”
-            counts = list(self.db.char.aggregate([
-                {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
-                {'$sort': {'count': -1}},
-            ]))
-            txts = [c['_id'] for c in counts]
-            debug and print('[1]aggregate chars:', (datetime.now() - start).total_seconds())
-            # 设置“当前字头”及相关的异体字
-            cur_txt, vts = self.get_query_argument('txt', ''), []
-            if cur_txt and cur_txt in txts:
-                cond.update({'txt': cur_txt})
-                vt = self.db.variant.find_one({'$or': [{'txt': cur_txt}, {'v_code': cur_txt}]}, {'nor_txt': 1})
-                nor_txt = vt and vt.get('nor_txt') or cur_txt
-                vts = list(self.db.variant.find({'$or': [{'nor_txt': nor_txt}, {'user_txt': nor_txt}]}))
-                vts = [v.get('txt') or v.get('v_code') for v in vts]
-            debug and print('[2]find variants:', (datetime.now() - start).total_seconds())
-            # 2.根据检索参数，设置用户过滤条件
-            cond.update(self.get_user_filter(task_type))
-            # 3.查找单字数据
-            self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
-            if self.mode in ['do', 'update']:
-                self.page_size = 100 if self.page_size > 100 else self.page_size
-            chars, pager, q, order = Char.find_by_page(self, cond, default_order=[('pc', 1), ('cc', 1)])
-            debug and print('[3]find chars:', (datetime.now() - start).total_seconds(), cond)
-            # 设置单字列图
-            for ch in chars:
-                column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
-                ch['column']['img_url'] = self.get_web_img(column_name, 'column')
-                ch['img_url'] = self.get_web_img(ch['name'], 'char')
-
-            self.render('char_cluster.html', Char=Char, chars=chars, pager=pager, q=q, order=order, variants=vts,
-                        base_txts=base_txts, txt_kinds=txts, cur_txt=cur_txt, readonly=self.readonly,
-                        mode=self.mode, page_name=self.get_task_name(task_type),
+            data = self.get_data(task_type)
+            cur_txt = self.get_user_argument('txt', '')
+            vts = cur_txt and self.get_variants(cur_txt)
+            self.render('char_cluster.html', Char=Char, **data, variants=vts, cur_txt=cur_txt, mode=self.mode,
+                        readonly=self.readonly, page_name=self.get_task_name(task_type),
                         char_count=self.task.get('char_count'))
 
         except Exception as error:
             return self.send_db_error(error)
+
+    def post(self, task_type, task_id):
+        """聚类校对ajax获取数据"""
+        try:
+
+            data = self.get_data(task_type, False)
+            self.send_data_response(data)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+    def get_data(self, task_type, include_txt_kinds=True):
+        debug, start = False, datetime.now()
+        # 1.根据任务参数，设置任务过滤条件
+        params = self.task['params']
+        base = 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
+        base_txts = [c[base] for c in params]  # 聚类字种
+        user_level = self.get_user_txt_level(self, task_type)
+        cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
+        updated = self.get_user_argument('updated', 0)
+        cond['txt_level'] = {'$gt': user_level} if updated == 'unauth' else {'$lte': user_level}
+        # 按任务过滤条件，统计“所有校对字头”
+        counts = include_txt_kinds and list(self.db.char.aggregate([
+            {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
+            {'$sort': {'count': -1}},
+        ])) or []
+        txt_kinds = [c['_id'] for c in counts]
+        debug and print('[1]aggregate chars:', (datetime.now() - start).total_seconds())
+        # 2.查找单字数据
+        self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
+        if self.mode in ['do', 'update']:
+            self.page_size = 100 if self.page_size > 100 else self.page_size
+        cond.update(self.get_user_filter(task_type))
+        chars, pager, q, order = Char.find_by_page(self, cond, default_order=[('pc', 1), ('cc', 1)])
+        debug and print('[2]find chars:', (datetime.now() - start).total_seconds(), cond)
+        # 设置单字列图
+        for ch in chars:
+            column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
+            ch['column']['img_url'] = self.get_web_img(column_name, 'column')
+            ch['img_url'] = self.get_web_img(ch['name'], 'char')
+        return dict(chars=chars, pager=pager, q=q, order=order, base_txts=base_txts, txt_kinds=txt_kinds)
+
+    def get_variants(self, cur_txt):
+        vt = self.db.variant.find_one({'$or': [{'txt': cur_txt}, {'v_code': cur_txt}]}, {'nor_txt': 1})
+        nor_txt = vt and vt.get('nor_txt') or cur_txt
+        vts = list(self.db.variant.find({'$or': [{'nor_txt': nor_txt}, {'user_txt': nor_txt}]}))
+        vts = [v.get('txt') or v.get('v_code') for v in vts]
+        return vts

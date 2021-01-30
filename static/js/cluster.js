@@ -18,6 +18,7 @@
   $.cluster = {
     status: status,
     init: init,
+    setChars: setChars,
     addVariant: addVariant,
     updateChar: updateChar,
     switchCurChar: switchCurChar,

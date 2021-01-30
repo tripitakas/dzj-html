@@ -360,9 +360,9 @@
   $.cluster.init({
     curTxt: '{{cur_txt}}',
     colHolder: '.box-holder',
-    chars: decodeJSON('{{chars}}'),
-    variants: decodeJSON('{{variants}}'),
-    txtKinds: decodeJSON('{{txt_kinds}}'),
+    chars: decodeJSON('{{chars or []}}'),
+    variants: decodeJSON('{{variants or []}}'),
+    txtKinds: decodeJSON('{{txt_kinds or []}}'),
   });
   togglePanels();
   toggleFilters();

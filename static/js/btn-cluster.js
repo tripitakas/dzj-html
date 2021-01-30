@@ -42,6 +42,19 @@ function toggleFilters() {
   if (getQueryString('updated')) $(`#btn-updated-${getQueryString('updated')}`).addClass('active');
 }
 
+//----------------------翻页----------------------
+$('.pagers a').on('click', function (e) {
+  e.preventDefault();
+  let url = $(this).attr('href'), $this = $(this);
+  if ($this.text() === (getQueryString('page') || '1')) return;
+  postApi(url.replace(/\/(do|update)/, ''), {data: {}}, function (res) {
+    $('.pagers li.active').removeClass('active');
+    $this.parent().addClass('active');
+    $.cluster.setChars(res.data.chars);
+    window.history.pushState({}, null, url);
+  });
+});
+
 //----------------------左侧导航：排序及过滤----------------------
 $('.btn-cc').on('click', function () {
   let pre = $(this).attr('id').indexOf('up') < 0 ? '-' : '';
