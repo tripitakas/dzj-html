@@ -61,11 +61,11 @@
   border-bottom: 2px solid rgba(0, 255, 0, .4) !important;;
 }
 
-.ocr-chr {
+.ocr-txt {
   border-bottom: 2px solid rgba(0, 0, 255, .4) !important;
 }
 
-.ocr_txt {
+.cmb_txt {
   color: rgba(255, 0, 0, .7);
 }
 

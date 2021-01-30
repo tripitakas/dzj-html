@@ -147,8 +147,12 @@
   color: red;
 }
 
-.show-mark .char-item.un-required {
-  background: var(--Grey_Lighter);
+.show-mark .char-item.sc-39 {
+  background: rgba(227, 228, 229, 0.7);
+}
+
+.show-mark .char-item.submitted {
+  background: rgba(0, 128, 0, 0.3) !important;
 }
 
 .char-item .char-img {
@@ -166,6 +170,8 @@
 
 .char-item .char-info {
   display: flex;
+  font-size: 12px;
+  font-weight: 400;
   justify-content: space-around;
 }
 

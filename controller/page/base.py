@@ -72,10 +72,10 @@ class PageHandler(Page, TaskHandler, Box):
     def check_box_level_and_point(cls, self, char, page, task_type=None, response_error=True):
         """检查数据等级和积分"""
         # 1.检查数据等级
-        required_level = cls.get_required_box_level(char)
-        user_level = cls.get_user_box_level(self, task_type)
-        if int(user_level) < int(required_level):
-            msg = '该字符的切分数据等级为%s，您的切分数据等级%s不够' % (required_level, user_level)
+        r_level = cls.get_required_box_level(char)
+        u_level = cls.get_user_box_level(self, task_type)
+        if int(u_level) < int(r_level):
+            msg = '该字符的切分数据等级为%s，%s切分数据等级%s不够' % (r_level, '当前任务' if task_type else '您的', u_level)
             return self.send_error_msg(e.data_level_unqualified[0], msg, response_error)
         # 2.检查权限
         roles = auth.get_all_roles(self.current_user['roles'])
@@ -86,7 +86,7 @@ class PageHandler(Page, TaskHandler, Box):
             return self.send_error_msg(r[0], r[1], response_error)
         # 3. 检查积分
         task_types = list(cls.box_level['task'].keys())
-        if int(user_level) == int(required_level) and (not task_type or task_type not in task_types):
+        if int(u_level) == int(r_level) and (not task_type or task_type not in task_types):
             if char.get('box_logs') and char['box_logs'][-1].get('user_id') == self.user_id:
                 return True
             required_type, required_point = cls.get_required_type_and_point(page)

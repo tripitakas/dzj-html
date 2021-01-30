@@ -83,11 +83,11 @@
   }
 
   function setAlternatives(char) {
-    let getCls = (txt) => (txt === char['ocr_txt'] ? ' ocr_txt' : '') + (txt === char['txt'] ? ' active' : '');
+    let getCls = (txt) => (txt === char['cmb_txt'] ? ' cmb_txt' : '') + (txt === char['txt'] ? ' active' : '');
     let html = isValid(char['ocr_col']) ? `<span class="txt-item ocr-col${getCls(char['ocr_col'])}">${char['ocr_col']}</span>` : '';
     html += isValid(char['cmp_txt']) ? `<span class="txt-item cmp-txt${getCls(char['cmp_txt'])}">${char['cmp_txt']}</span>` : '';
     html += Array.from(char['alternatives'] || '').map(function (c, n) {
-      return `<span class="txt-item${n ? '' : ' ocr-chr'}${getCls(c)}">${c}</span>`;
+      return `<span class="txt-item${n ? '' : ' ocr-txt'}${getCls(c)}">${c}</span>`;
     }).join('');
     $('#txt-alternatives .body').html(html);
     $('#txt-alternatives .body').toggleClass('hide', !html.length);

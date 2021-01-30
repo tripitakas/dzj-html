@@ -147,33 +147,36 @@
       <div class="m-panel slim-bar hide">
         <ul id="filter-panel" class="panel-list">
           <li><a class="head">排序</a></li>
-          <li id="btn-cc-up"><a>按置信度升序</a></li>
-          <li id="btn-cc-down"><a>按置信度降序</a></li>
+          <li id="btn-cc-up" class="btn-cc"><a>按字置信度升序</a></li>
+          <li id="btn-cc-down" class="btn-cc"><a>按字置信度降序</a></li>
+          <li id="btn-lc-up" class="btn-lc"><a>按列置信度升序</a></li>
+          <li id="btn-lc-down" class="btn-lc"><a>按列置信度降序</a></li>
           <li><a class="head">按相同程度过滤</a></li>
-          <li id="btn-sc-2"><a>全部相同</a></li>
-          <li id="btn-sc-1"><a>部分相同</a></li>
-          <li id="btn-sc-0"><a>全部不同</a></li>
-          <li><a class="head">按校对标记过滤</a></li>
-          <li id="btn-vague"><a>笔画残损</a></li>
-          <li id="btn-un-vague"><a>笔画完整</a></li>
-          <li class="divider"></li>
-          <li id="btn-deform"><a>异形字</a></li>
-          <li id="btn-un-deform"><a>非异形字</a></li>
-          <li class="divider"></li>
-          <li id="btn-certain"><a>确定</a></li>
-          <li id="btn-uncertain"><a>不确定</a></li>
-          <li class="divider"></li>
-          <li id="btn-has-remark"><a>有备注</a></li>
-          <li id="btn-no-remark"><a>无备注</a></li>
+          <li id="btn-sc-0" class="btn-sc"><a>没有文本</a></li>
+          <li id="btn-sc-6" class="btn-sc"><a>三字不同</a></li>
+          <li id="btn-sc-7" class="btn-sc"><a>两字不同</a></li>
+          <li id="btn-sc-8" class="btn-sc"><a>仅有一字</a></li>
+          <li id="btn-sc-28" class="btn-sc"><a>两同一异</a></li>
+          <li id="btn-sc-29" class="btn-sc"><a>两字相同</a></li>
+          <li id="btn-sc-39" class="btn-sc"><a>三字相同</a></li>
           <li><a class="head">按是否提交过滤</a></li>
-          <li id="btn-un-submitted"><a>未提交</a></li>
-          <li id="btn-submitted"><a>已提交</a></li>
+          <li id="btn-submitted-true" class="btn-submitted"><a>未提交</a></li>
+          <li id="btn-submitted-false" class="btn-submitted"><a>已提交</a></li>
           <li><a class="head">按修改情况过滤</a></li>
-          <li id="btn-un-updated"><a>未修改</a></li>
-          <li id="btn-updated"><a>已修改</a></li>
-          <li id="btn-my-updated"><a>我的修改</a></li>
-          <li id="btn-other-updated"><a>他人修改</a></li>
-          <li id="btn-unauthorized"><a>无权修改</a></li>
+          <li id="btn-updated-false" class="btn-updated"><a>未修改</a></li>
+          <li id="btn-updated-true" class="btn-updated"><a>已修改</a></li>
+          <li id="btn-updated-my" class="btn-updated"><a>我的修改</a></li>
+          <li id="btn-updated-other" class="btn-updated"><a>他人修改</a></li>
+          <li id="btn-updated-unauth" class="btn-updated"><a>无权修改</a></li>
+          <li><a class="head">按校对标记过滤</a></li>
+          <li id="btn-vague-true" class="btn-vague"><a>笔画残损</a></li>
+          <li id="btn-vague-false" class="btn-vague"><a>笔画完整</a></li>
+          <li id="btn-deform-true" class="btn-deform"><a>异形字</a></li>
+          <li id="btn-deform-false" class="btn-deform"><a>非异形字</a></li>
+          <li id="btn-uncertain-false" class="btn-uncertain"><a>确定</a></li>
+          <li id="btn-uncertain-true" class="btn-uncertain"><a>不确定</a></li>
+          <li id="btn-remark-true" class="btn-remark"><a>有备注</a></li>
+          <li id="btn-remark-false" class="btn-remark"><a>无备注</a></li>
         </ul>
       </div><!--m-panel-->
       <div class="char-panel show-mark">
@@ -199,6 +202,10 @@
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
       <strong class="title"></strong><span class="text"></span>
     </div><!--m-alert-->
+    <div class="b-alert alert alert-info hide" id="b-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div><!--b-alert-->
 
     <div class="m-footer">
       <span class="fl">
@@ -346,7 +353,10 @@
 {% include com/_base_task.html %}
 <script>
   // 初始化
-  $.charTxt.init({readonly: false, showBase: true, baseFields: 'cc,lc,pc,txt_level,box_level'.split(','), showTxtLogs: true, showBoxLogs: true});
+  $.charTxt.init({
+    readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true,
+    baseFields: 'cc,lc,sc,pc,txt_level,box_level'.split(',')
+  });
   $.cluster.init({
     curTxt: '{{cur_txt}}',
     colHolder: '.box-holder',
@@ -355,28 +365,7 @@
     txtKinds: decodeJSON('{{txt_kinds}}'),
   });
   togglePanels();
-
-  if (getQueryString('order') === 'cc') $('#btn-cc-up').addClass('active');
-  if (getQueryString('order') === '-cc') $('#btn-cc-down').addClass('active');
-  if (getQueryString('sc') === '0') $('#btn-sc-0').addClass('active');
-  if (getQueryString('sc') === '1') $('#btn-sc-1').addClass('active');
-  if (getQueryString('sc') === '2') $('#btn-sc-2').addClass('active');
-  if (getQueryString('is_vague') === 'true') $('#btn-vague').addClass('active');
-  if (getQueryString('is_vague') === 'false') $('#btn-un-vague').addClass('active');
-  if (getQueryString('is_deform') === 'true') $('#btn-deform').addClass('active');
-  if (getQueryString('is_deform') === 'false') $('#btn-un-deform').addClass('active');
-  if (getQueryString('uncertain') === 'true') $('#btn-uncertain').addClass('active');
-  if (getQueryString('uncertain') === 'false') $('#btn-certain').addClass('active');
-  if (getQueryString('remark') === 'true') $('#btn-has-remark').addClass('active');
-  if (getQueryString('remark') === 'false') $('#btn-no-remark').addClass('active');
-  if (getQueryString('submitted') === 'true') $('#btn-submitted').addClass('active');
-  if (getQueryString('submitted') === 'false') $('#btn-un-submitted').addClass('active');
-  if (getQueryString('updated') === 'my') $('#btn-my-updated').addClass('active');
-  if (getQueryString('updated') === 'other') $('#btn-other-updated').addClass('active');
-  if (getQueryString('updated') === 'all') $('#btn-updated').addClass('active');
-  if (getQueryString('updated') === 'un') $('#btn-un-updated').addClass('active');
-  if (getQueryString('authorized') === 'un') $('#btn-unauthorized').addClass('active');
-
+  toggleFilters();
   $(document).ready(function () {
     getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
   });
@@ -446,8 +435,8 @@
       location.href = setAnchor(data.name);
     }, function (err) {
       $this.removeClass('disabled').text('确定');
-      if (err.code === 2007) showTips('', err.message, 1000);
-      else showWarning('失败', err.message, 2000);
+      if (err.code === 2007) bsShow('', err.message, 'warning', 1000, '#b-alert');
+      else bsShow('失败', err.message, 'warning', 3000, '#b-alert');
     });
   });
 
@@ -486,7 +475,7 @@
   $('#page-submit').on("click", function () {
     let charNames = $.map($('.char-item'), (item) => $(item).attr('id'));
     postApi(location.pathname, {data: {char_names: charNames}}, function () {
-      $('.char-item .submitted').removeClass('hide');
+      $('.char-item').addClass('submitted');
       showSuccess('成功', '页面已提交。', 1000);
     });
   });
@@ -507,7 +496,7 @@
       }
     }, function (err) {
       $this.removeClass('disabled');
-      bsShow('失败', err.message, 'warning', 2000);
+      bsShow('失败', err.message, 'warning', 3000);
     });
   });
 

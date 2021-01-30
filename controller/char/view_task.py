@@ -156,12 +156,12 @@ class CharTaskClusterHandler(CharHandler):
         try:
             # 1.根据任务参数，设置任务过滤条件
             params = self.task['params']
-            base = 'ocr_txt' if 'proof' in task_type else 'rvw_txt'
+            base = 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
             base_txts = [c[base] for c in params]  # 聚类字种
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
-            authorized = self.get_query_argument('authorized', 0)
-            cond['txt_level'] = {'$gt': user_level} if authorized == 'un' else {'$lte': user_level}
+            updated = self.get_query_argument('updated', 0)
+            cond['txt_level'] = {'$gt': user_level} if updated == 'unauth' else {'$lte': user_level}
 
             debug, start = False, datetime.now()
             # 按校对文字统计“校对字头”
@@ -175,7 +175,9 @@ class CharTaskClusterHandler(CharHandler):
             cur_txt, vts = self.get_query_argument('txt', ''), []
             if cur_txt and cur_txt in txts:
                 cond.update({'txt': cur_txt})
-                vts = list(self.db.variant.find({'$or': [{'nor_txt': cur_txt}, {'user_txt': cur_txt}]}))
+                vt = self.db.variant.find_one({'$or': [{'txt': cur_txt}, {'v_code': cur_txt}]}, {'nor_txt': 1})
+                nor_txt = vt and vt.get('nor_txt') or cur_txt
+                vts = list(self.db.variant.find({'$or': [{'nor_txt': nor_txt}, {'user_txt': nor_txt}]}))
                 vts = [v.get('txt') or v.get('v_code') for v in vts]
             debug and print('[2]find variants:', (datetime.now() - start).total_seconds())
             # 2.根据检索参数，设置用户过滤条件
@@ -184,7 +186,7 @@ class CharTaskClusterHandler(CharHandler):
             self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
             if self.mode in ['do', 'update']:
                 self.page_size = 100 if self.page_size > 100 else self.page_size
-            chars, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
+            chars, pager, q, order = Char.find_by_page(self, cond, default_order=[('pc', 1), ('cc', 1)])
             debug and print('[3]find chars:', (datetime.now() - start).total_seconds(), cond)
             # 设置单字列图
             for ch in chars:

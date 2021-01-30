@@ -54,7 +54,7 @@ class CharTaskPublishApi(CharHandler):
         task_type = self.data['task_type']
         num = int(self.data.get('num') or 1)  # 默认校次为1
         # 统计字频
-        field = 'ocr_txt'  # 以哪个字段进行聚类
+        field = 'cmb_txt' if 'proof' in task_type else 'rvw_txt'  # 以哪个字段进行聚类
         counts = list(self.db.char.aggregate([
             {'$match': {'source': source}}, {'$group': {'_id': '$' + field, 'count': {'$sum': 1}}},
             {'$sort': {'count': -1}}
@@ -116,7 +116,7 @@ class CharTaskClusterApi(CharHandler):
 
             if self.data.get('submit'):  # 提交任务
                 params = self.task['params']
-                base = 'ocr_txt' if 'proof' in task_type else 'rvw_txt'
+                base = 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
                 base_txts = [c[base] for c in params]  # 聚类字种
                 cond.update({'un_required': None, 'source': params[0]['source'], base: {'$in': base_txts}})
                 if self.db.char.find_one(cond):

@@ -137,8 +137,11 @@ class Model(object):
             query = self.db[cls.collection].find(condition, projection)
         order = self.get_query_argument('order', default_order)
         if order:
-            o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort(o, asc)
+            if isinstance(order, str):
+                o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+                query.sort(o, asc)
+            else:
+                query.sort(order)
         if condition:
             doc_count = self.db[cls.collection].count_documents(condition)
         else:

@@ -788,22 +788,32 @@ body.widescreen {
   width: 600px;
 }
 
-.m-alert .close {
+.b-alert {
+  bottom: 45px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  position: fixed;
+  font-size: 14px;
+  width: 600px;
+}
+
+.m-alert .close, .b-alert .close {
   font-size: 22px;
   margin-top: -3px;
 }
 
-.m-alert .loading {
+.m-alert .loading, .b-alert .loading {
   float: left;
   font-size: 16px;
   margin: 2px 5px;
 }
 
-.m-alert .title {
+.m-alert .title, .b-alert .title {
   margin-right: 10px;
 }
 
-.m-alert .text a {
+.m-alert .text a, .b-alert .text a {
   text-decoration: underline;
   color: var(--Brown_Darker);
   cursor: pointer;

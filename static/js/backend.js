@@ -161,8 +161,8 @@ $('.alert .close').on('click', function () {
 
 // 离开页面
 function leave() {
-  let url = typeof from !== 'undefined' ? from : decodeFrom();
-  if (url === '1') url = getStorage('from');
+  let from = getQueryString('from');
+  let url = from === '1' ? getStorage('from') : decodeFrom();
   url ? window.location = url : window.history.back();
 }
 

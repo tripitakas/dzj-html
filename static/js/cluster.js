@@ -82,17 +82,17 @@
     status.chars = chars;
     let taskId = typeof gTaskId === 'undefined' ? '' : gTaskId;
     let taskType = typeof gTaskType === 'undefined' ? '' : gTaskType;
+    let getCc = (cc) => Math.round((cc > 1 ? cc / 1000 : cc) * 100) / 100;
     let html = chars.map((ch, i) => {
-      let cls = ch['is_diff'] ? 'is-diff' : '';
-      cls += ch['un_required'] ? ' un-required' : '';
-      cls += ch['txt'] !== ch['ocr_txt'] ? ' changed' : '';
       let tasks = ch['tasks'] && ch['tasks'][taskType] || [];
+      let cls = tasks.indexOf(taskId) > -1 ? ' submitted' : '';
+      cls += (ch['txt'] && ch['txt'] !== (ch['cmb_txt'] || ch['ocr_txt'])) ? ' changed' : '';
+      cls += ch['sc'] ? ` sc-${ch['sc']}` : '';
       return [
-        `<div class="char-item ${cls.trim()}" id="${ch.name}" data-value="${i}">`,
+        `<div class="char-item${cls}" id="${ch.name}" data-value="${i}">`,
         `<div class="char-img"><img src="${ch['img_url']}"/></div>`,
-        `<div class="char-info"><span class="txt">${ch['txt'] || ch['ocr_txt']}</span>`,
-        `<span class="submitted${tasks.indexOf(taskId) > -1 ? '' : ' hide'}"><i class="icon-check"></i></span></div>`,
-        `<div class="char-check"><span class="cc">${(ch['cc'] || 0) / 1000}</span><input type="checkbox"></div>`,
+        `<div class="char-info"><span class="cc">${getCc(ch['cc'] || 0)}</span>|<span class="lc">${getCc(ch['lc'] || 0)}</span></div>`,
+        `<div class="char-check"><span class="txt">${ch['txt'] || ch['cmb_txt']}</span><input type="checkbox"></div>`,
         `</div>`,
       ].join('');
     }).join('');

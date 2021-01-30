@@ -160,6 +160,10 @@
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
       <strong class="title"></strong><span class="text"></span>
     </div><!--m-alert-->
+    <div class="b-alert alert alert-info hide" id="b-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div><!--b-alert-->
 
     <div class="m-footer">
       <span class="fl">
@@ -215,34 +219,15 @@
 <script src="{{static_url('js/btn-cluster.js')}}"></script>
 <script>
   // 初始化
-  $.charTxt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
+  $.charTxt.init({
+    readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true
+  });
   $.cluster.init({
     colHolder: '.box-holder',
     chars: decodeJSON('{{chars}}'),
   });
   togglePanels();
-
-  if (getQueryString('order') === 'cc') $('#btn-cc-up').addClass('active');
-  if (getQueryString('order') === '-cc') $('#btn-cc-down').addClass('active');
-  if (getQueryString('sc') === '0') $('#btn-sc-0').addClass('active');
-  if (getQueryString('sc') === '1') $('#btn-sc-1').addClass('active');
-  if (getQueryString('sc') === '2') $('#btn-sc-2').addClass('active');
-  if (getQueryString('is_vague') === 'true') $('#btn-vague').addClass('active');
-  if (getQueryString('is_vague') === 'false') $('#btn-un-vague').addClass('active');
-  if (getQueryString('is_deform') === 'true') $('#btn-deform').addClass('active');
-  if (getQueryString('is_deform') === 'false') $('#btn-un-deform').addClass('active');
-  if (getQueryString('uncertain') === 'true') $('#btn-uncertain').addClass('active');
-  if (getQueryString('uncertain') === 'false') $('#btn-certain').addClass('active');
-  if (getQueryString('remark') === 'true') $('#btn-has-remark').addClass('active');
-  if (getQueryString('remark') === 'false') $('#btn-no-remark').addClass('active');
-  if (getQueryString('submitted') === 'true') $('#btn-submitted').addClass('active');
-  if (getQueryString('submitted') === 'false') $('#btn-un-submitted').addClass('active');
-  if (getQueryString('updated') === 'my') $('#btn-my-updated').addClass('active');
-  if (getQueryString('updated') === 'other') $('#btn-other-updated').addClass('active');
-  if (getQueryString('updated') === 'all') $('#btn-updated').addClass('active');
-  if (getQueryString('updated') === 'un') $('#btn-un-updated').addClass('active');
-  if (getQueryString('authorized') === 'un') $('#btn-unauthorized').addClass('active');
-
+  toggleFilters();
   $(document).ready(function () {
     getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
   });

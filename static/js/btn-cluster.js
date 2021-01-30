@@ -29,72 +29,55 @@ function togglePanels(init) {
   $('.char-panel').toggleClass('show-mark', init ? true : getStorage('clusterProofColor', true));
 }
 
+function toggleFilters() {
+  let order2btn = (o) => o.replace('-', '') + '-' + (o.length > 2 ? 'down' : 'up');
+  if (getQueryString('order').length) $(`#btn-${order2btn(getQueryString('order'))}`).addClass('active');
+  if (getQueryString('sc').length) $(`#btn-sc-${getQueryString('sc')}`).addClass('active');
+  if (getQueryString('is_vague')) $(`#btn-vague-${getQueryString('is_vague')}`).addClass('active');
+  if (getQueryString('is_deform')) $(`#btn-deform-${getQueryString('is_deform')}`).addClass('active');
+  if (getQueryString('uncertain')) $(`#btn-uncertain-${getQueryString('uncertain')}`).addClass('active');
+  if (getQueryString('remark')) $(`#btn-remark-${getQueryString('remark')}`).addClass('active');
+  if (getQueryString('submitted')) $(`#btn-submitted-${getQueryString('submitted')}`).addClass('active');
+  if (getQueryString('remark')) $(`#btn-remark-${getQueryString('remark')}`).addClass('active');
+  if (getQueryString('updated')) $(`#btn-updated-${getQueryString('updated')}`).addClass('active');
+}
+
 //----------------------左侧导航：排序及过滤----------------------
-$('#btn-cc-up').on('click', function () {
-  location.href = toggleQueryString('order', 'cc', !$(this).hasClass('active'));
+$('.btn-cc').on('click', function () {
+  let pre = $(this).attr('id').indexOf('up') < 0 ? '-' : '';
+  location.href = toggleQueryString('order', pre + 'cc', !$(this).hasClass('active'));
 });
-$('#btn-cc-down').on('click', function () {
-  location.href = toggleQueryString('order', '-cc', !$(this).hasClass('active'));
+$('.btn-lc').on('click', function () {
+  let pre = $(this).attr('id').indexOf('up') < 0 ? '-' : '';
+  location.href = toggleQueryString('order', pre + 'lc', !$(this).hasClass('active'));
 });
-$('#btn-lc-up').on('click', function () {
-  location.href = toggleQueryString('order', 'lc', !$(this).hasClass('active'));
+$('.btn-sc').on('click', function () {
+  let sc = $(this).attr('id').replace('btn-sc-', '');
+  location.href = toggleQueryString('sc', sc, !$(this).hasClass('active'));
 });
-$('#btn-lc-down').on('click', function () {
-  location.href = toggleQueryString('order', '-lc', !$(this).hasClass('active'));
+$('.btn-vague').on('click', function () {
+  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
+  location.href = toggleQueryString('is_vague', value, !$(this).hasClass('active'));
 });
-$('#btn-sc-2').on('click', function () {
-  location.href = toggleQueryString('sc', '2', !$(this).hasClass('active'));
+$('.btn-deform').on('click', function () {
+  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
+  location.href = toggleQueryString('is_deform', value, !$(this).hasClass('active'));
 });
-$('#btn-sc-1').on('click', function () {
-  location.href = toggleQueryString('sc', '1', !$(this).hasClass('active'));
+$('.btn-uncertain').on('click', function () {
+  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
+  location.href = toggleQueryString('uncertain', value, !$(this).hasClass('active'));
 });
-$('#btn-sc-0').on('click', function () {
-  location.href = toggleQueryString('sc', '0', !$(this).hasClass('active'));
+$('.btn-remark').on('click', function () {
+  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
+  location.href = toggleQueryString('remark', value, !$(this).hasClass('active'));
 });
-$('#btn-vague').on('click', function () {
-  location.href = toggleQueryString('is_vague', 'true', !$(this).hasClass('active'));
+$('.btn-submitted').on('click', function () {
+  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
+  location.href = toggleQueryString('submitted', value, !$(this).hasClass('active'));
 });
-$('#btn-un-vague').on('click', function () {
-  location.href = toggleQueryString('is_vague', 'false', !$(this).hasClass('active'));
-});
-$('#btn-deform').on('click', function () {
-  location.href = toggleQueryString('is_deform', 'true', !$(this).hasClass('active'));
-});
-$('#btn-un-deform').on('click', function () {
-  location.href = toggleQueryString('is_deform', 'false', !$(this).hasClass('active'));
-});
-$('#btn-certain').on('click', function () {
-  location.href = toggleQueryString('uncertain', 'false', !$(this).hasClass('active'));
-});
-$('#btn-uncertain').on('click', function () {
-  location.href = toggleQueryString('uncertain', 'true', !$(this).hasClass('active'));
-});
-$('#btn-has-remark').on('click', function () {
-  location.href = toggleQueryString('remark', 'true', !$(this).hasClass('active'));
-});
-$('#btn-no-remark').on('click', function () {
-  location.href = toggleQueryString('remark', 'false', !$(this).hasClass('active'));
-});
-$('#btn-submitted').on('click', function () {
-  location.href = toggleQueryString('submitted', 'true', !$(this).hasClass('active'));
-});
-$('#btn-un-submitted').on('click', function () {
-  location.href = toggleQueryString('submitted', 'false', !$(this).hasClass('active'));
-});
-$('#btn-updated').on('click', function () {
-  location.href = toggleQueryString('updated', 'all', !$(this).hasClass('active'));
-});
-$('#btn-un-updated').on('click', function () {
-  location.href = toggleQueryString('updated', 'un', !$(this).hasClass('active'));
-});
-$('#btn-my-updated').on('click', function () {
-  location.href = toggleQueryString('updated', 'my', !$(this).hasClass('active'));
-});
-$('#btn-other-updated').on('click', function () {
-  location.href = toggleQueryString('updated', 'other', !$(this).hasClass('active'));
-});
-$('#btn-unauthorized').on('click', function () {
-  location.href = toggleQueryString('authorized', 'un', !$(this).hasClass('active'));
+$('.btn-updated').on('click', function () {
+  let value = $(this).attr('id').replace('btn-updated-', '');
+  location.href = toggleQueryString('updated', value, !$(this).hasClass('active'));
 });
 
 
@@ -236,7 +219,7 @@ $('#submit-box').on('click', function () {
   if ($(this).hasClass('disabled')) return;
   let char = $.cluster.exportSubmitData();
   postApi(`/page/char/box/${char.name}`, {data: {pos: char}}, function (res) {
-    bsShow('', '保存成功！', 'info', 1000);
+    bsShow('', '保存成功！', 'info', 1000, '#b-alert');
     $.charTxt.setBoxLogs(res['box_logs']);
     $.cluster.status.curChar['box_logs'] = res['box_logs'];
   });

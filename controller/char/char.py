@@ -51,8 +51,8 @@ class Char(Model):
     search_fields = ['name', 'source']
     # 相同程度
     equal_level = {
-        '39': '三字相同', '28': '两同一异', '6': '三字不同', '29': '两字相同', '18': '两字不同',
-        '9': '仅有一字', '0': '没有文本'
+        '39': '三字相同', '28': '两同一异', '6': '三字不同', '29': '两字相同', '7': '两字不同',
+        '8': '仅有一字', '0': '没有文本'
     }
     # 校对等级
     proof_level = {
@@ -99,9 +99,9 @@ class Char(Model):
             if uni == 1:  # 两字相同
                 return 29
             if uni == 2:  # 两字不同
-                return 18
+                return 7
         elif len(valid) == 1:
-            return 9  # 仅有一字
+            return 8  # 仅有一字
         else:
             return 0  # 没有文本
 
@@ -205,7 +205,6 @@ class Char(Model):
                 m1 = re.search(r'^([><]=?)(0|1|[01]\.\d+)$', value)
                 m2 = re.search(r'^(0|1|[01]\.\d+),(0|1|[01]\.\d+)$', value)
                 if m1:
-                    print(field, value)
                     op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m1.group(1))
                     condition.update({field: {op: c2int(m1.group(2))} if op else value})
                 elif m2:

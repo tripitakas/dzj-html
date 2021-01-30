@@ -73,6 +73,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                         m['ocr_txt'] = (c.get('alternatives') or '')[:1]
                         m['ocr_col'] = c.get('ocr_col') or '■'
                         m['cmb_txt'] = Char.get_cmb_txt(c)
+                        m['txt'] = c.get('txt') or m['cmb_txt']
                         m['sc'] = Char.get_equal_level(c)
                         m['pc'] = Char.get_prf_level(c)
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
