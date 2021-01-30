@@ -15,7 +15,8 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
-from controller.page.base import PageHandler as Ph
+from controller.char.char import Char
+from controller.char.base import CharHandler
 
 
 def is_changed(a, b):
@@ -69,11 +70,11 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int((c.get(k) or 0) * 1000) for k in ['cc', 'lc']})
-                        m['ocr_txt'] = (c.get('alternatives') or '')[1:]
+                        m['ocr_txt'] = (c.get('alternatives') or '')[:1]
                         m['ocr_col'] = c.get('ocr_col') or '■'
-                        m['cmb_txt'] = Ph.get_cmb_txt(c)
-                        m['sc'] = Ph.get_equal_level(c)
-                        m['pc'] = Ph.get_prf_level(c)
+                        m['cmb_txt'] = Char.get_cmb_txt(c)
+                        m['sc'] = Char.get_equal_level(c)
+                        m['pc'] = Char.get_prf_level(c)
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                         c['column_no'] = c.get('column_no') or c.pop('line_no')
                         m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
@@ -116,7 +117,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                    deleted_char=[c['name'] for c in deleted], invalid_char=invalid_chars,
                    valid_pages=valid_pages, invalid_pages=invalid_pages,
                    create_time=datetime.now())
-        Ph.add_op_log(db, 'gen_chars', 'finished', log, username)
+        CharHandler.add_op_log(db, 'gen_chars', 'finished', log, username)
 
 
 if __name__ == '__main__':

@@ -244,7 +244,7 @@
   }
 
   function initHeadTxtList() {
-    ['txt', 'ocr_txt', 'ocr_col', 'cmp_txt'].forEach((txtType) => {
+    ['cmb_txt', 'ocr_txt', 'ocr_col', 'cmp_txt'].forEach((txtType) => {
       if (!$.box.hasTxtType(txtType)) $('.toggle-txt#' + txtType).addClass('hide');
     });
     if (!$('.toggle-txt:not(.hide)').length) $('#toggle-txts').addClass('hide');

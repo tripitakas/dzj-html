@@ -24,10 +24,10 @@
   };
 
   let fields = {
-    'name': '字编码', 'char_id': '序号', 'source': '分类', 'cc': '置信度', 'sc': '相似度', 'pc': '校对等级',
-    'pos': '坐标', 'column': '所属列', 'txt': '文字', 'nor_txt': '正字', 'is_vague': '笔画残损',
-    'is_deform': '异形字', 'uncertain': '不确定', 'box_level': '切分等级', 'box_point': '切分积分',
-    'txt_level': '文字等级', 'txt_point': '文字积分', 'remark': '备注'
+    'name': '字编码', 'source': '分类', 'char_id': '字序号', 'cc': '字置信度', 'lc': '列置信度', 'sc': '相同程度',
+    'pc': '校对等级', 'pos': '坐标', 'column': '所属列', 'txt': '校对文字', 'cmb_txt': '综合OCR',
+    'is_vague': '笔画残损', 'is_deform': '异形字', 'uncertain': '不确定', 'remark': '备注',
+    'box_level': '切分等级', 'box_point': '切分积分', 'txt_level': '文字等级', 'txt_point': '文字积分',
   };
 
   $.charTxt = {
@@ -75,7 +75,7 @@
         let info = ['x', 'y', 'w', 'h'].map((k) => `${k}:${char[f][k]}`).join(',');
         return `<label>${fields[f]}</label><span class="pos">${info}</span><br/>`;
       } else if (f === 'cc' || f === 'lc') {
-        return `<label>${fields[f]}</label><span class="pos">${char[f]/1000}</span><br/>`;
+        return `<label>${fields[f]}</label><span class="pos">${char[f] > 1 ? char[f] / 1000 : char[f]}</span><br/>`;
       } else {
         return `<label>${fields[f]}</label><span>${char[f]}</span><br/>`;
       }
@@ -190,7 +190,7 @@
     };
   }
 
-  // 选中文字
+  // 点击候选文字
   $(document).on('click', '.txt-item', function () {
     let txt = $(this).attr('data-value') || $(this).text().trim();
     $('.proof #p-txt').val(txt);
@@ -200,7 +200,7 @@
     });
   });
 
-  // 展开收缩信息
+  // 展开收缩proof panel的信息
   $(document).on('click', '.toggle-info', function () {
     let target = $(this).attr('id').replace('toggle-', '');
     if ($(this).hasClass('icon-up')) {
@@ -211,6 +211,5 @@
       $(`#${target} .body`).removeClass('hide');
     }
   });
-
 
 }());

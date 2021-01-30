@@ -342,3 +342,7 @@ $('.toggle-txt').on('click', function () {
   $(this).addClass('active');
   $.box.toggleTxt($(this).attr('id'), true);
 });
+
+$('.toggle-v-code').on('click', function () {
+  $.box.toggleVCode($(this).attr('id'));
+});
