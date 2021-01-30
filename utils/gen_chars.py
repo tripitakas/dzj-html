@@ -36,8 +36,10 @@ def is_changed(a, b):
 
 def gen_chars(db=None, db_name=None, uri=None, condition=None, source=None, page_names=None, username=None):
     """ 从页数据中导出字数据"""
-    cfg = hp.load_config()
-    db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
+    db = db or (uri and pymongo.MongoClient(uri)[db_name])
+    if not db:
+        cfg = hp.load_config()
+        db = hp.connect_db(cfg['database'], db_name=db_name)[0]
     # condition
     if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
