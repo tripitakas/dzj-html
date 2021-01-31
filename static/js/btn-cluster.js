@@ -115,7 +115,7 @@ $('#bat-select').on('click', function () {
 });
 
 // 多选模式-鼠标滑选
-$('.toggle-multi').on('click', function () {
+$('.toggle-multi2').on('click', function () {
   $('.toggle-multi').removeClass('active');
   $(this).addClass('active');
   if ($(this).attr('id') === 'do-multi') {
@@ -126,11 +126,10 @@ $('.toggle-multi').on('click', function () {
 });
 
 // 鼠标滑选
-$(document).on('mouseenter', '.char-item', function () {
-  let id = $('.toggle-multi.active').attr('id');
-  if (id === 'do-multi') {
+$(document).on('mouseenter', '.char-item', function (e) {
+  if (e.altKey) {
     $(this).find(':checkbox').prop('checked', true);
-  } else if (id === 'de-multi') {
+  } else if (e.shiftKey) {
     $(this).find(':checkbox').removeAttr('checked');
   }
 });
