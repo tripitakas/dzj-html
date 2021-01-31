@@ -510,15 +510,17 @@ body.widescreen {
   display: inline-block;
 }
 
-.pagers span {
+.pagers > span {
   color: #333;
   font-size: 14px;
   line-height: 36px;
   margin-right: 15px;
 }
 
-.pagers span em {
+.pagers .cur-page,
+.pagers .doc-count {
   color: #f56558;
+  margin-left: 5px;
 }
 
 .pagers ul {

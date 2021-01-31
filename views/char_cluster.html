@@ -181,7 +181,7 @@
       </div><!--m-panel-->
       <div class="char-panel show-mark">
         <div class="txt-kinds slim-bar"></div>
-        <div class="variants slim-bar"></div>
+        <div class="variants slim-bar"><span id="add-variant" class="variant">+</span></div>
         <div class="char-items slim-bar"></div>
         {% module Pager(pager) %}
       </div><!--char-panel-->
@@ -353,22 +353,30 @@
 {% include com/_base_task.html %}
 <script>
   // 初始化
+  let curTxt = '{{cur_txt}}';
+  $.cluster.init({
+    curTxt: curTxt,
+    colHolder: '.box-holder',
+    chars: decodeJSON('{{chars or []}}'),
+    txtKinds: decodeJSON('{{txt_kinds or []}}'),
+  });
   $.charTxt.init({
     readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true,
     baseFields: 'cc,lc,sc,pc,txt_level,box_level'.split(',')
   });
-  $.cluster.init({
-    curTxt: '{{cur_txt}}',
-    colHolder: '.box-holder',
-    chars: decodeJSON('{{chars or []}}'),
-    variants: decodeJSON('{{variants or []}}'),
-    txtKinds: decodeJSON('{{txt_kinds or []}}'),
-  });
   togglePanels();
   toggleFilters();
-  $(document).ready(function () {
-    getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
-  });
+
+  window.onload = () => {
+    // 设置异体字
+    $.cluster.switchVariants(curTxt);
+    // 更新校对字头
+    postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
+      $.cluster.setTxtKinds(res['txt_kinds']);
+    });
+    // 设置当前字图
+    getAnchor() && $('#' + getAnchor()).find('.char-img').click();
+  };
 
 </script>
 <script>
@@ -387,9 +395,9 @@
   });
 
   // 新增图片字-弹框
-  $('#add-variant').on('click', function () {
-    let $this = $('.txt-kind.current');
-    $('#v-user-txt').text($this.attr('data-value') || $this.text().trim());
+  $(document).on('click', '#add-variant', function () {
+    if (!$('.char-item.current').length) return bsShow('提示', '请先选择一个图片字', 'warning', 2000);
+    $('#v-user-txt').text($('.txt-kind.current').attr('data-value') || $('.txt-kind.current').text().trim());
     $('#v-img').attr('src', $('.char-item.current img').attr('src'));
     $('#v-img-name').text($('.char-name').text());
     $('#variantModal').modal();
@@ -405,6 +413,9 @@
       $this.removeClass('disabled').text($txt);
       $.cluster.addVariant(res['v_code']);
       $('#variantModal').modal('hide');
+    }, function (err) {
+      $this.removeClass('disabled').text($txt);
+      showError('失败', err.message, 3000);
     });
   });
 
@@ -429,9 +440,10 @@
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
       // 更新当前字图、字图数据、校对面板和锚点
       $('.char-item.current').addClass('changed').find('.txt').text(data.txt);
+      $.charTxt.setTxtLogs(res['txt_logs']);
       data['txt_logs'] = res['txt_logs'];
       $.cluster.updateChar(data.name, data);
-      $.charTxt.setTxtLogs(res['txt_logs']);
+      $.cluster.addTxtKind(data.txt);
       location.href = setAnchor(data.name);
     }, function (err) {
       $this.removeClass('disabled').text('确定');

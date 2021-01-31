@@ -282,3 +282,23 @@ class VariantCode2NorTxtApi(BaseHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
+
+
+class VariantsListByTxtApi(BaseHandler):
+    URL = '/api/variant/search'
+
+    def post(self):
+        """ 获取txt的异体字列表"""
+        try:
+            rules = [(v.not_empty, 'q')]
+            self.validate(self.data, rules)
+            txt = self.data['q']
+            vt = self.db.variant.find_one({'v_code': txt} if txt[0] == 'v' else {'txt': txt}, {'nor_txt': 1})
+            nor_txt = vt and vt.get('nor_txt') or txt
+            vts = list(self.db.variant.find({'$or': [{'nor_txt': nor_txt}, {'user_txt': nor_txt}]}))
+            vts1 = [vt['txt'] for vt in vts if vt.get('txt')]
+            vts2 = [vt['v_code'] for vt in vts if vt.get('v_code')]
+            self.send_data_response(dict(variants=vts1 + vts2))
+
+        except self.DbError as error:
+            return self.send_db_error(error)

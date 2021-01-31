@@ -155,12 +155,22 @@ class CharTaskClusterHandler(CharHandler):
     def get(self, task_type, task_id):
         """聚类校对页面"""
         try:
-            data = self.get_data(task_type)
-            cur_txt = self.get_user_argument('txt', '')
-            vts = cur_txt and self.get_variants(cur_txt)
-            self.render('char_cluster.html', Char=Char, **data, variants=vts, cur_txt=cur_txt, mode=self.mode,
+            debug, start = False, self.now()
+            data, task_cond, cond = self.get_chars(task_type)
+            debug and print('[1]get chars:', (self.now() - start).total_seconds(), cond)
+
+            txt = self.get_query_argument('txt', '')
+            self.render('char_cluster.html', Char=Char, **data, cur_txt=txt, mode=self.mode,
                         readonly=self.readonly, page_name=self.get_task_name(task_type),
                         char_count=self.task.get('char_count'))
+
+            # 更新校对字头
+            counts = list(self.db.char.aggregate([
+                {'$match': task_cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
+            ]))
+            txt_kinds = [c['_id'] for c in sorted(counts, key=itemgetter('count'), reverse=True)]
+            debug and print('[2]aggregate txt kinds:', (self.now() - start).total_seconds(), task_cond)
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'result.txt_kinds': txt_kinds}})
 
         except Exception as error:
             return self.send_db_error(error)
@@ -168,47 +178,30 @@ class CharTaskClusterHandler(CharHandler):
     def post(self, task_type, task_id):
         """聚类校对ajax获取数据"""
         try:
-
-            data = self.get_data(task_type, False)
+            if self.data.get('query') == 'txt_kinds':
+                data = dict(txt_kinds=self.prop(self.task, 'result.txt_kinds', []))
+            else:
+                data = self.get_chars(task_type)[0]
             self.send_data_response(data)
 
         except Exception as error:
             return self.send_db_error(error)
 
-    def get_data(self, task_type, include_txt_kinds=True):
-        debug, start = False, datetime.now()
-        # 1.根据任务参数，设置任务过滤条件
+    def get_chars(self, task_type):
         params = self.task['params']
-        base = 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
+        base = self.get_base_field(task_type)
         base_txts = [c[base] for c in params]  # 聚类字种
-        user_level = self.get_user_txt_level(self, task_type)
-        cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
-        updated = self.get_user_argument('updated', 0)
-        cond['txt_level'] = {'$gt': user_level} if updated == 'unauth' else {'$lte': user_level}
-        # 按任务过滤条件，统计“所有校对字头”
-        counts = include_txt_kinds and list(self.db.char.aggregate([
-            {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
-            {'$sort': {'count': -1}},
-        ])) or []
-        txt_kinds = [c['_id'] for c in counts]
-        debug and print('[1]aggregate chars:', (datetime.now() - start).total_seconds())
-        # 2.查找单字数据
+        task_cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
+        cond = self.get_user_filter(task_type)
+        cond.update(task_cond)
+        # 做任务时，限制每页字数
         self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
-        if self.mode in ['do', 'update']:
-            self.page_size = 100 if self.page_size > 100 else self.page_size
-        cond.update(self.get_user_filter(task_type))
+        self.page_size = 100 if self.page_size > 100 and self.mode in ['do', 'update'] else self.page_size
         chars, pager, q, order = Char.find_by_page(self, cond, default_order=[('pc', 1), ('cc', 1)])
-        debug and print('[2]find chars:', (datetime.now() - start).total_seconds(), cond)
-        # 设置单字列图
-        for ch in chars:
+        for ch in chars:  # 设置单字列图
             column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
             ch['column']['img_url'] = self.get_web_img(column_name, 'column')
             ch['img_url'] = self.get_web_img(ch['name'], 'char')
-        return dict(chars=chars, pager=pager, q=q, order=order, base_txts=base_txts, txt_kinds=txt_kinds)
-
-    def get_variants(self, cur_txt):
-        vt = self.db.variant.find_one({'$or': [{'txt': cur_txt}, {'v_code': cur_txt}]}, {'nor_txt': 1})
-        nor_txt = vt and vt.get('nor_txt') or cur_txt
-        vts = list(self.db.variant.find({'$or': [{'nor_txt': nor_txt}, {'user_txt': nor_txt}]}))
-        vts = [v.get('txt') or v.get('v_code') for v in vts]
-        return vts
+        txt_kinds = self.prop(self.task, 'result.txt_kinds') or base_txts
+        data = dict(chars=chars, pager=pager, q=q, order=order, base_txts=base_txts, txt_kinds=txt_kinds)
+        return data, task_cond, cond

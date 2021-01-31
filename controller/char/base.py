@@ -93,6 +93,11 @@ class CharHandler(Char, TaskHandler):
                 return self.send_error_msg(e.data_point_unqualified[0], msg, response_error)
         return True
 
+    @staticmethod
+    def get_base_field(task_type):
+        """ 聚类任务的基准文本字段"""
+        return 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
+
     def get_char_img(self, char):
         url = self.get_web_img(char.get('img_name') or char['name'], 'char')
         if url and char.get('img_time'):
@@ -142,6 +147,12 @@ class CharHandler(Char, TaskHandler):
             cond['remark'] = {'$ne': None}
         elif remark == 'false':
             cond['remark'] = None
+        # 是否已提交
+        submitted = self.get_user_argument('submitted', 0)
+        if task_type and submitted == 'true':
+            cond['tasks.' + task_type] = self.task['_id']
+        elif task_type and submitted == 'false':
+            cond['tasks.' + task_type] = {'$ne': self.task['_id']}
         # 按用户修改过滤
         updated = self.get_user_argument('updated', 0)
         if updated == 'my':
@@ -152,10 +163,7 @@ class CharHandler(Char, TaskHandler):
             cond['txt_logs'] = {'$nin': [None, []]}
         elif updated == 'false':
             cond['txt_logs'] = {'$in': [None, []]}
-        # 是否已提交
-        submitted = self.get_user_argument('submitted', 0)
-        if task_type and submitted == 'true':
-            cond['tasks.' + task_type] = self.task['_id']
-        elif task_type and submitted == 'false':
-            cond['tasks.' + task_type] = {'$ne': self.task['_id']}
+        # 检查数据等级
+        user_level = self.get_user_txt_level(self, task_type)
+        cond['txt_level'] = {'$gt': user_level} if updated == 'unauth' else {'$lte': user_level}
         return cond

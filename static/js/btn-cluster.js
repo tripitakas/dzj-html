@@ -41,15 +41,19 @@ function trimUrl(href) {
   return href;
 }
 
-$('.pagers a').unbind('click').bind('click', function (e) {
+$('.pagers').on('click', 'a', function (e) {
   e.preventDefault();
-  let href = $(this).attr('href'), $this = $(this);
-  if ($this.text() === (getQueryString('page') || '1')) return;
+  let $this = $(this), page = $this.text().trim();
+  if ($this.hasClass('p-first')) page = '1';
+  else if ($this.hasClass('p-last')) page = $('.pagers .page-count').text();
+  else if ($this.hasClass('p-prev')) page = parseInt($('.pagers .active').text()) - 1;
+  else if ($this.hasClass('p-next')) page = parseInt($('.pagers .active').text()) + 1;
+  if (page == (getQueryString('page') || '1')) return;
+  let href = setQueryString('page', page);
   postApi(trimUrl(href), {data: {}}, function (res) {
     $.cluster.setChars(res.data.chars);
+    $.cluster.updatePager(res.data.pager);
     window.history.pushState({}, null, href);
-    $('.pagers li.active').removeClass('active');
-    $this.parent().addClass('active');
   });
 });
 
@@ -61,8 +65,8 @@ $('.pagers .page-no').unbind('keydown').bind('keydown', function (e) {
   let href = setQueryString('page', page);
   postApi(trimUrl(href), {data: {}}, function (res) {
     $.cluster.setChars(res.data.chars);
+    $.cluster.updatePager(res.data.pager);
     window.history.pushState({}, null, href);
-    $.map($('.pagers li'), (item) => $(item).toggleClass('active', $(item).text().trim() == page));
   });
 });
 
@@ -70,12 +74,10 @@ $('#filter-panel .filter').on('click', function () {
   let $this = $(this), active = $this.hasClass('active');
   let ids = $this.attr('id').replace('-', '=').split('=');
   let href = toggleQueryString(ids[0], ids[1], !active);
-  // location.href = href;
-  debugger;
   postApi(trimUrl(href), {data: {}}, function (res) {
     $.cluster.setChars(res.data.chars);
+    $.cluster.updatePager(res.data.pager);
     window.history.pushState({}, null, href);
-    console.log(`btn-${ids[0]}`);
     $(`.btn-${ids[0]}`).removeClass('active');
     !active && $this.addClass('active');
   });

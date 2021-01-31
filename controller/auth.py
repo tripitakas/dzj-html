@@ -73,6 +73,7 @@ role_route_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/api/session/config': ['POST'],
+            '/api/variant/search': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/task/nav/@task_type/@task_id': ['GET'],
             '/api/task/statistic/@task_type': ['POST'],
