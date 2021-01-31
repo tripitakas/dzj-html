@@ -146,10 +146,11 @@ class Model(object):
             doc_count = self.db[cls.collection].count_documents(condition)
         else:
             doc_count = self.db[cls.collection].estimated_document_count(filter=condition)
-        cur_page = int(self.get_query_argument('page', 1))
+        cur_page = int(self.get_query_argument('page', 0) or 1)
         page_size = int(self.get_query_argument('page_size', 0) or getattr(self, 'page_size', 0)
                         or self.get_config('pager.page_size'))
         max_page = math.ceil(doc_count / page_size)
+        cur_page = 1 if cur_page < 1 else cur_page
         cur_page = max_page if max_page and max_page < cur_page else cur_page
         docs = list(query.skip((cur_page - 1) * page_size).limit(page_size))
         pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)

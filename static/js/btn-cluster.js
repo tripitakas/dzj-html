@@ -30,67 +30,55 @@ function togglePanels(init) {
 }
 
 function toggleFilters() {
-  let order2btn = (o) => o.replace('-', '') + '-' + (o.length > 2 ? 'down' : 'up');
-  if (getQueryString('order').length) $(`#btn-${order2btn(getQueryString('order'))}`).addClass('active');
-  if (getQueryString('sc').length) $(`#btn-sc-${getQueryString('sc')}`).addClass('active');
-  if (getQueryString('is_vague')) $(`#btn-vague-${getQueryString('is_vague')}`).addClass('active');
-  if (getQueryString('is_deform')) $(`#btn-deform-${getQueryString('is_deform')}`).addClass('active');
-  if (getQueryString('uncertain')) $(`#btn-uncertain-${getQueryString('uncertain')}`).addClass('active');
-  if (getQueryString('remark')) $(`#btn-remark-${getQueryString('remark')}`).addClass('active');
-  if (getQueryString('submitted')) $(`#btn-submitted-${getQueryString('submitted')}`).addClass('active');
-  if (getQueryString('remark')) $(`#btn-remark-${getQueryString('remark')}`).addClass('active');
-  if (getQueryString('updated')) $(`#btn-updated-${getQueryString('updated')}`).addClass('active');
+  let btns = ['order', 'sc', 'is_vague', 'is_deform', 'uncertain', 'remark', 'submitted', 'updated'];
+  btns.forEach((q) => getQueryString(q) && $(`#${q}-${getQueryString(q)}`).addClass('active'));
 }
 
-//----------------------翻页----------------------
-$('.pagers a').on('click', function (e) {
+
+//----------------------左侧导航（排序及过滤）及翻页----------------------
+function trimUrl(href) {
+  ['http://', 'https://', location.host, /(do|update|nav|browse)\//].forEach((s) => href = href.replace(s, ''));
+  return href;
+}
+
+$('.pagers a').unbind('click').bind('click', function (e) {
   e.preventDefault();
-  let url = $(this).attr('href'), $this = $(this);
+  let href = $(this).attr('href'), $this = $(this);
   if ($this.text() === (getQueryString('page') || '1')) return;
-  postApi(url.replace(/\/(do|update)/, ''), {data: {}}, function (res) {
+  postApi(trimUrl(href), {data: {}}, function (res) {
+    $.cluster.setChars(res.data.chars);
+    window.history.pushState({}, null, href);
     $('.pagers li.active').removeClass('active');
     $this.parent().addClass('active');
-    $.cluster.setChars(res.data.chars);
-    window.history.pushState({}, null, url);
   });
 });
 
-//----------------------左侧导航：排序及过滤----------------------
-$('.btn-cc').on('click', function () {
-  let pre = $(this).attr('id').indexOf('up') < 0 ? '-' : '';
-  location.href = toggleQueryString('order', pre + 'cc', !$(this).hasClass('active'));
+$('.pagers .page-no').unbind('keydown').bind('keydown', function (e) {
+  let keyCode = e.keyCode || e.which, page = $(this).val().trim();
+  if (keyCode !== 13 || !page.length) return;
+  e.preventDefault();
+  if (page === (getQueryString('page') || '1')) return;
+  let href = setQueryString('page', page);
+  postApi(trimUrl(href), {data: {}}, function (res) {
+    $.cluster.setChars(res.data.chars);
+    window.history.pushState({}, null, href);
+    $.map($('.pagers li'), (item) => $(item).toggleClass('active', $(item).text().trim() == page));
+  });
 });
-$('.btn-lc').on('click', function () {
-  let pre = $(this).attr('id').indexOf('up') < 0 ? '-' : '';
-  location.href = toggleQueryString('order', pre + 'lc', !$(this).hasClass('active'));
-});
-$('.btn-sc').on('click', function () {
-  let sc = $(this).attr('id').replace('btn-sc-', '');
-  location.href = toggleQueryString('sc', sc, !$(this).hasClass('active'));
-});
-$('.btn-vague').on('click', function () {
-  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
-  location.href = toggleQueryString('is_vague', value, !$(this).hasClass('active'));
-});
-$('.btn-deform').on('click', function () {
-  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
-  location.href = toggleQueryString('is_deform', value, !$(this).hasClass('active'));
-});
-$('.btn-uncertain').on('click', function () {
-  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
-  location.href = toggleQueryString('uncertain', value, !$(this).hasClass('active'));
-});
-$('.btn-remark').on('click', function () {
-  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
-  location.href = toggleQueryString('remark', value, !$(this).hasClass('active'));
-});
-$('.btn-submitted').on('click', function () {
-  let value = $(this).attr('id').indexOf('true') < 0 ? 'false' : 'true';
-  location.href = toggleQueryString('submitted', value, !$(this).hasClass('active'));
-});
-$('.btn-updated').on('click', function () {
-  let value = $(this).attr('id').replace('btn-updated-', '');
-  location.href = toggleQueryString('updated', value, !$(this).hasClass('active'));
+
+$('#filter-panel .filter').on('click', function () {
+  let $this = $(this), active = $this.hasClass('active');
+  let ids = $this.attr('id').replace('-', '=').split('=');
+  let href = toggleQueryString(ids[0], ids[1], !active);
+  // location.href = href;
+  debugger;
+  postApi(trimUrl(href), {data: {}}, function (res) {
+    $.cluster.setChars(res.data.chars);
+    window.history.pushState({}, null, href);
+    console.log(`btn-${ids[0]}`);
+    $(`.btn-${ids[0]}`).removeClass('active');
+    !active && $this.addClass('active');
+  });
 });
 
 

@@ -29,15 +29,12 @@
 </div>
 
 <script>
-  $('.pagers .page-no').on("keydown", function (event) {
-    let keyCode = event.keyCode || event.which;
-    if (keyCode === 13) {
-      let page = $(this).val().trim();
-      page = page > 1 ? page : 1;
-      location.href = setQueryString('page', page);
-    }
+  $('.pagers .page-no').on('keydown', function (e) {
+    let keyCode = e.keyCode || e.which, page = $(this).val().trim();
+    if (keyCode !== 13 || !page.length) return;
+    location.href = setQueryString('page', page);
   });
-  $('.pagers .page-size').on("change", function () {
+  $('.pagers .page-size').on('change', function () {
     let old_page_size = parseInt('{{page_size}}'),
         page_size = this.value,
         cur_page = parseInt('{{cur_page}}'),
