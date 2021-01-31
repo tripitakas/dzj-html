@@ -333,6 +333,7 @@
   $.mapKey(',', () => $('#pic-left').click());
   $.mapKey('.', () => $('#pic-right').click());
   $.mapKey('g', () => $('.m-pager .to input').focus());
+  $.mapKey('i', () => window.open('/page/info/{{page["name"]}}', '_blank'));
 
   $('#toggle-left').on('click', function () {
     $(this).toggleClass('active');

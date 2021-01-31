@@ -159,6 +159,8 @@
     }
   });
 
+  $.mapKey('i', () => window.open(`/char/info/${char.name}`, '_blank'));
+
   $('#submit-box').on('click', function () {
     if ($(this).hasClass('disabled')) return;
     let chars = $.box.exportSubmitData()['op']['chars'];

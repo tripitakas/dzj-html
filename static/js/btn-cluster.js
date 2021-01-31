@@ -220,8 +220,13 @@ $('#submit-box').on('click', function () {
   let char = $.cluster.exportSubmitData();
   postApi(`/page/char/box/${char.name}`, {data: {pos: char}}, function (res) {
     bsShow('', '保存成功！', 'info', 1000, '#b-alert');
-    $.charTxt.setBoxLogs(res['box_logs']);
-    $.cluster.status.curChar['box_logs'] = res['box_logs'];
+    location.href = setAnchor(char.name);
+    // $.charTxt.setBoxLogs(res['box_logs']);
+    // $.cluster.status.curChar['box_logs'] = res['box_logs'];
+    if (res['img_url']) {  // 已更新字图
+      let $img = $('.char-item#' + char.name + ' img');
+      if ($img.length) $img.attr('src', res['img_url']);
+    }
   });
 });
 
