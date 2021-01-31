@@ -81,7 +81,7 @@
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
         <div class="btn-group" title="显隐设置">
-          <i class="btn-txt icon-config dropdown-toggle" data-toggle="dropdown"></i>
+          <i class="btn-txt icon-eye dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
             <li id="toggle-filter-panel" class="active"><a>显隐排序过滤[1]</a></li>
             <li id="toggle-char-info" class="active"><a>显隐字符信息[2]</a></li>
@@ -122,10 +122,10 @@
             <li id="un-multi" class="toggle-multi active"><a>取消[x]</a></li>
           </ul>
         </div>
-        <div id="toggle-config" class="btn-txt icon-eye" data-toggle="tooltip" data-placement="bottom" title="设置每页字图条数"></div>
-        <div class="search hide">
-          <input id="search-variant" type="text" placeholder="搜索异体字字典">
-          <i id="icon-search" class="icon-search"></i>
+        <div id="toggle-config" class="btn-txt icon-config" data-toggle="tooltip" data-placement="bottom" title="设置每页字图条数"></div>
+        <div class="search">
+          <input id="search-variant" type="text" placeholder="搜索异体字">
+          <i class="btn-txt icon-search"></i>
         </div>
       </div><!--center-->
       <div class="right">
@@ -369,7 +369,7 @@
 
   window.onload = () => {
     // 设置异体字
-    $.cluster.switchVariants(curTxt);
+    $.cluster.loadVariants(curTxt);
     // 更新校对字头
     postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
       $.cluster.setTxtKinds(res['txt_kinds']);

@@ -51,14 +51,11 @@
 }
 
 .search i {
-  right: 0;
   top: 12px;
   cursor: pointer;
   font-size: 15px;
-  margin-left: -18px;
-  position: absolute;
+  margin-left: -20px;
   color: var(--Brown_Darker);
-  display: inline-block;
 }
 
 /* 字图面板*/
@@ -78,7 +75,7 @@
   flex-wrap: wrap;
   padding: 5px 10px;
   overflow: auto;
-  max-height: 125px;
+  max-height: 135px;
   border-bottom: 1px solid #ccc;
 }
 
@@ -119,6 +116,13 @@
 .variant img, .txt-kind img {
   width: 43px;
   max-height: 53px;
+}
+
+.v-first {
+  width: 2px;
+  height: 55px;
+  margin: 1px 15px 0 0;
+  border: 1px solid var(--Brown_Darker);
 }
 
 .char-items .char-item {

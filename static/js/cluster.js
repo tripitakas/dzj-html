@@ -21,7 +21,7 @@
     setChars: setChars,
     addVariant: addVariant,
     setVariants: setVariants,
-    switchVariants: switchVariants,
+    loadVariants: loadVariants,
     addTxtKind: addTxtKind,
     setTxtKinds: setTxtKinds,
     updateChar: updateChar,
@@ -34,8 +34,8 @@
     // 先设置curTxt，后设置txtKinds和variants
     if (p.curTxt) status.curTxt = p.curTxt;
     if (p.txtKinds) setTxtKinds(p.txtKinds);
-    $('.char-panel .variants').toggleClass('hide', !p.curTxt.length);
     if (p.variants) setVariants(p.variants);
+    toggleVariants(p.curTxt && p.curTxt.length);
     // chars、colHolder
     if (p.chars) setChars(p.chars);
     if (p.colHolder) status.colHolder = p.colHolder;
@@ -78,17 +78,25 @@
     status.txtKinds.push(item);
   }
 
-  function setVariants(variants) {
-    let curTxt = status.curTxt, $variants = $('.char-panel .variants');
-    if (!curTxt.length) return $variants.addClass('hide');
+  function toggleVariants(show) {
+    $('.char-panel .variants').toggleClass('hide', !show);
+  }
+
+  function setVariants(txt, variants, append) {
     let html = variants.map((item) => {
+      let cls = `variant txt-item${append ? ' v-append' : ''}`;
       if (item.indexOf('v') === 0 && item.length > 1)
-        return `<span class="variant txt-item" data-value="${item}"><img src="/static/img/variants/${item}.jpg"/></span>`;
+        return `<span class="${cls}" data-value="${item}"><img src="/static/img/variants/${item}.jpg"/></span>`;
       else
-        return `<span class="variant txt-item">${item}</span>`;
+        return `<span class="${cls}">${item}</span>`;
     }).join('');
-    $variants.removeClass('hide').html('<span id="add-variant" class="variant">+</span>' + html);
-    status.txt2Variants[curTxt] = variants;
+    if (append) {
+      $('.char-panel .variants .v-append').remove();
+      $('.char-panel .variants').append('<span class="v-append v-first"></span>' + html);
+    } else {
+      $('.char-panel .variants').html('<span id="add-variant" class="variant">+</span>' + html);
+    }
+    status.txt2Variants[txt] = variants;
   }
 
   function addVariant(item) {
@@ -101,16 +109,17 @@
     status.txt2Variants[status.curTxt].push(item);
   }
 
-  function switchVariants(txt) {
-    if (!txt.length) return setVariants([]);
+  function loadVariants(txt, append) {
+    if (!txt.length) return;
     for (let t in status.txt2Variants) {
       let vts = status.txt2Variants[t];
-      if (txt === t || vts.indexOf(txt) > -1) return setVariants(vts);
+      if (txt === t || vts.indexOf(txt) > -1) return setVariants(txt, vts, append);
     }
-    if (txt in status.txt2Variants) return setVariants(status.txt2Variants[txt]);
+    bsLoading('', '检索中', 'info');
     postApi('/variant/search', {data: {q: txt}}, function (res) {
+      bsHide();
       status.txt2Variants[txt] = res.variants;
-      setVariants(res.variants);
+      setVariants(txt, res.variants, append);
     });
   }
 

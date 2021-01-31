@@ -166,16 +166,15 @@ $('#toggle-proof-color').on('click', function () {
 });
 
 // 检索异体字
-$('#search-variant').on('keydown', function (event) {
-  let keyCode = event.keyCode || event.which;
-  if (keyCode === 13) {
-    let q = $(this).val().trim();
-    if (q.length) window.open('http://hanzi.lqdzj.cn/variant_search?q=' + q, '_blank');
-  }
+$('#search-variant').on('keydown', function (e) {
+  let keyCode = e.keyCode || e.which;
+  if (keyCode !== 13) return;
+  $('.m-header .icon-search').click();
 });
-$('#icon-search').on('click', function () {
+$('.m-header .icon-search').on('click', function () {
   let q = $('#search-variant').val().trim();
-  if (q.length) window.open('http://hanzi.lqdzj.cn/variant_search?q=' + q, '_blank');
+  if (!q.length) return;
+  $.cluster.loadVariants(q, true);
 });
 
 
