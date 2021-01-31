@@ -115,9 +115,7 @@
       let vts = status.txt2Variants[t];
       if (txt === t || vts.indexOf(txt) > -1) return setVariants(txt, vts, append);
     }
-    bsLoading('', '检索中', 'info');
     postApi('/variant/search', {data: {q: txt}}, function (res) {
-      bsHide();
       status.txt2Variants[txt] = res.variants;
       setVariants(txt, res.variants, append);
     });
@@ -186,8 +184,8 @@
 
     let html = '';
     for (let i = start; i <= end; i++) {
-      let cls = i === pager['cur_page'] ? ' active' : '';
-      html += `<li class="p-no${cls}"><a>${i}</a></li>`;
+      let cls = i === pager['cur_page'] ? 'p-no active' : 'p-no';
+      html += `<li class="${cls}"><a>${i}</a></li>`;
     }
     $('.pagers li.p-no').remove();
     $('.pagers li.p-prev').after(html);

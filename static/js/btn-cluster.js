@@ -7,11 +7,11 @@ $.mapKey('v', () => $('#do-multi').click());
 $.mapKey('z', () => $('#de-multi').click());
 $.mapKey('x', () => $('#un-multi').click());
 $.mapKey('1', () => $('#toggle-filter-panel').click());
-$.mapKey('2', () => $('#toggle-char-info').click());
-$.mapKey('3', () => $('#toggle-column-panel').click());
-$.mapKey('4', () => $('#toggle-proof-panel').click());
-$.mapKey('5', () => $('#toggle-proof-color').click());
-$.mapKey('esc', () => togglePanels(true));
+$.mapKey('2', () => $('#toggle-char-variant').click());
+$.mapKey('3', () => $('#toggle-char-cc').click());
+$.mapKey('4', () => $('#toggle-column-panel').click());
+$.mapKey('5', () => $('#toggle-proof-panel').click());
+$.mapKey('esc2', () => togglePanels(true));
 $.mapKey('left', () => $('.char-item.current').prev().find('.char-img').click());
 $.mapKey('right', () => $('.char-item.current').next().find('.char-img').click());
 
@@ -19,14 +19,14 @@ $.mapKey('right', () => $('.char-item.current').next().find('.char-img').click()
 function togglePanels(init) {
   $('#toggle-filter-panel').toggleClass('active', init ? true : getStorage('clusterFilterPanel', true));
   $('.m-panel').toggleClass('hide', init ? false : !getStorage('clusterFilterPanel', true));
-  $('#toggle-char-info').toggleClass('active', init ? true : getStorage('clusterCharInfo', true));
-  $('.char-info, .char-check').toggleClass('hide', init ? false : !getStorage('clusterCharInfo', true));
+  $('#toggle-char-variant').toggleClass('active', init ? true : getStorage('clusterCharVariant', true));
+  $('.char-panel .variants').toggleClass('hide', init ? false : !getStorage('clusterCharVariant', true));
+  $('#toggle-char-cc').toggleClass('active', init ? true : getStorage('clusterCharCc', true));
+  $('.char-panel .char-info').toggleClass('hide', init ? true : getStorage('clusterCharCc', true));
   $('#toggle-column-panel').toggleClass('active', init ? true : getStorage('clusterColumnPanel', true));
   $('.column-panel').toggleClass('hide', init ? false : !getStorage('clusterColumnPanel', true));
   $('#toggle-proof-panel').toggleClass('active', init ? true : getStorage('clusterProofPanel', true));
   $('.proof-panel').toggleClass('hide', init ? false : !getStorage('clusterProofPanel', true));
-  $('#toggle-proof-color').toggleClass('active', init ? true : getStorage('clusterProofColor', true));
-  $('.char-panel').toggleClass('show-mark', init ? true : getStorage('clusterProofColor', true));
 }
 
 function toggleFilters() {
@@ -35,56 +35,39 @@ function toggleFilters() {
 }
 
 
-//----------------------左侧导航（排序及过滤）及翻页----------------------
-function trimUrl(href) {
-  ['http://', 'https://', location.host, /(do|update|nav|browse)\//].forEach((s) => href = href.replace(s, ''));
-  return href;
-}
-
-$('.pagers').on('click', 'a', function (e) {
-  e.preventDefault();
-  let $this = $(this), page = $this.text().trim();
-  if ($this.hasClass('p-first')) page = '1';
-  else if ($this.hasClass('p-last')) page = $('.pagers .page-count').text();
-  else if ($this.hasClass('p-prev')) page = parseInt($('.pagers .active').text()) - 1;
-  else if ($this.hasClass('p-next')) page = parseInt($('.pagers .active').text()) + 1;
-  if (page == (getQueryString('page') || '1')) return;
-  let href = setQueryString('page', page);
-  postApi(trimUrl(href), {data: {}}, function (res) {
-    $.cluster.setChars(res.data.chars);
-    $.cluster.updatePager(res.data.pager);
-    window.history.pushState({}, null, href);
-  });
-});
-
-$('.pagers .page-no').unbind('keydown').bind('keydown', function (e) {
-  let keyCode = e.keyCode || e.which, page = $(this).val().trim();
-  if (keyCode !== 13 || !page.length) return;
-  e.preventDefault();
-  if (page === (getQueryString('page') || '1')) return;
-  let href = setQueryString('page', page);
-  postApi(trimUrl(href), {data: {}}, function (res) {
-    $.cluster.setChars(res.data.chars);
-    $.cluster.updatePager(res.data.pager);
-    window.history.pushState({}, null, href);
-  });
-});
-
-$('#filter-panel .filter').on('click', function () {
-  let $this = $(this), active = $this.hasClass('active');
-  let ids = $this.attr('id').replace('-', '=').split('=');
-  let href = toggleQueryString(ids[0], ids[1], !active);
-  postApi(trimUrl(href), {data: {}}, function (res) {
-    $.cluster.setChars(res.data.chars);
-    $.cluster.updatePager(res.data.pager);
-    window.history.pushState({}, null, href);
-    $(`.btn-${ids[0]}`).removeClass('active');
-    !active && $this.addClass('active');
-  });
-});
-
-
 //----------------------顶部导航----------------------
+// 显隐排序过滤
+$('#toggle-filter-panel').on('click', function () {
+  $(this).toggleClass('active');
+  setStorage('clusterFilterPanel', $(this).hasClass('active'));
+  $('.m-panel').toggleClass('hide', !$(this).hasClass('active'));
+});
+// 显隐异体字列表
+$('#toggle-char-variant').on('click', function () {
+  $(this).toggleClass('active');
+  setStorage('clusterCharVariant', $(this).hasClass('active'));
+  $('.char-panel .variants').toggleClass('hide', !$(this).hasClass('active'));
+});
+// 显隐字符置信度
+$('#toggle-char-cc').on('click', function () {
+  $(this).toggleClass('active');
+  setStorage('clusterCharCc', $(this).hasClass('active'));
+  $('.char-panel .char-info').toggleClass('hide', $(this).hasClass('active'));
+});
+// 显隐字框列图
+$('#toggle-column-panel').on('click', function () {
+  $(this).toggleClass('active');
+  setStorage('clusterColumnPanel', $(this).hasClass('active'));
+  $('.column-panel').toggleClass('hide', !$(this).hasClass('active'));
+});
+// 显隐校对面板
+$('#toggle-proof-panel').on('click', function () {
+  $(this).toggleClass('active');
+  setStorage('clusterProofPanel', $(this).hasClass('active'));
+  $('.proof-panel').toggleClass('hide', !$(this).hasClass('active'));
+});
+
+
 // 置信度过滤
 $('#btn-filter').on('click', function () {
   let start = $('#filter-start').val();
@@ -114,17 +97,6 @@ $('#bat-select').on('click', function () {
   }
 });
 
-// 多选模式-鼠标滑选
-$('.toggle-multi2').on('click', function () {
-  $('.toggle-multi').removeClass('active');
-  $(this).addClass('active');
-  if ($(this).attr('id') === 'do-multi') {
-    bsShow('', '鼠标滑选 / 正选 已打开', 'info', 800);
-  } else if ($(this).attr('id') === 'de-multi') {
-    bsShow('', '鼠标滑选 / 反选 已打开', 'info', 800);
-  }
-});
-
 // 鼠标滑选
 $(document).on('mouseenter', '.char-item', function (e) {
   if (e.altKey) {
@@ -134,35 +106,15 @@ $(document).on('mouseenter', '.char-item', function (e) {
   }
 });
 
-// 显隐排序过滤
-$('#toggle-filter-panel').on('click', function () {
-  $(this).toggleClass('active');
-  setStorage('clusterFilterPanel', $(this).hasClass('active'));
-  $('.m-panel').toggleClass('hide', !$(this).hasClass('active'));
-});
-// 显隐字图信息
-$('#toggle-char-info').on('click', function () {
-  $(this).toggleClass('active');
-  setStorage('clusterCharInfo', $(this).hasClass('active'));
-  $('.char-info, .char-check').toggleClass('hide', !$(this).hasClass('active'));
-});
-// 显隐字框列图
-$('#toggle-column-panel').on('click', function () {
-  $(this).toggleClass('active');
-  setStorage('clusterColumnPanel', $(this).hasClass('active'));
-  $('.column-panel').toggleClass('hide', !$(this).hasClass('active'));
-});
-// 显隐校对面板
-$('#toggle-proof-panel').on('click', function () {
-  $(this).toggleClass('active');
-  setStorage('clusterProofPanel', $(this).hasClass('active'));
-  $('.proof-panel').toggleClass('hide', !$(this).hasClass('active'));
-});
-// 显隐校对颜色
-$('#toggle-proof-color').on('click', function () {
-  $(this).toggleClass('active');
-  setStorage('clusterProofColor', $(this).hasClass('active'));
-  $('.char-panel').toggleClass('show-mark', $(this).hasClass('active'));
+// 多选模式-鼠标滑选
+$('.toggle-multi2').on('click', function () {
+  $('.toggle-multi').removeClass('active');
+  $(this).addClass('active');
+  if ($(this).attr('id') === 'do-multi') {
+    bsShow('', '鼠标滑选 / 正选 已打开', 'info', 800);
+  } else if ($(this).attr('id') === 'de-multi') {
+    bsShow('', '鼠标滑选 / 反选 已打开', 'info', 800);
+  }
 });
 
 // 检索异体字
@@ -175,6 +127,53 @@ $('.m-header .icon-search').on('click', function () {
   let q = $('#search-variant').val().trim();
   if (!q.length) return;
   $.cluster.loadVariants(q, true);
+});
+
+
+//----------------------左侧导航（排序及过滤）及翻页----------------------
+function trimUrl(href) {
+  ['http://', 'https://', location.host, /(do|update|nav|browse)\//].forEach((s) => href = href.replace(s, ''));
+  return href;
+}
+
+function goto(page) {
+  if (page == (getQueryString('page') || '1')) return;
+  let href = setQueryString('page', page);
+  postApi(trimUrl(href), {data: {}}, function (res) {
+    $.cluster.setChars(res.data.chars);
+    $.cluster.updatePager(res.data.pager);
+    window.history.pushState({}, null, href);
+  });
+}
+
+$('.pagers').on('click', 'a', function (e) {
+  e.preventDefault();
+  let $this = $(this), page = $this.text().trim();
+  if ($this.hasClass('p-first')) page = '1';
+  else if ($this.hasClass('p-last')) page = $('.pagers .page-count').text();
+  else if ($this.hasClass('p-prev')) page = parseInt($('.pagers .active').text()) - 1;
+  else if ($this.hasClass('p-next')) page = parseInt($('.pagers .active').text()) + 1;
+  goto(page);
+});
+
+$('.pagers .page-no').unbind('keydown').bind('keydown', function (e) {
+  let keyCode = e.keyCode || e.which, page = $(this).val().trim();
+  if (keyCode !== 13 || !page.length) return;
+  e.preventDefault();
+  goto(page);
+});
+
+$('#filter-panel .filter').on('click', function () {
+  let $this = $(this), active = $this.hasClass('active');
+  let ids = $this.attr('id').replace('-', '=').split('=');
+  let href = toggleQueryString(ids[0], ids[1], !active);
+  postApi(trimUrl(href), {data: {}}, function (res) {
+    $.cluster.setChars(res.data.chars);
+    $.cluster.updatePager(res.data.pager);
+    window.history.pushState({}, null, href);
+    $(`.btn-${ids[0]}`).removeClass('active');
+    !active && $this.addClass('active');
+  });
 });
 
 

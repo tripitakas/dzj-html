@@ -84,10 +84,10 @@
           <i class="btn-txt icon-eye dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
             <li id="toggle-filter-panel" class="active"><a>显隐排序过滤[1]</a></li>
-            <li id="toggle-char-info" class="active"><a>显隐字符信息[2]</a></li>
-            <li id="toggle-column-panel" class="active"><a>显隐字框列图[3]</a></li>
-            <li id="toggle-proof-panel" class="active"><a>显隐校对面板[4]</a></li>
-            <li id="toggle-proof-color" class="active"><a>显隐校对颜色[5]</a></li>
+            <li id="toggle-char-variant" class="active"><a>显隐异体字列表[2]</a></li>
+            <li id="toggle-char-cc" class="active"><a>显隐字符置信度[3]</a></li>
+            <li id="toggle-column-panel" class="active"><a>显隐中间列图[4]</a></li>
+            <li id="toggle-proof-panel" class="active"><a>显隐校对面板[5]</a></li>
           </ul>
         </div>
         <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按置信度过滤">
@@ -488,7 +488,8 @@
     let charNames = $.map($('.char-item'), (item) => $(item).attr('id'));
     postApi(location.pathname, {data: {char_names: charNames}}, function () {
       $('.char-item').addClass('submitted');
-      showSuccess('成功', '页面已提交。', 1000);
+      bsShow('成功', '页面已提交', 'info', 1000);
+      goto(parseInt($('.p-no.active').text().trim())+1);
     });
   });
 
