@@ -85,6 +85,7 @@ def update_page(db):
             for b in p.get('chars'):
                 b.pop('pc', 0)
                 b.pop('sc', 0)
+                b.pop('cmb_txt', 0)
             db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars'], 'updated': True}})
 
 

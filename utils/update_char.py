@@ -162,7 +162,7 @@ def update_ocr_txt(ch):
 
 def update_char(db):
     size = 20000
-    cond = {'source': '练习数据'}
+    cond = {'source': '1200标注数据'}
     item_count = db.char.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))

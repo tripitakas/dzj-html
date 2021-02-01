@@ -74,11 +74,13 @@ class Char(Model):
     @classmethod
     def get_cmb_txt(cls, ch):
         """ 选择综合文本"""
-        insist_ocr = {'衆': '眾', '説': '說', '従': '從', '塲': '場', '隂': '陰'}
         cmb_txt = (ch.get('alternatives') or '')[:1]
+        if cmb_txt == ch.get('ocr_col'):
+            return cmb_txt
+        insist_ocr = {'衆': '眾', '説': '說', '従': '從', '塲': '場', '隂': '陰'}
         if cls.is_valid_txt(ch.get('cmp_txt')) and cmb_txt != ch['cmp_txt']:
             if ch['cmp_txt'] == ch.get('ocr_col') or ch['cmp_txt'] in (ch.get('alternatives') or ''):
-                if not (cmb_txt in insist_ocr and ch['cmp_txt'] == insist_ocr[cmb_txt]):
+                if ch['cmp_txt'] != insist_ocr.get(cmb_txt):
                     cmb_txt = ch['cmp_txt']
         return cmb_txt
 
