@@ -14,6 +14,8 @@ $.mapKey('5', () => $('#toggle-proof-panel').click());
 $.mapKey('esc2', () => togglePanels(true));
 $.mapKey('left', () => $('.char-item.current').prev().find('.char-img').click());
 $.mapKey('right', () => $('.char-item.current').next().find('.char-img').click());
+$.mapKey('g', () => $('#search-variant').focus());
+$.mapKey('enter', () => $('#search-variant').click());
 
 //----------------------初始化----------------------
 function togglePanels(init) {

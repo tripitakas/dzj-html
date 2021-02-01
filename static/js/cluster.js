@@ -91,8 +91,12 @@
         return `<span class="${cls}">${item}</span>`;
     }).join('');
     if (append) {
-      $('.char-panel .variants .v-append').remove();
-      $('.char-panel .variants').append('<span class="v-append v-first"></span>' + html);
+      if (!variants.length) {
+        bsShow('提示', '查无异体字', 'info', 1000);
+      } else {
+        $('.char-panel .variants .v-append').remove();
+        $('.char-panel .variants').append('<span class="v-append v-first"></span>' + html);
+      }
     } else {
       $('.char-panel .variants').html('<span id="add-variant" class="variant">+</span>' + html);
     }
