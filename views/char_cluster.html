@@ -472,7 +472,7 @@
     postApi(location.pathname, {data: {char_names: charNames}}, function () {
       $('.char-item').addClass('submitted');
       bsShow('成功', '页面已提交', 'info', 1000);
-      goto(parseInt($('.p-no.active').text().trim()) + 1);
+      browse(setQueryString('page', parseInt($('.p-no.active').text().trim()) + 1));
     });
   });
 
