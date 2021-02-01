@@ -40,7 +40,7 @@ class CharTaskListHandler(TaskHandler, Char):
         {'id': 'my_remark', 'name': '用户备注'},
 
     ]
-    search_fields = ['batch', 'base_txts', 'remark']
+    search_fields = ['batch', 'remark']
     hide_fields = ['_id', 'txt_equals', 'params', 'return_reason', 'create_time', 'updated_time',
                    'publish_by', 'remark']
     operations = [
@@ -76,11 +76,6 @@ class CharTaskListHandler(TaskHandler, Char):
 
     def format_value(self, value, key=None, doc=None):
         """格式化page表的字段输出"""
-        if key == 'used_time' and value:
-            return round(value / 60.0, 2)
-        if key == 'base_txts' and value:
-            value = ''.join([v.get('cmb_txt') or v.get('rvw_txt') for v in value])
-            return (value[:5] + '...') if len(value) > 5 else value
         if key == 'params' and value:
             names = dict(source='来源', txt_kinds='校对字头')
             return '<br/>'.join(['%s: %s' % (names.get(k) or k, v) for k, v in value.items()])
@@ -196,8 +191,8 @@ class CharTaskClusterHandler(CharHandler):
 
     def get_chars(self, task_type):
         b_field = self.get_base_field(task_type)
-        base_txts = [p[b_field] for p in self.task.get('base_txts', [])]
         source = self.prop(self.task, 'params.source')
+        base_txts = [t['txt'] for t in self.task['base_txts']]
         task_cond = {'source': source, b_field: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
         cond = self.get_user_filter(task_type)
         cond.update(task_cond)

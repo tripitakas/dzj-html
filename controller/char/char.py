@@ -75,12 +75,10 @@ class Char(Model):
     def get_cmb_txt(cls, ch):
         """ 选择综合文本"""
         cmb_txt = (ch.get('alternatives') or '')[:1]
-        if cmb_txt == ch.get('ocr_col'):
-            return cmb_txt
         insist_ocr = {'衆': '眾', '説': '說', '従': '從', '塲': '場', '隂': '陰'}
-        if cls.is_valid_txt(ch.get('cmp_txt')) and cmb_txt != ch['cmp_txt']:
+        if cls.is_valid_txt(ch.get('cmp_txt')) and cmb_txt != ch['cmp_txt'] and cmb_txt != ch.get('ocr_col'):
             if ch['cmp_txt'] == ch.get('ocr_col') or ch['cmp_txt'] in (ch.get('alternatives') or ''):
-                if ch['cmp_txt'] != insist_ocr.get(cmb_txt):
+                if ch['cmp_txt'] != insist_ocr.get(cmb_txt):  # 这种情况仍以字框OCR为准
                     cmb_txt = ch['cmp_txt']
         return cmb_txt
 

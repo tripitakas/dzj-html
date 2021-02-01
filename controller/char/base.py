@@ -98,12 +98,6 @@ class CharHandler(Char, TaskHandler):
         """ 聚类任务以字数据的哪个字段进行聚类"""
         return 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
 
-    @classmethod
-    def get_base_txts(cls, task):
-        """ 获取任务的聚类字种字符串"""
-        b_field = cls.get_base_field(task['task_type'])
-        return [t[b_field] for t in task.get('base_txts', [])]
-
     def get_char_img(self, char):
         url = self.get_web_img(char.get('img_name') or char['name'], 'char')
         if url and char.get('img_time'):

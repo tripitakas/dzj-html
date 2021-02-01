@@ -63,7 +63,7 @@ class CharTaskPublishApi(CharHandler):
         # 针对常见字(字频大于等于50)，发布聚类校对
         counts1 = [c for c in counts if c['count'] >= 50]
         normal_tasks = [
-            self.task_meta(task_type, [{b_field: c['_id'], 'count': c['count']}], source, c['count'])
+            self.task_meta(task_type, [{'txt': c['_id'], 'count': c['count']}], source, c['count'])
             for c in counts1
         ]
         if normal_tasks:
@@ -75,7 +75,7 @@ class CharTaskPublishApi(CharHandler):
         rare_tasks, base_txts, total_count = [], [], 0
         for c in counts2:
             total_count += c['count']
-            base_txts.append({b_field: c['_id'], 'count': c['count']})
+            base_txts.append({'txt': c['_id'], 'count': c['count']})
             if total_count >= 50 or len(base_txts) >= 10:
                 rare_tasks.append(self.task_meta(rare_type, base_txts, source, total_count))
                 base_txts, total_count = [], 0  # reset
@@ -104,9 +104,10 @@ class CharTaskClusterApi(CharHandler):
 
             if self.data.get('submit'):  # 提交任务
                 b_field = self.get_base_field(task_type)
-                b_txts = [t[b_field] for t in self.task['base_txts']]  # 聚类字种
-                cond.update({'un_required': None, 'source': self.task['params']['source'], b_field: {'$in': b_txts}})
-                if self.db.char.find_one(cond):
+                source = self.prop(self.task, 'params.source')
+                base_txts = [t['txt'] for t in self.task['base_txts']]
+                cond.update({'source': source, b_field: {'$in': base_txts}, 'sc': {'$ne': 39}})
+                if self.db.char.find_one(cond):  # sc为39（即三字相同）的字数据可以忽略
                     return self.send_error_response(e.task_submit_error, message='还有未提交的字图，不能提交任务')
                 used_time = (self.now() - self.task['picked_time']).total_seconds()
                 self.db.task.update_one({'_id': self.task['_id']}, {'$set': {

@@ -70,7 +70,7 @@ def update_txt_equals(db, batch='', cond=None):
     cond = cond or {'task_type': {'$regex': 'cluster_'}, 'batch': batch}
     item_count = db.task.count_documents(cond)
     page_count = math.ceil(item_count / size)
-    print('[%s]%s tasks to process' % (hp.get_date_time(), item_count))
+    print('[%s]update_txt_equals started. %s tasks to process' % (hp.get_date_time(), item_count))
     for i in range(page_count):
         project = {'base_txts': 1, 'params': 1, 'task_type': 1}
         tasks = list(db.task.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
@@ -78,7 +78,7 @@ def update_txt_equals(db, batch='', cond=None):
         for task in tasks:
             source = hp.prop(task, 'params.source')
             b_field = Ch.get_base_field(task['task_type'])
-            b_txts = [t[b_field] for t in task['base_txts']]
+            b_txts = [t['txt'] for t in task['base_txts']]
             counts = list(db.char.aggregate([
                 {'$match': {'source': source, b_field: {'$in': b_txts}}},
                 {'$group': {'_id': '$sc', 'count': {'$sum': 1}}},
@@ -97,3 +97,4 @@ if __name__ == '__main__':
     import fire
 
     fire.Fire(main)
+    print('finished')

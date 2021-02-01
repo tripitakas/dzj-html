@@ -142,7 +142,6 @@ class CharsTxtApi(CharHandler):
             info = {field: value, 'txt_level': self.get_user_txt_level(self, self.data.get('task_type'))}
             self.db.char.update_many({'name': {'$in': new_update + old_update}}, {'$set': info})
             log['updated'] = new_update + old_update
-            print(new_update, old_update)
             if new_update:
                 self.db.char.update_many({'name': {'$in': new_update}, 'txt_logs': None}, {'$set': {'txt_logs': []}})
                 self.db.char.update_many({'name': {'$in': new_update}}, {'$addToSet': {'txt_logs': {

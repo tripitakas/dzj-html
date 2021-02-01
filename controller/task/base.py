@@ -149,9 +149,10 @@ class TaskHandler(BaseHandler, Task):
             return 0
 
         condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
-        field = self.get_data_field(task_type)
         if q:
-            condition.update({field: {'$regex': q}})
+            collection = self.prop(self.task_types, task_type + '.data.collection')
+            cond = {'doc_id': {'$regex': q}} if collection == 'page' else {'base_txts.txt': q}
+            condition.update(cond)
         if batch:
             batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
             condition.update({'batch': batch})

@@ -168,7 +168,7 @@ def update_char(db):
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         chars = list(db.char.find(cond).sort('_id', 1).skip(i * size).limit(size))
-        print('[%s]processing task %s/%s' % (hp.get_date_time(), i + 1, page_count))
+        print('[%s]processing %s/%s' % (hp.get_date_time(), i + 1, page_count))
         for ch in chars:
             cmb_txt = Char.get_cmb_txt(ch)
             db.char.update_one({'_id': ch['_id']}, {'$set': {'cmb_txt': cmb_txt}})
