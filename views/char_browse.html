@@ -81,19 +81,18 @@
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
         <div class="btn-group" title="显隐设置">
-          <i class="btn-txt icon-config dropdown-toggle" data-toggle="dropdown"></i>
+          <i class="btn-txt icon-eye dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
             <li id="toggle-filter-panel" class="active"><a>显隐排序过滤[1]</a></li>
-            <li id="toggle-char-info" class="active"><a>显隐字符信息[2]</a></li>
-            <li id="toggle-column-panel" class="active"><a>显隐字框列图[3]</a></li>
-            <li id="toggle-proof-panel" class="active"><a>显隐校对面板[4]</a></li>
-            <li id="toggle-proof-color" class="active"><a>显隐校对颜色[5]</a></li>
+            <li id="toggle-char-cc" class="active"><a>显隐字符置信度[3]</a></li>
+            <li id="toggle-column-panel" class="active"><a>显隐中间列图[4]</a></li>
+            <li id="toggle-proof-panel" class="active"><a>显隐校对面板[5]</a></li>
           </ul>
         </div>
-        <div class="btn-group" title="按置信度过滤">
-          <i class="btn-txt icon-cc dropdown-toggle" data-toggle="dropdown"></i>
+        <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按字置信度过滤">
+          <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <div class="dropdown-menu filter-menu" data-stopPropagation="true">
-            <div class="menu-title">按置信度过滤</div>
+            <div class="menu-title">按字置信度过滤</div>
             <li class="divider"></li>
             <div class="input-line">
               <input id="filter-start" type="text" class="form-control input-sm" placeholder="起始值">
@@ -110,33 +109,32 @@
       <div class="m-panel slim-bar hide">
         <ul id="filter-panel" class="panel-list">
           <li><a class="head">排序</a></li>
-          <li id="btn-cc-up"><a>按置信度升序</a></li>
-          <li id="btn-cc-down"><a>按置信度降序</a></li>
+          <li id="order-cc" class="filter btn-order"><a>按字置信度升序</a></li>
+          <li id="order--cc" class="filter btn-order"><a>按字置信度降序</a></li>
+          <li id="order-lc" class="filter btn-order"><a>按列置信度升序</a></li>
+          <li id="order--lc" class="filter btn-order"><a>按列置信度降序</a></li>
           <li><a class="head">按相同程度过滤</a></li>
-          <li id="btn-sc-2"><a>全部相同</a></li>
-          <li id="btn-sc-1"><a>部分相同</a></li>
-          <li id="btn-sc-0"><a>全部不同</a></li>
-          <li><a class="head">按校对标记过滤</a></li>
-          <li id="btn-vague"><a>笔画残损</a></li>
-          <li id="btn-un-vague"><a>笔画完整</a></li>
-          <li class="divider"></li>
-          <li id="btn-deform"><a>异形字</a></li>
-          <li id="btn-un-deform"><a>非异形字</a></li>
-          <li class="divider"></li>
-          <li id="btn-certain"><a>确定</a></li>
-          <li id="btn-uncertain"><a>不确定</a></li>
-          <li class="divider"></li>
-          <li id="btn-has-remark"><a>有备注</a></li>
-          <li id="btn-no-remark"><a>无备注</a></li>
+          {%for i,name in equal_level.items()%}
+          <li id="sc-{{i}}" class="filter btn-sc"><a>{{name}}</a></li>
+          {% end %}
           <li><a class="head">按是否提交过滤</a></li>
-          <li id="btn-un-submitted"><a>未提交</a></li>
-          <li id="btn-submitted"><a>已提交</a></li>
+          <li id="submitted-false" class="filter btn-submitted"><a>未提交</a></li>
+          <li id="submitted-true" class="filter btn-submitted"><a>已提交</a></li>
           <li><a class="head">按修改情况过滤</a></li>
-          <li id="btn-un-updated"><a>未修改</a></li>
-          <li id="btn-updated"><a>已修改</a></li>
-          <li id="btn-my-updated"><a>我的修改</a></li>
-          <li id="btn-other-updated"><a>他人修改</a></li>
-          <li id="btn-unauthorized"><a>无权修改</a></li>
+          <li id="updated-false" class="filter btn-updated"><a>未修改</a></li>
+          <li id="updated-true" class="filter btn-updated"><a>已修改</a></li>
+          <li id="updated-my" class="filter btn-updated"><a>我的修改</a></li>
+          <li id="updated-other" class="filter btn-updated"><a>他人修改</a></li>
+          <li id="updated-unauth" class="filter btn-updated"><a>无权修改</a></li>
+          <li><a class="head">按校对标记过滤</a></li>
+          <li id="is_vague-true" class="filter btn-is_vague"><a>笔画残损</a></li>
+          <li id="is_vague-false" class="filter btn-is_vague"><a>笔画完整</a></li>
+          <li id="is_deform-true" class="filter btn-is_deform"><a>异形字</a></li>
+          <li id="is_deform-false" class="filter btn-is_deform"><a>非异形字</a></li>
+          <li id="uncertain-false" class="filter btn-uncertain"><a>确定</a></li>
+          <li id="uncertain-true" class="filter btn-uncertain"><a>不确定</a></li>
+          <li id="remark-true" class="filter btn-remark"><a>有备注</a></li>
+          <li id="remark-false" class="filter btn-remark"><a>无备注</a></li>
         </ul>
       </div><!--m-panel-->
       <div class="char-panel show-mark">
@@ -223,13 +221,14 @@
     readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true
   });
   $.cluster.init({
+    ajax: false,
     colHolder: '.box-holder',
-    chars: decodeJSON('{{chars}}'),
+    chars: decodeJSON('{{chars or []}}'),
   });
   togglePanels();
   toggleFilters();
   $(document).ready(function () {
-    getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
+    getAnchor() && $('#' + getAnchor()).find('.char-img').click();
   });
 
 </script>

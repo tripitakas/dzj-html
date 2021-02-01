@@ -191,7 +191,8 @@ class CharBrowseHandler(CharHandler):
                 ch['column']['img_url'] = self.get_web_img(column_name, 'column')
                 ch['img_url'] = self.get_web_img(ch['name'], 'char')
 
-            self.render('char_browse.html', chars=chars, pager=pager, q=q, order=order)
+            self.render('char_browse.html', chars=chars, pager=pager, q=q, order=order,
+                        equal_level=self.equal_level)
 
         except Exception as error:
             return self.send_db_error(error)

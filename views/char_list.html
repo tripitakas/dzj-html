@@ -380,7 +380,7 @@
   // 浏览结果
   $('.operation .btn-browse').on('click', function () {
     setStorage('from', location.href);
-    location.href = '/char/browse?from=1';
+    location.href = '/char/browse' + location.search + '&from=1';
   });
 
   // 检查字页数量是否一致

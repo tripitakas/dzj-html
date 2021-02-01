@@ -152,6 +152,7 @@ function browse(href) {
 }
 
 $('.pagers').on('click', 'a', function (e) {
+  if (!$.cluster.status.ajax) return;
   e.preventDefault();
   let $this = $(this), page = $this.text().trim();
   if ($this.hasClass('p-first')) page = '1';
@@ -167,13 +168,16 @@ $('.pagers .page-no').unbind('keydown').bind('keydown', function (e) {
   if (keyCode !== 13 || !page.length) return;
   e.preventDefault();
   if (page == (getQueryString('page') || '1')) return;
-  browse(setQueryString('page', page));
+  let href = setQueryString('page', page);
+  if ($.cluster.status.ajax) browse(href);
+  else location.href = href;
 });
 
 $('#filter-panel .filter').on('click', function () {
   let $this = $(this), active = $this.hasClass('active');
   let ids = $this.attr('id').replace('-', '=').split('=');
   let href = toggleQueryString(ids[0], ids[1], !active);
+  if (!$.cluster.status.ajax) return location.href = href;
   postApi(trimUrl(href), {data: {}}, function (res) {
     $.cluster.setChars(res.data.chars);
     $.cluster.updatePager(res.data.pager);

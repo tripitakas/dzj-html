@@ -13,6 +13,7 @@
     colHolder: null,                                // 列图画布的页面元素
     curChar: null,                                  // 当前字框
     curColImgUrl: null,                             // 当前列图的url
+    ajax: true,                                     // 是否采用ajax加载数据
   };
 
   $.cluster = {
@@ -39,6 +40,7 @@
     // chars、colHolder
     if (p.chars) setChars(p.chars);
     if (p.colHolder) status.colHolder = p.colHolder;
+    if ('ajax' in p) status.ajax = p.ajax;
     // $.box
     $.box.status.readonly = false;
     $.box.status.curBoxType = 'char';
