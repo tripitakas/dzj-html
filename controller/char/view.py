@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import re
 from .char import Char
+from bson import json_util
 from .base import CharHandler
 from controller import helper as h
 from controller import errors as e
@@ -184,6 +185,7 @@ class CharBrowseHandler(CharHandler):
         try:
             cond = self.get_user_filter()
             cond.update(self.get_char_search_condition(self.request.query)[0])
+            self.page_size = int(json_util.loads(self.get_secure_cookie('char_browse_size') or '50'))
             chars, pager, q, order = Char.find_by_page(self, cond, default_order='_id')
             # 设置单字列图
             for ch in chars:

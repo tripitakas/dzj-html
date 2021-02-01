@@ -11,6 +11,7 @@ $.mapKey('2', () => $('#toggle-char-variant').click());
 $.mapKey('3', () => $('#toggle-char-cc').click());
 $.mapKey('4', () => $('#toggle-column-panel').click());
 $.mapKey('5', () => $('#toggle-proof-panel').click());
+$.mapKey('6', () => $('#toggle-proof-info').click());
 $.mapKey('esc2', () => togglePanels(true));
 $.mapKey('left', () => $('.char-item.current').prev().find('.char-img').click());
 $.mapKey('right', () => $('.char-item.current').next().find('.char-img').click());
@@ -29,6 +30,8 @@ function togglePanels(init) {
   $('.column-panel').toggleClass('hide', init ? false : !getStorage('clusterColumnPanel', true));
   $('#toggle-proof-panel').toggleClass('active', init ? true : getStorage('clusterProofPanel', true));
   $('.proof-panel').toggleClass('hide', init ? false : !getStorage('clusterProofPanel', true));
+  $('#toggle-proof-info').toggleClass('active', init ? true : getStorage('clusterProofInfo', true));
+  $('.char-panel').toggleClass('hide-mark', init ? false : !getStorage('clusterProofInfo', true));
 }
 
 function toggleFilters() {
@@ -68,7 +71,12 @@ $('#toggle-proof-panel').on('click', function () {
   setStorage('clusterProofPanel', $(this).hasClass('active'));
   $('.proof-panel').toggleClass('hide', !$(this).hasClass('active'));
 });
-
+// 显隐校对信息
+$('#toggle-proof-info').on('click', function () {
+  $(this).toggleClass('active');
+  setStorage('clusterProofInfo', $(this).hasClass('active'));
+  $('.char-panel').toggleClass('hide-mark', !$(this).hasClass('active'));
+});
 
 // 置信度过滤
 $('#btn-filter').on('click', function () {

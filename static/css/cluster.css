@@ -142,20 +142,20 @@
   transform: scale(1.25);
 }
 
-.show-mark .char-item.current {
+.char-item.current {
   border: 1px solid red;
   /*background: rgba(255, 0, 0, 0.5);*/
 }
 
-.show-mark .char-item.changed .txt {
+.char-item.changed .txt {
   color: red;
 }
 
-.show-mark .char-item.sc-39 {
+.char-item.sc-39 {
   background: rgba(227, 228, 229, 0.7);
 }
 
-.show-mark .char-item.submitted {
+.char-item.submitted {
   background: rgba(0, 128, 0, 0.3) !important;
 }
 
@@ -186,6 +186,18 @@
   /*position: relative !important;*/
   /*margin-bottom: -17px !important;*/
 }
+
+.hide-mark .char-item {
+  border: 1px solid #ccc;
+  background: rgba(227, 228, 229, 0.4) !important;
+  /*background: transparent !important;*/
+}
+
+.hide-mark .char-info,
+.hide-mark .char-check {
+  display: none;
+}
+
 
 /* 列图面板*/
 .column-panel {

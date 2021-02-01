@@ -87,6 +87,7 @@
             <li id="toggle-char-cc" class="active"><a>显隐字符置信度[3]</a></li>
             <li id="toggle-column-panel" class="active"><a>显隐中间列图[4]</a></li>
             <li id="toggle-proof-panel" class="active"><a>显隐校对面板[5]</a></li>
+            <li id="toggle-proof-info" class="active"><a>显隐校对信息[6]</a></li>
           </ul>
         </div>
         <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按字置信度过滤">
@@ -102,6 +103,7 @@
             <button id="btn-filter" type="button" class="btn btn-primary btn-sm">确定</button>
           </div>
         </div>
+        <div id="toggle-config" class="btn-txt icon-config" data-toggle="tooltip" data-placement="bottom" title="设置每页字图条数"></div>
       </div>
     </div>
 
@@ -137,7 +139,7 @@
           <li id="remark-false" class="filter btn-remark"><a>无备注</a></li>
         </ul>
       </div><!--m-panel-->
-      <div class="char-panel show-mark">
+      <div class="char-panel">
         <div class="char-items slim-bar"></div>
         {% module Pager(pager) %}
       </div><!--char-panel-->
@@ -227,9 +229,25 @@
   });
   togglePanels();
   toggleFilters();
+
   $(document).ready(function () {
     getAnchor() && $('#' + getAnchor()).find('.char-img').click();
   });
+
+  // 配置每页显示字图数量
+  let pageSize = '{{handler.page_size}}';
+  $('#toggle-config').on('click', function () {
+    Swal2.fire({title: '请输入每页字图数量', input: 'text', inputValue: pageSize.trim()}).then((result) => {
+      if (result.dismiss || !result.value) return;
+      if (!/^\d+$/.test(result.value)) return showTips('提示', '每页条数中请输入数字', 3000);
+      if (parseInt(result.value) > 100) return showTips('提示', '每页条数不能超过100', 3000);
+      postApi('/session/config', {data: {char_browse_size: result.value}}, function () {
+        pageSize = result.value;
+        location.reload();
+      });
+    });
+  });
+
 
 </script>
 </body>
