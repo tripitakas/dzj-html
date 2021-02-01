@@ -204,17 +204,12 @@ class Variant(Model):
         if q and cls.search_fields:
             m = len(q) > 1 and q[0] == '='
             condition['$or'] = [{k: q[1:] if m else {'$regex': q}} for k in cls.search_fields]
-        for field in ['v_code']:
-            value = h.get_url_param(field, request_query)
-            if value:
-                params[field] = value
-                condition.update({field: value})
         for field in ['txt', 'nor_txt']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: value})
-        for field in ['img_name', 'source', 'remark']:
+        for field in ['v_code', 'img_name', 'source', 'remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
