@@ -162,8 +162,11 @@ class CharTaskClusterHandler(CharHandler):
             debug and print('[1]get chars:', (self.now() - start).total_seconds(), cond)
 
             txt = self.get_query_argument('txt', '')
-            self.render('char_cluster.html', Char=Char, **data, cur_txt=txt, mode=self.mode,
-                        readonly=self.readonly, page_name=self.get_task_name(task_type),
+            txt_equals = self.task.get('txt_equals') or {}
+
+            self.render('char_cluster.html', Char=Char, **data, cur_txt=txt, readonly=self.readonly,
+                        mode=self.mode, txt_equals=txt_equals, equal_level=self.equal_level,
+                        page_title=self.get_task_name(task_type),
                         char_count=self.task.get('char_count'))
 
             # 更新校对字头
