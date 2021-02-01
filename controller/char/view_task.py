@@ -169,13 +169,13 @@ class CharTaskClusterHandler(CharHandler):
                         page_title=self.get_task_name(task_type),
                         char_count=self.task.get('char_count'))
 
-            # 更新校对字头
-            counts = list(self.db.char.aggregate([
-                {'$match': task_cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
-            ]))
-            txt_kinds = [c['_id'] for c in sorted(counts, key=itemgetter('count'), reverse=True)]
-            debug and print('[2]aggregate txt kinds:', (self.now() - start).total_seconds(), task_cond)
-            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'params.txt_kinds': txt_kinds}})
+            if self.mode in ['do', 'update', 'nav']:  # 更新校对字头
+                counts = list(self.db.char.aggregate([
+                    {'$match': task_cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
+                ]))
+                txt_kinds = [c['_id'] for c in sorted(counts, key=itemgetter('count'), reverse=True)]
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'params.txt_kinds': txt_kinds}})
+                debug and print('[2]aggregate txt kinds:', (self.now() - start).total_seconds(), task_cond)
 
         except Exception as error:
             return self.send_db_error(error)

@@ -119,7 +119,7 @@ $('.toggle-multi2').on('click', function () {
   }
 });
 
-// 检索异体字
+// 检索异体字或编码
 $('#search-variant').on('keydown', function (e) {
   let keyCode = e.keyCode || e.which;
   if (keyCode !== 13) return;
@@ -127,8 +127,13 @@ $('#search-variant').on('keydown', function (e) {
 });
 $('.m-header .icon-search').on('click', function () {
   let q = $('#search-variant').val().trim();
-  if (!q.length) return;
-  $.cluster.loadVariants(q, true);
+  if (!q.length) {
+    browse(deleteQueryString('name'));
+  } else if (/[a-zA-Z]{2}[0-9_]*/.test(q)) { // 检索编码
+    browse(deleteQueryString('page', setQueryString('name', q)));
+  } else { // 检索异体字
+    $.cluster.loadVariants(q, true);
+  }
 });
 
 
@@ -138,9 +143,7 @@ function trimUrl(href) {
   return href;
 }
 
-function goto(page) {
-  if (page == (getQueryString('page') || '1')) return;
-  let href = setQueryString('page', page);
+function browse(href) {
   postApi(trimUrl(href), {data: {}}, function (res) {
     $.cluster.setChars(res.data.chars);
     $.cluster.updatePager(res.data.pager);
@@ -155,14 +158,16 @@ $('.pagers').on('click', 'a', function (e) {
   else if ($this.hasClass('p-last')) page = $('.pagers .page-count').text();
   else if ($this.hasClass('p-prev')) page = parseInt($('.pagers .active').text()) - 1;
   else if ($this.hasClass('p-next')) page = parseInt($('.pagers .active').text()) + 1;
-  goto(page);
+  if (page == (getQueryString('page') || '1')) return;
+  browse(setQueryString('page', page));
 });
 
 $('.pagers .page-no').unbind('keydown').bind('keydown', function (e) {
   let keyCode = e.keyCode || e.which, page = $(this).val().trim();
   if (keyCode !== 13 || !page.length) return;
   e.preventDefault();
-  goto(page);
+  if (page == (getQueryString('page') || '1')) return;
+  browse(setQueryString('page', page));
 });
 
 $('#filter-panel .filter').on('click', function () {

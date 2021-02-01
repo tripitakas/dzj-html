@@ -114,6 +114,10 @@ class CharHandler(Char, TaskHandler):
             return int(float(c) * 1000)
 
         cond = {}
+        # 按编码前缀
+        name = self.get_user_argument('name', '')
+        if name:
+            cond.update({'name': {'$regex': name.upper()}})
         # 按校对字头
         txt = self.get_user_argument('txt', '')
         if txt:
