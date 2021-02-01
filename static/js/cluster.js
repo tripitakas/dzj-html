@@ -151,7 +151,8 @@
     // 更新列图
     let col = ch['column'];
     if (status.curColImgUrl !== col['img_url']) {
-      status.curColImgUrl = col['img_url'];
+      let v = new Date().format("yyyyMMddhhmm");
+      status.curColImgUrl = col['img_url'] + '?v=' + v;
       $.box.initSvg(status.colHolder, status.curColImgUrl, col.w, col.h, 'width-full');
       $.box.bindCut({onlyChange: true});
     }
