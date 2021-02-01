@@ -18,10 +18,11 @@ sys.path.append(BASE_DIR)
 
 from controller import helper as hp
 from controller.page.base import PageHandler as Ph
+from controller.char.base import CharHandler as Ch
 
 
-def update_task_time(db):
-    """更新任务执行时间"""
+def update_used_time(db):
+    """更新任务-执行时间"""
     size = 10000
     task_types = ['cut_proof', 'cut_review', 'cluster_proof', 'cluster_review']
     cond = {'task_type': {'$in': task_types}, 'status': 'finished'}
@@ -37,8 +38,8 @@ def update_task_time(db):
             db.task.update_one({'_id': t['_id']}, {'$set': {'used_time': used_time}})
 
 
-def update_page_task(db):
-    """更新页任务"""
+def update_op_no(db):
+    """更新切分任务-用户操作历史"""
     size = 100
     invalid = []
     cond = {'task_type': {'$in': ['cut_proof', 'cut_review']}, 'status': 'finished'}
@@ -57,37 +58,37 @@ def update_page_task(db):
             if not page:
                 invalid.append(t['doc_id'])
                 continue
-            # op no
             update = Ph.get_user_op_no(page, t['picked_user_id'])
-            # used time
-            update['used_time'] = (t['finished_time'] - t['picked_time']).total_seconds()
             db.task.update_one({'_id': t['_id']}, {'$set': update})
     if invalid:
         print('invalid: %s' % invalid)
 
 
-def update_char_task(db, batch='', reset=False):
-    """ 更新聚类任务-需要校对字数"""
+def update_txt_equals(db, batch='', cond=None):
+    """ 更新聚类任务-相同程度"""
     size = 1000
-    cond = {'task_type': {'$regex': 'cluster_'}}
-    batch and cond.update({'batch': batch})
-    not reset and cond.update({'required_count': None})
-    cnt = db.task.count_documents(cond)
-    page_count = math.ceil(cnt / size)
-    print('[%s]%s tasks to process' % (hp.get_date_time(), cnt))
+    cond = cond or {'task_type': {'$regex': 'cluster_'}, 'batch': batch}
+    item_count = db.task.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s tasks to process' % (hp.get_date_time(), item_count))
     for i in range(page_count):
-        field = 'ocr_txt'
-        tasks = list(db.task.find(cond, {'params': 1}).sort('_id', 1).skip(i * size).limit(size))
-        print('[%s]processing task %s/%s' % (hp.get_date_time(), i + 1, page_count))
+        project = {'base_txts': 1, 'params': 1, 'task_type': 1}
+        tasks = list(db.task.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
+        print('[%s]processing page %s/%s' % (hp.get_date_time(), i + 1, page_count))
         for task in tasks:
-            params = task['params']
-            txt_kinds = [p[field] for p in params if p.get(field)]
-            cond2 = {field: {'$in': txt_kinds}, 'source': params[0]['source'], 'un_required': {'$ne': True}}
-            required_count = db.char.count_documents(cond2)
-            db.task.update_one({'_id': task['_id']}, {'$set': {'required_count': required_count}})
+            source = hp.prop(task, 'params.source')
+            b_field = Ch.get_base_field(task['task_type'])
+            b_txts = [t[b_field] for t in task['base_txts']]
+            counts = list(db.char.aggregate([
+                {'$match': {'source': source, b_field: {'$in': b_txts}}},
+                {'$group': {'_id': '$sc', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}}
+            ]))
+            txt_equals = {str(c['_id']): c['count'] for c in counts}
+            db.task.update_one({'_id': task['_id']}, {'$set': {'txt_equals': txt_equals}})
 
 
-def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='update_txt_equals', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

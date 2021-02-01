@@ -20,12 +20,12 @@ class CharTaskListHandler(TaskHandler, Char):
         {'id': 'batch', 'name': '批次号'},
         {'id': 'task_type', 'name': '类型', 'filter': CharHandler.task_names('char')},
         {'id': 'num', 'name': '校次'},
-        {'id': 'txt_kind', 'name': '字种'},
+        {'id': 'base_txts', 'name': '聚类字种'},
         {'id': 'char_count', 'name': '单字数量'},
-        {'id': 'required_count', 'name': '需要校对数量'},
         {'id': 'status', 'name': '状态', 'filter': CharHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': CharHandler.priorities},
         {'id': 'is_oriented', 'name': '是否定向', 'filter': CharHandler.yes_no},
+        {'id': 'txt_equals', 'name': '相同程度'},
         {'id': 'params', 'name': '输入参数'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
@@ -40,8 +40,9 @@ class CharTaskListHandler(TaskHandler, Char):
         {'id': 'my_remark', 'name': '用户备注'},
 
     ]
-    search_fields = ['txt_kind', 'batch', 'remark']
-    hide_fields = ['_id', 'params', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
+    search_fields = ['batch', 'base_txts', 'remark']
+    hide_fields = ['_id', 'txt_equals', 'params', 'return_reason', 'create_time', 'updated_time',
+                   'publish_by', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
@@ -77,8 +78,14 @@ class CharTaskListHandler(TaskHandler, Char):
         """格式化page表的字段输出"""
         if key == 'used_time' and value:
             return round(value / 60.0, 2)
-        if key == 'txt_kind' and value:
+        if key == 'base_txts' and value:
+            value = ''.join([v.get('cmb_txt') or v.get('rvw_txt') for v in value])
             return (value[:5] + '...') if len(value) > 5 else value
+        if key == 'params' and value:
+            names = dict(source='来源', txt_kinds='校对字头')
+            return '<br/>'.join(['%s: %s' % (names.get(k) or k, v) for k, v in value.items()])
+        if key == 'txt_equals' and value:
+            return '<br/>'.join(['%s: %s' % (Char.equal_level.get(k) or k, v) for k, v in value.items()])
         return super().format_value(value, key, doc)
 
     def get(self):
@@ -170,7 +177,7 @@ class CharTaskClusterHandler(CharHandler):
             ]))
             txt_kinds = [c['_id'] for c in sorted(counts, key=itemgetter('count'), reverse=True)]
             debug and print('[2]aggregate txt kinds:', (self.now() - start).total_seconds(), task_cond)
-            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'result.txt_kinds': txt_kinds}})
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'params.txt_kinds': txt_kinds}})
 
         except Exception as error:
             return self.send_db_error(error)
@@ -179,7 +186,7 @@ class CharTaskClusterHandler(CharHandler):
         """聚类校对ajax获取数据"""
         try:
             if self.data.get('query') == 'txt_kinds':
-                data = dict(txt_kinds=self.prop(self.task, 'result.txt_kinds', []))
+                data = dict(txt_kinds=self.prop(self.task, 'params.txt_kinds', []))
             else:
                 data = self.get_chars(task_type)[0]
             self.send_data_response(data)
@@ -188,10 +195,10 @@ class CharTaskClusterHandler(CharHandler):
             return self.send_db_error(error)
 
     def get_chars(self, task_type):
-        params = self.task['params']
-        base = self.get_base_field(task_type)
-        base_txts = [c[base] for c in params]  # 聚类字种
-        task_cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
+        b_field = self.get_base_field(task_type)
+        base_txts = [p[b_field] for p in self.task.get('base_txts', [])]
+        source = self.prop(self.task, 'params.source')
+        task_cond = {'source': source, b_field: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
         cond = self.get_user_filter(task_type)
         cond.update(task_cond)
         # 做任务时，限制每页字数
@@ -202,6 +209,6 @@ class CharTaskClusterHandler(CharHandler):
             column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
             ch['column']['img_url'] = self.get_web_img(column_name, 'column')
             ch['img_url'] = self.get_web_img(ch['name'], 'char')
-        txt_kinds = self.prop(self.task, 'result.txt_kinds') or base_txts
+        txt_kinds = self.prop(self.task, 'params.txt_kinds') or base_txts
         data = dict(chars=chars, pager=pager, q=q, order=order, base_txts=base_txts, txt_kinds=txt_kinds)
         return data, task_cond, cond

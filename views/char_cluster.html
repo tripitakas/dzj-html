@@ -396,7 +396,8 @@
 
   // 新增图片字-弹框
   $(document).on('click', '#add-variant', function () {
-    if (!$('.char-item.current').length) return bsShow('提示', '请先选择一个图片字', 'warning', 2000);
+    if (!$('.txt-kind.current').length) return bsShow('提示', '请选择一个校对字头', 'warning', 2000);
+    if (!$('.char-item.current').length) return bsShow('提示', '请选择待新增的图片字', 'warning', 2000);
     $('#v-user-txt').text($('.txt-kind.current').attr('data-value') || $('.txt-kind.current').text().trim());
     $('#v-img').attr('src', $('.char-item.current img').attr('src'));
     $('#v-img-name').text($('.char-name').text());

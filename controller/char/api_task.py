@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import os
 import re
 from .char import Char
@@ -8,6 +7,7 @@ from .base import CharHandler
 from controller import errors as e
 from controller import helper as h
 from controller import validate as v
+from utils.update_task import update_txt_equals
 
 
 class CharTaskPublishApi(CharHandler):
@@ -18,31 +18,27 @@ class CharTaskPublishApi(CharHandler):
         try:
             rules = [(v.not_empty, 'batch', 'task_type', 'source')]
             self.validate(self.data, rules)
-
-            if not self.db.char.count_documents({'source': self.data['source']}):
+            if not self.db.char.find_one({'source': self.data['source']}):
                 self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
-            log = self.publish_char_task()
-            return self.send_data_response(log)
+
+            cond, ret = self.publish_char_task()
+            self.send_data_response(ret)
+
+            update_txt_equals(self.db, cond=cond)  # 更新txt_equals
 
         except self.DbError as error:
             return self.send_db_error(error)
 
-    @staticmethod
-    def get_txt(task, field):
-        """获取任务相关的文字"""
-        return ''.join([str(p[field]) for p in task.get('params', [])])
-
-    def task_meta(self, task_type, params, cnt, field):
+    def task_meta(self, task_type, base_txts, source, cnt):
         batch = self.data['batch']
         num = int(self.data.get('num') or 1)
-        priority = int(self.data.get('priority') or 2)
         pre_tasks = self.data.get('pre_tasks') or []
+        priority = int(self.data.get('priority') or 2)
         is_oriented = self.data.get('is_oriented') == '1'
-        txt_kind = ''.join([p[field] for p in params if p.get(field)])
         task = dict(task_type=task_type, num=num, batch=batch, status=self.STATUS_PUBLISHED, priority=priority,
                     steps={}, pre_tasks=pre_tasks, is_oriented=is_oriented, collection='char', id_name='name',
-                    doc_id=None, char_count=cnt, txt_kind=txt_kind, required_count=None, params=params or {}, result={},
-                    create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
+                    doc_id='', base_txts=base_txts, char_count=cnt, params=dict(source=source), txt_equals={},
+                    result={}, create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
                     publish_user_id=self.user_id, publish_by=self.username)
         not is_oriented and task.pop('is_oriented', 0)
         return task
@@ -52,52 +48,44 @@ class CharTaskPublishApi(CharHandler):
         log = []
         source = self.data['source']
         task_type = self.data['task_type']
-        num = int(self.data.get('num') or 1)  # 默认校次为1
-        # 统计字频
-        field = 'cmb_txt' if 'proof' in task_type else 'rvw_txt'  # 以哪个字段进行聚类
+        num = int(self.data.get('num') or 1)
+        # 检查是否已发布
+        cond = {'task_type': task_type, 'num': num, 'params.source': source}
+        if self.db.task.find_one(cond):
+            msg = '数据分类%s已发布过%s#%s的任务' % (source, self.get_task_name(task_type), num)
+            self.send_error_response(e.task_failed, message=msg)
+        # 根据数据分类，统计字频
+        b_field = self.get_base_field(task_type)  # cmb_txt/rvw_txt
         counts = list(self.db.char.aggregate([
-            {'$match': {'source': source}}, {'$group': {'_id': '$' + field, 'count': {'$sum': 1}}},
+            {'$match': {'source': source}}, {'$group': {'_id': '$' + b_field, 'count': {'$sum': 1}}},
             {'$sort': {'count': -1}}
         ]))
-        # 去除已发布的任务
-        cond = {'task_type': task_type, 'num': num, 'params.source': source}
-        published = list(self.db.task.find(cond))
-        if published:
-            published = ''.join([self.get_txt(t, field) for t in published])
-            counts = [c for c in counts if str(c['_id']) not in published]
         # 针对常见字(字频大于等于50)，发布聚类校对
         counts1 = [c for c in counts if c['count'] >= 50]
         normal_tasks = [
-            self.task_meta(task_type, [{field: c['_id'], 'count': c['count'], 'source': source}], c['count'], field)
+            self.task_meta(task_type, [{b_field: c['_id'], 'count': c['count']}], source, c['count'])
             for c in counts1
         ]
         if normal_tasks:
             self.db.task.insert_many(normal_tasks)
-            log.append(dict(task_type=task_type, task_params=[t['params'] for t in normal_tasks]))
-        # 针对生僻字(字频小于50)，发布生僻校对。发布任务时，字种不超过10个。
+            log.append(dict(task_type=task_type, base_txts=[t['base_txts'] for t in normal_tasks]))
+        # 针对生僻字(字频小于50)，发布生僻校对（发布任务时，字种不超过10个）
         rare_type = task_type  # 生僻校对的任务类型同聚类校对
         counts2 = [c for c in counts if c['count'] < 50]
-        rare_tasks = []
-        params, total_count = [], 0
+        rare_tasks, base_txts, total_count = [], [], 0
         for c in counts2:
             total_count += c['count']
-            params.append({field: c['_id'], 'count': c['count'], 'source': source})
-            if total_count >= 50 or len(params) >= 10:
-                rare_tasks.append(self.task_meta(rare_type, params, total_count, field))
-                params, total_count = [], 0
+            base_txts.append({b_field: c['_id'], 'count': c['count']})
+            if total_count >= 50 or len(base_txts) >= 10:
+                rare_tasks.append(self.task_meta(rare_type, base_txts, source, total_count))
+                base_txts, total_count = [], 0  # reset
         if total_count:
-            rare_tasks.append(self.task_meta(rare_type, params, total_count, field))
+            rare_tasks.append(self.task_meta(rare_type, base_txts, source, total_count))
         if rare_tasks:
             self.db.task.insert_many(rare_tasks)
-            log.append(dict(task_type=rare_type, task_params=[t['params'] for t in rare_tasks]))
+            log.append(dict(task_type=rare_type, base_txts=[t['base_txts'] for t in rare_tasks]))
         self.add_op_log(self.db, 'publish_task', None, log, self.username)
-        # 启动脚本，更新required_count
-        script = 'nohup python3 %s/utils/update_char.py --func=update_task_required_count --batch=%s --renew=1 >> log/update_char_%s.log 2>&1 &'
-        script = script % (h.BASE_DIR, self.data['batch'], h.get_date_time(fmt='%Y%m%d%H%M%S'))
-        print(script)
-        os.system(script)
-
-        return dict(published=published, normal_count=len(normal_tasks), rare_count=len(rare_tasks))
+        return cond, dict(normal_count=len(normal_tasks), rare_count=len(rare_tasks))
 
 
 class CharTaskClusterApi(CharHandler):
@@ -115,10 +103,9 @@ class CharTaskClusterApi(CharHandler):
                 return self.send_data_response()
 
             if self.data.get('submit'):  # 提交任务
-                params = self.task['params']
-                base = 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
-                base_txts = [c[base] for c in params]  # 聚类字种
-                cond.update({'un_required': None, 'source': params[0]['source'], base: {'$in': base_txts}})
+                b_field = self.get_base_field(task_type)
+                b_txts = [t[b_field] for t in self.task['base_txts']]  # 聚类字种
+                cond.update({'un_required': None, 'source': self.task['params']['source'], b_field: {'$in': b_txts}})
                 if self.db.char.find_one(cond):
                     return self.send_error_response(e.task_submit_error, message='还有未提交的字图，不能提交任务')
                 used_time = (self.now() - self.task['picked_time']).total_seconds()
