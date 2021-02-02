@@ -59,11 +59,6 @@
       margin-top: 18px;
     }
 
-    .toggle-v-code {
-      text-align: center;
-      font-size: 12px;
-    }
-
     .pic-nav {
       position: absolute;
       width: 36px;
@@ -84,6 +79,11 @@
       right: 0;
     }
 
+    .toggle-v-code {
+      text-align: center;
+      font-size: 12px;
+    }
+
     .m-footer {
       display: flex;
       justify-content: space-between;
@@ -98,8 +98,7 @@
       color: red;
     }
 
-    /*避免tooltip引起的滚动*/
-    body {
+    body { /*避免tooltip引起的滚动*/
       overflow: hidden !important;
     }
   </style>
@@ -142,7 +141,7 @@
           </ul>
         </div>
         <div id="view-box" class="btn-txt icon-chars{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="查看切分"></div>
-        <div id="toggle-txts" class="btn-group" title="文本">
+        <div id="toggle-txts" class="btn-group" title="切换文本">
           <i class="btn-txt icon-task-lobby dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
             <li id="txt" class="toggle-txt active"><a>校对文本</a></li>
@@ -379,14 +378,14 @@
 
   // 单字提交
   $('.char-txt .btn-submit').on('click', function () {
-    let $this = $(this);
+    let $this = $(this), $txt = $this.text();
     if ($this.hasClass('disabled')) return;
     let data = $.charTxt.checkAndExport();
     if (!data) return;
     $this.addClass('disabled').text('保存中...');
     let idx = $('.txt-holder .current-char').attr('id').split('-').pop();
     postApi('/page/char/txt/' + data.name, {data: data}, function (res) {
-      $this.removeClass('disabled');
+      $this.removeClass('disabled').text($txt);
       location.href = setAnchor(name);
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
       $('.txt-holder .current-char').text(data.txt).addClass('changed');
@@ -394,7 +393,7 @@
       data['txt_logs'] = res['txt_logs'];
       Object.assign($.box.data.boxes[parseInt(idx)], data);
     }, function (err) {
-      $this.removeClass('disabled');
+      $this.removeClass('disabled').text($txt);
       if (err.code === 2007) showTips('', err.message, 1000);
       else showWarning('失败', err.message, 2000);
     });
