@@ -4,7 +4,7 @@
     共<span class="doc-count">{{doc_count}}</span>条
   </span>
   <ul class="{{'' if page_count > 1 else 'hide'}}">
-    <li><a class="p-first" href="{{get_page_uri(1)}}">首页</a></li>
+    <li class="p-first"><a href="{{get_page_uri(1)}}">首页</a></li>
     <li class="p-prev{{'' if cur_page > 1 else ' hide'}}">
       <a href="{{get_page_uri(cur_page - 1)}}"><</a>
     </li>
@@ -16,7 +16,7 @@
     <li class="p-next{{'' if cur_page < page_count else ' hide'}}">
       <a href="{{get_page_uri(cur_page + 1)}}">></a>
     </li>
-    <li><a class="p-last" href="{{get_page_uri(page_count)}}">末页</a></li>
+    <li class="p-last"><a href="{{get_page_uri(page_count)}}">末页</a></li>
     <li>跳至<input class="page-no" type="text">页</li>
   </ul>
   <span>每页

@@ -96,6 +96,7 @@
             <li id="toggle-proof-info" class="active"><a>显隐校对信息[6]</a></li>
           </ul>
         </div>
+        <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="bottom" title="去掉排序及过滤条件[esc]"></div>
         <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按字置信度过滤">
           <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <div class="dropdown-menu filter-menu" data-stopPropagation="true">
@@ -123,9 +124,9 @@
         <div class="btn-group add-gap hide" data-toggle="tooltip" data-placement="bottom" title="鼠标滑选">
           <i class="btn-txt icon-all-select dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
-            <li id="do-multi" class="toggle-multi"><a>正选[v]</a></li>
-            <li id="de-multi" class="toggle-multi"><a>反选[z]</a></li>
-            <li id="un-multi" class="toggle-multi active"><a>取消[x]</a></li>
+            <li id="do-multi" class="toggle-multi"><a>正选[]</a></li>
+            <li id="de-multi" class="toggle-multi"><a>反选[]</a></li>
+            <li id="un-multi" class="toggle-multi active"><a>取消[]</a></li>
           </ul>
         </div>
         <div id="toggle-config" class="btn-txt icon-config" data-toggle="tooltip" data-placement="bottom" title="设置每页字图条数"></div>
@@ -140,7 +141,7 @@
         {% set do_task = globals().get('mode') in ['do', 'update', 'nav'] %}
         <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
-        <div id="page-submit" class="btn-txt icon-done{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="提交当前页"></div>
+        <div id="page-submit" class="btn-txt icon-done{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="提交当前页[w]"></div>
         <div id="task-return" class="btn-txt icon-return-task{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
         <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
         <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
