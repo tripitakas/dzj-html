@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{globals().get('page_name') or '聚类校对'}}</title>
+  <title>{{globals().get('page_title') or '聚类校对'}}</title>
   {% include com/_base_css.html %}
   <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
   <link href="{{static_url('css/cluster.css')}}" rel="stylesheet">
@@ -27,6 +27,11 @@
       flex-direction: column;
       background: var(--Grey_Content);
       border-right: 1px solid var(--Grey_Light);
+    }
+
+    .m-panel .s-count {
+      font-size: 75%;
+      color: var(--Brown_Darker);
     }
 
     .panel-list > li > a {
@@ -81,19 +86,20 @@
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
         <div class="btn-group" title="显隐设置">
-          <i class="btn-txt icon-config dropdown-toggle" data-toggle="dropdown"></i>
+          <i class="btn-txt icon-eye dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
             <li id="toggle-filter-panel" class="active"><a>显隐排序过滤[1]</a></li>
-            <li id="toggle-char-info" class="active"><a>显隐字符信息[2]</a></li>
-            <li id="toggle-column-panel" class="active"><a>显隐字框列图[3]</a></li>
-            <li id="toggle-proof-panel" class="active"><a>显隐校对面板[4]</a></li>
-            <li id="toggle-proof-color" class="active"><a>显隐校对颜色[5]</a></li>
+            <li id="toggle-char-variant" class="active"><a>显隐异体字列表[2]</a></li>
+            <li id="toggle-char-cc" class="active"><a>显隐字符置信度[3]</a></li>
+            <li id="toggle-column-panel" class="active"><a>显隐中间列图[4]</a></li>
+            <li id="toggle-proof-panel" class="active"><a>显隐校对面板[5]</a></li>
+            <li id="toggle-proof-info" class="active"><a>显隐校对信息[6]</a></li>
           </ul>
         </div>
-        <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按置信度筛选">
+        <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按字置信度过滤">
           <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <div class="dropdown-menu filter-menu" data-stopPropagation="true">
-            <div class="menu-title">按置信度过滤</div>
+            <div class="menu-title">按字置信度过滤</div>
             <li class="divider"></li>
             <div class="input-line">
               <input id="filter-start" type="text" class="form-control input-sm" placeholder="起始值">
@@ -106,15 +112,15 @@
         <div class="btn-group" title="批量修改">
           <i class="btn-txt icon-pencil dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
-            <li id="bat-update-txt" class="bat-update" data-value="txt"><a>文字[a]</a></li>
-            <li id="bat-update-deform" class="bat-update" data-value="is_deform"><a>异形字[s]</a></li>
-            <li id="bat-update-uncertain" class="bat-update" data-value="uncertain"><a>不确定[d]</a></li>
-            <li id="bat-update-vague" class="bat-update" data-value="is_vague"><a>笔画残损[f]</a></li>
+            <li id="bat-update-txt" class="bat-update" data-value="txt"><a>文字[s]</a></li>
+            <li id="bat-update-deform" class="bat-update" data-value="is_deform"><a>异形字[d]</a></li>
+            <li id="bat-update-uncertain" class="bat-update" data-value="uncertain"><a>不确定[f]</a></li>
+            <li id="bat-update-vague" class="bat-update" data-value="is_vague"><a>笔画残损[e]</a></li>
             <li id="bat-update-remark" class="bat-update" data-value="remark"><a>备注[r]</a></li>
           </ul>
         </div>
         <div id="bat-select" class="btn-txt icon-all-select1" data-toggle="tooltip" data-placement="bottom" title="全部选择[a]"></div>
-        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="鼠标滑选">
+        <div class="btn-group add-gap hide" data-toggle="tooltip" data-placement="bottom" title="鼠标滑选">
           <i class="btn-txt icon-all-select dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
             <li id="do-multi" class="toggle-multi"><a>正选[v]</a></li>
@@ -122,22 +128,22 @@
             <li id="un-multi" class="toggle-multi active"><a>取消[x]</a></li>
           </ul>
         </div>
-        <div id="toggle-config" class="btn-txt icon-eye" data-toggle="tooltip" data-placement="bottom" title="设置每页字图条数"></div>
-        <div class="search hide">
-          <input id="search-variant" type="text" placeholder="搜索异体字字典">
-          <i id="icon-search" class="icon-search"></i>
+        <div id="toggle-config" class="btn-txt icon-config" data-toggle="tooltip" data-placement="bottom" title="设置每页字图条数"></div>
+        <div class="search">
+          <input id="search-variant" type="text" placeholder="搜索异体字 或 按编码过滤字图">
+          <i class="btn-txt icon-search" data-toggle="tooltip" data-placement="bottom" data-html="true" title="搜索异体字或过滤字图<br/>[g:选中]<br/>[回车:搜索]"></i>
         </div>
       </div><!--center-->
       <div class="right">
         {% set mode = globals().get('mode') or '' %}
         {% set readonly = globals().get('readonly') or False %}
-        {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
-        <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
+        {% set do_task = globals().get('mode') in ['do', 'update', 'nav'] %}
+        <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
         <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
-        <div id="page-submit" class="btn-txt icon-done{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="提交当前页"></div>
-        <div id="task-return" class="btn-txt icon-return-task{{' hide' if not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
-        <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
-        <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not my_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
+        <div id="page-submit" class="btn-txt icon-done{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="提交当前页"></div>
+        <div id="task-return" class="btn-txt icon-return-task{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
+        <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
+        <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
         <div id="task-prev" class="btn-txt icon-arrow-left {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]]"></div>
         <div id="task-next" class="btn-txt icon-arrow-right {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="后一个任务[[]"></div>
       </div><!--right-->
@@ -147,39 +153,37 @@
       <div class="m-panel slim-bar hide">
         <ul id="filter-panel" class="panel-list">
           <li><a class="head">排序</a></li>
-          <li id="btn-cc-up"><a>按置信度升序</a></li>
-          <li id="btn-cc-down"><a>按置信度降序</a></li>
-          <li><a class="head">按系统标记过滤</a></li>
-          <li id="btn-un-diff"><a>一致</a></li>
-          <li id="btn-diff"><a>不一致</a></li>
-          <li class="divider"></li>
-          <li id="btn-required"><a>需要校对</a></li>
-          <li id="btn-un-required"><a>不必校对</a></li>
-          <li><a class="head">按校对标记过滤</a></li>
-          <li id="btn-vague"><a>笔画残损</a></li>
-          <li id="btn-un-vague"><a>笔画完整</a></li>
-          <li class="divider"></li>
-          <li id="btn-deform"><a>异形字</a></li>
-          <li id="btn-un-deform"><a>非异形字</a></li>
-          <li class="divider"></li>
-          <li id="btn-certain"><a>确定</a></li>
-          <li id="btn-uncertain"><a>不确定</a></li>
-          <li class="divider"></li>
-          <li id="btn-has-remark"><a>有备注</a></li>
-          <li id="btn-no-remark"><a>无备注</a></li>
+          <li id="order-cc" class="filter btn-order"><a>按字置信度升序</a></li>
+          <li id="order--cc" class="filter btn-order"><a>按字置信度降序</a></li>
+          <li id="order-lc" class="filter btn-order"><a>按列置信度升序</a></li>
+          <li id="order--lc" class="filter btn-order"><a>按列置信度降序</a></li>
+          <li><a class="head">按相同程度过滤</a></li>
+          {%for i,name in equal_level.items()%}
+          <li id="sc-{{i}}" class="filter btn-sc"><a>{{name}}<sup class="s-count">{{txt_equals.get(i) or 0}}</sup></a></li>
+          {% end %}
           <li><a class="head">按是否提交过滤</a></li>
-          <li id="btn-un-submitted"><a>未提交</a></li>
-          <li id="btn-submitted"><a>已提交</a></li>
+          <li id="submitted-false" class="filter btn-submitted"><a>未提交</a></li>
+          <li id="submitted-true" class="filter btn-submitted"><a>已提交</a></li>
           <li><a class="head">按修改情况过滤</a></li>
-          <li id="btn-un-updated"><a>未修改</a></li>
-          <li id="btn-updated"><a>已修改</a></li>
-          <li id="btn-my-updated"><a>我的修改</a></li>
-          <li id="btn-other-updated"><a>他人修改</a></li>
+          <li id="updated-false" class="filter btn-updated"><a>未修改</a></li>
+          <li id="updated-true" class="filter btn-updated"><a>已修改</a></li>
+          <li id="updated-my" class="filter btn-updated"><a>我的修改</a></li>
+          <li id="updated-other" class="filter btn-updated"><a>他人修改</a></li>
+          <li id="updated-unauth" class="filter btn-updated"><a>无权修改</a></li>
+          <li><a class="head">按校对标记过滤</a></li>
+          <li id="is_vague-true" class="filter btn-is_vague"><a>笔画残损</a></li>
+          <li id="is_vague-false" class="filter btn-is_vague"><a>笔画完整</a></li>
+          <li id="is_deform-true" class="filter btn-is_deform"><a>异形字</a></li>
+          <li id="is_deform-false" class="filter btn-is_deform"><a>非异形字</a></li>
+          <li id="uncertain-false" class="filter btn-uncertain"><a>确定</a></li>
+          <li id="uncertain-true" class="filter btn-uncertain"><a>不确定</a></li>
+          <li id="remark-true" class="filter btn-remark"><a>有备注</a></li>
+          <li id="remark-false" class="filter btn-remark"><a>无备注</a></li>
         </ul>
       </div><!--m-panel-->
-      <div class="char-panel show-mark">
+      <div class="char-panel">
         <div class="txt-kinds slim-bar"></div>
-        <div class="variants slim-bar"></div>
+        <div class="variants slim-bar"><span id="add-variant" class="variant">+</span></div>
         <div class="char-items slim-bar"></div>
         {% module Pager(pager) %}
       </div><!--char-panel-->
@@ -200,6 +204,10 @@
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
       <strong class="title"></strong><span class="text"></span>
     </div><!--m-alert-->
+    <div class="b-alert alert alert-info hide" id="b-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div><!--b-alert-->
 
     <div class="m-footer">
       <span class="fl">
@@ -229,61 +237,50 @@
         <div class="modal-body">
           <div class="title">一、简单介绍</div>
           <div class="intro">
-            聚类校对是一种将OCR识别出的文字按照字种聚集到一起进行批量处理的校对方式。一个聚类校对任务的字头显示在左上方，
-            字头区域下是式当前字头所有的异体字列表。左下方区域是当前字头的所有字图。用户需要检查字图中的图片字形与当前的
-            字头文字是否相一致，如果不一致，就需要在右侧的校对工作区输入正确的文字。
+            聚类校对是一种新型的文字校对方式。在经过切分校对和OCR文字识别后，每个字框都有对应的计算机文字，将相同文字的字图聚集
+            到一起批量进行校对，就是“聚类校对”。<br/>
+            进行聚类的相同文字，即“聚类字种”，它是计算机识别的结果。（在底部状态栏显示）<br/>
+            人工校对会对计算机识别的结果进行检查和纠正，校对后的文字类别，即“校对字头”。（中间区域第一行）<br/>
+            人工校对时，会逐个选择校对字头进行校对，当前被选中的校对字头，即“当前字头”。（红色背景高亮提示）<br/>
+            校对字头下是式当前字头的异体字列表，以便辅助人工进行校对。<br/>
+            异体字列表下方是当前字头的所有字图。用户需要检查这些字图中的图片字形与当前校对字头是否一致，不一致，就要进行校正。
           </div>
           <div class="title">二、一般步骤</div>
           <div class="intro">
-            1. 逐一点击左上区域的字头（当前字头将会高亮显示）<br/>
-            2. 检查该字头下字图区域的字图，如果发现字图中的文字与当前字头不一致，则进行修改：<br/>
-            （1）右侧工作面板可以查看该字的OCR候选字，选择某字后该字会出现在校对工作区的输入位置；<br/>
-            （2）左侧字头下有该字头的异体字列表，选择某字后该字会出现在校对工作区的输入位置；<br/>
-            （3）如果没有合适的文字可供选择，可以手工输入正确的校对文字到工作区输入位置；<br/>
-            （4）输入后确认，该字图中的文字信息即被修改为输入的文字<br/>
-            3. 如果发现当前页所有字图都没有错误，则可以提交当前页<br/>
-            4. 如果所有页面都已经提交，则可以提交当前任务<br/>
+            1. 逐一点击左上区域的校对字头<br/>
+            2. 检查该字头（即当前字头）下的所有字图，如果发现某字图字形与当前字头字形不一致，则进行校正。系统提供以下辅助：<br/>
+            （1）右侧校对面板的OCR候选字；<br/>
+            （2）当前字头的异体字列表；<br/>
+            （3）顶部搜索框，可以检索某字的异体字列表；<br/>
+            3. 检查、校对完当前页的所有字图后，提交当前页<br/>
+            4. 检查、校对完所有页面后，提交当前任务<br/>
             注：为提高校对效率，系统提供了条件筛选、批量修改等校对辅助功能。
           </div>
           <div class="title">三、按钮说明</div>
           <table class="table">
             <tr>
-              <td><i class="icon-sort"></i></td>
-              <td>待校对的字图按置信度升序排列或按置信度降序排列</td>
-            </tr>
-            <tr>
-              <td><i class="icon-cc"></i></td>
-              <td>按置信度过滤。输入正确范围的数值（0-1），点击最左侧空白方框取消过滤</td>
+              <td><i class="icon-eye"></i></td>
+              <td>设置页面上各面板的显示或隐藏</td>
             </tr>
             <tr>
               <td><i class="icon-filter"></i></td>
-              <td>按照条件过滤来选择字图。<br/>
-                过滤条件包括：异文，已提交，未提交，我的修改，所有修改。<br/>
-                根据不同的过滤条件显示字图。 选择一个过滤条件后，再选择一个条件，结果是两个条件的叠加。
-                如：已提交/未提交 + 我的修改/所有修改，异文可以和任意一个其他条件组合。<br/>
-                如果两个条件不相容，则后面的覆盖前面的条件，例如：先选未提交，再选已提交，结果是已经提交的。<br/>
-                点击最左侧的空白方框取消过滤，显示所有字图。
-              </td>
+              <td>按字置信度过滤，请输入正确范围的数值（0-1）</td>
             </tr>
             <tr>
-              <td><i class="icon-checkbox2"></i></td>
-              <td>将本页字图区显示的字图全部选择，注意不会选择不在本页显示的字图</td>
+              <td><i class="icon-all-select1"></i></td>
+              <td>全选当前页字图</td>
             </tr>
             <tr>
               <td><i class="icon-pencil"></i></td>
-              <td>将选中的字图批量修改为正确的字</td>
+              <td>批量修改</td>
             </tr>
             <tr>
-              <td><i class="icon-edit1"></i></td>
-              <td>将选中的字图的类型（没问题、模糊或残损、不确定、不认识）进行批量修改</td>
+              <td class="btn-txt"><</td>
+              <td>上一页</td>
             </tr>
             <tr>
-              <td><i class="icon-panel-txt"></i></td>
-              <td>显隐中间的原始图片列</td>
-            </tr>
-            <tr>
-              <td><i class="icon-right-panel"></i></td>
-              <td>显隐右侧工作面板</td>
+              <td class="btn-txt">></td>
+              <td>下一页</td>
             </tr>
           </table>
         </div>
@@ -347,41 +344,33 @@
 {% include com/_base_task.html %}
 <script>
   // 初始化
-  $.charTxt.init({readonly: false, showBase: false, showTxtLogs: true, showBoxLogs: true});
+  let curTxt = '{{cur_txt}}';
   $.cluster.init({
-    curTxt: '{{cur_txt}}',
+    curTxt: curTxt,
     colHolder: '.box-holder',
-    chars: decodeJSON('{{chars}}'),
-    variants: decodeJSON('{{variants}}'),
-    txtKinds: decodeJSON('{{txt_kinds}}'),
+    chars: decodeJSON('{{chars or []}}'),
+    txtKinds: decodeJSON('{{txt_kinds or []}}'),
+  });
+  $.charTxt.init({
+    readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true,
+    baseFields: 'cc,lc,sc,pc,txt_level,box_level'.split(',')
   });
   togglePanels();
+  toggleFilters();
 
-  if (getQueryString('order') === 'cc') $('#btn-cc-up').addClass('active');
-  if (getQueryString('order') === '-cc') $('#btn-cc-down').addClass('active');
-  if (getQueryString('is_diff') === 'true') $('#btn-diff').addClass('active');
-  if (getQueryString('is_diff') === 'false') $('#btn-un-diff').addClass('active');
-  if (getQueryString('un_required') === 'true') $('#btn-un-required').addClass('active');
-  if (getQueryString('un_required') === 'false') $('#btn-required').addClass('active');
-  if (getQueryString('is_vague') === 'true') $('#btn-vague').addClass('active');
-  if (getQueryString('is_vague') === 'false') $('#btn-un-vague').addClass('active');
-  if (getQueryString('is_deform') === 'true') $('#btn-deform').addClass('active');
-  if (getQueryString('is_deform') === 'false') $('#btn-un-deform').addClass('active');
-  if (getQueryString('uncertain') === 'true') $('#btn-uncertain').addClass('active');
-  if (getQueryString('uncertain') === 'false') $('#btn-certain').addClass('active');
-  if (getQueryString('remark') === 'true') $('#btn-has-remark').addClass('active');
-  if (getQueryString('remark') === 'false') $('#btn-no-remark').addClass('active');
-  if (getQueryString('submitted') === 'true') $('#btn-submitted').addClass('active');
-  if (getQueryString('submitted') === 'false') $('#btn-un-submitted').addClass('active');
-  if (getQueryString('updated') === 'my') $('#btn-my-updated').addClass('active');
-  if (getQueryString('updated') === 'other') $('#btn-other-updated').addClass('active');
-  if (getQueryString('updated') === 'all') $('#btn-updated').addClass('active');
-  if (getQueryString('updated') === 'un') $('#btn-un-updated').addClass('active');
+  window.onload = () => {
+    // 设置异体字
+    $.cluster.loadVariants(curTxt);
+    // 更新校对字头
+    postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
+      $.cluster.setTxtKinds(res['txt_kinds']);
+    });
+    // 设置当前字图
+    getAnchor() && $('#' + getAnchor()).find('.char-img').click();
+  };
 
-  $(document).ready(function () {
-    getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
-  });
-
+</script>
+<script>
   // 配置每页显示字图数量
   let pageSize = '{{handler.page_size}}';
   $('#toggle-config').on('click', function () {
@@ -397,9 +386,10 @@
   });
 
   // 新增图片字-弹框
-  $('#add-variant').on('click', function () {
-    let $this = $('.txt-kind.current');
-    $('#v-user-txt').text($this.attr('data-value') || $this.text().trim());
+  $(document).on('click', '#add-variant', function () {
+    if (!$('.txt-kind.current').length) return bsShow('提示', '请选择一个校对字头', 'warning', 2000);
+    if (!$('.char-item.current').length) return bsShow('提示', '请选择待新增的图片字', 'warning', 2000);
+    $('#v-user-txt').text($('.txt-kind.current').attr('data-value') || $('.txt-kind.current').text().trim());
     $('#v-img').attr('src', $('.char-item.current img').attr('src'));
     $('#v-img-name').text($('.char-name').text());
     $('#variantModal').modal();
@@ -415,6 +405,9 @@
       $this.removeClass('disabled').text($txt);
       $.cluster.addVariant(res['v_code']);
       $('#variantModal').modal('hide');
+    }, function (err) {
+      $this.removeClass('disabled').text($txt);
+      showError('失败', err.message, 3000);
     });
   });
 
@@ -429,8 +422,6 @@
     });
   });
 
-</script>
-<script>
   // 单字提交
   $('.char-txt .btn-submit').on('click', function () {
     let data = $.charTxt.checkAndExport(), $this = $(this);
@@ -441,14 +432,15 @@
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
       // 更新当前字图、字图数据、校对面板和锚点
       $('.char-item.current').addClass('changed').find('.txt').text(data.txt);
+      $.charTxt.setTxtLogs(res['txt_logs']);
       data['txt_logs'] = res['txt_logs'];
       $.cluster.updateChar(data.name, data);
-      $.charTxt.setTxtLogs(res['txt_logs']);
+      $.cluster.addTxtKind(data.txt);
       location.href = setAnchor(data.name);
     }, function (err) {
       $this.removeClass('disabled').text('确定');
-      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
-      else bsShow('失败', err.message, 'warning', 1000, '#s-alert');
+      if (err.code === 2007) bsShow('', err.message, 'warning', 1000, '#b-alert');
+      else bsShow('失败', err.message, 'warning', 3000, '#b-alert');
     });
   });
 
@@ -466,7 +458,7 @@
     let isTxtField = ['txt', 'remark'].indexOf(field) > -1;
     let info = {title: `是否${name}`, input: 'radio', inputOptions: {1: '是', 0: '否'}};
     if (isTxtField) info = {title: `请输入${name}`, input: 'text', inputValue: $(`#p-${field}`).val()};
-    let data = {names: names, field: field, task_type: gTaskType};
+    let data = {names: names, field: field, task_type: typeof doTaskType !== 'undefined' ? doTaskType : ''};
     Swal2.fire(info).then((result) => {
       if (result.dismiss || !result.value) return;
       data['value'] = isTxtField ? result.value : result.value === '1';
@@ -487,8 +479,9 @@
   $('#page-submit').on("click", function () {
     let charNames = $.map($('.char-item'), (item) => $(item).attr('id'));
     postApi(location.pathname, {data: {char_names: charNames}}, function () {
-      $('.char-item .submitted').removeClass('hide');
-      showSuccess('成功', '页面已提交。', 1000);
+      $('.char-item').addClass('submitted');
+      bsShow('成功', '页面已提交', 'info', 1000);
+      browse(setQueryString('page', parseInt($('.p-no.active').text().trim()) + 1));
     });
   });
 
@@ -508,7 +501,7 @@
       }
     }, function (err) {
       $this.removeClass('disabled');
-      bsShow('失败', err.message, 'warning', 2000);
+      bsShow('失败', err.message, 'warning', 3000);
     });
   });
 

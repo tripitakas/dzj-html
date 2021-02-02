@@ -16,6 +16,7 @@
   let status = {
     readonly: true,           // 是否只读
     showBase: true,           // 是否显示字符基本信息
+    baseFields: '',           // 显示哪些字符基本信息
     showTxtLogs: true,        // 是否显示文字校对历史
     showBoxLogs: true,        // 是否显示切分校对历史
     char: null,               // 当前校对字符数据
@@ -23,11 +24,16 @@
   };
 
   let fields = {
-    'name': '字编码', 'char_id': '序号', 'source': '分类', 'cc': '置信度', 'sc': '相似度', 'pos': '坐标',
-    'column': '所属列', 'is_diff': '是否不一致', 'un_required': '是否不必校对', 'txt': '文字',
-    'nor_txt': '正字', 'is_vague': '笔画残损', 'is_deform': '异形字', 'uncertain': '不确定',
+    'name': '字编码', 'source': '分类', 'char_id': '字序号', 'cc': '字置信度', 'lc': '列置信度', 'sc': '相同程度',
+    'pc': '校对等级', 'pos': '坐标', 'column': '所属列', 'txt': '校对文字', 'cmb_txt': '综合OCR',
+    'is_vague': '笔画残损', 'is_deform': '异形字', 'uncertain': '不确定', 'remark': '备注',
     'box_level': '切分等级', 'box_point': '切分积分', 'txt_level': '文字等级',
-    'txt_point': '文字积分', 'remark': '备注'
+    'txt_point': '文字积分',
+  };
+
+  let equalLevel = {
+    '0': '没有文本', '6': '三字不同', '7': '两字不同', '8': '仅有一字',
+    '28': '两同一异', '29': '两字相同', '39': '三字相同',
   };
 
   $.charTxt = {
@@ -43,6 +49,7 @@
 
   function init(p) {
     if ('showBase' in p) status.showBase = p.showBase;
+    if ('baseFields' in p) status.baseFields = p.baseFields;
     if ('showTxtLogs' in p) status.showTxtLogs = p.showTxtLogs;
     if ('showBoxLogs' in p) status.showBoxLogs = p.showBoxLogs;
     if (p.char) setChar(p.char);
@@ -69,9 +76,14 @@
     if (!status.showBase) return;
     $('#base-info .meta').html(Object.keys(fields).map((f) => {
       if (!char[f]) return '';
-      if (['pos', 'column'].indexOf(f) > -1) {
-        let info = JSON.stringify(char[f]).replace(/["{}]/g, '');
+      if (status.baseFields.length && status.baseFields.indexOf(f) < 0) return '';
+      if (f === 'pos' || f === 'column') {
+        let info = ['x', 'y', 'w', 'h'].map((k) => `${k}:${char[f][k]}`).join(',');
         return `<label>${fields[f]}</label><span class="pos">${info}</span><br/>`;
+      } else if (f === 'cc' || f === 'lc') {
+        return `<label>${fields[f]}</label>${char[f] > 1 ? char[f] / 1000 : char[f]}<br/>`;
+      } else if (f === 'sc') {
+        return `<label>${equalLevel[fields[f]] || fields[f]}</label><span>${char[f]}</span><br/>`;
       } else {
         return `<label>${fields[f]}</label><span>${char[f]}</span><br/>`;
       }
@@ -79,10 +91,11 @@
   }
 
   function setAlternatives(char) {
-    let html = isValid(char['ocr_col']) ? `<span class="txt-item ocr-col${char['ocr_col'] === char.txt ? ' active' : ''}">${char['ocr_col']}</span>` : '';
-    html += isValid(char['cmp_txt']) ? `<span class="txt-item cmp-txt${char['cmp_txt'] === char.txt ? ' active' : ''}">${char['cmp_txt']}</span>` : '';
+    let getCls = (txt) => (txt === char['cmb_txt'] ? ' cmb_txt' : '') + (txt === char['txt'] ? ' active' : '');
+    let html = isValid(char['ocr_col']) ? `<span class="txt-item ocr-col${getCls(char['ocr_col'])}">${char['ocr_col']}</span>` : '';
+    html += isValid(char['cmp_txt']) ? `<span class="txt-item cmp-txt${getCls(char['cmp_txt'])}">${char['cmp_txt']}</span>` : '';
     html += Array.from(char['alternatives'] || '').map(function (c, n) {
-      return `<span class="txt-item${n ? '' : ' ocr-char'}${c === char.txt ? ' active' : ''}">${c}</span>`;
+      return `<span class="txt-item${n ? '' : ' ocr-txt'}${getCls(c)}">${c}</span>`;
     }).join('');
     $('#txt-alternatives .body').html(html);
     $('#txt-alternatives .body').toggleClass('hide', !html.length);
@@ -145,7 +158,6 @@
 
   function setPageParams(char) {
     let pageName = $('.m-footer .page-name').text();
-    $('#search-variant').val(char.txt || char['ocr_txt']);
     if (char.name) $('.m-footer .char-name').text(char.name);
     if (char.page_name) $('.m-footer .page-name').text(char.page_name);
     $('.char-txt .cur-name').val(char.name || pageName + '_' + char.cid);
@@ -159,7 +171,7 @@
       $($.box.data.holder).removeClass('show-hint user-hint');
     } else if (box) {
       $($.box.data.holder).addClass('show-hint user-hint');
-      status.hint = $.box.createBox(box, 'box hint current');
+      status.hint = $.box.createBox(box, 'box hint h-former');
     }
   }
 
@@ -174,19 +186,18 @@
       bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
       return false;
     }
-    let taskType = (typeof gTaskType === 'undefined' && 'do/update/nav'.indexOf(gMode) > -1) ? gTaskType : '';
     return {
-      task_type: taskType,
       txt: $('#p-txt').val() || '',
       remark: $('#p-remark').val() || '',
       name: $('.char-txt .cur-name').val(),
       is_vague: $('.is-vague :checked').val() === '1',
       is_deform: $('.is-deform :checked').val() === '1',
       uncertain: $('.uncertain :checked').val() === '1',
+      task_type: typeof doTaskType !== 'undefined' ? doTaskType : '',
     };
   }
 
-  // 选中文字
+  // 点击候选文字
   $(document).on('click', '.txt-item', function () {
     let txt = $(this).attr('data-value') || $(this).text().trim();
     $('.proof #p-txt').val(txt);
@@ -196,7 +207,7 @@
     });
   });
 
-  // 展开收缩信息
+  // 展开收缩proof panel的信息
   $(document).on('click', '.toggle-info', function () {
     let target = $(this).attr('id').replace('toggle-', '');
     if ($(this).hasClass('icon-up')) {
@@ -206,23 +217,6 @@
       $(this).removeClass('icon-down').addClass('icon-up');
       $(`#${target} .body`).removeClass('hide');
     }
-  });
-
-  // 显示坐标对应的框
-  $(document).on('click', 'span.pos', function () {
-    let txt = $(this).text(), box = {x: 0, y: 0, w: 0, h: 0, cid: 0};
-    if (txt.split(',').length > 3) {
-      txt.split(',').forEach((item) => {
-        let a = item.split(':');
-        if (a.length === 2) box[a[0]] = parseInt(a[1]);
-      });
-    } else if (txt.split('/').length > 3) {
-      let a = txt.split('/');
-      box = {x: parseInt(a[0]), y: parseInt(a[1]), w: parseInt(a[2]), h: parseInt(a[3]), cid: 0};
-    }
-    box.boxType = box.cid ? 'column' : 'char';
-    toggleHint(box, true);
-    $('#reset-box').removeClass('hide');
   });
 
 }());

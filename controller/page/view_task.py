@@ -83,11 +83,6 @@ class PageTaskListHandler(TaskHandler, Page):
             condition['task_type'] = {'$in': ['cut_proof', 'cut_review']}
         return condition, params
 
-    def format_value(self, value, key=None, doc=None):
-        if key == 'used_time' and value:
-            return round(value / 60.0, 2)
-        return super().format_value(value, key, doc)
-
     def get(self):
         """任务管理-页任务管理"""
         try:

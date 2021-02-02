@@ -18,7 +18,8 @@ class PageTaskLobbyHandler(TaskHandler):
             tasks, total_count = self.find_lobby(task_type, q=q, batch=batch)
             fields = [('doc_id', '页编码'), ('char_count', '单字数量')]
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
-                        fields=fields, batch=batch, format_value=self.format_value)
+                        fields=fields, batch=batch, search_tips='搜索页编码，请输入全部或部分页编码',
+                        format_value=self.format_value)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -27,20 +28,16 @@ class PageTaskLobbyHandler(TaskHandler):
 class CharTaskLobbyHandler(TaskHandler):
     URL = '/task/lobby/@char_task'
 
-    def format_value(self, value, key=None, doc=None):
-        if key == 'txt_kind' and len(value) > 5:
-            return value[:5] + '...'
-        return super().format_value(value, key, doc)
-
     def get(self, task_type):
         """任务大厅"""
         try:
             q = self.get_query_argument('q', '')
             batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
             tasks, total_count = self.find_lobby(task_type, q=q, batch=batch)
-            fields = [('txt_kind', '字种'), ('char_count', '单字数量')]
+            fields = [('base_txts', '聚类字种'), ('char_count', '单字数量')]
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
-                        fields=fields, batch=batch, format_value=self.format_value)
+                        fields=fields, batch=batch, search_tips='搜索聚类字种，请输入单个汉字',
+                        format_value=self.format_value)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -63,11 +60,6 @@ class MyPageTaskHandler(TaskHandler):
         {'action': 'my-task-remark', 'label': '备注'},
     ]
 
-    def format_value(self, value, key=None, doc=None):
-        if key == 'used_time' and value:
-            return round(value / 60.0, 2)
-        return super().format_value(value, key, doc)
-
     def get(self, task_type):
         """我的任务"""
         try:
@@ -78,7 +70,7 @@ class MyPageTaskHandler(TaskHandler):
             status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
             cond.update({'task_type': task_type, 'status': status, 'picked_user_id': self.user_id})
             docs, pager, q, order = self.find_by_page(self, cond, default_order='-picked_time')
-            self.render('task_my.html', task_type=task_type, docs=docs, pager=pager, q=q, order=order,
+            self.render('task_my_page.html', task_type=task_type, docs=docs, pager=pager, q=q, order=order,
                         params=params, format_value=self.format_value, **kwargs)
 
         except Exception as error:
@@ -88,9 +80,9 @@ class MyPageTaskHandler(TaskHandler):
 class MyCharTaskHandler(TaskHandler):
     URL = '/task/my/@char_task'
 
-    table_fields = ['batch', 'txt_kind', 'num', 'status', 'char_count', 'used_time', 'picked_time',
+    table_fields = ['batch', 'base_txts', 'num', 'status', 'char_count', 'used_time', 'picked_time',
                     'finished_time', 'my_remark']
-    search_fields = ['batch', 'txt_kind', 'my_remark']
+    search_fields = ['batch', 'my_remark']
     operations = [
         {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
@@ -112,7 +104,7 @@ class MyCharTaskHandler(TaskHandler):
             status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
             cond.update({'task_type': task_type, 'status': status, 'picked_user_id': self.user_id})
             docs, pager, q, order = self.find_by_page(self, cond, default_order='-picked_time')
-            self.render('task_my.html', task_type=task_type, docs=docs, pager=pager, q=q, order=order,
+            self.render('task_my_char.html', task_type=task_type, docs=docs, pager=pager, q=q, order=order,
                         params=params, format_value=self.format_value, **kwargs)
 
         except Exception as error:

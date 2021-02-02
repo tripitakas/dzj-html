@@ -32,8 +32,7 @@ class FetchTasksApi(TaskHandler):
                 # 把layout/width/height/blocks/columns/chars等参数传过去
                 for t in tasks:
                     page = pages.get(t['doc_id'])
-                    PageHandler.extract_sub_col(page)
-                    PageHandler.pack_cut_boxes(page)
+                    PageHandler.pack_cut_boxes(page, log=False, sub_columns=True)
                     t['params'] = page
             return [dict(task_id=str(t['_id']), num=t.get('num'), priority=t.get('priority'),
                          page_name=t.get('doc_id'), params=t.get('params')) for t in tasks]
@@ -153,10 +152,13 @@ class SubmitTasksApi(PageHandler):
         update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
         update['page_code'] = hp.align_code(page['name'])
         update['create_time'] = self.now()
-        self.apply_txt(update, 'ocr_col')
-        self.update_page_cid(update, reset=True)
+        # 将列文本适配至字框
+        try:
+            self.apply_ocr_col(update)
+        except Exception as err:
+            update['apply_error'] = str(err)
+        # 更新页数据和相关任务
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
-
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),
@@ -167,31 +169,36 @@ class SubmitTasksApi(PageHandler):
         if not page:
             return e.no_object
         # 更新列框文本
-        self.update_box_cid(self.prop(task, 'result.columns'))
-        columns1 = {c['cid']: c for c in self.prop(task, 'result.columns')}
+        columns1 = {c['cid']: c for c in self.prop(task, 'result.columns') if c.get('cid')}
         for c in page['columns']:
             oc = columns1.get(c['cid'])
-            if not oc:
+            if not oc:  # 报错以便通过失败的任务及时发现问题
                 return e.box_not_identical[0], '列框（cid：%s）缺失' % c['cid']
             c.update({k: oc.get(k) or c.get(k) for k in ['lc', 'ocr_txt']})
+            if c.get('sub_columns'):
+                if not oc.get('sub_columns'):
+                    return e.box_not_identical[0], '列框（cid：%s）的子列缺失' % c['cid']
+                if len(c['sub_columns']) != len(oc['sub_columns']):
+                    return e.box_not_identical[0], '列框（cid：%s）的子列数量不一致' % c['cid']
+                for i, sub in enumerate(c['sub_columns']):
+                    o_sub = oc['sub_columns'][i]
+                    sub.update({k: o_sub.get(k) or sub.get(k) for k in ['lc', 'ocr_txt']})
         # 更新字框文本
-        self.update_box_cid(self.prop(task, 'result.chars'))
-        chars1 = {c['cid']: c for c in self.prop(task, 'result.chars')}
+        chars1 = {c['cid']: c for c in self.prop(task, 'result.chars') if c.get('cid')}
         for c in page['chars']:
             oc = chars1.get(c['cid'])
             if not oc:
                 return e.box_not_identical[0], '字框（cid：%s）缺失' % c['cid']
             c.update({k: oc.get(k) or c.get(k) for k in ['cc', 'alternatives', 'ocr_txt']})
-            # 如果用户未修改，则更新，否则不更新
-            if not c.get('txt') or c['txt'] == c['ocr_txt']:
-                c['txt'] = oc.get('ocr_txt')
         # 将列文本适配至字框
-        self.apply_txt(page, 'ocr_col')
-        self.db.page.update_one({'name': task.get('page_name')}, {'$set': {
-            'chars': page['chars'], 'columns': page['columns'],
-            'tasks.%s.%s' % (task['task_type'], task.get('num') or 1): self.STATUS_FINISHED,
-        }})
-
+        try:
+            self.apply_ocr_col(page)
+        except Exception as err:
+            page['apply_error'] = str(err)
+        # 更新页数据和相关任务
+        update = {f: page[f] for f in ['chars', 'columns', 'apply_error'] if page.get(f)}
+        update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
+        self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),

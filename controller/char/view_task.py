@@ -20,12 +20,12 @@ class CharTaskListHandler(TaskHandler, Char):
         {'id': 'batch', 'name': '批次号'},
         {'id': 'task_type', 'name': '类型', 'filter': CharHandler.task_names('char')},
         {'id': 'num', 'name': '校次'},
-        {'id': 'txt_kind', 'name': '字种'},
+        {'id': 'base_txts', 'name': '聚类字种'},
         {'id': 'char_count', 'name': '单字数量'},
-        {'id': 'required_count', 'name': '需要校对数量'},
         {'id': 'status', 'name': '状态', 'filter': CharHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': CharHandler.priorities},
         {'id': 'is_oriented', 'name': '是否定向', 'filter': CharHandler.yes_no},
+        {'id': 'txt_equals', 'name': '相同程度'},
         {'id': 'params', 'name': '输入参数'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
@@ -40,8 +40,9 @@ class CharTaskListHandler(TaskHandler, Char):
         {'id': 'my_remark', 'name': '用户备注'},
 
     ]
-    search_fields = ['txt_kind', 'batch', 'remark']
-    hide_fields = ['_id', 'params', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
+    search_fields = ['batch', 'remark']
+    hide_fields = ['_id', 'txt_equals', 'params', 'return_reason', 'create_time', 'updated_time',
+                   'publish_by', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
@@ -75,10 +76,11 @@ class CharTaskListHandler(TaskHandler, Char):
 
     def format_value(self, value, key=None, doc=None):
         """格式化page表的字段输出"""
-        if key == 'used_time' and value:
-            return round(value / 60.0, 2)
-        if key == 'txt_kind' and value:
-            return (value[:5] + '...') if len(value) > 5 else value
+        if key == 'params' and value:
+            names = dict(source='来源', txt_kinds='校对字头')
+            return '<br/>'.join(['%s: %s' % (names.get(k) or k, v) for k, v in value.items()])
+        if key == 'txt_equals' and value:
+            return '<br/>'.join(['%s: %s' % (Char.equal_level.get(k) or k, v) for k, v in value.items()])
         return super().format_value(value, key, doc)
 
     def get(self):
@@ -146,6 +148,7 @@ class CharTaskDashBoardHandler(CharHandler):
 
 class CharTaskClusterHandler(CharHandler):
     URL = ['/task/@char_task/@task_id',
+           '/api/task/@char_task/@task_id',
            '/task/do/@char_task/@task_id',
            '/task/nav/@char_task/@task_id',
            '/task/browse/@char_task/@task_id',
@@ -153,94 +156,57 @@ class CharTaskClusterHandler(CharHandler):
 
     def get(self, task_type, task_id):
         """聚类校对页面"""
-
-        def c2int(c):
-            return int(float(c) * 1000)
-
-        def get_user_filter():
-            # 过滤标记
-            for f in ['is_diff', 'un_required', 'is_vague', 'is_deform', 'uncertain']:
-                v = self.get_query_argument(f, 0)
-                if v == 'true':
-                    cond[f] = True
-                elif v == 'false':
-                    cond[f] = None
-            # 字列置信度
-            for ac in ['cc', 'lc']:
-                ac = self.get_query_argument(ac, 0)
-                if ac:
-                    m1 = re.search(r'^([><]=?)(0|1|[01]\.\d+)$', ac)
-                    m2 = re.search(r'^(0|1|[01]\.\d+),(0|1|[01]\.\d+)$', ac)
-                    if m1:
-                        op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m1.group(1))
-                        cond.update({ac: {op: c2int(m1.group(2))} if op else ac})
-                    elif m2:
-                        cond.update({ac: {'$gte': c2int(m2.group(1)), '$lte': c2int(m2.group(2))}})
-            # 按备注过滤
-            remark = self.get_query_argument('remark', 0)
-            if remark == 'true':
-                cond['remark'] = {'$ne': None}
-            elif remark == 'false':
-                cond['remark'] = None
-            # 按修改过滤
-            updated = self.get_query_argument('updated', 0)
-            if updated == 'my':
-                cond['txt_logs.user_id'] = self.user_id
-            elif updated == 'other':
-                cond['txt_logs.user_id'] = {'$nin': [None, self.user_id]}
-            elif updated == 'all':
-                cond['txt_logs'] = {'$nin': [None, []]}
-            elif updated == 'un':
-                cond['txt_logs'] = {'$in': [None, []]}
-            # 是否已提交
-            submitted = self.get_query_argument('submitted', 0)
-            if submitted == 'true':
-                cond['tasks.' + task_type] = self.task['_id']
-            elif submitted == 'false':
-                cond['tasks.' + task_type] = {'$ne': self.task['_id']}
-
         try:
-            # 1.根据任务参数，设置任务过滤条件
-            params = self.task['params']
-            base = 'ocr_txt' if 'proof' in task_type else 'rvw_txt'
-            base_txts = [c[base] for c in params]  # 聚类字种
-            user_level = self.get_user_txt_level(self, task_type)
-            cond = {'source': params[0]['source'], base: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0],
-                    'txt_level': {'$lte': user_level}}
+            debug, start = False, self.now()
+            data, task_cond, cond = self.get_chars(task_type)
+            debug and print('[1]get chars:', (self.now() - start).total_seconds(), cond)
 
-            debug, start = False, datetime.now()
-            # 按校对文字统计“校对字头”
-            counts = list(self.db.char.aggregate([
-                {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
-                {'$sort': {'count': -1}},
-            ]))
-            txts = [c['_id'] for c in counts]
-            debug and print('[1]aggregate chars:', (datetime.now() - start).total_seconds())
-            # 设置“当前字头”及相关的异体字
-            cur_txt, vts = self.get_query_argument('txt', ''), []
-            if cur_txt and cur_txt in txts:
-                cond.update({'txt': cur_txt})
-                vts = list(self.db.variant.find({'$or': [{'nor_txt': cur_txt}, {'user_txt': cur_txt}]}))
-                vts = [v.get('txt') or v.get('v_code') for v in vts]
-            debug and print('[2]find variants:', (datetime.now() - start).total_seconds())
-            # 2.根据检索参数，设置用户过滤条件
-            get_user_filter()
-            # 3.查找单字数据
-            self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
-            if self.mode in ['do', 'update']:
-                self.page_size = 100 if self.page_size > 100 else self.page_size
-            chars, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
-            debug and print('[3]find chars:', (datetime.now() - start).total_seconds(), cond)
-            # 设置单字列图
-            for ch in chars:
-                column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
-                ch['column']['img_url'] = self.get_web_img(column_name, 'column')
-                ch['img_url'] = self.get_web_img(ch['name'], 'char')
+            txt = self.get_query_argument('txt', '')
+            txt_equals = self.task.get('txt_equals') or {}
 
-            self.render('char_cluster.html', Char=Char, chars=chars, pager=pager, q=q, order=order, variants=vts,
-                        base_txts=base_txts, txt_kinds=txts, cur_txt=cur_txt, readonly=self.readonly,
-                        mode=self.mode, page_name=self.get_task_name(task_type),
+            self.render('char_cluster.html', Char=Char, **data, cur_txt=txt, readonly=self.readonly,
+                        mode=self.mode, txt_equals=txt_equals, equal_level=self.equal_level,
+                        page_title=self.get_task_name(task_type),
                         char_count=self.task.get('char_count'))
+
+            if self.mode in ['do', 'update', 'nav']:  # 更新校对字头
+                counts = list(self.db.char.aggregate([
+                    {'$match': task_cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
+                ]))
+                txt_kinds = [c['_id'] for c in sorted(counts, key=itemgetter('count'), reverse=True)]
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'params.txt_kinds': txt_kinds}})
+                debug and print('[2]aggregate txt kinds:', (self.now() - start).total_seconds(), task_cond)
 
         except Exception as error:
             return self.send_db_error(error)
+
+    def post(self, task_type, task_id):
+        """聚类校对ajax获取数据"""
+        try:
+            if self.data.get('query') == 'txt_kinds':
+                data = dict(txt_kinds=self.prop(self.task, 'params.txt_kinds', []))
+            else:
+                data = self.get_chars(task_type)[0]
+            self.send_data_response(data)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+    def get_chars(self, task_type):
+        b_field = self.get_base_field(task_type)
+        source = self.prop(self.task, 'params.source')
+        base_txts = [t['txt'] for t in self.task['base_txts']]
+        task_cond = {'source': source, b_field: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
+        cond = self.get_user_filter(task_type)
+        cond.update(task_cond)
+        # 做任务时，限制每页字数
+        self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
+        self.page_size = 100 if self.page_size > 100 and self.mode in ['do', 'update'] else self.page_size
+        chars, pager, q, order = Char.find_by_page(self, cond, default_order=[('pc', 1), ('cc', 1)])
+        for ch in chars:  # 设置单字列图
+            column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
+            ch['column']['img_url'] = self.get_web_img(column_name, 'column')
+            ch['img_url'] = self.get_char_img(ch)
+        txt_kinds = self.prop(self.task, 'params.txt_kinds') or base_txts
+        data = dict(chars=chars, pager=pager, q=q, order=order, base_txts=base_txts, txt_kinds=txt_kinds)
+        return data, task_cond, cond

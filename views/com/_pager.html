@@ -1,25 +1,25 @@
-{% if page_count >= 1 %}
-<div class="pagers">
-  <span>当前&nbsp;<em>{{cur_page}}</em>/{{page_count}}&nbsp;页，共&nbsp;<em>{{doc_count}}</em>&nbsp;条</span>
-  {% if page_count > 1 %}
-  <ul>
-    <li><a href="{{get_page_uri(1)}}">首页</a></li>
-    {% if cur_page > 1 %}
-    <li><a href="{{get_page_uri(cur_page - 1)}}"><</a></li>
-    {% end %}
+<div class="pagers{{'' if page_count >= 1 else ' hide'}}">
+  <span>
+    当前<span class="cur-page">{{cur_page}}</span>/<span class="page-count">{{page_count}}</span>页，
+    共<span class="doc-count">{{doc_count}}</span>条
+  </span>
+  <ul class="{{'' if page_count > 1 else 'hide'}}">
+    <li><a class="p-first" href="{{get_page_uri(1)}}">首页</a></li>
+    <li class="p-prev{{'' if cur_page > 1 else ' hide'}}">
+      <a href="{{get_page_uri(cur_page - 1)}}"><</a>
+    </li>
     {% for i in display_range %}
-    <li class="{{'active' if i == cur_page else '' }}">
+    <li class="p-no {{' active' if i == cur_page else ''}}">
       <a href="{{get_page_uri(i)}}">{{i}}</a>
     </li>
     {% end %}
-    {% if cur_page < page_count %}
-    <li><a href="{{get_page_uri(cur_page + 1)}}">></a></li>
-    {% end %}
-    <li><a href="{{get_page_uri(page_count)}}">末页</a></li>
+    <li class="p-next{{'' if cur_page < page_count else ' hide'}}">
+      <a href="{{get_page_uri(cur_page + 1)}}">></a>
+    </li>
+    <li><a class="p-last" href="{{get_page_uri(page_count)}}">末页</a></li>
     <li>跳至<input class="page-no" type="text">页</li>
   </ul>
-  {% end %}
-  <span style="margin-left: 15px">每页
+  <span>每页
   <select name="page-size" class="page-size">
     {% for v in options %}
     <option value="{{v}}" {{'selected' if page_size == v else ''}}>{{v}}</option>
@@ -29,23 +29,16 @@
 </div>
 
 <script>
-  $('.pagers .page-no').on("keydown", function (event) {
-    let keyCode = event.keyCode || event.which;
-    if (keyCode === 13) {
-      let page = $(this).val().trim();
-      page = page > 1 ? page : 1;
-      location.href = setQueryString('page', page);
-    }
+  $('.pagers .page-no').on('keydown', function (e) {
+    let keyCode = e.keyCode || e.which, page = $(this).val().trim();
+    if (keyCode !== 13 || !page.length) return;
+    location.href = setQueryString('page', page);
   });
-  $('.pagers .page-size').on("change", function () {
-    let old_page_size = parseInt('{{page_size}}'),
-        page_size = this.value,
-        cur_page = parseInt('{{cur_page}}'),
-        offset = (cur_page - 1) * old_page_size,
-        new_page = Math.max(1, parseInt(offset / page_size + 1));
-
+  $('.pagers .page-size').on('change', function () {
+    let old_page_size = parseInt('{{page_size}}'), cur_page = parseInt('{{cur_page}}');
+    let page_size = this.value, offset = (cur_page - 1) * old_page_size;
+    let new_page = Math.max(1, parseInt(offset / page_size + 1));
     let search = setQueryString('page', new_page, true);
     location.href = setQueryString('page_size', this.value, false, search);
   });
 </script>
-{% end %}

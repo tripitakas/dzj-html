@@ -2,13 +2,13 @@
 <script src="{{static_url('js/task-pick.js')}}"></script>
 <script>
   // 公共参数
-  let from = decodeFrom();
   let gMode = '{{handler.mode}}';
   let gTaskId = '{{handler.task_id}}';
   let gTaskType = '{{handler.task_type}}';
   let myRemark = '{{handler.task.get("my_remark") or ""}}';
   let adminRemark = '{{handler.task.get("remark") or ""}}';
   let isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
+  let doTaskType = '/do/update/nav'.indexOf(gMode) > -1 ? gTaskType : '';
 
   // 模态框
   $('#task-return').on('click', () => $("#returnModal").modal());
@@ -31,8 +31,8 @@
 
   // 离开页面
   window.leave = function () {
-    if (from) {
-      window.location = from;
+    if (decodeFrom() === '1') {
+      window.location = getStorage('from');
     } else if (gMode === 'update' || gMode === 'do') {
       window.location = '/task/my/' + gTaskType;
     } else {

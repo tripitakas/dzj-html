@@ -83,6 +83,7 @@ class Task(Model):
         'collection': {'name': '数据表'},
         'id_name': {'name': '主键名'},
         'doc_id': {'name': '页编码'},
+        'base_txts': {'name': '聚类字种'},
         'status': {'name': '状态', 'filter': task_statuses},
         'priority': {'name': '优先级', 'filter': priorities},
         'steps': {'name': '步骤'},
@@ -90,10 +91,8 @@ class Task(Model):
         'is_oriented': {'name': '是否定向', 'filter': yes_no},
         'params': {'name': '输入参数'},
         'result': {'name': '输出结果'},
-        'txt_kind': {'name': '字种'},
         'char_count': {'name': '单字数量'},
         'required_count': {'name': '需要校对数量'},
-        'type_tips': {'name': '类型说明'},
         'return_reason': {'name': '退回理由'},
         'create_time': {'name': '创建时间'},
         'updated_time': {'name': '更新时间'},
@@ -118,7 +117,7 @@ class Task(Model):
 
     @classmethod
     def get_data_field(cls, task_type):
-        c2f = dict(page='doc_id', char='txt_kind')
+        c2f = dict(page='doc_id', char='base_txts')
         return c2f.get(cls.prop(cls.task_types, task_type + '.data.collection'))
 
     @classmethod
@@ -182,6 +181,11 @@ class Task(Model):
             return cls.get_priority_name(int(value or 0))
         if key == 'is_oriented':
             return cls.yes_no.get(value) or '否'
+        if key == 'used_time' and value:
+            return round(value / 60.0, 2)
+        if key == 'base_txts':
+            value = ''.join([t.get('txt') or '' for t in value])
+            return value if len(value) < 10 else value[:10] + '...'
         return h.format_value(value, key, doc)
 
     @classmethod
@@ -189,7 +193,7 @@ class Task(Model):
         """获取任务的查询条件"""
         # request_query = re.sub('[?&]?from=.*$', '', request_query)
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        for field in ['collection', 'task_type', 'num', 'status', 'priority']:
+        for field in ['collection', 'task_type', 'num', 'priority', 'status']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
@@ -201,7 +205,12 @@ class Task(Model):
                 value = trans.get(value) if value in trans else value
                 params[field] = value
                 condition.update({field: value})
-        for field in ['batch', 'doc_id', 'txt_kind', 'remark', 'my_remark']:
+        for field in ['base_txts']:
+            value = h.get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({'base_txts.txt': value if len(value) == 1 else {'$all': list(value)}})
+        for field in ['batch', 'doc_id', 'remark', 'my_remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

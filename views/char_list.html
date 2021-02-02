@@ -61,7 +61,7 @@
           </tr>
           <tr>
             <td>结果统计</td>
-            <td>按分类、原字、OCR字，正字进行字数统计</td>
+            <td>按分类、校对文字、综合OCR进行字数统计</td>
           </tr>
           <tr>
             <td>发布任务</td>
@@ -120,22 +120,28 @@
           <div class="form-group">
             <h4 class="col-sm-2 control-label">字置信度</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control cc" value="{{params.get('cc') or ''}}" placeholder="支持格式如>0.5、>=0.5、<0.9、<=0.9等，默认为等于">
+              <input type="text" class="form-control cc" value="{{params.get('cc') or ''}}" placeholder="支持比较符号>、>=、<、<=等，默认为等于">
             </div>
           </div>
           <div class="form-group">
             <h4 class="col-sm-2 control-label">列置信度</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control lc" value="{{params.get('lc') or ''}}" placeholder="支持格式如>0.5、>=0.5、<0.9、<=0.9等，默认为等于">
+              <input type="text" class="form-control lc" value="{{params.get('lc') or ''}}" placeholder="支持比较符号>、>=、<、<=等，默认为等于">
             </div>
           </div>
           <div class="form-group">
-            <h4 class="col-sm-2 control-label">不一致</h4>
+            <h4 class="col-sm-2 control-label">相同程度</h4>
             <div class="col-sm-10">
-              <select class="form-control is_diff">
+              <input type="text" class="form-control sc" value="{{params.get('sc') or ''}}" placeholder="支持比较符号>、>=、<、<=等，默认为等于">
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">相同程度</h4>
+            <div class="col-sm-10">
+              <select class="form-control sc">
                 <option value=""></option>
-                {% for k,v in {True: '是', False: '否'}.items() %}
-                {% if params.get('is_diff', '') == k %}
+                {% for k,v in handler.equal_level.items() %}
+                {% if params.get('sc', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -144,21 +150,7 @@
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <h4 class="col-sm-2 control-label">不必校对</h4>
-            <div class="col-sm-10">
-              <select class="form-control un_required">
-                <option value=""></option>
-                {% for k,v in {True: '是', None: '否'}.items() %}
-                {% if params.get('un_required', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-          </div>
+
           <div class="form-group">
             <h4 class="col-sm-2 control-label">异形字</h4>
             <div class="col-sm-10">
@@ -248,7 +240,7 @@
     </div>
   </div>
 </div>
-<div id="extractModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="extractModal" aria-hidden="true">
+<div id="genImgModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genImgModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content modal-sm">
       <div class="modal-header">
@@ -267,7 +259,7 @@
             <h4 class="item-title">已有字图时是否重新生成？</h4>
             <div class="regen">
               <label class="radio-inline"><input type="radio" name="regen" value="否" checked>否</label>
-              <label class="radio-inline"><input type="radio" name="regen" value="是">是</label>
+              <label class="radio-inline hide"><input type="radio" name="regen" value="是">是</label>
             </div>
           </div>
         </form>
@@ -364,16 +356,16 @@
   });
 
   // 生成字图
-  $('.operation .bat-gen-img').on('click', function () {
+  $('.operation .bat-gen-imgs').on('click', function () {
     if (!$('table tbody :checked').length) return showTips('提示', '请选择字图', 3000);
-    $('#extractModal .selected-count').text($('table tbody :checked').length);
-    $('#extractModal').modal();
+    $('#genImgModal .selected-count').text($('table tbody :checked').length);
+    $('#genImgModal').modal();
   });
-  $('#extractModal .modal-confirm').on('click', function () {
-    let type = $('#extractModal .range :checked').val();
+  $('#genImgModal .modal-confirm').on('click', function () {
+    let type = $('#genImgModal .range :checked').val();
     let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     let data = {_ids: ids, type: type, regen: $('.regen :checked').val(), search: location.search};
-    $('#extractModal').modal('hide');
+    $('#genImgModal').modal('hide');
     postApi('/char/extract_img', {data: data}, (res) => {
       let info = `详情可查看<a href="/sys/oplog/latest/extract_img">日志</a>`;
       Swal0.fire({type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。', footer: info});
@@ -387,7 +379,8 @@
 
   // 浏览结果
   $('.operation .btn-browse').on('click', function () {
-    location.href = '/char/browse' + setQueryString('from', location.pathname, true);
+    setStorage('from', location.href);
+    location.href = '/char/browse' + location.search + '&from=1';
   });
 
   // 检查字页数量是否一致
@@ -409,7 +402,7 @@
   /*---综合检索---*/
   let $searchModal = $("#searchModal");
   let inputFields = ['source', 'name', 'ocr_txt', 'txt', 'remark', 'cc', 'lc'];
-  let selectFields = ['is_diff', 'un_required', 'is_vague', 'is_deform', 'uncertain'];
+  let selectFields = ['is_vague', 'is_deform', 'uncertain', 'sc'];
   $searchModal.find('.modal-confirm').on('click', function () {
     let search = '';
     inputFields.forEach(function (field) {

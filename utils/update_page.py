@@ -13,29 +13,7 @@ from operator import itemgetter
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from utils import update_char as uc
 from controller import helper as hp
-
-
-def update_txt(page):
-    changed = set()
-    for c in page.get('chars') or []:
-        changed.add(uc.update_txt_variant(c))
-        changed.add(uc.update_txt_type(c))
-        changed.add(uc.update_txt_logs(c))
-        changed.add(uc.update_ocr_txt(c))
-    return True in changed
-
-
-def update_box_level(page):
-    changed = False
-    for f in ['blocks', 'columns', 'chars']:
-        boxes = page.get(f) or []
-        for b in boxes:
-            if not b.get('box_logs') and b.get('box_level'):
-                b.pop('box_level', 0)
-                changed = True
-    return changed
 
 
 def update_box_log(page):
@@ -91,23 +69,24 @@ def update_box_log(page):
 
 def update_page(db):
     """ 更新page表（注：更新之前去掉updated字段"""
-    size, i = 1000, 0
-    cond = {'source': {'$in': ['法华经-9版本', '60华严', '径山藏目录']}}
+    size = 1000
+    # 更新1200标注数据，准备聚类校对
+    cond = {'source': '1200标注数据', 'updated': None}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        fields = ['name', 'blocks', 'columns', 'chars']
-        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(cond, {k: 1 for k in ['name', 'chars']}).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
-            r1 = update_txt(p)
-            r2 = update_box_level(p)
-            if r1 or r2:
-                print('[%s]%s' % (hp.get_date_time(), p['name']))
-                update = {'updated': True}
-                update.update({k: p[k] for k in ['blocks', 'columns', 'chars'] if p.get(k)})
-                db.page.update_one({'_id': p['_id']}, {'$set': update})
+            print('[%s]%s' % (hp.get_date_time(), p['name']))
+            if not p.get('chars'):
+                continue
+            for b in p.get('chars'):
+                b.pop('pc', 0)
+                b.pop('sc', 0)
+                b.pop('cmb_txt', 0)
+            db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars'], 'updated': True}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):

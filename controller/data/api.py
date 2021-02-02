@@ -136,10 +136,11 @@ class VariantUpsertApi(BaseHandler, Variant):
                 doc['updated_time'] = self.now()
                 if doc['nor_txt'] and doc['nor_txt'] != vt.get('nor_txt'):
                     doc['nor_txt'] = self.recurse_nor_txt(doc['nor_txt'])
-                if vt.get('v_code') and doc.get('img_name') != vt.get('img_name'):  # 更新图片
-                    self.update_variant_img(doc['img_name'], vt['v_code'])
                 self.db.variant.update_one({'_id': doc['_id']}, {'$set': doc})
                 self.send_data_response()
+
+                if vt.get('v_code') and doc.get('img_name') != vt.get('img_name'):  # 更新图片
+                    self.update_variant_img(doc['img_name'], vt['v_code'])
                 return self.add_log('update_variant', target_id=doc['_id'])
 
             if re.match(r'^[0-9a-zA-Z_]+$', doc.get('txt') or ''):
@@ -148,7 +149,6 @@ class VariantUpsertApi(BaseHandler, Variant):
                 if self.db.variant.find_one({'img_name': doc['img_name']}):
                     return self.send_error_response(e.variant_exist, message='异体字图%s已存在' % doc['img_name'])
                 doc['uid'], doc['v_code'] = self.get_next_code()
-                self.update_variant_img(doc['img_name'], doc['v_code'])
             else:  # 文字
                 if self.db.variant.find_one({'txt': doc['txt']}):
                     return self.send_error_response(e.variant_exist, message='异体字%s已存在' % doc['txt'])
@@ -156,6 +156,9 @@ class VariantUpsertApi(BaseHandler, Variant):
             doc.update(dict(create_user_id=self.user_id, create_by=self.username, create_time=self.now()))
             r = self.db.variant.insert_one(doc)
             self.send_data_response(dict(id=r.inserted_id, v_code=doc.get('v_code')))
+
+            if doc.get('img_name'):  # 图片字
+                self.update_variant_img(doc['img_name'], doc['v_code'])
             self.add_log('add_variant', target_id=r.inserted_id, target_name=doc.get('img_name') or doc.get('txt'))
 
         except self.DbError as error:
@@ -180,7 +183,7 @@ class VariantUpsertApi(BaseHandler, Variant):
         next_uid = int(max_uid['uid']) + 1 if max_uid else 1
         v_code = 'v' + h.dec2code36(next_uid)
         if self.db.char.find_one({'txt': v_code}):  # 下一个code已被使用
-            return self.send_error_response(e.variant_exist, message='编号已错乱，请联系管理员！')
+            return self.send_error_response(e.variant_exist, message='编号分配失败，新编号%s已被使用。请联系管理员！' % v_code)
         return next_uid, v_code
 
 
@@ -192,33 +195,33 @@ class VariantDeleteApi(BaseHandler):
 
         try:
             if self.data.get('v_code'):
-                if self.db.char.find_one({'txt': self.data['v_code']}):
-                    return self.send_error_response(e.unauthorized, message='不能删除使用中的异体字')
+                if self.db.char.find_one({'txt': self.data['v_code'].strip()}):
+                    return self.send_error_response(e.unauthorized, message='不能删除使用中的图片异体字')
                 r = self.db.variant.delete_one({'v_code': self.data['v_code']})
                 if not r.deleted_count:
-                    return self.send_error_response(e.no_object, message='没有找到异体字%s' % self.data['v_code'])
+                    return self.send_error_response(e.no_object, message='没有找到图片异体字%s' % self.data['v_code'])
                 self.send_data_response(dict(count=r.deleted_count))
-                self.add_log('delete_variant', target_name=self.data['v_code'])
+                return self.add_log('delete_variant', target_name=self.data['v_code'])
             elif self.data.get('_id'):
                 vt = self.db.variant.find_one({'_id': ObjectId(self.data['_id'])}, {'v_code': 1})
                 if vt.get('v_code') and self.db.char.find_one({'txt': vt['v_code']}):
                     return self.send_error_response(e.unauthorized, message='不能删除使用中的图片异体字')
                 r = self.db.variant.delete_one({'_id': ObjectId(self.data['_id'])})
                 self.send_data_response(dict(count=r.deleted_count))
-                self.add_log('delete_variant', target_id=self.data['_id'])
+                return self.add_log('delete_variant', target_id=self.data['_id'])
             elif self.data.get('_ids'):
-                deleted, un_deleted = [], []
+                to_delete, un_deleted = [], []
                 vts = list(self.db.variant.find({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}))
                 for vt in vts:
                     if not vt.get('v_code') or not self.db.char.find_one({'txt': vt['v_code']}):
-                        deleted.append(str(vt['_id']))
+                        to_delete.append(str(vt['_id']))
                     else:
                         un_deleted.append(str(vt['_id']))
-                if not deleted:
+                if not to_delete:
                     return self.send_error_response(e.unauthorized, message='所有异体字均被使用中，不能删除')
-                r = self.db.variant.delete_many({'_id': {'$in': [ObjectId(i) for i in deleted]}})
-                self.send_data_response(dict(deleted=deleted, un_deleted=un_deleted, count=r.deleted_count))
-                self.add_log('delete_variant', target_id=deleted)
+                r = self.db.variant.delete_many({'_id': {'$in': [ObjectId(i) for i in to_delete]}})
+                self.send_data_response(dict(deleted=to_delete, un_deleted=un_deleted, count=r.deleted_count))
+                return self.add_log('delete_variant', target_id=to_delete)
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -279,6 +282,26 @@ class VariantCode2NorTxtApi(BaseHandler):
             self.validate(self.data, rules)
             vts = list(self.db.variant.find({'v_code': {'$in': self.data['codes']}}, {'v_code': 1, 'nor_txt': 1}))
             self.send_data_response(dict(code2nor={vt['v_code']: vt['nor_txt'] for vt in vts if vt.get('nor_txt')}))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class VariantsListByTxtApi(BaseHandler):
+    URL = '/api/variant/search'
+
+    def post(self):
+        """ 获取txt的异体字列表"""
+        try:
+            rules = [(v.not_empty, 'q')]
+            self.validate(self.data, rules)
+            txt = self.data['q']
+            vt = self.db.variant.find_one({'v_code': txt} if txt[0] == 'v' else {'txt': txt}, {'nor_txt': 1})
+            nor_txt = vt and vt.get('nor_txt') or txt
+            vts = list(self.db.variant.find({'$or': [{'nor_txt': nor_txt}, {'user_txt': nor_txt}]}))
+            vts1 = [vt['txt'] for vt in vts if vt.get('txt')]
+            vts2 = [vt['v_code'] for vt in vts if vt.get('v_code')]
+            self.send_data_response(dict(variants=vts1 + vts2))
 
         except self.DbError as error:
             return self.send_db_error(error)

@@ -254,10 +254,12 @@
     $('#more-group').toggleClass('hide');
   });
   $('#btn-box').on('click', function () {
-    location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    location.href = '/page/box/{{page["name"]}}?from=1';
   });
   $('#btn-column-mode').on('click', function () {
-    location.href = '/page/txt1/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    location.href = '/page/txt1/{{page["name"]}}?from=1';
   });
 
   // 单字提交
@@ -298,7 +300,7 @@
     if ($this.hasClass('disabled')) return;
     bsLoading('提交中‧‧‧');
     $this.addClass('disabled');
-    postApi(location.pathname.replace('/edit', ''), {data: {submit: true}}, function (res) {
+    postApi(location.pathname, {data: {submit: true}}, function (res) {
       bsShow('成功!', '已提交。', 'info', 1000);
       $this.removeClass('disabled');
       if (id === 'task-submit') {

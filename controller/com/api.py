@@ -7,8 +7,8 @@ import re
 from bson import json_util
 from controller.helper import prop
 from controller.base import BaseHandler
-from controller.page.tool.esearch import find
-from controller.page.tool.variant import normalize
+from controller.tool.esearch import find
+from controller.tool.variant import normalize
 
 
 def punc_str(orig_str, host, port):

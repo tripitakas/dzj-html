@@ -82,8 +82,8 @@ function setQueryString(name, value, onlySearch, search) {
   return onlySearch ? search : location.pathname + search;
 }
 
-function deleteQueryString(names) {
-  let url = location.href;
+function deleteQueryString(names, url) {
+  url = url || location.href;
   names = typeof names === 'string' ? names.split(',') : names;
   names.forEach((name) => url = deleteParam(url, name));
   return url;
@@ -123,9 +123,11 @@ function decodeFrom() {
     if (from.indexOf('?') === -1)
       from = from.replace('&', '?');
   }
+
   return from;
   // return deleteParam(from, 'to');
 }
+
 
 /* 时间相关*/
 function toLocalTime(isoTimeStamp) {

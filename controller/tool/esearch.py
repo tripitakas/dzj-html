@@ -7,12 +7,12 @@ from os import path
 from tornado.options import options
 from elasticsearch import Elasticsearch
 
-BASE_DIR = path.dirname(path.dirname(path.dirname(path.dirname(__file__))))
+BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
+from controller.tool.diff import Diff
 from controller.helper import load_config
-from controller.page.tool.diff import Diff
-from controller.page.tool.variant import normalize
+from controller.tool.variant import normalize
 
 
 def get_hosts():
@@ -107,9 +107,3 @@ def find_match(ocr, depth=10):
         if abs(len(match) - len(ocr)) < 20:
             return match
     return ''
-
-
-if __name__ == '__main__':
-    ocr_txt = '能尋香奏樂世樂乾土音岳阿修羅此云非天婆稚此云有縛佉羅騫䭾此云廣肩佉丘加切騫音愆毘摩質多羅此云海水波音卽帝釋夫人'
-    res = find_match(ocr_txt)
-    print(res)

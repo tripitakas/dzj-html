@@ -15,7 +15,8 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
-from controller.page.base import PageHandler as Ph
+from controller.char.char import Char
+from controller.char.base import CharHandler
 
 
 def is_changed(a, b):
@@ -33,14 +34,18 @@ def is_changed(a, b):
     return False
 
 
-def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, username=None):
+def gen_chars(db=None, db_name=None, uri=None, condition=None, source=None, page_names=None, username=None):
     """ 从页数据中导出字数据"""
-    cfg = hp.load_config()
-    db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
+    db = db or (uri and pymongo.MongoClient(uri)[db_name])
+    if not db:
+        cfg = hp.load_config()
+        db = hp.connect_db(cfg['database'], db_name=db_name)[0]
     # condition
     if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
         condition = {'name': {'$in': page_names}}
+    elif source:
+        condition = {'source': source}
     elif isinstance(condition, str):
         condition = json.loads(condition)
     elif not condition:
@@ -50,7 +55,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
     total_count = db.page.count_documents(condition)
     print('[%s]start gen chars, condition=%s, count=%s' % (hp.get_date_time(), condition, total_count))
     fields1 = ['name', 'source', 'columns', 'chars']
-    fields2 = ['source', 'cid', 'char_id', 'txt', 'nor_txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
+    fields2 = ['source', 'cid', 'char_id', 'txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
     for i in range(int(math.ceil(total_count / once_size))):
         pages = list(db.page.find(condition, {k: 1 for k in fields1}).skip(i * once_size).limit(once_size))
         p_names = [p['name'] for p in pages]
@@ -62,21 +67,21 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                 id2col = {col['column_id']: {k: col[k] for k in ['cid', 'x', 'y', 'w', 'h']} for col in p['columns']}
                 for c in p['chars']:
                     try:
+                        if c.get('deleted'):
+                            continue
                         char_names.append('%s_%s' % (p['name'], c['cid']))
                         m = dict(page_name=p['name'], source=p.get('source'), txt_level=0, img_need_updated=True)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
-                        m.update({k: int(c[k] * 1000) for k in ['cc', 'lc'] if c.get(k)})
-                        # ocr_txt
-                        m['ocr_txt'] = Ph.get_cmb_txt(c)
-                        m['txt'] = c.get('txt') or m['ocr_txt']
-                        # un_required
-                        m['un_required'] = Ph.is_un_required(c)
-                        # diff
-                        m['is_diff'] = Ph.is_source_txt_diff(c)
+                        m.update({k: int((c.get(k) or 0) * 1000) for k in ['cc', 'lc']})
+                        m['ocr_txt'] = (c.get('alternatives') or '')[:1]
+                        m['ocr_col'] = c.get('ocr_col') or '■'
+                        m['cmb_txt'] = Char.get_cmb_txt(c)
+                        m['txt'] = c.get('txt') or m['cmb_txt']
+                        m['sc'] = Char.get_equal_level(c)
+                        m['pc'] = Char.get_prf_level(c)
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
-                        if 'column_no' not in c:
-                            c['column_no'] = c.pop('line_no')
+                        c['column_no'] = c.get('column_no') or c.pop('line_no')
                         m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
                         m['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
                         chars.append(m)
@@ -117,7 +122,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, page_names=None, 
                    deleted_char=[c['name'] for c in deleted], invalid_char=invalid_chars,
                    valid_pages=valid_pages, invalid_pages=invalid_pages,
                    create_time=datetime.now())
-        Ph.add_op_log(db, 'gen_chars', 'finished', log, username)
+        CharHandler.add_op_log(db, 'gen_chars', 'finished', log, username)
 
 
 if __name__ == '__main__':

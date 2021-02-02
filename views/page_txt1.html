@@ -145,7 +145,7 @@
             文字校对提供对照图片进行文字校对的功能，有两种模式：页图模式和列图模式，用户可根据个人喜好选择在哪种模式下校对。
             两种模式下都会以不同颜色标识异文、异体字以及修改过的文字，详见底部状态栏。<br/>
             图片和文字可以达到字符级别对应，页面右侧工作面板上部区域提供来自OCR字引擎、列引擎及比对文本的候选文字供用户选择。
-            下部区域为文字输入区，可输入原字和所属正字，并可对校对结果标注类别：没问题，图片模糊或残损，不确定，不认识。
+            下部区域为文字输入区，可输入校对文字和所属正字，并可对校对结果标注类别：没问题，图片模糊或残损，不确定，不认识。
           </div>
           <div class="title">二、操作</div>
           <table class="table">
@@ -303,12 +303,14 @@
 
   // 修改字框
   $('#btn-box').on('click', function () {
-    location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    window.location = '/page/box/{{page["name"]}}?from=1';
   });
 
   // 修改字序
   $('#btn-order').on('click', function () {
-    location = '/page/order/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    window.location = '/page/order/{{page["name"]}}?from=1';
   });
 
 </script>

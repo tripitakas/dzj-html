@@ -69,10 +69,10 @@ class CharHandler(Char, TaskHandler):
     def check_txt_level_and_point(cls, self, char, task_type=None, response_error=True):
         """检查数据等级和积分"""
         # 1.检查数据等级
-        required_level = cls.get_required_txt_level(char)
-        user_level = cls.get_user_txt_level(self, task_type)
-        if int(user_level) < int(required_level):
-            msg = '该字符的文字数据等级为%s，您的文字数据等级%s不够' % (required_level, user_level)
+        r_level = cls.get_required_txt_level(char)
+        u_level = cls.get_user_txt_level(self, task_type)
+        if int(u_level) < int(r_level):
+            msg = '该字符的文字数据等级为%s，%s数据等级%s不够' % (r_level, '当前任务' if task_type else '您的', u_level)
             return self.send_error_msg(e.data_level_unqualified[0], msg, response_error)
         # 2.检查权限
         roles = auth.get_all_roles(self.current_user['roles'])
@@ -83,7 +83,7 @@ class CharHandler(Char, TaskHandler):
             return self.send_error_msg(r[0], r[1], response_error)
         # 3. 检查积分
         task_types = list(cls.txt_level['task'].keys())
-        if int(user_level) == int(required_level) and (not task_type or task_type not in task_types):
+        if int(u_level) == int(r_level) and (not task_type or task_type not in task_types):
             if char.get('txt_logs') and char['txt_logs'][-1].get('user_id') == self.user_id:
                 return True
             required_type, required_point = cls.get_required_type_and_point(char)
@@ -93,8 +93,85 @@ class CharHandler(Char, TaskHandler):
                 return self.send_error_msg(e.data_point_unqualified[0], msg, response_error)
         return True
 
+    @staticmethod
+    def get_base_field(task_type):
+        """ 聚类任务以字数据的哪个字段进行聚类"""
+        return 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
+
+    @staticmethod
+    def is_v_code(txt):
+        return txt and len(txt) > 1 and txt[0] == 'v'
+
     def get_char_img(self, char):
         url = self.get_web_img(char.get('img_name') or char['name'], 'char')
         if url and char.get('img_time'):
             url += '?v=%s' % char['img_time']
         return url
+
+    def get_user_argument(self, name, default=None):
+        return self.get_query_argument(name, 0) or self.data.get(name, 0) or default
+
+    def get_user_filter(self, task_type=None):
+        """ 获取聚类校对的用户过滤条件"""
+
+        def c2int(c):
+            return int(float(c) * 1000)
+
+        cond = {}
+        # 按编码前缀
+        name = self.get_user_argument('name', '')
+        if name:
+            cond.update({'name': {'$regex': name.upper()}})
+        # 按校对字头
+        txt = self.get_user_argument('txt', '')
+        if txt:
+            cond.update({'txt': txt})
+        # 按相同程度、校对等级
+        for f in ['sc', 'pc']:
+            v = self.get_user_argument(f, 0)
+            if v and re.match(r'^\d+$', v):
+                cond[f] = int(v)
+        # 按字置信度、列置信度
+        for ac in ['cc', 'lc']:
+            v = self.get_user_argument(ac, 0)
+            if v:
+                m1 = re.search(r'^([><]=?)(0|1|[01]\.\d+)$', v)
+                m2 = re.search(r'^(0|1|[01]\.\d+),(0|1|[01]\.\d+)$', v)
+                if m1:
+                    op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m1.group(1))
+                    cond.update({ac: {op: c2int(m1.group(2))} if op else v})
+                elif m2:
+                    cond.update({ac: {'$gte': c2int(m2.group(1)), '$lte': c2int(m2.group(2))}})
+        # 按用户校对标记
+        for f in ['is_vague', 'is_deform', 'uncertain']:
+            v = self.get_user_argument(f, 0)
+            if v == 'true':
+                cond[f] = True
+            elif v == 'false':
+                cond[f] = None
+        # 按是否备注过滤
+        remark = self.get_user_argument('remark', 0)
+        if remark == 'true':
+            cond['remark'] = {'$ne': None}
+        elif remark == 'false':
+            cond['remark'] = None
+        # 是否已提交
+        submitted = self.get_user_argument('submitted', 0)
+        if task_type and submitted == 'true':
+            cond['tasks.' + task_type] = self.task['_id']
+        elif task_type and submitted == 'false':
+            cond['tasks.' + task_type] = {'$ne': self.task['_id']}
+        # 按用户修改过滤
+        updated = self.get_user_argument('updated', 0)
+        if updated == 'my':
+            cond['txt_logs.user_id'] = self.user_id
+        elif updated == 'other':
+            cond['txt_logs.user_id'] = {'$nin': [None, self.user_id]}
+        elif updated == 'true':
+            cond['txt_logs'] = {'$nin': [None, []]}
+        elif updated == 'false':
+            cond['txt_logs'] = {'$in': [None, []]}
+        # 检查数据等级
+        user_level = self.get_user_txt_level(self, task_type)
+        cond['txt_level'] = {'$gt': user_level} if updated == 'unauth' else {'$lte': user_level}
+        return cond

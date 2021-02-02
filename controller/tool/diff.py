@@ -5,7 +5,13 @@
 @time: 2019/6/4
 """
 import re
-from .variant import is_variant
+import sys
+from os import path
+
+BASE_DIR = path.dirname(path.dirname(__file__))
+sys.path.append(BASE_DIR)
+
+from controller.tool.variant import is_variant
 
 try:
     from cdifflib import CSequenceMatcher
@@ -32,8 +38,10 @@ class Diff(object):
         return base
 
     @classmethod
-    def pre_cmp(cls, cmp):
+    def pre_cmp(cls, cmp, filter_junk=True):
         """比对本预处理，过滤换行符以及非中文字符"""
+        if not filter_junk:
+            return cmp
         return re.sub(Diff.cmp_junk_char, '', cmp)
 
     @classmethod
@@ -98,7 +106,7 @@ class Diff(object):
         base = base.replace('|', '\n').rstrip('\n')
         base_lines = base.split('\n')
         base = cls.pre_base(base, False, filter_junk)
-        cmp = cls.pre_cmp(cmp)
+        cmp = cls.pre_cmp(cmp, filter_junk)
         segments = []
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
         for tag, i1, i2, j1, j2 in s.get_opcodes():
@@ -190,7 +198,7 @@ class Diff(object):
             lbl.update(label)
 
         ret, line_no = [], 1
-        base, cmp = cls.pre_base(base, True, filter_junk), cls.pre_cmp(cmp)
+        base, cmp = cls.pre_base(base, True, filter_junk), cls.pre_cmp(cmp, filter_junk)
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
         for tag, i1, i2, j1, j2 in s.get_opcodes():
             t1, t2 = base[i1:i2], cmp[j1:j2]

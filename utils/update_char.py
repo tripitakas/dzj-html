@@ -18,6 +18,7 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
+from controller.char.char import Char
 from controller.page.base import PageHandler as Ph
 
 
@@ -146,7 +147,7 @@ def update_txt_logs(ch):
 
 def update_ocr_txt(ch):
     changed = False
-    cmb_txt = Ph.get_cmb_txt(ch)
+    cmb_txt = Char.get_cmb_txt(ch)
     if cmb_txt != ch['ocr_txt']:
         ch['ocr_txt'] = cmb_txt
         changed = True
@@ -160,40 +161,17 @@ def update_ocr_txt(ch):
 
 
 def update_char(db):
-    fields = ['_id', 'name', 'page_name', 'char_id', 'uid', 'cid', 'source', 'has_img', 'img_need_updated',
-              'lc', 'cc', 'pos', 'column', 'alternatives', 'ocr_col', 'cmp_txt', 'ocr_txt', 'is_diff',
-              'un_required', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain',
-              'box_level', 'box_point', 'box_logs', 'txt_level', 'txt_point', 'txt_logs',
-              'img_time', 'tasks', 'remark']
-
-    cond = {}
     size = 20000
+    cond = {'source': '1200标注数据'}
     item_count = db.char.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         chars = list(db.char.find(cond).sort('_id', 1).skip(i * size).limit(size))
-        print('[%s]processing task %s/%s' % (hp.get_date_time(), i + 1, page_count))
+        print('[%s]processing %s/%s' % (hp.get_date_time(), i + 1, page_count))
         for ch in chars:
-            print(ch['name'])
-            update_txt_variant(ch)
-            update_txt_type(ch)
-            update_txt_logs(ch)
-            update_ocr_txt(ch)
-            # diff
-            diff = ch.pop('diff', 0)
-            if diff:
-                ch['is_diff'] = True
-            # fields
-            ch = {k: v for k, v in ch.items() if k in fields}
-            ch['updated'] = True
-            # unset
-            unset = ['diff', 'txt_type']
-            if not ch.get('txt_logs'):
-                unset.append('txt_logs')
-            if not ch.get('txt_level'):
-                unset.append('txt_level')
-            db.char.update_one({'_id': ch.pop('_id')}, {'$set': ch, '$unset': {k: 0 for k in unset}})
+            cmb_txt = Char.get_cmb_txt(ch)
+            db.char.update_one({'_id': ch['_id']}, {'$set': {'cmb_txt': cmb_txt}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
-from .tool.box import Box
-from .tool.diff import Diff
 from controller import auth
 from operator import itemgetter
-from .tool import variant as vt
 from controller import errors as e
+from controller.tool.box import Box
+from controller.tool.diff import Diff
+from controller.tool import variant as vt
 from controller.page.page import Page
 from controller.task.base import TaskHandler
 
@@ -72,10 +72,10 @@ class PageHandler(Page, TaskHandler, Box):
     def check_box_level_and_point(cls, self, char, page, task_type=None, response_error=True):
         """检查数据等级和积分"""
         # 1.检查数据等级
-        required_level = cls.get_required_box_level(char)
-        user_level = cls.get_user_box_level(self, task_type)
-        if int(user_level) < int(required_level):
-            msg = '该字符的切分数据等级为%s，您的切分数据等级%s不够' % (required_level, user_level)
+        r_level = cls.get_required_box_level(char)
+        u_level = cls.get_user_box_level(self, task_type)
+        if int(u_level) < int(r_level):
+            msg = '该字符的切分数据等级为%s，%s切分数据等级%s不够' % (r_level, '当前任务' if task_type else '您的', u_level)
             return self.send_error_msg(e.data_level_unqualified[0], msg, response_error)
         # 2.检查权限
         roles = auth.get_all_roles(self.current_user['roles'])
@@ -86,7 +86,7 @@ class PageHandler(Page, TaskHandler, Box):
             return self.send_error_msg(r[0], r[1], response_error)
         # 3. 检查积分
         task_types = list(cls.box_level['task'].keys())
-        if int(user_level) == int(required_level) and (not task_type or task_type not in task_types):
+        if int(u_level) == int(r_level) and (not task_type or task_type not in task_types):
             if char.get('box_logs') and char['box_logs'][-1].get('user_id') == self.user_id:
                 return True
             required_type, required_point = cls.get_required_type_and_point(page)
@@ -223,14 +223,16 @@ class PageHandler(Page, TaskHandler, Box):
         return self.get_web_img(page_name, 'page')
 
     @classmethod
-    def pack_cut_boxes(cls, page):
-        fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed', 'box_logs', 'block_no']
+    def pack_cut_boxes(cls, page, log=True, sub_columns=False):
+        fields = ['x', 'y', 'w', 'h', 'cid', 'added', 'deleted', 'changed']
+        log and fields.extend(['box_logs'])
         if page.get('blocks'):
-            cls.pick_fields(page['blocks'], fields + ['block_id'])
+            cls.pick_fields(page['blocks'], fields + ['block_no', 'block_id'])
         if page.get('columns'):
-            cls.pick_fields(page['columns'], fields + ['column_no', 'column_id'])
+            ext = ['sub_columns'] if sub_columns else []
+            cls.pick_fields(page['columns'], fields + ['block_no', 'column_no', 'column_id'] + ext)
         if page.get('chars'):
-            cls.pick_fields(page['chars'], fields + ['column_no', 'char_no', 'char_id', 'ocr_txt', 'txt'])
+            cls.pick_fields(page['chars'], fields + ['block_no', 'column_no', 'char_no', 'char_id', 'ocr_txt', 'txt'])
         if page.get('images'):
             cls.pick_fields(page['images'], fields + ['image_id'])
 
@@ -287,6 +289,55 @@ class PageHandler(Page, TaskHandler, Box):
             ch['class'] = classes.strip(' ')
 
     # ----------文本处理----------
+    @classmethod
+    def apply_ocr_col(cls, page):
+        """ 将列文本和置信度适配给字框"""
+        if not page.get('chars') or not page.get('columns'):
+            return
+        # init
+        col2chars = {}
+        for c in page['chars']:
+            c.pop('lc', 0)
+            c.pop('ocr_col', 0)
+            if c.get('deleted'):
+                continue
+            column_id = 'b%sc%s' % (c['block_no'], c['column_no'])
+            if col2chars.get(column_id):
+                col2chars[column_id].append(c)
+            else:
+                col2chars[column_id] = [c]
+        for col in page['columns']:
+            if not col.get('ocr_txt') or not col.get('block_no') or not col2chars.get(col['column_id']):
+                continue
+            # init
+            col_chars = col2chars[col['column_id']]
+            ocr_col, lc_col = col.get('ocr_txt') or '', col.get('lc') or []
+            if col.get('sub_columns'):
+                ocr_col, lc_col = '', []
+                for sub in col['sub_columns']:
+                    if isinstance(sub.get('lc'), list):
+                        lc_col += sub.get('lc') or []
+                    ocr_col += sub.get('ocr_txt') or ''
+            # 列引擎可以识别图片中的空格，适配前要去掉
+            lc_col = lc_col if isinstance(lc_col, list) else []
+            lc_col = [lc for i, lc in enumerate(lc_col) if ocr_col[i] != ' ']
+            ocr_col = ocr_col.replace(' ', '')
+            if not ocr_col:
+                continue
+            # 通过diff算法进行适配
+            ocr_txt = ''.join([c['ocr_txt'] for c in col_chars])
+            segments = Diff.diff(ocr_txt, ocr_col, check_variant=False, filter_junk=False)[0]
+            idx1, idx2, lc_len = 0, 0, len(lc_col)
+            for i, seg in enumerate(segments):
+                if len(seg['base']) == len(seg['cmp1']):
+                    for n in range(len(seg['base'])):
+                        col_chars[idx1]['ocr_col'] = ocr_col[idx2]
+                        if idx2 < lc_len:
+                            col_chars[idx1]['lc'] = lc_col[idx2]
+                        idx1, idx2 = idx1 + 1, idx2 + 1
+                else:  # 长度不一致，直接丢弃
+                    idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp1'])
+
     @classmethod
     def apply_txt(cls, page, field):
         """ 将文本适配至page['chars']，包括ocr_col、cmp_txt、txt等。
@@ -353,9 +404,10 @@ class PageHandler(Page, TaskHandler, Box):
             if field in ['ocr_col', 'cmp_txt', 'ocr_txt']:
                 return box.get(field) or ''
             if field == 'ocr_chr':
-                return box.get('alternatives', '')[:1]
+                return (box.get('alternatives') or '')[:1]
             if field == 'txt':
-                return box.get('txt') or box.get('alternatives', '')[:1] or box.get('ocr_col') or box.get('cmp_txt', '')
+                return box.get('txt') or (box.get('alternatives') or '')[:1] or box.get('ocr_col') or box.get('cmp_txt',
+                                                                                                              '')
 
         boxes = page.get('chars')
         if not boxes:
@@ -397,34 +449,16 @@ class PageHandler(Page, TaskHandler, Box):
         return txt not in [None, '■', '']
 
     @classmethod
-    def get_cmb_txt(cls, ch):
-        """ 选择综合文本"""
-        cmb_txt = ch.get('alternatives', '')[:1]
-        if cls.is_valid_txt(ch.get('cmp_txt')):
-            if cmb_txt != ch['cmp_txt']:
-                if ch['cmp_txt'] == ch.get('ocr_col') or ch['cmp_txt'] in ch.get('alternatives', ''):
-                    cmb_txt = ch['cmp_txt']
-                elif ch.get('cc') and ch['cc'] < 0.6:  # 相信比对文本
-                    cmb_txt = ch['cmp_txt']
-        elif cls.is_valid_txt(ch.get('ocr_col')):
-            if cmb_txt != ch['ocr_col']:
-                if ch['ocr_col'] in ch.get('alternatives', ''):
-                    cmb_txt = ch['ocr_col']
-                elif ch.get('cc') and ch.get('lc') and ch['cc'] < 0.6 and ch['lc'] > 0.9:
-                    cmb_txt = ch['ocr_col']
-        return cmb_txt
-
-    @classmethod
     def is_source_txt_diff(cls, ch):
         """ 来源文本是否不一致"""
-        txts = [ch.get('alternatives', '')[:1], ch.get('ocr_col'), ch.get('cmp_txt')]
+        txts = [(ch.get('alternatives') or '')[:1], ch.get('ocr_col'), ch.get('cmp_txt')]
         return len(set(t for t in txts if cls.is_valid_txt(t))) > 1
 
     @classmethod
     def is_un_required(cls, ch):
         """ 是否不必校对"""
         return cls.is_valid_txt(ch.get('cmp_txt')) and (
-                ch['cmp_txt'] == ch.get('alternatives', '')[:1] or ch['cmp_txt'] == ch.get('ocr_col'))
+                ch['cmp_txt'] == (ch.get('alternatives') or '')[:1] or ch['cmp_txt'] == ch.get('ocr_col'))
 
     @classmethod
     def html2txt(cls, html):

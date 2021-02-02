@@ -55,6 +55,15 @@
       border: 0;
     }
 
+    .add-gap li:first-child {
+      margin-top: 18px;
+    }
+
+    .toggle-v-code {
+      text-align: center;
+      font-size: 12px;
+    }
+
     .pic-nav {
       position: absolute;
       width: 36px;
@@ -123,7 +132,7 @@
         <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片[+]"></div>
         <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小[1]"></div>
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片[-]"></div>
-        <div class="btn-group" title="切分">
+        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="显隐切分">
           <i class="btn-txt icon-view-tile dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
             <li id="toggle-char" class="toggle-box"><a>显隐字框[j]</a></li>
@@ -132,16 +141,17 @@
             <li id="toggle-no-char" class="toggle-no"><a>显隐字序[n]</a></li>
           </ul>
         </div>
-        <div id="view-box" class="btn-txt icon-chars{{'' if page.get('chars') and box_auth else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="切分数据"></div>
+        <div id="view-box" class="btn-txt icon-chars{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="查看切分"></div>
         <div id="toggle-txts" class="btn-group" title="文本">
           <i class="btn-txt icon-task-lobby dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
             <li id="txt" class="toggle-txt active"><a>校对文本</a></li>
-            <li id="nor_txt" class="toggle-txt hide"><a>规范文本</a></li>
-            <li id="toggle-v-code" class="active hide"><a>显隐字图</a></li>
+            <li id="v_image" class="toggle-v-code hide"><a>字图图片</a></li>
+            <li id="v_code" class="toggle-v-code hide"><a>字图编码</a></li>
+            <li id="v_nor_txt" class="toggle-v-code hide"><a>字图正字</a></li>
             <li class="divider"></li>
-            <li id="ocr_txt" class="toggle-txt"><a>综合OCR</a></li>
-            <li id="ocr_chr" class="toggle-txt"><a>字框OCR</a></li>
+            <li id="cmb_txt" class="toggle-txt"><a>综合OCR</a></li>
+            <li id="ocr_txt" class="toggle-txt"><a>字框OCR</a></li>
             <li id="ocr_col" class="toggle-txt"><a>列框OCR</a></li>
             <li id="cmp_txt" class="toggle-txt"><a>比对文本</a></li>
           </ul>
@@ -323,6 +333,7 @@
   $.mapKey(',', () => $('#pic-left').click());
   $.mapKey('.', () => $('#pic-right').click());
   $.mapKey('g', () => $('.m-pager .to input').focus());
+  $.mapKey('i', () => window.open('/page/info/{{page["name"]}}', '_blank'));
 
   $('#toggle-left').on('click', function () {
     $(this).toggleClass('active');
@@ -352,8 +363,7 @@
     $.box.toggleVCode($(this).hasClass('active'));
   });
   $('#view-box').on('click', function () {
-    let edit = boxAuth ? '/edit' : '';
-    window.open(`/page/box${edit}/{{page["name"]}}`, '_blank');
+    window.open(`/page/box/{{page["name"]}}`, '_blank');
   });
 
   // 图片导航
@@ -371,20 +381,11 @@
   $('.char-txt .btn-submit').on('click', function () {
     let $this = $(this);
     if ($this.hasClass('disabled')) return;
-    if ($this.hasClass('unauthorized')) return bsShow('', '没有权限', 'warning', 800, '#s-alert');
-    let name = $('.char-txt .cur-name').val();
-    if (!name.length) return bsShow('', '请选择校对文字', 'warning', 1000, '#s-alert');
-    if (!$('#p-txt').val().length) return bsShow('', '请输入校对文本', 'warning', 1000, '#s-alert');
-    let data = {
-      txt: $('#p-txt').val() || '',
-      remark: $('#p-remark').val() || '',
-      is_vague: $('.is-vague :checked').val() === '1',
-      is_deform: $('.is-deform :checked').val() === '1',
-      uncertain: $('.uncertain :checked').val() === '1',
-    };
+    let data = $.charTxt.checkAndExport();
+    if (!data) return;
+    $this.addClass('disabled').text('保存中...');
     let idx = $('.txt-holder .current-char').attr('id').split('-').pop();
-    $this.addClass('disabled');
-    postApi('/page/char/txt/' + name, {data: data}, function (res) {
+    postApi('/page/char/txt/' + data.name, {data: data}, function (res) {
       $this.removeClass('disabled');
       location.href = setAnchor(name);
       bsShow('', '已保存成功', 'success', 1000, '#s-alert');
@@ -394,8 +395,8 @@
       Object.assign($.box.data.boxes[parseInt(idx)], data);
     }, function (err) {
       $this.removeClass('disabled');
-      if (err.code === 2007) bsShow('', err.message, 'info', 1000, '#s-alert');
-      else bsShow('失败', err.message, 'warning', 1000, '#s-alert');
+      if (err.code === 2007) showTips('', err.message, 1000);
+      else showWarning('失败', err.message, 2000);
     });
   });
 

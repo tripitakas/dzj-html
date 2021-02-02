@@ -73,6 +73,7 @@ role_route_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/api/session/config': ['POST'],
+            '/api/variant/search': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/task/nav/@task_type/@task_id': ['GET'],
             '/api/task/statistic/@task_type': ['POST'],
@@ -93,7 +94,7 @@ role_route_maps = {
         'routes': {
             '/task/(lobby|my)/cut_proof': ['GET'],
             '/api/task/pick/cut_proof': ['POST'],
-            '/task/(do|update)/cut_proof/@task_id': ['GET'],
+            '/task/(do|update|nav)/cut_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cut_proof/@task_id': ['POST'],
         }
     },
@@ -103,7 +104,7 @@ role_route_maps = {
         'routes': {
             '/task/(lobby|my)/cut_review': ['GET'],
             '/api/task/pick/cut_review': ['POST'],
-            '/task/(do|update)/cut_review/@task_id': ['GET'],
+            '/task/(do|update|nav)/cut_review/@task_id': ['GET'],
             '/api/task/(do|update)/cut_review/@task_id': ['POST'],
         }
     },
@@ -119,7 +120,7 @@ role_route_maps = {
             '/api/variant/(upsert|delete)': ['POST'],
             '/task/(lobby|my)/text_proof': ['GET'],
             '/api/task/pick/text_proof': ['POST'],
-            '/task/(do|update)/text_proof/@task_id': ['GET'],
+            '/task/(do|update|nav)/text_proof/@task_id': ['GET'],
             '/api/task/(do|update)/text_proof/@task_id': ['POST'],
         }
     },
@@ -130,7 +131,7 @@ role_route_maps = {
             '/api/variant/(upsert|delete)': ['POST'],
             '/task/(lobby|my)/text_review': ['GET'],
             '/api/task/pick/text_review': ['POST'],
-            '/task/(do|update)/text_review/@task_id': ['GET'],
+            '/task/(do|update|nav)/text_review/@task_id': ['GET'],
             '/api/task/(do|update)/text_review/@task_id': ['POST'],
         }
     },
@@ -141,7 +142,8 @@ role_route_maps = {
             '/api/variant/(upsert|delete)': ['POST'],
             '/task/(lobby|my)/cluster_proof': ['GET'],
             '/api/task/pick/cluster_proof': ['POST'],
-            '/task/(do|update)/cluster_proof/@task_id': ['GET'],
+            '/api/task/cluster_proof/@task_id': ['POST'],
+            '/task/(do|update|nav)/cluster_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cluster_proof/@task_id': ['POST'],
         }
     },
@@ -152,7 +154,8 @@ role_route_maps = {
             '/api/variant/(upsert|delete)': ['POST'],
             '/task/(lobby|my)/cluster_review': ['GET'],
             '/api/task/pick/cluster_review': ['POST'],
-            '/task/(do|update)/cluster_review/@task_id': ['GET'],
+            '/api/task/cluster_review/@task_id': ['POST'],
+            '/task/(do|update|nav)/cluster_review/@task_id': ['GET'],
             '/api/task/(do|update)/cluster_review/@task_id': ['POST'],
         }
     },
@@ -231,8 +234,7 @@ role_route_maps = {
             '/api/page': ['POST'],
             '/page/(list|statistic)': ['GET'],
             '/page/(browse|info)/@page_name': ['GET'],
-            '/page/(box|txt)/edit/@page_name': ['GET'],
-            '/page/(txt1|txt_match|find_cmp)/@page_name': ['GET'],
+            '/page/(box|txt|txt1|txt_match|find_cmp)/@page_name': ['GET'],
             '/api/page/(box|find_cmp|cmp_txt|txt_match)/@page_name': ['POST'],
             '/api/page/(delete|meta|source|start_gen_chars|start_check_match)': ['POST'],
             '/char/info/@char_name': ['GET'],

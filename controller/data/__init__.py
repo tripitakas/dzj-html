@@ -7,6 +7,7 @@ views = [
 
 handlers = [
     api.VariantUpsertApi, api.VariantDeleteApi, api.VariantMergeApi, api.VariantSourceApi,
-    api.VariantCode2NorTxtApi, api.DataUpsertApi, api.DataUploadApi, api.DataDeleteApi,
+    api.VariantCode2NorTxtApi, api.VariantsListByTxtApi,
+    api.DataUpsertApi, api.DataUploadApi, api.DataDeleteApi,
     api.PublishImportImageApi,
 ]

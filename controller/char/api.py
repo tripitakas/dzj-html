@@ -83,6 +83,8 @@ class CharTxtApi(CharHandler):
             char = self.db.char.find_one({'name': char_name})
             if not char:
                 return self.send_error_response(e.no_object, message='没有找到字符')
+            if self.is_v_code(self.data['txt']) and not self.db.variant.find_one({'v_code': self.data['txt']}):
+                return self.send_error_response(e.no_object, message='该编码对应的图片字不存在')
             # 检查数据等级和积分
             self.check_txt_level_and_point(self, char, self.data.get('task_type'))
             # 检查参数，设置更新
@@ -114,6 +116,9 @@ class CharsTxtApi(CharHandler):
             self.validate(self.data, rules)
 
             field, value = self.data['field'], self.data['value']
+            if field == 'txt' and self.is_v_code(value) and not self.db.variant.find_one({'v_code': value}):
+                return self.send_error_response(e.no_object, message='该编码对应的图片字不存在')
+
             cond = {'name': {'$in': self.data['names']}, field: {'$ne': value}}
             chars = list(self.db.char.find(cond, {'name': 1, 'txt_level': 1, 'txt_logs': 1, 'tasks': 1}))
             log = dict(un_changed=[], level_unqualified=[], point_unqualified=[])
@@ -142,7 +147,6 @@ class CharsTxtApi(CharHandler):
             info = {field: value, 'txt_level': self.get_user_txt_level(self, self.data.get('task_type'))}
             self.db.char.update_many({'name': {'$in': new_update + old_update}}, {'$set': info})
             log['updated'] = new_update + old_update
-            print(new_update, old_update)
             if new_update:
                 self.db.char.update_many({'name': {'$in': new_update}, 'txt_logs': None}, {'$set': {'txt_logs': []}})
                 self.db.char.update_many({'name': {'$in': new_update}}, {'$addToSet': {'txt_logs': {

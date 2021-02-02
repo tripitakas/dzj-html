@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import re
 from .char import Char
+from bson import json_util
 from .base import CharHandler
 from controller import helper as h
 from controller import errors as e
@@ -12,22 +13,22 @@ class CharListHandler(CharHandler):
     URL = '/char/list'
 
     page_title = '字数据管理'
-    table_fields = ['has_img', 'source', 'page_name', 'cid', 'name', 'char_id', 'uid', 'box_level', 'cc', 'lc',
-                    'pos', 'column', 'alternatives', 'ocr_col', 'cmp_txt', 'ocr_txt', 'is_diff', 'un_required',
-                    'is_vague', 'is_deform', 'uncertain', 'txt', 'nor_txt', 'txt_level', 'txt_logs',
-                    'tasks', 'remark']
-    update_fields = ['source', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
-    hide_fields = ['page_name', 'cid', 'char_id', 'uid', 'box_level', 'cc', 'lc', 'pos', 'column', 'is_diff',
-                   'un_required', 'is_vague', 'is_deform', 'uncertain', 'txt_logs', 'tasks', 'remark']
-    info_fields = ['source', 'txt', 'nor_txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
+    table_fields = ['has_img', 'source', 'page_name', 'name', 'char_id', 'uid', 'pos', 'box_level', 'column',
+                    'alternatives', 'ocr_col', 'cmp_txt', 'cmb_txt', 'cc', 'lc', 'sc', 'pc',
+                    'is_vague', 'is_deform', 'uncertain', 'txt', 'nor_txt', 'remark',
+                    'txt_level', 'txt_logs', 'tasks', 'updated_time']
+    update_fields = ['source', 'txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
+    hide_fields = ['page_name', 'char_id', 'uid', 'pos', 'box_level', 'column', 'cc', 'lc', 'pc',
+                   'is_vague', 'is_deform', 'uncertain', 'nor_txt', 'remark',
+                   'txt_logs', 'tasks', 'updated_time']
+    info_fields = ['source', 'txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
             {'operation': 'source', 'label': '按分类'},
-            {'operation': 'txt', 'label': '按原字'},
-            {'operation': 'ocr_txt', 'label': '按OCR'},
-            {'operation': 'nor_txt', 'label': '按正字'},
+            {'operation': 'txt', 'label': '按校对文字'},
+            {'operation': 'cmb_txt', 'label': '按综合OCR'},
         ]},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in CharHandler.task_names('char', True).items()
@@ -36,7 +37,7 @@ class CharListHandler(CharHandler):
             {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/char/delete'},
             {'operation': 'bat-source', 'label': '更新分类'},
             {'operation': 'btn-duplicate', 'label': '查找重复'},
-            {'operation': 'bat-gen-img', 'label': '生成字图'},
+            {'operation': 'bat-gen-imgs', 'label': '生成字图'},
             {'operation': 'btn-check-consistent', 'label': '检查一致'},
         ]},
     ]
@@ -69,8 +70,8 @@ class CharListHandler(CharHandler):
 
         if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
-        if key in ['is_diff', 'un_required']:
-            return self.yes_no.get(value) or ''
+        if key in ['sc'] and value:
+            return self.equal_level.get(str(value)) or ''
         if key in ['cc', 'lc'] and value:
             return value / 1000
         if key == 'txt_logs' and value:
@@ -105,23 +106,26 @@ class CharViewHandler(CharHandler):
         """查看Char页面"""
         try:
             page_name, cid = char_name.rsplit('_', 1)
-            project = {'name': 1, 'chars.$': 1, 'width': 1, 'height': 1, 'tasks': 1}
-            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, project)
+            project = {'name': 1, 'chars': 1, 'width': 1, 'height': 1, 'tasks': 1}
+            page = self.db.page.find_one({'name': page_name}, project)
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            page['img_url'] = self.get_web_img(page_name, 'page')
-            ch = page.get('chars') and page['chars'][0] or {}
+            chars = [c for c in page.get('chars') or [] if str(c['cid']) == cid]
+            if not chars:
+                self.send_error_response(e.no_object, message='页面%s中没有字符%s' % (page_name, cid))
+            ch = chars[0]
             char = self.db.char.find_one({'name': char_name})
             if char:
                 char.update({k: ch[k] for k in ['x', 'y', 'w', 'h', 'box_level', 'box_logs'] if ch.get(k)})
-                if not char.get('x') and char.get('pos'):
-                    char.update(char.get('pos') or {})
             else:
                 char = ch
+            if not char.get('x') and char.get('pos'):
+                char.update(char['pos'])
             char['txt_point'] = self.get_required_type_and_point(char)
             char['box_point'] = PageHandler.get_required_type_and_point(page)
             txt_auth = self.check_txt_level_and_point(self, char, None, False) is True
             box_auth = PageHandler.check_box_level_and_point(self, char, page, None, False) is True
+            page['img_url'] = self.get_web_img(page_name, 'page')
             self.render('char_view.html', Char=Char, char=char, page=page, txt_auth=txt_auth, box_auth=box_auth)
 
         except Exception as error:
@@ -161,8 +165,8 @@ class CharStatHandler(CharHandler):
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
             kind = self.get_query_argument('kind', '')
-            if kind not in ['source', 'txt', 'ocr_txt', 'nor_txt']:
-                return self.send_error_response(e.statistic_type_error, message='只能按分类、正字、原字和OCR文字统计')
+            if kind not in ['source', 'txt', 'cmb_txt']:
+                return self.send_error_response(e.statistic_type_error, message='只能按分类、校对文字和综合OCR统计')
             aggregates = [{'$group': {'_id': '$' + kind, 'count': {'$sum': 1}}}]
             docs, pager, q, order = Char.aggregate_by_page(self, condition, aggregates, default_order='-count')
             self.render('char_statistic.html', docs=docs, pager=pager, q=q, order=order, kind=kind, Char=Char)
@@ -179,13 +183,18 @@ class CharBrowseHandler(CharHandler):
     def get(self):
         """浏览字图"""
         try:
-            condition = Char.get_char_search_condition(self.request.query)[0]
-            docs, pager, q, order = Char.find_by_page(self, condition, default_order='_id')
-            chars = {str(d['name']): d for d in docs}
-            for d in docs:
-                column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
-                d['column']['img_url'] = self.get_web_img(column_name, 'column')
-            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order, chars=chars)
+            cond = self.get_user_filter()
+            cond.update(self.get_char_search_condition(self.request.query)[0])
+            self.page_size = int(json_util.loads(self.get_secure_cookie('char_browse_size') or '50'))
+            chars, pager, q, order = Char.find_by_page(self, cond, default_order='_id')
+            # 设置单字列图
+            for ch in chars:
+                column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
+                ch['column']['img_url'] = self.get_web_img(column_name, 'column')
+                ch['img_url'] = self.get_web_img(ch['name'], 'char')
+
+            self.render('char_browse.html', chars=chars, pager=pager, q=q, order=order,
+                        equal_level=self.equal_level)
 
         except Exception as error:
             return self.send_db_error(error)

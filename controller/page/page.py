@@ -31,7 +31,7 @@ class Page(Model):
         'ocr_chr': {'name': '字框OCR'},
         'ocr_col': {'name': '列框OCR'},
         'cmp_txt': {'name': '比对文本'},
-        'txt': {'name': '原字文本'},
+        'txt': {'name': '校对文本'},
         'nor_txt': {'name': '正字文本'},
         'txt_match': {'name': '文本匹配'},
         'has_gen_chars': {'name': '是否已生成字数据'},
