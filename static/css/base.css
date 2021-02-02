@@ -748,6 +748,11 @@ body.widescreen {
 }
 
 /*滚动条样式*/
+.slim-bar {
+  scrollbar-width: thin;
+  scrollbar-color: inherit #BDBDBD;
+}
+
 .slim-bar::-webkit-scrollbar {
   width: 5px;
   height: 5px;
