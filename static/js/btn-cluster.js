@@ -12,6 +12,8 @@ $.mapKey('3', () => $('#toggle-char-cc').click());
 $.mapKey('4', () => $('#toggle-column-panel').click());
 $.mapKey('5', () => $('#toggle-proof-panel').click());
 $.mapKey('6', () => $('#toggle-proof-info').click());
+$.mapKey('.', () => $('.pagers .p-next a').click());
+$.mapKey(',', () => $('.pagers .p-prev a').click());
 $.mapKey('esc2', () => togglePanels(true));
 $.mapKey('left', () => $('.char-item.current').prev().find('.char-img').click());
 $.mapKey('right', () => $('.char-item.current').next().find('.char-img').click());
@@ -162,11 +164,11 @@ function browse(href) {
 $('.pagers').on('click', 'a', function (e) {
   if (!$.cluster.status.ajax) return;
   e.preventDefault();
-  let $this = $(this), page = $this.text().trim();
-  if ($this.hasClass('p-first')) page = '1';
-  else if ($this.hasClass('p-last')) page = $('.pagers .page-count').text();
-  else if ($this.hasClass('p-prev')) page = parseInt($('.pagers .active').text()) - 1;
-  else if ($this.hasClass('p-next')) page = parseInt($('.pagers .active').text()) + 1;
+  let page = $(this).text().trim(), $parent = $(this).parent();
+  if ($parent.hasClass('p-first')) page = '1';
+  else if ($parent.hasClass('p-last')) page = $('.pagers .page-count').text();
+  else if ($parent.hasClass('p-prev')) page = parseInt($('.pagers .active').text()) - 1;
+  else if ($parent.hasClass('p-next')) page = parseInt($('.pagers .active').text()) + 1;
   if (page == (getQueryString('page') || '1')) return;
   browse(setQueryString('page', page));
 });
@@ -175,7 +177,7 @@ $('.pagers .page-no').unbind('keydown').bind('keydown', function (e) {
   let keyCode = e.keyCode || e.which, page = $(this).val().trim();
   if (keyCode !== 13 || !page.length) return;
   e.preventDefault();
-  if (page == (getQueryString('page') || '1')) return;
+  if (page === (getQueryString('page') || '1')) return;
   let href = setQueryString('page', page);
   if ($.cluster.status.ajax) browse(href);
   else location.href = href;
