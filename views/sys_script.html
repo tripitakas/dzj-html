@@ -54,12 +54,12 @@
                 <td><a id="bat-gen-chars">启动</a></td>
               </tr>
               <tr>
-                <td>生成字图</td>
+                <td>生成字列图</td>
                 <td></td>
                 <td class="intro">
-                  根据字数据的分类，批量生成字图。
+                  根据字数据的分类，批量生成字图和列图。
                 </td>
-                <td><a id="bat-gen-images">启动</a></td>
+                <td><a id="bat-gen-imgs">启动</a></td>
               </tr>
               <tr class="hide">
                 <td>上传OSS图片</td>
@@ -109,6 +109,36 @@
               <option></option>
             </select>
           </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="genImgModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genImgModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h4 class="modal-title">生成字图及列图</h4>
+        </div>
+        <div class="modal-body">
+          <form role="form">
+            <div class="form-group">
+              <h4 class="item-title">字数据分类</h4>
+              <div class="source">
+                <input type="text" class="form-control" value="" placeholder="请输入字数据分类">
+              </div>
+            </div>
+            <div class="form-group">
+              <h4 class="item-title">已有字图时是否重新生成？</h4>
+              <div class="regen">
+                <label class="radio-inline"><input type="radio" name="regen" value="否" checked>否</label>
+                <label class="radio-inline"><input type="radio" name="regen" value="是">是</label>
+              </div>
+            </div>
+          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
@@ -175,16 +205,16 @@
     });
   });
 
-  // 批量生成字图
-  $('#bat-gen-images').on('click', function () {
-    Swal2.fire({title: '请输入字数据的分类', input: 'text'}).then((result) => {
-      if (result.dismiss || !result.value) return;
-      postApi('/char/extract_img', {data: {type: 'search', search: '?source==' + result.value}}, (res) => {
-        Swal0.fire({
-          type: 'success', title: '成功', html: `已启动脚本，将针对${res.count}个字数据生成字图。<br/>请稍后查看字数据管理页面。`,
-          footer: '详情可以查看<a href="/sys/oplog/latest/extract_img">日志</a>'
-        });
-      });
+  // 批量生成字图、列图
+  $('#bat-gen-imgs').on('click', () => $('#genImgModal').modal());
+  $('#genImgModal .modal-confirm').on('click', function () {
+    let source = $('.source input').val().trim();
+    if (!source.length) return showWarning('提示', '请输入字数据分类', 1000);
+    let data = {type: 'search', regen: $('.regen :checked').val(), search: `?source==${source}`};
+    $('#genImgModal').modal('hide');
+    postApi('/char/extract_img', {data: data}, (res) => {
+      let info = `详情可查看<a href="/sys/oplog/latest/extract_img">日志</a>`;
+      Swal0.fire({type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。', footer: info});
     });
   });
 

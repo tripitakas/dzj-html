@@ -37,7 +37,7 @@ class CharListHandler(CharHandler):
             {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/char/delete'},
             {'operation': 'bat-source', 'label': '更新分类'},
             {'operation': 'btn-duplicate', 'label': '查找重复'},
-            {'operation': 'bat-gen-img', 'label': '生成字图'},
+            {'operation': 'bat-gen-imgs', 'label': '生成字图'},
             {'operation': 'btn-check-consistent', 'label': '检查一致'},
         ]},
     ]

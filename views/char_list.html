@@ -240,7 +240,7 @@
     </div>
   </div>
 </div>
-<div id="extractModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="extractModal" aria-hidden="true">
+<div id="genImgModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genImgModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content modal-sm">
       <div class="modal-header">
@@ -259,7 +259,7 @@
             <h4 class="item-title">已有字图时是否重新生成？</h4>
             <div class="regen">
               <label class="radio-inline"><input type="radio" name="regen" value="否" checked>否</label>
-              <label class="radio-inline"><input type="radio" name="regen" value="是">是</label>
+              <label class="radio-inline hide"><input type="radio" name="regen" value="是">是</label>
             </div>
           </div>
         </form>
@@ -356,16 +356,16 @@
   });
 
   // 生成字图
-  $('.operation .bat-gen-img').on('click', function () {
+  $('.operation .bat-gen-imgs').on('click', function () {
     if (!$('table tbody :checked').length) return showTips('提示', '请选择字图', 3000);
-    $('#extractModal .selected-count').text($('table tbody :checked').length);
-    $('#extractModal').modal();
+    $('#genImgModal .selected-count').text($('table tbody :checked').length);
+    $('#genImgModal').modal();
   });
-  $('#extractModal .modal-confirm').on('click', function () {
-    let type = $('#extractModal .range :checked').val();
+  $('#genImgModal .modal-confirm').on('click', function () {
+    let type = $('#genImgModal .range :checked').val();
     let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     let data = {_ids: ids, type: type, regen: $('.regen :checked').val(), search: location.search};
-    $('#extractModal').modal('hide');
+    $('#genImgModal').modal('hide');
     postApi('/char/extract_img', {data: data}, (res) => {
       let info = `详情可查看<a href="/sys/oplog/latest/extract_img">日志</a>`;
       Swal0.fire({type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。', footer: info});
