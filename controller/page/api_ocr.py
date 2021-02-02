@@ -154,7 +154,8 @@ class SubmitTasksApi(PageHandler):
         update['create_time'] = self.now()
         # 将列文本适配至字框
         try:
-            self.apply_ocr_col(update)
+            mis_len = self.apply_ocr_col(update)
+            update['txt_match.ocr_col.mis_len'] = mis_len
         except Exception as err:
             update['apply_error'] = str(err)
         # 更新页数据和相关任务
@@ -192,11 +193,12 @@ class SubmitTasksApi(PageHandler):
             c.update({k: oc.get(k) or c.get(k) for k in ['cc', 'alternatives', 'ocr_txt']})
         # 将列文本适配至字框
         try:
-            self.apply_ocr_col(page)
+            mis_len = self.apply_ocr_col(page)
+            page['txt_match.ocr_col.mis_len'] = mis_len
         except Exception as err:
             page['apply_error'] = str(err)
         # 更新页数据和相关任务
-        update = {f: page[f] for f in ['chars', 'columns', 'apply_error'] if page.get(f)}
+        update = {f: page[f] for f in ['chars', 'columns', 'txt_match.ocr_col.mis_len', 'apply_error'] if page.get(f)}
         update['tasks.%s.%s' % (task['task_type'], task.get('num') or 1)] = self.STATUS_FINISHED
         self.db.page.update_one({'name': task.get('page_name')}, {'$set': update})
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {

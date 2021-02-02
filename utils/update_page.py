@@ -14,6 +14,7 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
+from controller.page.base import PageHandler as Ph
 
 
 def update_box_log(page):
@@ -67,26 +68,46 @@ def update_box_log(page):
     return True
 
 
-def update_page(db):
-    """ 更新page表（注：更新之前去掉updated字段"""
+def update_sub_column(db, source=None):
+    """ 更新sub_column"""
     size = 1000
-    # 更新1200标注数据，准备聚类校对
-    cond = {'source': '1200标注数据', 'updated': None}
+    cond = {'source': source}
     item_count = db.page.count_documents(cond)
     page_count = math.ceil(item_count / size)
     print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        pages = list(db.page.find(cond, {k: 1 for k in ['name', 'chars']}).sort('_id', 1).skip(i * size).limit(size))
+        fields = ['name', 'blocks', 'columns']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
         for p in pages:
             print('[%s]%s' % (hp.get_date_time(), p['name']))
-            if not p.get('chars'):
+            # 更新子列的column_id
+            if not p.get('columns'):
                 continue
-            for b in p.get('chars'):
-                b.pop('pc', 0)
-                b.pop('sc', 0)
-                b.pop('cmb_txt', 0)
-            db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars'], 'updated': True}})
+            for c in p.get('columns'):
+                if c.get('sub_columns'):
+                    for s in c['sub_columns']:
+                        s['column_id'] = s['column_id'].replace('#', 's')
+                    db.page.update_one({'_id': p['_id']}, {'$set': {'columns': p['columns'], 'updated': True}})
+
+
+def apply_ocr_col(db, source=None):
+    """ 更新ocr_col"""
+    size = 1000
+    cond = {'source': source}
+    item_count = db.page.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['name', 'blocks', 'columns', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for p in pages:
+            print('[%s]%s' % (hp.get_date_time(), p['name']))
+            mis_len = Ph.apply_ocr_col(p)
+            db.page.update_one({'_id': p['_id']}, {'$set': {
+                'chars': p['chars'], 'txt_match.ocr_col.mis_len': mis_len, 'updated': True
+            }})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):

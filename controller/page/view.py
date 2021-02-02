@@ -205,7 +205,6 @@ class PageBrowseHandler(PageHandler):
                 message = '已是第一页' if to == 'prev' else '已是最后一页'
                 return self.send_error_response(e.no_object, message=message)
 
-            self.pack_txt_boxes(page)
             page['img_url'] = self.get_page_img(page)
             self.render('page_browse.html', page=page)
 

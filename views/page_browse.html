@@ -5,11 +5,22 @@
   <title>{{page['name']}}</title>
   {% include com/_base_css.html %}
   <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
+    #panel-region {
+      width: 260px;
+      max-width: 260px;
+    }
+
+    .toggle-v-code {
+      text-align: center;
+      font-size: 12px;
+    }
+
     .m-footer {
       display: flex;
       justify-content: space-between;
@@ -22,6 +33,10 @@
 
     .m-footer .changed {
       color: red;
+    }
+
+    body { /*避免tooltip引起的滚动*/
+      overflow: hidden !important;
     }
   </style>
 </head>
@@ -59,17 +74,22 @@
       <div class="right">
         <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
         <div id="toggle-txts" class="btn-group" title="切换文本">
-          <i class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></i>
+          <i class="btn-txt icon-task-lobby dropdown-toggle" data-toggle="dropdown"></i>
           <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
-            <li id="txt" class="toggle-txt active"><a href="#">校对文本</a></li>
-            <li id="ocr_txt" class="toggle-txt"><a href="#">字框OCR</a></li>
-            <li id="ocr_col" class="toggle-txt"><a href="#">列框OCR</a></li>
-            <li id="cmp_txt" class="toggle-txt"><a href="#">比对文本</a></li>
+            <li id="txt" class="toggle-txt active"><a>校对文本</a></li>
+            <li id="v_image" class="toggle-v-code hide"><a>字图图片</a></li>
+            <li id="v_code" class="toggle-v-code hide"><a>字图编码</a></li>
+            <li id="v_nor_txt" class="toggle-v-code hide"><a>字图正字</a></li>
+            <li class="divider"></li>
+            <li id="cmb_txt" class="toggle-txt"><a>综合OCR</a></li>
+            <li id="ocr_txt" class="toggle-txt"><a>字框OCR</a></li>
+            <li id="ocr_col" class="toggle-txt"><a>列框OCR</a></li>
+            <li id="cmp_txt" class="toggle-txt"><a>比对文本</a></li>
           </ul>
         </div>
         <div id="btn-remark" class="btn-txt icon-edit" data-toggle="tooltip" data-placement="bottom" title="备注"></div>
-        <div id="btn-prev" class="btn-txt icon-arrow-left" data-toggle="tooltip" data-placement="bottom" title="上一页"></div>
-        <div id="btn-next" class="btn-txt icon-arrow-right" data-toggle="tooltip" data-placement="bottom" title="下一页"></div>
+        <div id="btn-prev" class="btn-txt icon-arrow-left" data-toggle="tooltip" data-placement="bottom" title="前一页"></div>
+        <div id="btn-next" class="btn-txt icon-arrow-right" data-toggle="tooltip" data-placement="bottom" title="后一页"></div>
       </div>
     </div>
     <div class="m-body flex">
@@ -78,6 +98,9 @@
       </div>
       <div id="right-region" class="right bd">
         <div class="txt-holder"></div>
+      </div>
+      <div id="panel-region" class="right bd proof-panel">
+        {% include com/_char_txt.html %}
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -95,7 +118,7 @@
         </span>
       </span>
       <span class="fr">
-        <span>当前：<span class="char-name">未选中</span><span class="char-info"></span></span>
+        <span class="char-info">当前：<span class="char-name">未选中</span><span class="char-id"></span></span>
       </span>
     </div>
   </div>
@@ -113,7 +136,6 @@
           <div class="title">一、简介</div>
           <div class="intro">
             针对页数据综合检索的结果进行逐页浏览。 <br/>
-            浏览时可以看到页面的切分信息、文本信息、任务信息（点击菜单按钮弹框显示）等，还可以直接修改文本。<br/>
           </div>
           <div class="title">二、操作</div>
           <table class="table">
@@ -150,16 +172,27 @@
 <script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
 <script src="{{static_url('js/box/box.base.js')}}"></script>
 <script src="{{static_url('js/box/box.cut.js')}}"></script>
+<script src="{{static_url('js/box/box.txt.js')}}"></script>
 <script src="{{static_url('js/box/box.page.js')}}"></script>
 <script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/btn-box.js')}}"></script>
+<script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
   // 初始化。注：先设置右侧，后设置$.page.init
-  if (!getStorage('browseRight', true)) {
+  if (!parseInt(('{{len(page.get("chars") or [])}}')) || !getStorage('browseRight', true)) {
     $('#toggle-right').removeClass('active');
     $('#right-region').addClass('hide');
     $('.m-footer .txt-type').addClass('hide');
   }
+  if (!parseInt(('{{len(page.get("chars") or [])}}')) || !getStorage('browseProof', true)) {
+    $('#toggle-proof-panel').removeClass('active');
+    $('#panel-region').addClass('hide');
+  }
+  if (!getStorage('browseLeft', true)) {
+    $('#toggle-left').removeClass('active');
+    $('#left-region').addClass('hide');
+  }
+
   $.page.init({
     readonly: true,
     holder: '.box-holder',
@@ -167,7 +200,7 @@
     useTooTips: true,
     showMode: 'height-full',
     imgUrl: '{{page["img_url"]}}',
-    curBoxType: getStorage('browseBox', ''),
+    curBoxType: getStorage('tptkBox', ''),
     width: '{{page.get("width") or 0}}',
     height: '{{page.get("height") or 0}}',
     chars: decodeJSON('{{page.get("chars") or []}}'),
@@ -177,11 +210,10 @@
     blurImage: getStorage('browseBlur', false) ? 0.2 : 1,
   });
   $.box.bindBaseKeys(true);
+  $.charTxt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
   $('#toggle-blur').toggleClass('active', getStorage('browseBlur', false));
   if (getStorage('browseBox', '')) $('#toggle-' + getStorage('browseBox')).addClass('active');
-
-  $(document).ready(function () {
-    // 设置备注
+  window.onload = () => {
     let sRemark = getStorage('browseRemark', '');
     let sField = getStorage('browseRemarkField', '切分');
     $('#remarkModal .fields :radio[value="' + sField + '"]').prop('checked', true);
@@ -192,20 +224,14 @@
     } else if (sRemark.length && options.indexOf(sRemark) < 0) {
       $("#remarkModal .options").append(`<label class="radio-inline"><input type="radio" name="options" value="${sRemark}">${sRemark}</label>`);
     }
-  });
+  };
 
 </script>
 <script>
-  function go(to) {
-    location.href = '/page/browse/{{page["name"]}}' + setQueryString('to', to, true);
-  }
-
-  $('#toggle-blur').on('click', function () {
-    setStorage('browseBlur', $(this).hasClass('active'));
-  });
-  $('.toggle-box').on('click', function () {
-    let boxType = $(this).attr('id').replace('toggle-', '');
-    setStorage('browseBox', $(this).hasClass('active') ? boxType : '');
+  $('#toggle-left').on('click', function () {
+    $(this).toggleClass('active');
+    $('#left-region').toggleClass('hide', !$(this).hasClass('active'));
+    setStorage('browseLeft', $(this).hasClass('active'));
   });
   $('#toggle-right').on('click', function () {
     $(this).toggleClass('active');
@@ -213,6 +239,27 @@
     $('.m-footer .txt-type').toggleClass('hide', !$(this).hasClass('active'));
     setStorage('browseRight', $(this).hasClass('active'));
   });
+  $('#toggle-proof-panel').on('click', function () {
+    $(this).toggleClass('active');
+    $('.proof-panel').toggleClass('hide', !$(this).hasClass('active'));
+    setStorage('browseProof', $(this).hasClass('active'));
+  });
+  $('#toggle-blur').on('click', function () {
+    setStorage('browseBlur', $(this).hasClass('active'));
+  });
+  $('.toggle-box').on('click', function () {
+    let boxType = $(this).attr('id').replace('toggle-', '');
+    setStorage('browseBox', $(this).hasClass('active') ? boxType : '');
+  });
+  $('#toggle-v-code').on('click', function () {
+    $(this).toggleClass('active');
+    $.box.toggleVCode($(this).hasClass('active'));
+  });
+
+  function go(to) {
+    location.href = '/page/browse/{{page["name"]}}' + setQueryString('to', to, true);
+  }
+
   $('#toggle-more').on('click', function () {
     $('#more-group').toggleClass('hide');
   });
@@ -253,6 +300,29 @@
       $this.removeClass('disabled').text('确定');
       showSuccess('成功', '{{page["name"]}} ' + '备注成功。', 1000);
       go(getQueryString('to') || 'next');
+    });
+  });
+
+  // 单字提交
+  $('.char-txt .btn-submit').on('click', function () {
+    let $this = $(this), $txt = $this.text();
+    if ($this.hasClass('disabled')) return;
+    let data = $.charTxt.checkAndExport();
+    if (!data) return;
+    $this.addClass('disabled').text('保存中...');
+    let idx = $('.txt-holder .current-char').attr('id').split('-').pop();
+    postApi('/page/char/txt/' + data.name, {data: data}, function (res) {
+      $this.removeClass('disabled').text($txt);
+      location.href = setAnchor(name);
+      bsShow('', '已保存成功', 'success', 1000, '#s-alert');
+      $('.txt-holder .current-char').text(data.txt).addClass('changed');
+      $.charTxt.setTxtLogs(res['txt_logs']);
+      data['txt_logs'] = res['txt_logs'];
+      Object.assign($.box.data.boxes[parseInt(idx)], data);
+    }, function (err) {
+      $this.removeClass('disabled').text($txt);
+      if (err.code === 2007) showTips('', err.message, 1000);
+      else showWarning('失败', err.message, 2000);
     });
   });
 

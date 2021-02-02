@@ -14,11 +14,14 @@ $.mapKey('5', () => $('#toggle-proof-panel').click());
 $.mapKey('6', () => $('#toggle-proof-info').click());
 $.mapKey('.', () => $('.pagers .p-next a').click());
 $.mapKey(',', () => $('.pagers .p-prev a').click());
-$.mapKey('esc2', () => togglePanels(true));
-$.mapKey('left', () => $('.char-item.current').prev().find('.char-img').click());
-$.mapKey('right', () => $('.char-item.current').next().find('.char-img').click());
+$.mapKey('w', () => $('#page-submit').click());
+$.mapKey('v', () => $('.char-txt .btn-submit').click());
+$.mapKey('esc', () => $('#btn-reset').click());
 $.mapKey('g', () => $('#search-variant').focus());
 $.mapKey('enter', () => $('#search-variant').click());
+$.mapKey('left', () => $('.char-item.current').prev().find('.char-img').click());
+$.mapKey('right', () => $('.char-item.current').next().find('.char-img').click());
+
 
 //----------------------初始化----------------------
 function togglePanels(init) {
@@ -153,13 +156,21 @@ function trimUrl(href) {
   return href;
 }
 
-function browse(href) {
+function browse(href, onReturn) {
   postApi(trimUrl(href), {data: {}}, function (res) {
     $.cluster.setChars(res.data.chars);
     $.cluster.updatePager(res.data.pager);
     window.history.pushState({}, null, href);
+    onReturn && onReturn();
   });
 }
+
+// 去掉排序过滤
+$('#btn-reset').on('click', function () {
+  let txt = getQueryString('txt');
+  let href = location.pathname + (txt.length ? `?txt=${txt}` : '');
+  browse(href, () => $('.m-panel li').removeClass('active'));
+});
 
 $('.pagers').on('click', 'a', function (e) {
   if (!$.cluster.status.ajax) return;

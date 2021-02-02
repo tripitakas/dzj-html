@@ -16,7 +16,7 @@ from pymongo.errors import PyMongoError
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from controller.page.tool.diff import Diff
+from controller.tool.diff import Diff
 from controller.helper import prop, align_code
 from controller.page.base import PageHandler as Ph
 
@@ -36,13 +36,7 @@ def case2(db):
         print(s)
 
 
-def case3(db):
-    ch = dict(alternatives='爲磨卷上', ocr_col='為', cmp_txt='')
-    n = Ph.get_prf_level(ch)
-    print(n)
-
-
-def main(db_name='tripitaka', uri='localhost', func='case3', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='case2', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 
