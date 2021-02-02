@@ -334,7 +334,7 @@ class PageHandler(Page, TaskHandler, Box):
                 len1 = sum([len(s) for s in segments if s.get('is_same')])
                 len2 = sum([len(s) for s in segments2 if s.get('is_same')])
                 if len2 > len1:
-                    segments = segments2
+                    ocr_col, lc_col, segments = ocr_col2, lc_col2, segments2
             # 适配列文至字框
             idx1, idx2, lc_len = 0, 0, len(lc_col)
             for i, seg in enumerate(segments):
