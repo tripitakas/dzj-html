@@ -206,7 +206,7 @@ class CharTaskClusterHandler(CharHandler):
         for ch in chars:  # 设置单字列图
             column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
             ch['column']['img_url'] = self.get_web_img(column_name, 'column')
-            ch['img_url'] = self.get_web_img(ch['name'], 'char')
+            ch['img_url'] = self.get_char_img(ch)
         txt_kinds = self.prop(self.task, 'params.txt_kinds') or base_txts
         data = dict(chars=chars, pager=pager, q=q, order=order, base_txts=base_txts, txt_kinds=txt_kinds)
         return data, task_cond, cond
