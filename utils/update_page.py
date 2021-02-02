@@ -110,10 +110,8 @@ def apply_ocr_col(db, source=None):
             }})
 
 
-def main(db_name='tripitaka', uri='localhost', func='apply_ocr_col', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
-    uri_prod = 'mongodb://tripitaka-product:sm2019321-321.product@111.198.8.162:29019'
-    db = pymongo.MongoClient(uri_prod)['tripitaka-product']
     eval(func)(db, **kwargs)
 
 
