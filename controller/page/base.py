@@ -292,41 +292,50 @@ class PageHandler(Page, TaskHandler, Box):
     @classmethod
     def apply_ocr_col(cls, page):
         """ 将列文本和置信度适配给字框"""
+
+        def trim_col(txt, lc):
+            # 列引擎可以识别图片中的空格，适配前要去掉
+            lc = lc if isinstance(lc, list) else []
+            lc = [l for i, l in enumerate(lc) if txt[i] != ' ']
+            return txt.replace(' ', ''), lc
+
         if not page.get('chars') or not page.get('columns'):
             return
         # init
-        col2chars = {}
+        col2chars, mis_lens = {}, 0
         for c in page['chars']:
             c.pop('lc', 0)
             c.pop('ocr_col', 0)
             if c.get('deleted'):
                 continue
             column_id = 'b%sc%s' % (c['block_no'], c['column_no'])
-            if col2chars.get(column_id):
-                col2chars[column_id].append(c)
-            else:
-                col2chars[column_id] = [c]
+            col2chars[column_id] = col2chars.get(column_id) or []
+            col2chars[column_id].append(c)
         for col in page['columns']:
             if not col.get('ocr_txt') or not col.get('block_no') or not col2chars.get(col['column_id']):
                 continue
-            # init
-            col_chars = col2chars[col['column_id']]
-            ocr_col, lc_col = col.get('ocr_txt') or '', col.get('lc') or []
+            # init ocr_col, lc_col
+            ocr_col, lc_col = trim_col(col.get('ocr_txt') or '', col.get('lc') or [])
+            ocr_col2, lc_col2 = '', []
             if col.get('sub_columns'):
-                ocr_col, lc_col = '', []
                 for sub in col['sub_columns']:
                     if isinstance(sub.get('lc'), list):
-                        lc_col += sub.get('lc') or []
-                    ocr_col += sub.get('ocr_txt') or ''
-            # 列引擎可以识别图片中的空格，适配前要去掉
-            lc_col = lc_col if isinstance(lc_col, list) else []
-            lc_col = [lc for i, lc in enumerate(lc_col) if ocr_col[i] != ' ']
-            ocr_col = ocr_col.replace(' ', '')
-            if not ocr_col:
+                        lc_col2 += sub.get('lc') or []
+                        ocr_col2 += sub.get('ocr_txt') or ''
+            ocr_col2, lc_col2 = trim_col(ocr_col2, lc_col2)
+            if not ocr_col and not ocr_col2:
                 continue
-            # 通过diff算法进行适配
+            # 通过diff算法，从ocr_col和ocr_col2中选择最大匹配的文本
+            col_chars = col2chars[col['column_id']]
             ocr_txt = ''.join([c['ocr_txt'] for c in col_chars])
             segments = Diff.diff(ocr_txt, ocr_col, check_variant=False, filter_junk=False)[0]
+            if ocr_col2 and lc_col2:
+                segments2 = Diff.diff(ocr_txt, ocr_col2, check_variant=False, filter_junk=False)[0]
+                len1 = sum([len(s) for s in segments if s.get('is_same')])
+                len2 = sum([len(s) for s in segments2 if s.get('is_same')])
+                if len2 > len1:
+                    segments = segments2
+            # 适配列文至字框
             idx1, idx2, lc_len = 0, 0, len(lc_col)
             for i, seg in enumerate(segments):
                 if len(seg['base']) == len(seg['cmp1']):
@@ -337,6 +346,9 @@ class PageHandler(Page, TaskHandler, Box):
                         idx1, idx2 = idx1 + 1, idx2 + 1
                 else:  # 长度不一致，直接丢弃
                     idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp1'])
+                    mis_lens += len(seg['base'])
+        # 返回失配的长度
+        return mis_lens
 
     @classmethod
     def apply_txt(cls, page, field):
