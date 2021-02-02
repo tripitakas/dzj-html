@@ -331,8 +331,8 @@ class PageHandler(Page, TaskHandler, Box):
             segments = Diff.diff(ocr_txt, ocr_col, check_variant=False, filter_junk=False)[0]
             if ocr_col2 and lc_col2:
                 segments2 = Diff.diff(ocr_txt, ocr_col2, check_variant=False, filter_junk=False)[0]
-                len1 = sum([len(s) for s in segments if s.get('is_same')])
-                len2 = sum([len(s) for s in segments2 if s.get('is_same')])
+                len1 = sum([len(s['base']) for s in segments if s.get('is_same')])
+                len2 = sum([len(s['base']) for s in segments2 if s.get('is_same')])
                 if len2 > len1:
                     ocr_col, lc_col, segments = ocr_col2, lc_col2, segments2
             # 适配列文至字框
