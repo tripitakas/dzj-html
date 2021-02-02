@@ -27,10 +27,11 @@ class Diff(object):
     cmp_junk_char = r'[\-\.\{\}\(\),0-9a-z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…\s\n\f\t\v\u3000]'
 
     @classmethod
-    def pre_base(cls, base, keep_line=True, filter_junk=True):
+    def pre_base(cls, base, keep_line=True, filter_junk=True, replace_vertical=True):
         """base预处理"""
         # 平台中用|表示换行，因此先恢复换行
-        base = base.replace('|', '\n').rstrip('\n')
+        if replace_vertical:
+            base = base.replace('|', '\n').rstrip('\n')
         # 根据参数决定是否保留换行
         base = base.replace('\n', '') if not keep_line else base
         # 检查junk字符串
@@ -74,6 +75,11 @@ class Diff(object):
             ret, _err = Diff._merge_by_combine(ret, ret3, base_key=lbl['base'])
             err.extend(_err)
         return ret, err
+
+    @classmethod
+    def diff_line(cls, base='', cmp=''):
+        """ 单行比对"""
+        return cls._diff_two_v1(base, cmp, False, False, False)
 
     @classmethod
     def _diff_one(cls, base, filter_junk):
@@ -192,13 +198,15 @@ class Diff(object):
         return line_segments
 
     @classmethod
-    def _diff_two_v1(cls, base, cmp, check_variant=True, filter_junk=True, label=None):
+    def _diff_two_v1(cls, base, cmp, check_variant=True, filter_junk=True, replace_vertical=True, label=None):
         lbl = {'base': 'base', 'cmp': 'cmp'}
         if label and isinstance(label, dict):
             lbl.update(label)
 
         ret, line_no = [], 1
-        base, cmp = cls.pre_base(base, True, filter_junk), cls.pre_cmp(cmp, filter_junk)
+        base, cmp = cls.pre_base(base, True, filter_junk, replace_vertical), cls.pre_cmp(cmp, filter_junk)
+        # if base == cmp:
+        #     return [{'line_no': 1, 'is_same': True, lbl['base']: base, lbl['cmp']: cmp}]
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
         for tag, i1, i2, j1, j2 in s.get_opcodes():
             t1, t2 = base[i1:i2], cmp[j1:j2]
@@ -212,7 +220,7 @@ class Diff(object):
                     elif k == len(lst1) - 1 and t2:
                         ret.append({'line_no': line_no, 'is_same': False, lbl['base']: _t1, lbl['cmp']: t2})
                     if k < len(lst1) - 1:  # 换行
-                        ret.append({'line_no': line_no, 'is_same': True, lbl['base']: '\n'})
+                        ret.append({'line_no': line_no, 'is_same': True, lbl['base']: '\n', lbl['cmp']: '\n'})
                         line_no += 1
             else:
                 is_same = True if tag == 'equal' else False

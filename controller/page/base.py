@@ -328,9 +328,9 @@ class PageHandler(Page, TaskHandler, Box):
             # 通过diff算法，从ocr_col和ocr_col2中选择最大匹配的文本
             col_chars = col2chars[col['column_id']]
             ocr_txt = ''.join([c['ocr_txt'] for c in col_chars])
-            segments = Diff.diff(ocr_txt, ocr_col, check_variant=False, filter_junk=False)[0]
+            segments = Diff.diff_line(ocr_txt, ocr_col)
             if ocr_col2 and lc_col2:
-                segments2 = Diff.diff(ocr_txt, ocr_col2, check_variant=False, filter_junk=False)[0]
+                segments2 = Diff.diff_line(ocr_txt, ocr_col2)
                 len1 = sum([len(s['base']) for s in segments if s.get('is_same')])
                 len2 = sum([len(s['base']) for s in segments2 if s.get('is_same')])
                 if len2 > len1:
@@ -338,14 +338,14 @@ class PageHandler(Page, TaskHandler, Box):
             # 适配列文至字框
             idx1, idx2, lc_len = 0, 0, len(lc_col)
             for i, seg in enumerate(segments):
-                if len(seg['base']) == len(seg['cmp1']):
+                if len(seg['base']) == len(seg['cmp']):
                     for n in range(len(seg['base'])):
                         col_chars[idx1]['ocr_col'] = ocr_col[idx2]
                         if idx2 < lc_len:
                             col_chars[idx1]['lc'] = lc_col[idx2]
                         idx1, idx2 = idx1 + 1, idx2 + 1
                 else:  # 长度不一致，直接丢弃
-                    idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp1'])
+                    idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp'])
                     mis_lens += len(seg['base'])
         # 返回失配的长度
         return mis_lens
