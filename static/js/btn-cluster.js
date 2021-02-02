@@ -156,11 +156,12 @@ function trimUrl(href) {
   return href;
 }
 
-function browse(href) {
+function browse(href, onReturn) {
   postApi(trimUrl(href), {data: {}}, function (res) {
     $.cluster.setChars(res.data.chars);
     $.cluster.updatePager(res.data.pager);
     window.history.pushState({}, null, href);
+    onReturn && onReturn();
   });
 }
 
@@ -168,7 +169,7 @@ function browse(href) {
 $('#btn-reset').on('click', function () {
   let txt = getQueryString('txt');
   let href = location.pathname + (txt.length ? `?txt=${txt}` : '');
-  browse(href);
+  browse(href, () => $('.m-panel li').removeClass('active'));
 });
 
 $('.pagers').on('click', 'a', function (e) {

@@ -65,7 +65,7 @@ function goto(url, timer) {
 function getQueryString(name) {
   let reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
   let r = window.location.search.substr(1).match(reg);
-  return r != null ? unescape(r[2]) : '';
+  return r != null ? decodeURI(r[2]) : '';
 }
 
 function setQueryString(name, value, onlySearch, search) {
