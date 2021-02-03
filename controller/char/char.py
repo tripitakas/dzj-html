@@ -187,9 +187,9 @@ class Char(Model):
         m['pos'] = dict(x=ch['x'], y=ch['y'], w=ch['w'], h=ch['h'])
         m['ocr_txt'] = (ch.get('alternatives') or '')[:1]
         m['ocr_col'] = ch.get('ocr_col') or '■'
-        m['cmb_txt'] = Char.get_cmb_txt(ch)
-        m['sc'] = Char.get_equal_level(ch)
-        m['pc'] = Char.get_prf_level(ch)
+        m['cmb_txt'] = cls.get_cmb_txt(ch)
+        m['sc'] = cls.get_equal_level(ch)
+        m['pc'] = cls.get_prf_level(ch)
         m['txt'] = ch.get('txt') or m['cmb_txt']
         ch['column_no'] = ch.get('column_no') or ch.pop('line_no')
         ch['column'] = column or {}

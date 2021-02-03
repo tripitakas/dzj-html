@@ -8,7 +8,6 @@ from controller.tool.box import Box
 from controller.tool.diff import Diff
 from controller.tool import variant as vt
 from controller.page.page import Page
-from controller.char.char import Char
 from controller.task.base import TaskHandler
 
 
