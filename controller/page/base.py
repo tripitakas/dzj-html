@@ -135,7 +135,7 @@ class PageHandler(Page, TaskHandler, Box):
         return no
 
     def get_user_submit(self, submit_data, page, task_type=None):
-        """合并用户提交和数据库中已有数据"""
+        """合并用户提交和数据库中已有数据。返回中page已更新"""
         # 1.合并用户修改
         user_level = self.get_user_box_level(self, task_type)
         meta = {'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
@@ -199,7 +199,7 @@ class PageHandler(Page, TaskHandler, Box):
                 if column:
                     for sub_col in sub_columns:
                         col_chars = [c for c in page['chars'] if c['cid'] in sub_col['char_cids']]
-                        sub_col.update(self.get_outer_range(col_chars))
+                        col_chars and sub_col.update(self.get_outer_range(col_chars))
                     column['sub_columns'] = sub_columns
         # 2.合并用户框序
         for box_type, orders in submit_data.get('order', {}).items():

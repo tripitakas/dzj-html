@@ -156,8 +156,8 @@
       </div><!--center-->
       <div class="right">
         {% set mode = globals().get('mode') or '' %}
+        {% set my_task = mode in ['do', 'update', 'nav'] %}
         {% set readonly = globals().get('readonly') or False %}
-        {% set my_task = globals().get('mode') in ['do', 'update', 'nav'] %}
         <div id="toggle-my-hint" class="btn-txt icon-users hint cut{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="我的修改[i]"></div>
         <div id="op-hint" class="btn-txt icon-history cut" data-toggle="tooltip" data-placement="bottom" title="修改历史"></div>
         <div id="save" class="btn-txt icon-save{{' hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存[ctrl+s]"></div>
@@ -350,7 +350,8 @@
     bsLoading('保存中‧‧‧');
     $this.addClass('disabled');
     data.submit = id !== 'save';
-    postApi(location.pathname, {data: data}, function (res) {
+    let url = gTaskId ? getPostUrl() : location.pathname;
+    postApi(url, {data: data}, function (res) {
       bsShow('成功!', '已保存。', 'info', 1000);
       $this.removeClass('disabled');
       if (id === 'task-submit') {
@@ -360,6 +361,13 @@
       }
     });
   });
+
+  function leave() {
+    let from = getQueryString('from');
+    let url = from === '1' ? getStorage('from') : decodeFrom();
+    url = url || (gTaskType && `/task/my/${gTaskType}?order=-picked_time`);
+    url ? window.location = url : window.history.back();
+  }
 
 </script>
 </body>

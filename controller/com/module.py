@@ -18,6 +18,11 @@ class ComLeft(UIModule):
         def is_enabled(module):
             return module not in h.prop(self.handler.config, 'modules.disabled', '')
 
+        def get_link(lk):
+            if '?' in lk:
+                return lk[:lk.find('?')]
+            return lk
+
         # 默认左侧菜单项
         base_items = [
             dict(name='首页', icon='icon-home', link='/home'),
@@ -31,12 +36,12 @@ class ComLeft(UIModule):
                 dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/cluster_review'),
             ]),
             dict(name='我的任务', icon='icon-task-my', sub_items=[
-                dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
-                dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
-                dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof'),
-                dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review'),
-                dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof'),
-                dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review'),
+                dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof?order=-picked_time'),
+                dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review?order=-picked_time'),
+                dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof?order=-picked_time'),
+                dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review?order=-picked_time'),
+                dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof?order=-picked_time'),
+                dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review?order=-picked_time'),
             ]),
             dict(name='任务管理', icon='icon-task-admin', sub_items=[
                 dict(name='页任务', icon='icon-subitem', link='/page/task/list'),
@@ -119,14 +124,16 @@ class ComLeft(UIModule):
         for item in items:
             if not is_enabled(item.get('name')):
                 continue
-            if item.get('link') and self.handler.can_access(item['link']):
-                item['id'] = re.sub('[/_]', '-', item['link'][1:])
+            link = get_link(item.get('link') or '')
+            if link and self.handler.can_access(link):
+                item['id'] = re.sub('[/_]', '-', link[1:])
                 display_items.append(item)
             if item.get('sub_items'):
                 sub_items = []
                 for sub in item['sub_items']:
-                    if is_enabled(sub.get('name')) and sub.get('link') and self.handler.can_access(sub['link']):
-                        sub['id'] = re.sub('[/_]', '-', sub['link'][1:])
+                    link = get_link(sub.get('link') or '')
+                    if is_enabled(sub.get('name')) and link and self.handler.can_access(link):
+                        sub['id'] = re.sub('[/_]', '-', link[1:])
                         sub_items.append(sub)
                 if sub_items:
                     item['sub_items'] = sub_items

@@ -29,6 +29,10 @@
     $('#remarkModal .is_sample :radio[value="' + isSample + '"]').prop('checked', true);
   });
 
+  function getPostUrl() {
+    return `/task/${gMode}/${gTaskType}/${gTaskId}`;
+  }
+
   // 离开页面
   window.leave = function () {
     if (decodeFrom() === '1') {
@@ -86,7 +90,6 @@
   $('#task-prev').on('click', function () {
     let search = setQueryString('to', 'prev', true);
     if ($(this).hasClass('nav')) {
-      search = setQueryString('my', 'true', true, search);
       location.href = `/task/nav/${gTaskType}/${gTaskId}` + search;
     } else {
       location.href = `/task/browse/${gTaskType}/${gTaskId}` + search;
@@ -97,7 +100,6 @@
   $('#task-next').on('click', function () {
     let search = setQueryString('to', 'next', true);
     if ($(this).hasClass('nav')) {
-      search = setQueryString('my', 'true', true, search);
       location.href = `/task/nav/${gTaskType}/${gTaskId}` + search;
     } else {
       location.href = `/task/browse/${gTaskType}/${gTaskId}` + search;

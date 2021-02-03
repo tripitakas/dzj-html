@@ -43,9 +43,8 @@
   });
 
   $(document).ready(function () {
-    let activeId = '{{active_id}}';
-    if (!activeId)
-      activeId = location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
+    let activeId = '{{active_id}}' || location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
+    console.log(activeId)
     $(activeId).addClass('active');
     $(activeId).parent().removeClass('sub-ul-hidden');
   });

@@ -21,8 +21,7 @@ $('.sty-table td.return_reason').on('click', function () {
 // 查看页面
 $('.sty-table td.doc_id').on('click', function () {
   if ($(this).text().length) {
-    setStorage('from', location.href);
-    location.href = '/page/browse/' + $(this).text() + '?from=1';
+    window.open(`/page/${$(this).text().trim()}`, '_blank');
   }
 });
 // 浏览任务
@@ -30,7 +29,8 @@ $('.sty-table .action .btn-browse').on('click', function () {
   setStorage('from', location.href);
   let node = $(this).parent().parent();
   let taskType = node.find('.task_type').attr('title');
-  location.href = '/task/browse/' + taskType + '/' + node.attr('id') + '?from=1';
+  let search = setQueryString('from', 1, true);
+  window.open(`/task/browse/${taskType}/${node.attr('id')}` + search, '_blank');
 });
 // 任务详情
 $('.sty-table .action .btn-detail').on('click', function () {

@@ -153,7 +153,13 @@
 <script src="{{static_url('js/time-select.js')}}"></script>
 <script>
   let taskType = '{{task_type}}';
-  // 查看
+  // 查看页面
+  $('.sty-table td.doc_id').on('click', function () {
+    if ($(this).text().length) {
+      window.open(`/page/${$(this).text().trim()}`, '_blank');
+    }
+  });
+  // 查看任务
   $('.action .my-task-view').on('click', function () {
     setStorage('from', location.href);
     let taskId = $(this).parent().parent().attr('id');
@@ -166,11 +172,15 @@
     location.href = `/task/update/${taskType}/${taskId}?from=1`;
   });
   // 浏览
-  $('.operation .btn-browse').on('click', function () {
+  $('.operation .btn-nav').on('click', function () {
     if (!$('tbody tr').first()) return;
-    setStorage('from', location.href);
     let taskId = $('tbody tr').first().attr('id');
-    location.href = `/task/nav/${taskType}/${taskId}?my=true&from=1`;
+    window.open(`/task/nav/${taskType}/${taskId}` + location.search, '_blank');
+  });
+  // 浏览
+  $('.action .my-task-nav').on('click', function () {
+    let taskId = $(this).parent().parent().attr('id');
+    window.open(`/task/nav/${taskType}/${taskId}` + location.search, '_blank');
   });
   // 统计
   $('.operation .btn-dashboard').on('click', function () {

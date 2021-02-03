@@ -95,7 +95,7 @@ role_route_maps = {
             '/task/(lobby|my)/cut_proof': ['GET'],
             '/api/task/pick/cut_proof': ['POST'],
             '/task/(do|update|nav)/cut_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/cut_proof/@task_id': ['POST'],
+            '/api/task/(do|update|nav)/cut_proof/@task_id': ['POST'],
         }
     },
     '切分审定员': {
@@ -105,7 +105,7 @@ role_route_maps = {
             '/task/(lobby|my)/cut_review': ['GET'],
             '/api/task/pick/cut_review': ['POST'],
             '/task/(do|update|nav)/cut_review/@task_id': ['GET'],
-            '/api/task/(do|update)/cut_review/@task_id': ['POST'],
+            '/api/task/(do|update|nav)/cut_review/@task_id': ['POST'],
         }
     },
     '切分专家': {
@@ -121,7 +121,7 @@ role_route_maps = {
             '/task/(lobby|my)/text_proof': ['GET'],
             '/api/task/pick/text_proof': ['POST'],
             '/task/(do|update|nav)/text_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/text_proof/@task_id': ['POST'],
+            '/api/task/(do|update|nav)/text_proof/@task_id': ['POST'],
         }
     },
     '文字审定员': {
@@ -144,7 +144,7 @@ role_route_maps = {
             '/api/task/pick/cluster_proof': ['POST'],
             '/api/task/cluster_proof/@task_id': ['POST'],
             '/task/(do|update|nav)/cluster_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/cluster_proof/@task_id': ['POST'],
+            '/api/task/(do|update|nav)/cluster_proof/@task_id': ['POST'],
         }
     },
     '聚类审定员': {

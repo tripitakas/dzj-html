@@ -86,7 +86,8 @@ class CharListHandler(CharHandler):
         """字数据管理"""
         try:
             kwargs = super(Char, self).get_template_kwargs()
-            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
             else:
