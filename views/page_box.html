@@ -350,7 +350,7 @@
     bsLoading('保存中‧‧‧');
     $this.addClass('disabled');
     data.submit = id !== 'save';
-    let url = gTaskId ? getPostUrl() : location.pathname;
+    let url = typeof gTaskId !== 'undefined' ? getPostUrl() : location.pathname;
     postApi(url, {data: data}, function (res) {
       bsShow('成功!', '已保存。', 'info', 1000);
       $this.removeClass('disabled');
