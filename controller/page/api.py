@@ -140,32 +140,33 @@ class PageBoxApi(PageHandler):
     def post(self, page_name):
         """提交切分校对。切分数据以page表为准，box_level/box_logs等记录在page['chars']中，坐标信息同步更新char表"""
         try:
-            self.save_box(self, page_name)
-            return self.send_data_response()
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            self.save_box(self, page)
+            self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
-    def save_box(self, page_name, task_type=None):
+    def save_box(self, page, task_type=None):
         """保存用户提交。包括框修改、框序和用户序线"""
-        page = self.db.page.find_one({'name': page_name})
-        if not page:
-            self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-
         rules = [(v.not_empty, 'op')]
         self.validate(self.data, rules)
         page_updated = self.get_user_submit(self.data, page, task_type)
         self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})
-        self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
+        # self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
+
+    @staticmethod
+    def update_chars(self, page):
         if page.get('has_gen_chars'):  # 更新char表和字图
-            gen_chars(db=self.db, page_names=page_name, username=self.username)
+            gen_chars(db=self.db, page_names=page['name'], username=self.username)
             script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img_%s.log 2>&1 &'
             script = script % (h.BASE_DIR, self.username, 1, h.get_date_time(fmt='%Y%m%d%H%M%S'))
             print(script)
             os.system(script)
-
-        return page
 
 
 class PageCharBoxApi(PageHandler):
@@ -403,7 +404,7 @@ class PageTxtDiffApi(PageHandler):
         try:
             rules = [(v.not_empty, 'texts')]
             self.validate(self.data, rules)
-            diff_blocks = self.diff(*self.data['texts'])
+            diff_blocks = self.page_diff(*self.data['texts'])
             if self.data.get('hints'):
                 diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
             cmp_data = self.render_string('com/_txt_diff.html', blocks=diff_blocks,

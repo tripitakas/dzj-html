@@ -32,16 +32,16 @@ class TaskHandler(BaseHandler, Task):
         super().prepare()
         if not self.get_task_id():
             return
+        self.mode = self.get_task_mode()
         self.task_id = self.get_task_id()
         self.task, self.error = self.get_task(self.task_id)
         if not self.task:
             return self.send_error_response(self.error)
         self.task_id = str(self.task['_id'])
-        self.mode = self.get_task_mode()
-        if self.mode in ['do', 'update']:
+        if self.mode in ['do', 'update', 'nav']:
             has_auth, self.error = self.check_task_auth(self.task)
             if not has_auth:
-                links = [('查看', re.sub('/(do|update)/', '/', self.request.uri))]
+                links = [('查看', re.sub('/(do|update|nav)/', '/', self.request.uri))]
                 return self.send_error_response(self.error, links=links)
         self.task_type = self.get_task_type()
         self.steps = self.init_steps(self.task, self.task_type)
@@ -54,23 +54,26 @@ class TaskHandler(BaseHandler, Task):
         if not task:
             return None, (e.task_not_existed[0], '没有找到任务%s' % task_id)
         to = self.get_query_argument('to', '')
-        if not to:
+        if self.is_api or to not in ['next', 'prev'] or self.mode not in ['nav', 'browse']:
             return task, None
-        # 查找目标任务。to为prev时，查找前一个任务，即_id比task_id大的任务
-        condition = self.get_task_search_condition(self.request.query)[0]
-        condition.update({'_id': {'$gt' if to == 'prev' else '$lt': ObjectId(task_id)}})
-        my = self.get_query_argument('my', '')
-        if my:
+        # 管理员或用户浏览任务
+        # to为prev时，查找前一个任务，即order比task_id大的任务
+        cond = self.get_task_search_condition(self.request.query)[0]
+        order = self.get_query_argument('order', '_id')
+        order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+        asc = -asc if to == 'prev' else asc
+        cond[order] = {'$gt' if asc == 1 else '$lt': task.get(order)}
+        if self.mode == 'nav':  # 用户浏览
             status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
-            condition.update({'task_type': task['task_type'], 'status': status, 'picked_user_id': self.user_id})
-        to_task = self.db.task.find_one(condition, sort=[('_id', 1 if to == 'prev' else -1)])
+            cond.update({'task_type': task['task_type'], 'status': status, 'picked_user_id': self.user_id})
+        to_task = self.db.task.find_one(cond, sort=[(order, asc)])
         if not to_task:
             error = e.task_not_existed[0], '已是第一个任务' if to == 'prev' else '已是最后一个任务'
             return None, error
         elif task['task_type'] != to_task['task_type']:
             # 如果task和to_task任务类型不一致，则切换url
             query = re.sub('[?&]to=(prev|next)', '', self.request.query)
-            url = '/task/browse/%s/%s?' % (to_task['task_type'], to_task['_id']) + query
+            url = '/task/%s/%s/%s?' % (self.mode, to_task['task_type'], to_task['_id']) + query
             self.redirect(url.rstrip('?'))
             return None, e.task_type_error
         return to_task, None
@@ -80,7 +83,7 @@ class TaskHandler(BaseHandler, Task):
         return s.group(1) if (s and '/task/' in self.request.uri) else ''
 
     def get_task_mode(self):
-        r = re.findall('/task/(do|update|browse|nav)/', self.request.path)
+        r = re.findall('/task/(do|update|nav|browse)/', self.request.path)
         mode = r[0] if r else 'view' if self.get_task_id() else None
         return mode
 

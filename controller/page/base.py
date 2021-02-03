@@ -135,7 +135,7 @@ class PageHandler(Page, TaskHandler, Box):
         return no
 
     def get_user_submit(self, submit_data, page, task_type=None):
-        """合并用户提交和数据库中已有数据"""
+        """合并用户提交和数据库中已有数据。返回中page已更新"""
         # 1.合并用户修改
         user_level = self.get_user_box_level(self, task_type)
         meta = {'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
@@ -199,7 +199,7 @@ class PageHandler(Page, TaskHandler, Box):
                 if column:
                     for sub_col in sub_columns:
                         col_chars = [c for c in page['chars'] if c['cid'] in sub_col['char_cids']]
-                        sub_col.update(self.get_outer_range(col_chars))
+                        col_chars and sub_col.update(self.get_outer_range(col_chars))
                     column['sub_columns'] = sub_columns
         # 2.合并用户框序
         for box_type, orders in submit_data.get('order', {}).items():
@@ -289,6 +289,35 @@ class PageHandler(Page, TaskHandler, Box):
             ch['class'] = classes.strip(' ')
 
     # ----------文本处理----------
+    @staticmethod
+    def is_valid_txt(txt):
+        return txt not in [None, '■', '']
+
+    @classmethod
+    def get_txt(cls, page, field='txt'):
+        """获取chars的文本"""
+
+        def get_txt(box):
+            t = box.get(field) or ''
+            if not t and field == 'txt':
+                t = page.get('cmb_txt') or page.get('ocr_txt') or ''
+            return t
+
+        chars = page.get('chars')
+        if not chars:
+            return ''
+        pre, txt = chars[0], get_txt(chars[0]) or ''
+        for c in chars[1:]:
+            if c.get('deleted'):
+                continue
+            if pre.get('block_no') and c.get('block_no') and int(pre['block_no']) != int(c['block_no']):
+                txt += '||'
+            elif pre.get('column_no') and c.get('column_no') and int(pre['column_no']) != int(c['column_no']):
+                txt += '|'
+            txt += get_txt(c)
+            pre = c
+        return txt.strip('|')
+
     @classmethod
     def apply_ocr_col(cls, page):
         """ 将列文本和置信度适配给字框"""
@@ -328,149 +357,63 @@ class PageHandler(Page, TaskHandler, Box):
             # 通过diff算法，从ocr_col和ocr_col2中选择最大匹配的文本
             col_chars = col2chars[col['column_id']]
             ocr_txt = ''.join([c['ocr_txt'] for c in col_chars])
-            segments = Diff.diff(ocr_txt, ocr_col, check_variant=False, filter_junk=False)[0]
+            segments = Diff.diff_line(ocr_txt, ocr_col)
             if ocr_col2 and lc_col2:
-                segments2 = Diff.diff(ocr_txt, ocr_col2, check_variant=False, filter_junk=False)[0]
-                len1 = sum([len(s) for s in segments if s.get('is_same')])
-                len2 = sum([len(s) for s in segments2 if s.get('is_same')])
+                segments2 = Diff.diff_line(ocr_txt, ocr_col2)
+                len1 = sum([len(s['base']) for s in segments if s.get('is_same')])
+                len2 = sum([len(s['base']) for s in segments2 if s.get('is_same')])
                 if len2 > len1:
-                    segments = segments2
+                    ocr_col, lc_col, segments = ocr_col2, lc_col2, segments2
             # 适配列文至字框
             idx1, idx2, lc_len = 0, 0, len(lc_col)
             for i, seg in enumerate(segments):
-                if len(seg['base']) == len(seg['cmp1']):
+                if len(seg['base']) == len(seg['cmp']):
                     for n in range(len(seg['base'])):
                         col_chars[idx1]['ocr_col'] = ocr_col[idx2]
                         if idx2 < lc_len:
                             col_chars[idx1]['lc'] = lc_col[idx2]
                         idx1, idx2 = idx1 + 1, idx2 + 1
                 else:  # 长度不一致，直接丢弃
-                    idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp1'])
+                    idx1, idx2 = idx1 + len(seg['base']), idx2 + len(seg['cmp'])
                     mis_lens += len(seg['base'])
         # 返回失配的长度
         return mis_lens
 
     @classmethod
-    def apply_txt(cls, page, field):
-        """ 将文本适配至page['chars']，包括ocr_col、cmp_txt、txt等。
-        用field文本和ocr文本diff，针对异文的几种情况：
-        1. 如果ocr文本为空，则丢弃field文本
-        2. 如果ocr文本为换行，则补充field文本为换行
-        3. 如果field文本为空，则根据ocr文本长度，填充■
-        4. 如果ocr文本和field文本长度不一致，则认为不匹配
+    def apply_raw_txt(cls, page, txt, field):
+        """ 将txt文本适配至page['chars']。
+        用txt和ocr文本diff，针对异文的几种情况：
+        1. 如果ocr文本为空，则丢弃txt文本
+        2. 如果ocr文本为换行，则补充txt文本为换行
+        3. 如果txt文本为空，则根据ocr文本长度，填充■
+        4. 如果ocr文本和txt文本长度不一致，则认为不匹配
         """
-        if cls.prop(page, 'txt_match.' + field) in [True, False]:
-            return page['txt_match'][field]
-        if not cls.get_txt(page, field):
-            return False, ''
-        match = True
-        diff_segments = Diff.diff(cls.get_txt(page, 'ocr'), cls.get_txt(page, field))[0]
-        for s in diff_segments:
+        ocr_txt, mis_len = cls.get_txt(page, 'ocr_txt'), 0
+        if not ocr_txt:
+            return
+        segments = Diff.diff(ocr_txt, txt, filter_junk=False)[0]
+        for s in segments:
             if s['is_same'] and s['base'] == '\n':
                 s['cmp1'] = '\n'
             if not s.get('cmp1'):
                 s['cmp1'] = '■' * len(s['base'])
             if not s.get('base'):
                 s['cmp1'] = ''
-            if len(s['base']) != len(cls.filter_symbol(s['cmp1'])):
-                match = False
-                _cmp1 = cls.filter_symbol(s['cmp1'])
-                if len(_cmp1) < len(s['base']):
-                    s['cmp1'] += '■' * (len(s['base']) - len(_cmp1))
-                else:
-                    s['cmp1'] = '■' * (len(s['base']))
+            if len(s['base']) != len(s['cmp1']):
+                mis_len += len(s['base'])
+                s['cmp1'] = '■' * (len(s['base']))
 
-        ocr_txt = ''.join([s['base'] for s in diff_segments])
-        txt2apply = ''.join([s['cmp1'] for s in diff_segments])
-        assert len(ocr_txt) == len(cls.filter_symbol(txt2apply))
-        cls.write_back_txt(page['chars'], txt2apply, field)
-        return match, txt2apply
-
-    @classmethod
-    def filter_symbol(cls, txt):
-        """过滤校勘符号"""
-        return re.sub(r'[YMN]', '', txt)
-
-    @classmethod
-    def get_txt(cls, page, key):
-        if key == 'cmp_txt':
-            return page.get('cmp_txt') or ''
-        if key == 'ocr_chr':
-            return cls.get_char_txt(page, 'ocr_chr')
-        if key == 'ocr_col':
-            return cls.get_column_txt(page, 'ocr_txt')
-        if key == 'txt':
-            return page.get('txt') or cls.get_char_txt(page, 'txt')
-
-    @classmethod
-    def get_txts(cls, page, fields=None):
-        fields = fields or ['txt', 'ocr_chr', 'ocr_col', 'cmp_txt']
-        txts = [(cls.get_txt(page, f), f, Page.get_field_name(f)) for f in fields]
-        return [t for t in txts if t[0]]
-
-    @classmethod
-    def get_char_txt(cls, page, field='txt'):
-        """获取chars的文本"""
-
-        def get_txt(box):
-            if field in ['ocr_col', 'cmp_txt', 'ocr_txt']:
-                return box.get(field) or ''
-            if field == 'ocr_chr':
-                return (box.get('alternatives') or '')[:1]
-            if field == 'txt':
-                return box.get('txt') or (box.get('alternatives') or '')[:1] or box.get('ocr_col') or box.get('cmp_txt',
-                                                                                                              '')
-
-        boxes = page.get('chars')
-        if not boxes:
-            return ''
-        pre, txt = boxes[0], get_txt(boxes[0]) or ''
-        for b in boxes[1:]:
-            if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
-                txt += '||'
-            elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
-                txt += '|'
-            txt += get_txt(b) or ''
-            pre = b
-        return txt.strip('|')
-
-    @classmethod
-    def get_column_txt(cls, page, field='ocr_txt'):
-        """获取columns的文本"""
-
-        def get_txt(box):
-            if box.get('sub_columns') and len(box['sub_columns']) > 1 and box['sub_columns'][1].get(field):
-                return ''.join([c.get(field) or '' for c in box['sub_columns']])
-            return box.get(field) or ''
-
-        boxes = page.get('columns')
-        if not boxes:
-            return ''
-        pre, txt = boxes[0], get_txt(boxes[0])
-        for b in boxes[1:]:
-            if pre.get('block_no') and b.get('block_no') and int(pre['block_no']) != int(b['block_no']):
-                txt += '||'
-            elif pre.get('column_no') and b.get('column_no') and int(pre['column_no']) != int(b['column_no']):
-                txt += '|'
-            txt += get_txt(b)
-            pre = b
-        return txt.strip('|')
-
-    @staticmethod
-    def is_valid_txt(txt):
-        return txt not in [None, '■', '']
-
-    @classmethod
-    def is_source_txt_diff(cls, ch):
-        """ 来源文本是否不一致"""
-        txts = [(ch.get('alternatives') or '')[:1], ch.get('ocr_col'), ch.get('cmp_txt')]
-        return len(set(t for t in txts if cls.is_valid_txt(t))) > 1
-
-    @classmethod
-    def is_un_required(cls, ch):
-        """ 是否不必校对"""
-        return cls.is_valid_txt(ch.get('cmp_txt')) and (
-                ch['cmp_txt'] == (ch.get('alternatives') or '')[:1] or ch['cmp_txt'] == ch.get('ocr_col'))
+        base_txt = ''.join([s['base'] for s in segments])
+        cmp1_txt = ''.join([s['cmp1'] for s in segments])
+        assert len(base_txt) == len(cmp1_txt)
+        # write back
+        j = 0
+        cmp1_txt = re.sub(r'[\|\n]+', '', cmp1_txt)
+        for i, c in enumerate(page['chars']):
+            if not c.get('deleted') and c.get('ocr_txt'):
+                c[field] = cmp1_txt[j]
+                j += 1
+        return mis_len
 
     @classmethod
     def html2txt(cls, html):
@@ -510,7 +453,6 @@ class PageHandler(Page, TaskHandler, Box):
     @classmethod
     def check_match(cls, chars, txt):
         """检查图文是否匹配，包括总行数和每行字数"""
-        txt = cls.filter_symbol(txt)
         # 获取每列字框数
         column_char_num = []
         if chars:
@@ -552,7 +494,7 @@ class PageHandler(Page, TaskHandler, Box):
         """将txt回写到chars中。假定图文匹配"""
         txt = re.sub(r'[\|\n]+', '', txt)
         char_txt = ''.join([c['ocr_txt'] for c in chars if c.get('ocr_txt')])
-        if len(char_txt) != len(cls.filter_symbol(txt)):
+        if len(char_txt) != len(txt):
             return False
         j = 0
         for i, c in enumerate(chars):
@@ -567,7 +509,7 @@ class PageHandler(Page, TaskHandler, Box):
         return chars
 
     @classmethod
-    def diff(cls, base, cmp1='', cmp2='', cmp3=''):
+    def page_diff(cls, base, cmp1='', cmp2='', cmp3=''):
         """生成文字校对的segment"""
         # 1.生成segments
         segments = []
@@ -626,7 +568,7 @@ class PageHandler(Page, TaskHandler, Box):
                 s['cmp1'] = '\n'
             if not s['is_same'] and not s['cmp1']:
                 s['cmp1'] = '■' * len(s['base'])
-            if len(s['base']) == len(cls.filter_symbol(s['cmp1'])):
+            if len(s['base']) == len(s['cmp1']):
                 s['is_same'] = True
             s['base'], s['cmp1'] = s['cmp1'], s['base']
         # 2. 设置栏号和行号

@@ -67,7 +67,8 @@ class CharTaskListHandler(TaskHandler, Char):
 
     def get_template_kwargs(self, fields=None):
         kwargs = super().get_template_kwargs()
-        kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+        if self.get_hide_fields() is not None:
+            kwargs['hide_fields'] = self.get_hide_fields()
         readonly = '任务管理员' not in self.current_user['roles']
         if readonly:  # 任务浏览员
             kwargs['actions'] = [{'action': 'btn-browse', 'label': '浏览'}]

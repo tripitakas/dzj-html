@@ -687,7 +687,7 @@ body.widescreen {
   cursor: not-allowed;
 }
 
-.btn-nav {
+.m-header .btn-nav {
   float: none;
   cursor: pointer;
   font-size: 16px;
@@ -698,11 +698,11 @@ body.widescreen {
   color: var(--Brown_Darker);
 }
 
-.btn-nav:hover {
+.m-header .btn-nav:hover {
   text-decoration: underline;
 }
 
-.btn-nav.active {
+.m-header .btn-nav.active {
   color: #333;
 }
 

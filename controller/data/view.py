@@ -49,7 +49,8 @@ class DataImportImageHandler(TaskHandler):
         """数据管理/页图片导入"""
         try:
             kwargs = self.get_template_kwargs()
-            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
 
             cond = dict(task_type='import_image')
             priority = self.get_query_argument('priority', '')
@@ -87,7 +88,8 @@ class DataListHandler(BaseHandler):
                 {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
                 {'operation': 'download-template', 'label': '下载模板', 'href': '/static/template/%s-sample.csv' % data},
             ]
-            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
             docs, pager, q, order = model.find_by_page(self)
             self.render('data_list.html', docs=docs, pager=pager, q=q, order=order,
                         format_value=self.format_value, **kwargs)
@@ -130,7 +132,8 @@ class VariantListHandler(BaseHandler, Variant):
         """异体字管理"""
         try:
             kwargs = self.get_template_kwargs()
-            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
             cond, params = self.get_variant_search_condition(self.request.query)
             docs, pager, q, order = self.find_by_page(self, cond, default_order='_id')
             self.render('data_variant_list.html', docs=docs, pager=pager, q=q, order=order, params=params,

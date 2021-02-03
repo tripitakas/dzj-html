@@ -48,7 +48,8 @@ class PageListHandler(PageHandler):
 
     def get_template_kwargs(self, fields=None):
         kwargs = super(Page, self).get_template_kwargs()
-        kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+        if self.get_hide_fields() is not None:
+            kwargs['hide_fields'] = self.get_hide_fields()
         if '系统管理员' in self.current_user['roles']:
             kwargs['operations'][-2]['groups'] = [
                 {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, True).items()
@@ -95,7 +96,7 @@ class PageListHandler(PageHandler):
             else:
                 condition, params = Page.get_page_search_condition(self.request.query)
             page_tasks = {'': '', **PageHandler.task_names('page', True, True)}
-            docs, pager, q, order = Page.find_by_page(self, condition)
+            docs, pager, q, order = Page.find_by_page(self, condition, default_order='_id')
             self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         match_fields=self.match_fields, match_statuses=self.match_statuses,
                         page_tasks=page_tasks, task_statuses=self.task_statuses,
@@ -193,14 +194,13 @@ class PageBrowseHandler(PageHandler):
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             cond = self.get_page_search_condition(self.request.query)[0]
-            order = self.get_query_argument('order', '_id')
             to = self.get_query_argument('to', '')
-            if to == 'next':
-                cond[order] = {'$gt': page.get(order)}
-                page = self.db.page.find_one(cond, sort=[(order, 1)])
-            elif to == 'prev':
-                cond[order] = {'$lt': page.get(order)}
-                page = self.db.page.find_one(cond, sort=[(order, -1)])
+            if to in ['prev', 'next']:
+                order = self.get_query_argument('order', '_id')
+                order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+                asc = -asc if to == 'prev' else asc
+                cond[order] = {'$gt' if asc == 1 else '$lt': page.get(order)}
+                page = self.db.page.find_one(cond, sort=[(order, asc)])
             if not page:
                 message = '已是第一页' if to == 'prev' else '已是最后一页'
                 return self.send_error_response(e.no_object, message=message)

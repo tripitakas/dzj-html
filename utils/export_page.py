@@ -28,7 +28,7 @@ def export_page_txt(db, source='', dst_dir='', txt_field='adapt'):
         pages = list(db.page.find(cond, {'name': 1, 'chars': 1}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
-            txt = Ph.get_char_txt(page, txt_field)
+            txt = Ph.get_txt(page, txt_field)
             with open(path.join(dst_dir, '%s.txt' % page['name']), 'w') as wf:
                 wf.writelines(txt.replace('|', '\n'))
 

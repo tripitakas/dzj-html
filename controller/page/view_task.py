@@ -28,6 +28,7 @@ class PageTaskListHandler(TaskHandler, Page):
         {'id': 'deleted', 'name': '删除'},
         {'id': 'changed', 'name': '修改'},
         {'id': 'total', 'name': '所有'},
+        {'id': 'nav_times', 'name': '自览次数'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
@@ -69,7 +70,8 @@ class PageTaskListHandler(TaskHandler, Page):
 
     def get_template_kwargs(self, fields=None):
         kwargs = super().get_template_kwargs()
-        kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+        if self.get_hide_fields() is not None:
+            kwargs['hide_fields'] = self.get_hide_fields()
         readonly = '任务管理员' not in self.current_user['roles']
         if readonly:  # 任务浏览员
             kwargs['actions'] = [{'action': 'btn-browse', 'label': '浏览'}]
@@ -278,6 +280,7 @@ class PageTaskCutHandler(PageHandler):
             page = self.db.page.find_one({'name': self.task['doc_id']})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+
             self.pack_cut_boxes(page)
             page['img_url'] = self.get_page_img(page)
 
@@ -287,6 +290,10 @@ class PageTaskCutHandler(PageHandler):
             task_names = dict(cut_proof='校对', cut_review='审定')
             self.render('page_box.html', page=page, readonly=self.readonly, mode=self.mode,
                         task_type=task_type, task_names=task_names, tasks=review_tasks)
+
+            if self.mode == 'nav':
+                nav_times = self.task.get('nav_times') or 0
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'nav_times': nav_times + 1}})
 
         except Exception as error:
             return self.send_db_error(error)

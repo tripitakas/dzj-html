@@ -89,29 +89,30 @@ class CharTaskPublishApi(CharHandler):
 
 
 class CharTaskClusterApi(CharHandler):
-    URL = ['/api/task/do/@char_task/@task_id',
-           '/api/task/update/@char_task/@task_id']
+    URL = '/api/task/(do|update|nav)/@char_task/@task_id'
 
-    def post(self, task_type, task_id):
+    def post(self, mode, task_type, task_id):
         """提交聚类校对任务"""
         try:
+            update = {'updated_time': self.now()}
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'tasks.' + task_type: {'$ne': self.task['_id']}, 'txt_level': {'$lte': user_level}}
             if self.data.get('char_names'):  # 提交单页
                 cond.update({'name': {'$in': self.data.get('char_names')}})
                 self.db.char.update_many(cond, {'$addToSet': {'tasks.' + task_type: self.task['_id']}})
-                return self.send_data_response()
+                self.send_data_response()
+                return self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
 
-            if self.data.get('submit'):  # 提交任务
+            if self.data.get('submit') and self.task['status'] != self.STATUS_FINISHED:  # 提交任务
                 b_field = self.get_base_field(task_type)
                 source = self.prop(self.task, 'params.source')
                 base_txts = [t['txt'] for t in self.task['base_txts']]
                 cond.update({'source': source, b_field: {'$in': base_txts}, 'sc': {'$ne': 39}})
-                if self.db.char.find_one(cond):  # sc为39（即三字相同）的字数据可以忽略
+                if self.db.char.find_one(cond):  # 检查sc不为39（即三字相同）的字数据
                     return self.send_error_response(e.task_submit_error, message='还有未提交的字图，不能提交任务')
                 used_time = (self.now() - self.task['picked_time']).total_seconds()
-                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                    'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'used_time': used_time}})
+                update.update({'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'used_time': used_time})
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
 
             return self.send_data_response()
 

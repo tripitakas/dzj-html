@@ -47,16 +47,18 @@ class MyPageTaskHandler(TaskHandler):
     URL = '/task/my/@page_task'
 
     table_fields = ['batch', 'doc_id', 'num', 'status', 'char_count', 'added', 'deleted', 'changed', 'total',
-                    'used_time', 'picked_time', 'finished_time', 'my_remark']
+                    'used_time', 'picked_time', 'finished_time', 'updated_time', 'nav_times', 'my_remark']
+    hide_fields = ['num', 'added', 'deleted', 'changed', 'updated_time']
     search_fields = ['batch', 'doc_id', 'my_remark']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-        {'operation': 'btn-browse', 'label': '浏览结果'},
         {'operation': 'btn-dashboard', 'label': '结果统计'},
+        {'operation': 'btn-nav', 'label': '继续浏览'},
     ]
     actions = [
         {'action': 'my-task-view', 'label': '查看'},
         {'action': 'my-task-update', 'label': '更新'},
+        {'action': 'my-task-nav', 'label': '浏览'},
         {'action': 'my-task-remark', 'label': '备注'},
     ]
 
@@ -65,11 +67,12 @@ class MyPageTaskHandler(TaskHandler):
         try:
             kwargs = self.get_template_kwargs()
             kwargs['page_title'] = '我的任务-' + self.get_task_name(task_type)
-            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
             cond, params = self.get_task_search_condition(self.request.query, 'page')
             status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
             cond.update({'task_type': task_type, 'status': status, 'picked_user_id': self.user_id})
-            docs, pager, q, order = self.find_by_page(self, cond, default_order='-picked_time')
+            docs, pager, q, order = self.find_by_page(self, cond, default_order='_id')
             self.render('task_my_page.html', task_type=task_type, docs=docs, pager=pager, q=q, order=order,
                         params=params, format_value=self.format_value, **kwargs)
 
@@ -81,16 +84,17 @@ class MyCharTaskHandler(TaskHandler):
     URL = '/task/my/@char_task'
 
     table_fields = ['batch', 'base_txts', 'num', 'status', 'char_count', 'used_time', 'picked_time',
-                    'finished_time', 'my_remark']
+                    'finished_time', 'updated_time', 'my_remark']
     search_fields = ['batch', 'my_remark']
     operations = [
-        {'operation': 'btn-dashboard', 'label': '综合统计'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-        {'operation': 'btn-dashboard', 'label': '浏览结果'},
+        {'operation': 'btn-dashboard', 'label': '结果统计'},
+        {'operation': 'btn-nav', 'label': '继续浏览'},
     ]
     actions = [
         {'action': 'my-task-view', 'label': '查看'},
         {'action': 'my-task-update', 'label': '更新'},
+        {'action': 'my-task-nav', 'label': '浏览'},
         {'action': 'my-task-remark', 'label': '备注'},
     ]
 
@@ -99,7 +103,8 @@ class MyCharTaskHandler(TaskHandler):
         try:
             kwargs = self.get_template_kwargs()
             kwargs['page_title'] = '我的任务-' + self.get_task_name(task_type)
-            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
             cond, params = self.get_task_search_condition(self.request.query, 'char')
             status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
             cond.update({'task_type': task_type, 'status': status, 'picked_user_id': self.user_id})

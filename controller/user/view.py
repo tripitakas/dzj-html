@@ -71,7 +71,8 @@ class UsersAdminHandler(BaseHandler, User):
         """用户管理页面"""
         try:
             kwargs = self.get_template_kwargs()
-            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
             docs, pager, q, order = self.find_by_page(self)
             self.render('user_list.html', docs=docs, pager=pager, q=q, order=order,
                         format_value=self.format_value, **kwargs)

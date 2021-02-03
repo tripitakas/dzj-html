@@ -42,27 +42,6 @@ def reset_img_need_updated(db):
         db.char.update_many({'name': {'$in': names[start:start + size]}}, {'$set': {'img_need_updated': False}})
 
 
-def update_un_required(db, source):
-    """ 设置un_required标记"""
-    size = 10000
-    cond = {'source': source}
-    item_count = db.char.count_documents(cond)
-    page_count = math.ceil(item_count / size)
-    print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
-    for i in range(page_count):
-        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        fields = ['ocr_txt', 'alternatives', 'ocr_col', 'cmp_txt', 'name']
-        chars = list(db.char.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
-        required, un_required = [], []
-        for c in chars:
-            if Ph.is_un_required(c):
-                un_required.append(c['_id'])
-            else:
-                required.append(c['_id'])
-        required and db.char.update_many({'_id': {'$in': required}}, {'$set': {'un_required': False}})
-        un_required and db.char.update_many({'_id': {'$in': un_required}}, {'$set': {'un_required': True}})
-
-
 def group_update_variant(db):
     counts = list(db.char.aggregate([
         {'$match': {'txt': {'$regex': r'Y\d+'}}},

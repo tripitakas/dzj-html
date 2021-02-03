@@ -163,6 +163,46 @@ class Char(Model):
         return int(pc)
 
     @classmethod
+    def sync_txt_level_logs(cls, ch, p_ch):
+        """ 同步txt_level和txt_logs"""
+        level1, level2 = ch.get('level1'), p_ch.get('level2')
+        if not level1 and not level2:
+            return 0, []
+        if level1 and not level2:
+            return level1, ch.get('txt_logs') or []
+        if not level1 and level2:
+            return level2, p_ch.get('txt_logs') or []
+        # todo 合并txt logs
+        if level1 > level2:
+            return
+
+    @classmethod
+    def get_char_meta(cls, ch, page_name, source, column=None, update=False):
+        """从页数据page的char中获取字数据信息"""
+        m = dict(page_name=page_name, source=source, name='%s_%s' % (page_name, ch['cid']))
+        m['uid'] = h.align_code('%s_%s' % (page_name, ch['char_id'][1:].replace('c', '_')))
+        fields = ['source', 'cid', 'char_id', 'txt', 'ocr_txt', 'ocr_col', 'cmp_txt', 'alternatives']
+        m.update({k: ch[k] for k in fields if ch.get(k)})
+        m.update({k: int((ch.get(k) or 0) * 1000) for k in ['cc', 'lc']})
+        m['pos'] = dict(x=ch['x'], y=ch['y'], w=ch['w'], h=ch['h'])
+        m['ocr_txt'] = (ch.get('alternatives') or '')[:1]
+        m['ocr_col'] = ch.get('ocr_col') or '■'
+        m['cmb_txt'] = cls.get_cmb_txt(ch)
+        m['sc'] = cls.get_equal_level(ch)
+        m['pc'] = cls.get_prf_level(ch)
+        m['txt'] = ch.get('txt') or m['cmb_txt']
+        ch['column_no'] = ch.get('column_no') or ch.pop('line_no')
+        ch['column'] = column or {}
+        ch['txt_level'] = ch.get('txt_level') or 0
+        ch['txt_logs'] = ch.get('txt_logs') or []
+        ch['img_need_updated'] = True
+        if update:
+            # todo 合并txt_level和txt_logs
+            for f in ['source', 'txt', 'txt_level', 'txt_logs', 'img_need_updated']:
+                m.pop(f, 0)
+        return m
+
+    @classmethod
     def get_char_search_condition(cls, request_query):
         def c2int(c):
             return int(float(c) * 1000)

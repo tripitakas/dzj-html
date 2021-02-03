@@ -496,10 +496,8 @@
 
   // 浏览页面
   $('.action .btn-browse').on('click', function () {
-    setStorage('from', location.href);
-    let symbol = location.search ? '&' : '?';
     let name = $(this).parent().siblings('.name').text();
-    location.href = '/page/browse/' + name + location.search + symbol + 'from=1';
+    window.open(`/page/browse/${name}` + location.search, '_blank');
   });
 
   // 查看详情

@@ -31,7 +31,8 @@ class ArticleAdminHandler(BaseHandler, Article):
         """文章管理"""
         try:
             kwargs = self.get_template_kwargs()
-            kwargs['hide_fields'] = self.get_hide_fields() or kwargs['hide_fields']
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
             cond, params = self.get_article_search_condition(self.request.query)
             docs, pager, q, order = self.find_by_page(self, cond, None, '-create_time', {'content': 0})
             self.render('article_admin.html', docs=docs, pager=pager, order=order, q=q, **kwargs)
