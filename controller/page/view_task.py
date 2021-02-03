@@ -28,7 +28,7 @@ class PageTaskListHandler(TaskHandler, Page):
         {'id': 'deleted', 'name': '删除'},
         {'id': 'changed', 'name': '修改'},
         {'id': 'total', 'name': '所有'},
-        {'id': 'nav_times', 'name': '用户流览次数'},
+        {'id': 'nav_times', 'name': '自览次数'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
