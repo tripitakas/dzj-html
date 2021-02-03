@@ -18,7 +18,7 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
-from controller.page.tool.esearch import find_match
+from controller.tool.esearch import find_match
 from controller.page.base import PageHandler as Ph
 
 
@@ -77,7 +77,7 @@ def apply_page_txt(db, source, field, reset=None):
             if not Ph.get_txt(p, field):
                 ignored.append(p['name'])
                 continue
-            match, txt = Ph.apply_txt(p, field)
+            match, txt = Ph.apply_raw_txt(p, field)
             db.page.update_one({'_id': p['_id']}, {'$set': {
                 'chars': p['chars'], field1: {'status': match, 'value': txt}}})
             updated.append(p['name'])

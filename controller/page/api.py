@@ -404,7 +404,7 @@ class PageTxtDiffApi(PageHandler):
         try:
             rules = [(v.not_empty, 'texts')]
             self.validate(self.data, rules)
-            diff_blocks = self.diff(*self.data['texts'])
+            diff_blocks = self.page_diff(*self.data['texts'])
             if self.data.get('hints'):
                 diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
             cmp_data = self.render_string('com/_txt_diff.html', blocks=diff_blocks,

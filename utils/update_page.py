@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# python3 utils/update_page.py --uri=uri --func=init_variants
+# python3 utils/update_page.py --uri=uri --func=apply_ocr_col
 import re
 import sys
 import math
@@ -17,7 +17,8 @@ from controller import helper as hp
 from controller.page.base import PageHandler as Ph
 
 
-def update_box_log(page):
+def _update_box_log(page):
+    """ 更新以前的box_logs格式"""
     for f in ['blocks', 'columns', 'chars']:
         boxes = page.get(f) or []
         for b in boxes:
@@ -68,8 +69,8 @@ def update_box_log(page):
     return True
 
 
-def update_sub_column(db, source=None):
-    """ 更新sub_column"""
+def update_sub_column_id(db, source=None):
+    """ 更新子列的column_id"""
     size = 1000
     cond = {'source': source}
     item_count = db.page.count_documents(cond)
@@ -92,7 +93,7 @@ def update_sub_column(db, source=None):
 
 
 def apply_ocr_col(db, source=None):
-    """ 更新ocr_col"""
+    """ 将ocr_col适配至page['chars']"""
     size = 1000
     cond = {'source': source}
     item_count = db.page.count_documents(cond)
