@@ -27,6 +27,10 @@
     }
     // 是否示例任务
     $('#remarkModal .is_sample :radio[value="' + isSample + '"]').prop('checked', true);
+    // 记录当前浏览
+    if (gMode === 'browse' || gMode === 'nav') {
+      setStorage(`${gMode}-${gTaskType}`, location.href);
+    }
   });
 
   function getPostUrl() {
@@ -35,13 +39,10 @@
 
   // 离开页面
   window.leave = function () {
-    if (decodeFrom() === '1') {
-      window.location = getStorage('from');
-    } else if (gMode === 'update' || gMode === 'do') {
-      window.location = '/task/my/' + gTaskType;
-    } else {
-      window.history.back();
-    }
+    let from = getQueryString('from');
+    let url = from === '1' ? getStorage('from') : decodeFrom();
+    url = url || (gTaskType && `/task/my/${gTaskType}?order=-picked_time`);
+    url ? window.location = url : window.history.back();
   };
 
   // 备注任务管理
@@ -89,21 +90,15 @@
   // 前一个任务
   $('#task-prev').on('click', function () {
     let search = setQueryString('to', 'prev', true);
-    if ($(this).hasClass('nav')) {
-      location.href = `/task/nav/${gTaskType}/${gTaskId}` + search;
-    } else {
-      location.href = `/task/browse/${gTaskType}/${gTaskId}` + search;
-    }
+    let cmd = $(this).hasClass('nav') ? 'nav' : 'browse';
+    location.href = `/task/${cmd}/${gTaskType}/${gTaskId}` + search;
   });
 
   // 后一个任务
   $('#task-next').on('click', function () {
     let search = setQueryString('to', 'next', true);
-    if ($(this).hasClass('nav')) {
-      location.href = `/task/nav/${gTaskType}/${gTaskId}` + search;
-    } else {
-      location.href = `/task/browse/${gTaskType}/${gTaskId}` + search;
-    }
+    let cmd = $(this).hasClass('nav') ? 'nav' : 'browse';
+    location.href = `/task/${cmd}/${gTaskType}/${gTaskId}` + search;
   });
 
   $.mapKey('ctrl+r', function () {

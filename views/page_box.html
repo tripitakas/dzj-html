@@ -362,12 +362,6 @@
     });
   });
 
-  function leave() {
-    let from = getQueryString('from');
-    let url = from === '1' ? getStorage('from') : decodeFrom();
-    url = url || (gTaskType && `/task/my/${gTaskType}?order=-picked_time`);
-    url ? window.location = url : window.history.back();
-  }
 
 </script>
 </body>

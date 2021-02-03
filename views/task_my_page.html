@@ -172,15 +172,15 @@
     location.href = `/task/update/${taskType}/${taskId}?from=1`;
   });
   // 浏览
-  $('.operation .btn-nav').on('click', function () {
-    if (!$('tbody tr').first()) return;
-    let taskId = $('tbody tr').first().attr('id');
-    window.open(`/task/nav/${taskType}/${taskId}` + location.search, '_blank');
-  });
-  // 浏览
   $('.action .my-task-nav').on('click', function () {
     let taskId = $(this).parent().parent().attr('id');
     window.open(`/task/nav/${taskType}/${taskId}` + location.search, '_blank');
+  });
+  // 继续上次浏览
+  $('.operation .btn-nav').on('click', function () {
+    let url = getStorage(`nav-${taskType}`);
+    if (!url) return showWarning('', '您尚未进行过浏览，无法继续', 1000);
+    window.open(url, '_blank');
   });
   // 统计
   $('.operation .btn-dashboard').on('click', function () {
