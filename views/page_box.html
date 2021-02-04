@@ -358,6 +358,9 @@
         pick(gTaskType);
       } else if (id === 'task-submit-back') {
         location.href = '/task/lobby/' + gTaskType;
+      } else if (id === 'save') {
+        $.box.cStatus.hasChanged = false;
+        $.box.oStatus.hasChanged = false;
       }
     });
   });

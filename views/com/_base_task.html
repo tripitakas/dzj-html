@@ -87,8 +87,15 @@
     });
   });
 
+  function hasChanged() {
+    let bChanged = $.box && $.box.cStatus && $.box.cStatus.hasChanged;
+    let oChanged = $.box && $.box.oStatus && $.box.oStatus.hasChanged;
+    return bChanged || oChanged;
+  }
+
   // 前一个任务
   $('#task-prev').on('click', function () {
+    if (hasChanged()) return bsShow('提示', '数据已修改，请先保存', 'info', 1000);
     let search = setQueryString('to', 'prev', true);
     let cmd = $(this).hasClass('nav') ? 'nav' : 'browse';
     location.href = `/task/${cmd}/${gTaskType}/${gTaskId}` + search;
@@ -96,6 +103,7 @@
 
   // 后一个任务
   $('#task-next').on('click', function () {
+    if (hasChanged()) return bsShow('提示', '数据已修改，请先保存', 'info', 1000);
     let search = setQueryString('to', 'next', true);
     let cmd = $(this).hasClass('nav') ? 'nav' : 'browse';
     location.href = `/task/${cmd}/${gTaskType}/${gTaskId}` + search;
