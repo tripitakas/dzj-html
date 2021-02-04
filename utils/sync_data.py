@@ -63,10 +63,10 @@ def sync_page_to_char(db, source):
                 name = '%s_%s' % (p['name'], c.get('cid'))
                 try:
                     if c.get('deleted'):
-                        r = db.char.delete_one({'name': name})
-                        r.deleted_count and deleted.append(name)
+                        # r = db.char.delete_one({'name': name})
+                        # r.deleted_count and deleted.append(name)
                         continue
-                    ch = db.find_one({'name': name}, {'name': 1})
+                    ch = db.char.find_one({'name': name}, {'name': 1})
                     column = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
                     meta = Char.get_char_meta(c, p['name'], p.get('source'), column, ch is not None)
                     if ch:

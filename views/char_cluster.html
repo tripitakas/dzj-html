@@ -363,7 +363,7 @@
     // 设置异体字
     $.cluster.loadVariants(curTxt);
     // 更新校对字头
-    postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
+    gMode !== 'view' && postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
       $.cluster.setTxtKinds(res['txt_kinds']);
     });
     // 设置当前字图

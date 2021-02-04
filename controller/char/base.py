@@ -98,6 +98,27 @@ class CharHandler(Char, TaskHandler):
         """ 聚类任务以字数据的哪个字段进行聚类"""
         return 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
 
+    @classmethod
+    def update_txt_equals(cls, db, batch, task_type=None):
+        """ 设置聚类任务的文本相同程度"""
+        cond = {'batch': batch, 'txt_equals': {'$in': [None, {}]}}
+        task_type and cond.update({'task_type': task_type})
+        tasks = list(db.task.find(cond, {'base_txts': 1, 'params': 1, 'task_type': 1}))
+        print('[%s]update_txt_equals, %s tasks total' % (hp.get_date_time(), len(tasks)))
+        for task in tasks:
+            source = cls.prop(task, 'params.source')
+            b_field = cls.get_base_field(task['task_type'])
+            base_txts = [t['txt'] for t in task['base_txts']]
+            print(str(task['_id']), source, base_txts)
+            counts = list(db.char.aggregate([
+                {'$match': {'source': source, b_field: {'$in': base_txts}}},
+                {'$group': {'_id': '$sc', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}}
+            ]))
+            txt_equals = {str(c['_id']): c['count'] for c in counts}
+            db.task.update_one({'_id': task['_id']}, {'$set': {'txt_equals': txt_equals}})
+        print('finished.')
+
     @staticmethod
     def is_v_code(txt):
         return txt and len(txt) > 1 and txt[0] == 'v'

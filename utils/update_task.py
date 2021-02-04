@@ -12,6 +12,7 @@ from os import path, walk
 from datetime import datetime
 from operator import itemgetter
 from functools import cmp_to_key
+from bson.objectid import ObjectId
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -64,31 +65,48 @@ def update_op_no(db):
         print('invalid: %s' % invalid)
 
 
-def update_txt_equals(db, batch='', cond=None):
+def update_txt_equals(db, batch='', task_type=''):
     """ 更新聚类任务-相同程度"""
-    size = 1000
-    cond = cond or {'task_type': {'$regex': 'cluster_'}, 'batch': batch}
-    item_count = db.task.count_documents(cond)
-    page_count = math.ceil(item_count / size)
-    print('[%s]update_txt_equals started. %s tasks to process' % (hp.get_date_time(), item_count))
-    for i in range(page_count):
-        project = {'base_txts': 1, 'params': 1, 'task_type': 1}
-        tasks = list(db.task.find(cond, project).sort('_id', 1).skip(i * size).limit(size))
-        print('[%s]processing page %s/%s' % (hp.get_date_time(), i + 1, page_count))
-        for task in tasks:
-            source = hp.prop(task, 'params.source')
-            b_field = Ch.get_base_field(task['task_type'])
-            b_txts = [t['txt'] for t in task['base_txts']]
-            counts = list(db.char.aggregate([
-                {'$match': {'source': source, b_field: {'$in': b_txts}}},
-                {'$group': {'_id': '$sc', 'count': {'$sum': 1}}},
-                {'$sort': {'count': -1}}
-            ]))
-            txt_equals = {str(c['_id']): c['count'] for c in counts}
-            db.task.update_one({'_id': task['_id']}, {'$set': {'txt_equals': txt_equals}})
+    Ch.update_txt_equals(db, batch, task_type)
 
 
-def main(db_name='tripitaka', uri='localhost', func='update_txt_equals', **kwargs):
+def check_cluster_task(db, char_source='', task_type='', batch=''):
+    """ 检查某分类数据的聚类校对任务的字种、字数是否变化"""
+    # 统计字种及字数
+    base_field = Ch.get_base_field(task_type)
+    counts = list(db.char.aggregate([
+        {'$match': {'source': char_source}}, {'$group': {'_id': '$' + base_field, 'count': {'$sum': 1}}},
+        {'$sort': {'count': -1}}
+    ]))
+    counts = {c['_id']: dict(count=c['count']) for c in counts}
+    # 检查是否发生了变化
+    changed, debug = [], True
+    cond = {'batch': batch, 'task_type': task_type}
+    tasks = list(db.task.find(cond, {'base_txts': 1, 'params': 1, 'task_type': 1, 'char_count': 1}))
+    for task in tasks:
+        base_txts, equal = task['base_txts'], True
+        for item in base_txts:
+            txt, count = item['txt'], item['count']
+            if counts.get(txt):
+                counts[txt]['active'] = True
+                item['active'] = True
+                if count != counts[txt]['count']:
+                    item['old_count'] = count
+                    item['count'] = counts[txt]['count']
+                    changed.append(item)
+                    equal = False
+        base_txts = [dict(txt=t['txt'], count=t['count']) for t in base_txts if t.get('active')]
+        char_count = sum([t['count'] for t in base_txts])
+        if not equal or char_count != task.get('char_count'):
+            db.task.update_one({'_id': task['_id']}, {'$set': {'base_txts': base_txts, 'char_count': char_count}})
+
+    # 任务聚类字种的字数发生了改变
+    debug and print(changed)
+    # 该批次任务中，尚未使用的字种（需要发布新的任务）
+    debug and print(['%s:%s' % (k, v['count']) for k, v in counts.items() if not v.get('active')])
+
+
+def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

@@ -119,6 +119,15 @@ class MyCharTaskHandler(TaskHandler):
 class TaskInfoHandler(TaskHandler):
     URL = '/task/info/@task_id'
 
+    @classmethod
+    def format_value(cls, value, key=None, doc=None):
+        """格式化task表的字段输出"""
+        if key == 'txt_equals' and value:
+            return ','.join(['%s:%s' % (k, v) for k, v in value.items()])
+        if key == 'base_txts':
+            return ','.join(['%s:%s' % (t.get('txt'), t.get('count')) for t in value])
+        return super().format_value(value, key, doc)
+
     def get(self, task_id):
         """任务详情"""
         try:
