@@ -202,6 +202,7 @@ $('#filter-panel .filter').on('click', function () {
   let $this = $(this), active = $this.hasClass('active');
   let ids = $this.attr('id').replace('-', '=').split('=');
   let href = toggleQueryString(ids[0], ids[1], !active);
+  href = deleteQueryString('page', href);
   if (!$.cluster.status.ajax) return location.href = href;
   browse(href, () => {
     $(`.btn-${ids[0]}`).removeClass('active');

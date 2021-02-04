@@ -29,8 +29,8 @@ $('.sty-table .action .btn-browse').on('click', function () {
   setStorage('from', location.href);
   let node = $(this).parent().parent();
   let taskType = node.find('.task_type').attr('title');
-  let search = setQueryString('from', 1, true);
-  window.open(`/task/browse/${taskType}/${node.attr('id')}` + search, '_blank');
+  // let search = setQueryString('from', 1, true);
+  window.open(`/task/browse/${taskType}/${node.attr('id')}`, '_blank');
 });
 // 任务详情
 $('.sty-table .action .btn-detail').on('click', function () {
