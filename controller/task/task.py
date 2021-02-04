@@ -190,7 +190,7 @@ class Task(Model):
             return round(value / 60.0, 2)
         if key == 'base_txts':
             value = ''.join([t.get('txt') or '' for t in value])
-            return value if len(value) < 10 else value[:10] + '...'
+            return value if len(value) < 5 else value[:5] + '...'
         return h.format_value(value, key, doc)
 
     @classmethod
