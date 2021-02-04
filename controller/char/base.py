@@ -29,7 +29,7 @@ class CharHandler(Char, TaskHandler):
 
     @classmethod
     def get_user_txt_level(cls, self, task_type=None, user=None):
-        """获取用户的数据等级"""
+        """ 获取用户的数据等级"""
         user = user or self.current_user
         task_types = list(cls.txt_level['task'].keys())
         if task_type and task_type in task_types:
@@ -68,7 +68,7 @@ class CharHandler(Char, TaskHandler):
     @classmethod
     def check_txt_level_and_point(cls, self, char, task_type=None, response_error=True):
         """检查数据等级和积分"""
-        # 1.检查数据等级
+        # 1.检查数据等级。以任务数据等级优先，不够时检查用户数据等级
         r_level = cls.get_required_txt_level(char)
         u_level = cls.get_user_txt_level(self, task_type)
         if int(u_level) < int(r_level):
@@ -169,13 +169,13 @@ class CharHandler(Char, TaskHandler):
             if v == 'true':
                 cond[f] = True
             elif v == 'false':
-                cond[f] = None
+                cond[f] = {'$in': [None, False]}
         # 按是否备注过滤
         remark = self.get_user_argument('remark', 0)
         if remark == 'true':
-            cond['remark'] = {'$ne': None}
+            cond['remark'] = {'$nin': [None, '']}
         elif remark == 'false':
-            cond['remark'] = None
+            cond['remark'] = {'$in': [None, '']}
         # 是否已提交
         submitted = self.get_user_argument('submitted', 0)
         if task_type and submitted == 'true':
@@ -192,7 +192,11 @@ class CharHandler(Char, TaskHandler):
             cond['txt_logs'] = {'$nin': [None, []]}
         elif updated == 'false':
             cond['txt_logs'] = {'$in': [None, []]}
-        # 检查数据等级
-        user_level = self.get_user_txt_level(self, task_type)
-        cond['txt_level'] = {'$gt': user_level} if updated == 'unauth' else {'$lte': user_level}
+        # 按数据等级过滤
+        user_level = self.get_user_txt_level(self)
+        task_level = self.get_user_txt_level(self, task_type)
+        if updated == 'unauth':
+            cond['txt_level'] = {'$gt': task_level if self.is_my_task else user_level}
+        elif self.is_my_task:
+            cond['txt_level'] = {'$lte': task_level}
         return cond

@@ -434,7 +434,7 @@
     showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
       postApi('/api/page/delete', {data: {page_name: name}}, function (res) {
         if (res['deleted_count']) {
-          showSuccess('成功', '数据已删除', 1000);
+          showSuccess('成功', '已删除', 1000);
           refresh(1000);
         }
         if (res['existed_count']) showError('失败', '数据有关联任务，不能删除', 1000);

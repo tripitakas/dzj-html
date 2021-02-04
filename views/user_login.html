@@ -110,7 +110,7 @@
   $('#forgetModal .btn-primary').click(function () {
     let data = {name: $('#forgetModal #name').val(), phone_or_email: $('#login_id').val()};
     postApi('/user/forget_pwd', {data: data}, function () {
-      showSuccess('新的密码已经发送，请查收。', '', 2000);
+      showSuccess('新的密码已经发送，请查收', '', 2000);
     }, function (err) {
       showError('错误', err.message, 3000);
     });

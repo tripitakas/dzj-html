@@ -5,10 +5,10 @@
   let gMode = '{{handler.mode}}';
   let gTaskId = '{{handler.task_id}}';
   let gTaskType = '{{handler.task_type}}';
+  let isMyTask = '{{handler.is_my_task}}' === 'True';
   let myRemark = '{{handler.task.get("my_remark") or ""}}';
   let adminRemark = '{{handler.task.get("remark") or ""}}';
   let isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
-  let doTaskType = '/do/update/nav'.indexOf(gMode) > -1 ? gTaskType : '';
 
   // 模态框
   $('#task-return').on('click', () => $("#returnModal").modal());
@@ -55,7 +55,7 @@
     let $this = $(this), $txt = $this.text();
     $this.addClass('disabled').text('进行中...');
     postApi('/task/remark', {data: {_id: gTaskId, remark: remark, is_sample: isSample}}, function () {
-      showSuccess('成功', '已备注', 2000);
+      showSuccess('成功', '已备注', 1000);
       $this.removeClass('disabled').text($txt);
     });
   });
@@ -66,7 +66,7 @@
       if (result.dismiss) return;
       postApi('/task/my_remark/' + gTaskId, {data: {my_remark: result.value}}, function () {
         myRemark = result.value;
-        showSuccess('备注成功', '', 1000);
+        showSuccess('成功', '已备注', 1000);
       });
     });
   });
@@ -81,14 +81,21 @@
     $this.addClass('disabled').text('进行中...');
     postApi('/task/return/' + gTaskId, {data: {reason: reason}}, function () {
       $this.removeClass('disabled').text($txt);
-      showSuccess('成功', '任务已成功退回。', 1000);
+      showSuccess('成功', '已退回', 1000);
       if ($this.hasClass('modal-next')) pick(gTaskType);
       else goto('/task/lobby/' + gTaskType, 500);
     });
   });
 
+  function hasChanged() {
+    let bChanged = $.box && $.box.cStatus && $.box.cStatus.hasChanged;
+    let oChanged = $.box && $.box.oStatus && $.box.oStatus.hasChanged;
+    return bChanged || oChanged;
+  }
+
   // 前一个任务
   $('#task-prev').on('click', function () {
+    if (hasChanged()) return bsShow('提示', '数据已修改，请先保存', 'info', 1000);
     let search = setQueryString('to', 'prev', true);
     let cmd = $(this).hasClass('nav') ? 'nav' : 'browse';
     location.href = `/task/${cmd}/${gTaskType}/${gTaskId}` + search;
@@ -96,6 +103,7 @@
 
   // 后一个任务
   $('#task-next').on('click', function () {
+    if (hasChanged()) return bsShow('提示', '数据已修改，请先保存', 'info', 1000);
     let search = setQueryString('to', 'next', true);
     let cmd = $(this).hasClass('nav') ? 'nav' : 'browse';
     location.href = `/task/${cmd}/${gTaskType}/${gTaskId}` + search;

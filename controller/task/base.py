@@ -23,8 +23,8 @@ from controller.base import BaseHandler
 class TaskHandler(BaseHandler, Task):
     def __init__(self, application, request, **kwargs):
         super(TaskHandler, self).__init__(application, request, **kwargs)
-        self.task = self.task_type = self.steps = self.task_id = None
-        self.mode = self.readonly = self.submit_by_page = None
+        self.task = self.task_type = self.task_id = self.is_my_task = None
+        self.steps = self.mode = self.readonly = self.submit_by_page = None
         self.my_tasks = []
 
     def prepare(self):
@@ -46,6 +46,7 @@ class TaskHandler(BaseHandler, Task):
         self.task_type = self.get_task_type()
         self.steps = self.init_steps(self.task, self.task_type)
         self.readonly = self.mode in ['view', 'browse', '', None]
+        self.is_my_task = self.user_id == self.task.get('picked_user_id')
 
     def get_task(self, task_id):
         """根据task_id/to以及相关条件查找任务"""

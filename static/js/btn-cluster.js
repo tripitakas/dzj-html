@@ -157,11 +157,15 @@ function trimUrl(href) {
 }
 
 function browse(href, onReturn) {
+  bsLoading('', '加载中……', 'info');
   postApi(trimUrl(href), {data: {}}, function (res) {
+    bsHide();
     $.cluster.setChars(res.data.chars);
     $.cluster.updatePager(res.data.pager);
     window.history.pushState({}, null, href);
     onReturn && onReturn();
+  }, function (err) {
+    bsShow('失败', err.message, 'warning', 3000);
   });
 }
 
@@ -199,10 +203,7 @@ $('#filter-panel .filter').on('click', function () {
   let ids = $this.attr('id').replace('-', '=').split('=');
   let href = toggleQueryString(ids[0], ids[1], !active);
   if (!$.cluster.status.ajax) return location.href = href;
-  postApi(trimUrl(href), {data: {}}, function (res) {
-    $.cluster.setChars(res.data.chars);
-    $.cluster.updatePager(res.data.pager);
-    window.history.pushState({}, null, href);
+  browse(href, () => {
     $(`.btn-${ids[0]}`).removeClass('active');
     !active && $this.addClass('active');
   });

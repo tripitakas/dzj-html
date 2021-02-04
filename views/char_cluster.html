@@ -363,7 +363,7 @@
     // 设置异体字
     $.cluster.loadVariants(curTxt);
     // 更新校对字头
-    gMode !== 'view' && postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
+    postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
       $.cluster.setTxtKinds(res['txt_kinds']);
     });
     // 设置当前字图
@@ -425,12 +425,13 @@
 
   // 单字提交
   $('.char-txt .btn-submit').on('click', function () {
-    let data = $.charTxt.checkAndExport(), $this = $(this);
-    if (!data) return;
+    let $this = $(this), $txt = $this.text();
+    let data = $.charTxt.checkAndExport();
+    if (!data || $this.hasClass('disabled')) return;
     $this.addClass('disabled').text('保存中...');
     postApi('/char/txt/' + data.name, {data: data}, function (res) {
-      $this.removeClass('disabled').text('确定');
-      bsShow('', '已保存成功', 'success', 1000, '#s-alert');
+      $this.text($txt).removeClass('disabled');
+      bsShow('成功', '已保存', 'success', 1000, '#s-alert');
       // 更新当前字图、字图数据、校对面板和锚点
       $('.char-item.current').addClass('changed').find('.txt').text(data.txt);
       $.charTxt.setTxtLogs(res['txt_logs']);
@@ -439,9 +440,10 @@
       $.cluster.addTxtKind(data.txt);
       location.href = setAnchor(data.name);
     }, function (err) {
-      $this.removeClass('disabled').text('确定');
-      if (err.code === 2007) bsShow('', err.message, 'warning', 1000, '#b-alert');
-      else bsShow('失败', err.message, 'warning', 3000, '#b-alert');
+      $this.text($txt).removeClass('disabled');
+      if (err.code === 2007)  // 没有发生更改
+        return bsShow('提示', err.message, 'info', 1000, '#s-alert');
+      showTips('提示', err.message, 2000);
     });
   });
 
@@ -453,17 +455,20 @@
   $.mapKey('r', () => $('#bat-update-remark').click());
   $('#resultModal .modal-confirm').on('click', () => location.reload());
   $('.bat-update').on('click', function () {
+    if (typeof isMyTask === 'undefined' || !isMyTask) return showTips('提示', '您不是该任务所有者，不能批量修改', 2000);
     let names = $.map($('.char-check :checked'), (item) => $(item).parent().parent().attr('id'));
-    if (!names.length) return showTips('请选择', '当前没有选中任何记录', 3000);
+    if (!names.length) return showTips('请选择', '当前没有选中任何记录', 2000);
     let field = $(this).attr('data-value'), name = $.charTxt.fields[field];
     let isTxtField = ['txt', 'remark'].indexOf(field) > -1;
     let info = {title: `是否${name}`, input: 'radio', inputOptions: {1: '是', 0: '否'}};
     if (isTxtField) info = {title: `请输入${name}`, input: 'text', inputValue: $(`#p-${field}`).val()};
-    let data = {names: names, field: field, task_type: typeof doTaskType !== 'undefined' ? doTaskType : ''};
+    let data = {names: names, field: field, task_type: gTaskType};
     Swal2.fire(info).then((result) => {
       if (result.dismiss || !result.value) return;
+      bsLoading('保存中‧‧‧');
       data['value'] = isTxtField ? result.value : result.value === '1';
       postApi('/chars/txt', {data: data}, function (res) {
+        bsHide();
         if (res.data.level_unqualified || res.data.point_unqualified) {
           $('#resultModal .form-group').html($.map(res.data, function (value, key) {
             return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
@@ -472,17 +477,22 @@
         } else {
           location.reload();
         }
+      }, function (err) {
+        bsShow('失败', err.message, 'warning', 3000);
       });
     });
   });
 
   // 提交当前页
   $('#page-submit').on("click", function () {
+    bsLoading('提交中‧‧‧');
     let charNames = $.map($('.char-item'), (item) => $(item).attr('id'));
     postApi(location.pathname, {data: {char_names: charNames}}, function () {
       $('.char-item').addClass('submitted');
-      bsShow('成功', '页面已提交', 'info', 1000);
+      bsShow('成功', '页面已提交', 'success', 1000);
       browse(setQueryString('page', parseInt($('.p-no.active').text().trim()) + 1));
+    }, function (err) {
+      bsShow('失败', err.message, 'warning', 3000);
     });
   });
 
@@ -493,7 +503,7 @@
     bsLoading('提交中‧‧‧');
     $this.addClass('disabled');
     postApi(location.pathname, {data: {submit: true}}, function (res) {
-      bsShow('成功!', '已提交。', 'info', 1000);
+      bsShow('成功', '任务已提交', 'success', 1000);
       $this.removeClass('disabled');
       if (id === 'task-submit') {
         pick(gTaskType);

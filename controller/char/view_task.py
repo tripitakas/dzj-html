@@ -156,9 +156,14 @@ class CharTaskClusterHandler(CharHandler):
            '/task/update/@char_task/@task_id']
 
     def get(self, task_type, task_id):
-        """聚类校对页面"""
+        """
+        聚类校对的权限说明：
+        1. 按用户的数据等级过滤字数据。get_user_txt_level函数如果带task_type参数，则根据task_type参数获取数据等级，
+           没有时就按用户角色获取数据等级。这样，专家用户在做聚类校对时，按任务等级修改字数据的数据等级
+        2. 如果是用户自己的任务，则会以task_type获取user_level，以此过滤，以免工作时遇到没有权限校对的情况。否则，不做任何过滤。
+        """
         try:
-            debug, start = False, self.now()
+            debug, start = True, self.now()
             data, task_cond, cond = self.get_chars(task_type)
             debug and print('[1]get chars:', (self.now() - start).total_seconds(), cond)
 
@@ -170,13 +175,13 @@ class CharTaskClusterHandler(CharHandler):
                         page_title=self.get_task_name(task_type),
                         char_count=self.task.get('char_count'))
 
-            if self.mode != 'view':  # 更新校对字头
-                counts = list(self.db.char.aggregate([
-                    {'$match': task_cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
-                ]))
-                txt_kinds = [c['_id'] for c in sorted(counts, key=itemgetter('count'), reverse=True)]
-                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'params.txt_kinds': txt_kinds}})
-                debug and print('[2]aggregate txt kinds:', (self.now() - start).total_seconds(), task_cond)
+            # 更新校对字头
+            counts = list(self.db.char.aggregate([
+                {'$match': task_cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
+            ]))
+            txt_kinds = [c['_id'] for c in sorted(counts, key=itemgetter('count'), reverse=True)]
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'params.txt_kinds': txt_kinds}})
+            debug and print('[2]aggregate txt kinds:', (self.now() - start).total_seconds(), task_cond)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -185,7 +190,8 @@ class CharTaskClusterHandler(CharHandler):
         """聚类校对ajax获取数据"""
         try:
             if self.data.get('query') == 'txt_kinds':
-                data = dict(txt_kinds=self.prop(self.task, 'params.txt_kinds', []))
+                base_txts = [t['txt'] for t in self.task['base_txts']]
+                data = dict(txt_kinds=self.prop(self.task, 'params.txt_kinds', base_txts))
             else:
                 data = self.get_chars(task_type)[0]
             self.send_data_response(data)
@@ -202,7 +208,7 @@ class CharTaskClusterHandler(CharHandler):
         cond.update(task_cond)
         # 做任务时，限制每页字数
         self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
-        self.page_size = 100 if self.page_size > 100 and self.mode in ['do', 'update'] else self.page_size
+        self.page_size = 100 if self.page_size > 100 and self.mode in ['do', 'update', 'nav'] else self.page_size
         chars, pager, q, order = Char.find_by_page(self, cond, default_order=[('pc', 1), ('cc', 1)])
         for ch in chars:  # 设置单字列图
             column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))

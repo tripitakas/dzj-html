@@ -88,7 +88,7 @@
       if (result.dismiss || !result.value) return;
       showConfirm('提示', '请慎重！将修改字数据，同时将删除其它字图', function () {
         postApi('/variant/merge', {data: {v_codes: vCodes, main_code: vCodes[result.value]}}, function (res) {
-          showSuccess('成功', '合并成功', 1000);
+          showSuccess('成功', '已合并', 1000);
           refresh(1000);
         }, function (err) {
           showError('失败', err.message, 3000);

@@ -153,7 +153,7 @@
 <script src="{{static_url('js/time-select.js')}}"></script>
 <script>
   let taskType = '{{task_type}}';
-  // 查看页面
+  // 查看页数据
   $('.sty-table td.doc_id').on('click', function () {
     if ($(this).text().length) {
       window.open(`/page/${$(this).text().trim()}`, '_blank');
@@ -163,13 +163,13 @@
   $('.action .my-task-view').on('click', function () {
     setStorage('from', location.href);
     let taskId = $(this).parent().parent().attr('id');
-    location.href = `/task/${taskType}/${taskId}?from=1`;
+    window.open(`/task/${taskType}/${taskId}?from=1`, '_blank');
   });
   // 修改
   $('.action .my-task-update').on('click', function () {
     setStorage('from', location.href);
     let taskId = $(this).parent().parent().attr('id');
-    location.href = `/task/update/${taskType}/${taskId}?from=1`;
+    window.open(`/task/update/${taskType}/${taskId}?from=1`, '_blank');
   });
   // 浏览
   $('.action .my-task-nav').on('click', function () {
@@ -203,7 +203,7 @@
       if (result.dismiss) return;
       postApi('/task/my_remark/' + taskId, {data: {my_remark: result.value}}, function () {
         myRemark.text(result.value);
-        showSuccess('备注成功', '', 1000);
+        showSuccess('成功', '已备注', 1000);
       });
     });
   });

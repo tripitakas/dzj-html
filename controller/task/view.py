@@ -88,13 +88,10 @@ class MyCharTaskHandler(TaskHandler):
     search_fields = ['batch', 'my_remark']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-        {'operation': 'btn-dashboard', 'label': '结果统计'},
-        {'operation': 'btn-nav', 'label': '继续浏览'},
     ]
     actions = [
         {'action': 'my-task-view', 'label': '查看'},
         {'action': 'my-task-update', 'label': '更新'},
-        {'action': 'my-task-nav', 'label': '浏览'},
         {'action': 'my-task-remark', 'label': '备注'},
     ]
 

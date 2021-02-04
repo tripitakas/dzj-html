@@ -155,11 +155,11 @@
   function saveProfile() {
     let info = {gender: $('#gender').val(), name: $('#name').val(), phone: $('#phone').val(), email: $('#email').val()};
     postApi('/user/my/profile', {data: info}, function () {
-      showSuccess('修改成功', $('#name').val() + ' 的个人信息已修改。', 2000);
+      showSuccess('成功', $('#name').val() + ' 的个人信息已修改', 2000);
       location.reload();
     }, function (err) {
       if (err.code === 1009) {
-        showSuccess('修改成功', '个人信息没有发生改变。', 2000);
+        showSuccess('修改成功', '个人信息没有发生改变', 2000);
       }
       showError('修改失败', err.message, 3000);
     });
@@ -176,13 +176,13 @@
     let oldPassword = $('#old_password').val().trim();
     let confirmPassword = $('#confirm_password').val().trim();
     if (password !== confirmPassword) {
-      return showError('请重新输入', '两次密码不一致。', 3000);
+      return showError('请重新输入', '两次密码不一致', 3000);
     }
     postApi('/user/my/pwd', {data: {old_password: oldPassword, password: password}}, function () {
-      showSuccess('修改成功', $('#name').val() + ' 的密码已修改。', 2000);
+      showSuccess('修改成功', $('#name').val() + ' 的密码已修改', 2000);
     }, function (err) {
       if (err.code === 1009) {
-        showSuccess('修改成功', '密码没有发生改变。', 2000);
+        showSuccess('修改成功', '密码没有发生改变', 2000);
         $('#updateModal').modal('hide');
       } else {
         showError('修改失败', err.message, 3000);
