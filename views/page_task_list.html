@@ -268,10 +268,10 @@
         if (!names.length) return showTips('请选择', '当前没有选中任何记录', 2000);
         downloadTxt(`导出页码-${new Date().format("yyyyMMdd-hhmmss")}.txt`, names);
       } else if (result.value === '2') {
-        if (!location.search.length) return showTips('', '请您先进行检索', 2000);
+        if (!location.search.length) return showTips('提示', '请您先进行检索', 2000);
         postApi('/page/task/list', {data: {search: location.search}}, function (res) {
           let names = res['data']['names'].join('\r\n');
-          if (!names.length) return showTips('', '检索结果为空', 2000);
+          if (!names.length) return showTips('提示', '检索结果为空', 2000);
           downloadTxt(`导出页码-${new Date().format("yyyyMMdd-hhmmss")}.txt`, names);
         });
       }

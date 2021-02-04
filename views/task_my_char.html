@@ -193,7 +193,7 @@
       if (result.dismiss) return;
       postApi('/task/my_remark/' + taskId, {data: {my_remark: result.value}}, function () {
         myRemark.text(result.value);
-        showSuccess('备注成功', '', 1000);
+        showSuccess('成功', '已备注', 1000);
       });
     });
   });

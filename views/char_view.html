@@ -58,7 +58,7 @@
       <div id="left-region" class="left bd">
         <div class="box-holder"></div>
         <button id="reset-box" class="btn btn-default hide">复原</button>
-        <button id="submit-box" class="btn btn-primary{{'' if box_auth else ' disabled'}}">确认</button>
+        <button id="submit-box" class="btn btn-primary">确认</button>
       </div>
       <div id="panel-region" class="right bd proof-panel">
         {% include com/_char_txt.html %}
@@ -68,6 +68,10 @@
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
       <strong class="title"></strong><span class="text"></span>
     </div>
+    <div class="b-alert alert alert-info hide" id="b-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div><!--b-alert-->
     <div class="m-footer">
       <span class="fl">
         字框权限：<span class="box-auth">{{'可写' if box_auth else '只读'}}</span>
@@ -161,13 +165,22 @@
 
   $.mapKey('i', () => window.open(`/char/info/${char.name}`, '_blank'));
 
+  // 字框修改
   $('#submit-box').on('click', function () {
-    if ($(this).hasClass('disabled')) return;
+    let $this = $(this);
+    if ($this.hasClass('disabled')) return;
     let chars = $.box.exportSubmitData()['op']['chars'];
-    if (!chars.length) return bsShow('提示', '没有修改，无需提交', 'info', 1000);
+    if (!chars.length) return bsShow('提示', '没有修改，无需提交', 'warning', 1500, '#b-alert');
+    $this.addClass('disabled');
     postApi('/page/char/box/{{char["name"]}}', {data: {pos: chars[0]}}, function (res) {
-      bsShow('', '保存成功！', 'info', 1000);
+      // $this.removeClass('disabled');
+      // bsShow('成功', '已保存', 'success', 1000, '#b-alert');
       location.reload();
+    }, function (err) {
+      $this.removeClass('disabled');
+      if (err.code === 2007)  // 没有发生更改
+        return bsShow('提示', err.message, 'info', 1000, '#s-alert');
+      showTips('提示', err.message, 2000);
     });
   });
 
@@ -176,22 +189,23 @@
     $.box.switchCurBox(char);
   });
 
+  // 单字提交
   $('.char-txt .btn-submit').on('click', function () {
-    let $this = $(this);
-    if ($this.hasClass('disabled')) return;
+    let $this = $(this), $txt = $this.text();
     let data = $.charTxt.checkAndExport();
-    if (!data) return;
+    if (!data || $this.hasClass('disabled')) return;
     $this.addClass('disabled').text('保存中...');
     postApi('/page/char/txt/' + char.name, {data: data}, function (res) {
-      $this.removeClass('disabled');
-      bsShow('', '已保存成功', 'success', 1000, '#s-alert');
+      $this.text($txt).removeClass('disabled');
+      bsShow('成功', '已保存', 'success', 1000, '#s-alert');
       $.charTxt.setTxtLogs(res['txt_logs']);
       data['txt_logs'] = res['txt_logs'];
       Object.assign(char, data);
     }, function (err) {
-      $this.removeClass('disabled');
-      if (err.code === 2007) showTips('', err.message, 1000);
-      else showWarning('失败', err.message, 2000);
+      $this.text($txt).removeClass('disabled');
+      if (err.code === 2007)  // 没有发生更改
+        return bsShow('提示', err.message, 'info', 1000, '#s-alert');
+      showTips('提示', err.message, 2000);
     });
   });
 
