@@ -170,7 +170,7 @@ class CharTaskClusterHandler(CharHandler):
                         page_title=self.get_task_name(task_type),
                         char_count=self.task.get('char_count'))
 
-            if self.mode in ['do', 'update', 'nav']:  # 更新校对字头
+            if self.mode != 'view':  # 更新校对字头
                 counts = list(self.db.char.aggregate([
                     {'$match': task_cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
                 ]))

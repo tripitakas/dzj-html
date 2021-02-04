@@ -101,7 +101,7 @@ class CharHandler(Char, TaskHandler):
     @classmethod
     def update_txt_equals(cls, db, batch, task_type=None):
         """ 设置聚类任务的文本相同程度"""
-        cond = {'batch': batch, 'txt_equals': None}
+        cond = {'batch': batch, 'txt_equals': {'$in': [None, {}]}}
         task_type and cond.update({'task_type': task_type})
         tasks = list(db.task.find(cond, {'base_txts': 1, 'params': 1, 'task_type': 1}))
         print('[%s]update_txt_equals, %s tasks total' % (hp.get_date_time(), len(tasks)))
