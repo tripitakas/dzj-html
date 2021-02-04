@@ -88,17 +88,17 @@ class CharTxtApi(CharHandler):
             # 检查数据等级和积分
             self.check_txt_level_and_point(self, char, self.data.get('task_type'))
             # 检查参数，设置更新
-            fields = ['txt', 'is_vague', 'is_deform', 'uncertain']
-            if not [f for f in fields + ['remark'] if (char.get(f) or False) != (self.data.get(f) or False)]:
+            fields = ['txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
+            if not [f for f in fields if (char.get(f) or False) != (self.data.get(f) or False)]:
                 return self.send_error_response(e.not_changed, message='没有任何修改')
-
+            # 按照格式设置字段，以便后续搜索
             update = {k: self.data[k] for k in fields if k in self.data}
-            update['remark'] = self.data.get('remark') or None
-            my_log = {k: self.data[k] for k in fields + ['remark', 'task_type'] if self.data.get(k)}
+            my_log = {k: self.data[k] for k in fields + ['task_type'] if k in self.data}
             update['txt_logs'] = self.merge_txt_logs(my_log, char)
             update['txt_level'] = self.get_user_txt_level(self, self.data.get('task_type'))
             self.db.char.update_one({'name': char_name}, {'$set': update})
             self.send_data_response(dict(txt_logs=update['txt_logs']))
+
             self.add_log('update_txt', char['_id'], char['name'], update)
 
         except self.DbError as error:
@@ -146,7 +146,6 @@ class CharsTxtApi(CharHandler):
             # 更新char表的txt/txt_level等字段
             info = {field: value, 'txt_level': self.get_user_txt_level(self, self.data.get('task_type'))}
             self.db.char.update_many({'name': {'$in': new_update + old_update}}, {'$set': info})
-            log['updated'] = new_update + old_update
             if new_update:
                 self.db.char.update_many({'name': {'$in': new_update}, 'txt_logs': None}, {'$set': {'txt_logs': []}})
                 self.db.char.update_many({'name': {'$in': new_update}}, {'$addToSet': {'txt_logs': {
@@ -160,6 +159,7 @@ class CharsTxtApi(CharHandler):
                     'txt_logs.$.txt_level': info['txt_level'],
                     'txt_logs.$.updated_time': self.now(),
                 }})
+            log['updated'] = new_update + old_update
             self.send_data_response({k: l for k, l in log.items() if l})
             self.add_log('update_txt', None, new_update + old_update, info)
 

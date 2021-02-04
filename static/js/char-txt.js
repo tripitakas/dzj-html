@@ -193,7 +193,7 @@
       is_vague: $('.is-vague :checked').val() === '1',
       is_deform: $('.is-deform :checked').val() === '1',
       uncertain: $('.uncertain :checked').val() === '1',
-      task_type: typeof doTaskType !== 'undefined' ? doTaskType : '',
+      task_type: (typeof gTaskType !== 'undefined' && isMyTask) ? gTaskType : '',
     };
   }
 
