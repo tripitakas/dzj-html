@@ -157,13 +157,13 @@
   $('.action .my-task-view').on('click', function () {
     setStorage('from', location.href);
     let taskId = $(this).parent().parent().attr('id');
-    location.href = `/task/${taskType}/${taskId}?from=1`;
+    window.open(`/task/${taskType}/${taskId}?from=1`, '_blank');
   });
   // 修改
   $('.action .my-task-update').on('click', function () {
     setStorage('from', location.href);
     let taskId = $(this).parent().parent().attr('id');
-    location.href = `/task/update/${taskType}/${taskId}?from=1`;
+    window.open(`/task/update/${taskType}/${taskId}?from=1`, '_blank');
   });
   // 浏览
   $('.operation .btn-browse').on('click', function () {
