@@ -15,6 +15,7 @@ sys.path.append(BASE_DIR)
 
 from controller import helper as hp
 from controller.page.base import PageHandler as Ph
+from controller.char.base import CharHandler as Ch
 
 
 def _update_box_log(page):
@@ -109,6 +110,27 @@ def apply_ocr_col(db, source=None):
             db.page.update_one({'_id': p['_id']}, {'$set': {
                 'chars': p['chars'], 'txt_match.ocr_col.mis_len': mis_len, 'updated': True
             }})
+
+
+def update_page_txt(db, source=None):
+    """ 更新page['chars']的txt字段"""
+    size = 1000
+    cond = {'source': source}
+    item_count = db.page.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['name', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for p in pages:
+            print('[%s]%s' % (hp.get_date_time(), p['name']))
+            if p.get('chars'):
+                for c in p.get('chars'):
+                    c['cmb_txt'] = Ch.get_cmb_txt(c)
+                    if not c.get('txt_logs'):
+                        c['txt'] = c['cmb_txt']
+                db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
