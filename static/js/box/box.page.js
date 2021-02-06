@@ -121,7 +121,7 @@
         if (!r.status) return;
         $.box.reorderBoxes();
         $.box.loadUserLinks();
-        $.box.cStatus.hasChanged = false;
+        // $.box.cStatus.hasChanged = false;
         $.box.drawLink(true);
       }
       $('#toggle-order').addClass('hide');
@@ -137,7 +137,7 @@
         if (!r.status) return;
         $.box.updateNoByLinks(r.links);
         $.box.updateUserLinks();
-        $.box.oStatus.hasChanged = false;
+        // $.box.oStatus.hasChanged = false;
       }
       // 记录字序状态
       pStatus.order.noType = $.box.status.curNoType;
