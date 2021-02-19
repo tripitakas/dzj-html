@@ -12,7 +12,7 @@ function showError(title, text, timer) {
     $('.ajax-error').text(text.replace(/[。！]$/, '')).show(200);
     if (timer) setTimeout(() => $('.ajax-error').hide(), timer);
   } else { // sweet alert
-    var type = /失败|错误/.test(title) && !/没有发生改变/.test(text) ? 'error' : 'warning';
+    let type = /失败|错误/.test(title) && !/没有发生改变/.test(text) ? 'error' : 'warning';
     Swal0.fire($.extend({title: title, html: text, type: type}, timer ? {timer: timer} : {}));
   }
 }
@@ -63,13 +63,13 @@ function goto(url, timer) {
 }
 
 function getQueryString(name) {
-  var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
-  var r = window.location.search.substr(1).match(reg);
-  return r != null ? unescape(r[2]) : '';
+  let reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+  let r = window.location.search.substr(1).match(reg);
+  return r != null ? decodeURI(r[2]) : '';
 }
 
 function setQueryString(name, value, onlySearch, search) {
-  var add = name + '=' + value;
+  let add = name + '=' + value;
   search = search || location.search;
   if (search.indexOf(name + '=') !== -1) {
     search = search.replace(new RegExp(name + '=.*?(&|$)', 'i'), add + '&');
@@ -82,11 +82,15 @@ function setQueryString(name, value, onlySearch, search) {
   return onlySearch ? search : location.pathname + search;
 }
 
-function deleteQueryString(names) {
-  var url = location.href;
+function deleteQueryString(names, url) {
+  url = url || location.href;
   names = typeof names === 'string' ? names.split(',') : names;
   names.forEach((name) => url = deleteParam(url, name));
   return url;
+}
+
+function toggleQueryString(name, value, show) {
+  return show ? setQueryString(name, value) : deleteQueryString(name);
 }
 
 function deleteParam(query, name) {
@@ -96,7 +100,7 @@ function deleteParam(query, name) {
 }
 
 function getAnchor() {
-  var p = location.href.search(/#[^\/#]+$/);
+  let p = location.href.search(/#[^\/#]+$/);
   return p > 0 ? location.href.substr(p + 1) : '';
 }
 
@@ -106,33 +110,35 @@ function setAnchor(anchor) {
 
 function encodeFrom() {
   // 将第一个?替换为&
-  var url = location.pathname + location.search.replace('?', '&');
+  let url = location.pathname + location.search.replace('?', '&');
   return url;
   // return deleteParam(url, 'to');
 }
 
 function decodeFrom() {
-  var from = '';
-  var index = location.search.indexOf('from=');
+  let from = '';
+  let index = location.search.indexOf('from=');
   if (index !== -1) {
     from = location.search.substr(index + 5);
     if (from.indexOf('?') === -1)
       from = from.replace('&', '?');
   }
+
   return from;
   // return deleteParam(from, 'to');
 }
+
 
 /* 时间相关*/
 function toLocalTime(isoTimeStamp) {
   if (typeof isoTimeStamp['$date'] !== 'undefined')
     isoTimeStamp = isoTimeStamp['$date'];
-  var times = new Date(isoTimeStamp).toISOString().split('T');
+  let times = new Date(isoTimeStamp).toISOString().split('T');
   return times[0] + ' ' + times[1].substr(0, 5);
 }
 
 Date.prototype.format = function (fmt) {
-  var o = {
+  let o = {
     "M+": this.getMonth() + 1,
     "d+": this.getDate(),
     "h+": this.getHours(),
@@ -144,7 +150,7 @@ Date.prototype.format = function (fmt) {
   if (/(y+)/.test(fmt)) {
     fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
   }
-  for (var k in o) {
+  for (let k in o) {
     if (new RegExp("(" + k + ")").test(fmt)) {
       fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
     }
@@ -154,7 +160,7 @@ Date.prototype.format = function (fmt) {
 
 /* localStorage*/
 function getStorage(key, defaultValue) {
-  var value = localStorage.getItem(key);
+  let value = localStorage.getItem(key);
   if (value === 'true')
     return true;
   if (value === 'false')

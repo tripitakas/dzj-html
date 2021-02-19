@@ -110,7 +110,7 @@
       <div id="left-region" class="m-left bd">
         <div id="holder"></div>
       </div>
-      <div id="right-region" class="m-right bd wide-txt">
+      <div id="right-region" class="m-right bd">
         {% module PageTxt(txts, cmp_data=cmp_data) %}
       </div>
     </div>
@@ -124,7 +124,7 @@
         当前字框：<span class="char-name">未选中</span><span class="char-info"></span>
       </span>
       <span class="fr">
-        权限：<span class="page-info">{{'只读' if readonly else '读写'}}</span>
+        权限：<span class="page-info">{{'只读' if readonly else '可写'}}</span>
       </span>
     </div>
   </div>
@@ -132,7 +132,7 @@
 
 <div class="panel-body" style="padding: 0">
   {% module DoubtModal() %}
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -222,8 +222,8 @@
 <script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
   // 公共参数
-  var txtFields = decodeJSON('{{txt_fields}}');
-  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+  let txtFields = decodeJSON('{{txt_fields}}');
+  let txtDict = decodeJSON('{{dumps(txt_dict)}}');
 
   // 页面图和切分框
   $.cut.create({

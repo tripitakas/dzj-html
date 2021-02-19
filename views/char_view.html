@@ -4,22 +4,29 @@
   <meta charset="UTF-8">
   <title>{{char['name']}}</title>
   {% include com/_base_css.html %}
-  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
-  <link href="{{static_url('css/char.css')}}" rel="stylesheet">
+  <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/cluster.css')}}" rel="stylesheet">
   <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    #right-region {
-      width: 420px;
-      max-width: 420px;
+    #panel-region {
+      width: 260px;
+      max-width: 260px;
+    }
+
+    #reset-box {
+      right: 315px;
+      bottom: 32px;
+      z-index: auto;
+      position: absolute;
     }
 
     #submit-box {
-      right: 435px;
-      bottom: 30px;
+      right: 261px;
+      bottom: 32px;
       z-index: auto;
       position: absolute;
     }
@@ -49,29 +56,34 @@
     </div>
     <div class="m-body flex pfread">
       <div id="left-region" class="left bd">
-        <div id="holder"></div>
-        <button class="btn btn-primary{{'' if box_auth else ' disabled'}}" id="submit-box">确认</button>
+        <div class="box-holder"></div>
+        <button id="reset-box" class="btn btn-default hide">复原</button>
+        <button id="submit-box" class="btn btn-primary">确认</button>
       </div>
-      <div id="right-region" class="right bd work-panel">
-        {% module CharTxt(char, show_base=True) %}
+      <div id="panel-region" class="right bd proof-panel">
+        {% include com/_char_txt.html %}
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
       <strong class="title"></strong><span class="text"></span>
     </div>
+    <div class="b-alert alert alert-info hide" id="b-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div><!--b-alert-->
     <div class="m-footer">
       <span class="fl">
-        字框权限：<span class="box-auth">{{'读写' if box_auth else '只读'}}</span>
+        字框权限：<span class="box-auth">{{'可写' if box_auth else '只读'}}</span>
       </span>
       <span class="fr">
-        文字权限：<span class="txt-auth">{{'读写' if txt_auth else '只读'}}</span>
+        文字权限：<span class="txt-auth">{{'可写' if txt_auth else '只读'}}</span>
       </span>
     </div>
   </div>
 </div>
 <div class="panel-body" style="padding: 0">
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -114,36 +126,106 @@
 </div>
 
 {% include com/_base_js.html %}
-{% include com/_base_cut.html %}
-<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/box/jquery.mapKey.js')}}"></script>
+<script src="{{static_url('js/box/raphael.js')}}"></script>
+<script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.cut.js')}}"></script>
+<script src="{{static_url('js/box/box.page.js')}}"></script>
+<script src="{{static_url('js/box/box.key.js')}}"></script>
+<script src="{{static_url('js/btn-box.js')}}"></script>
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script>
-  // 公共参数
-  var taskType = '';
-  var chars = decodeJSON('{{dumps(chars)}}');
-  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
-
-  $.cut.create({
-    holder: 'holder',
-    image: '{{img_url}}',
+  // initial
+  $.page.init({
+    readonly: false,
+    onlyChange: true,
+    curBoxType: 'all',
+    holder: '.box-holder',
+    showMode: 'height-full',
+    imgUrl: '{{page["img_url"]}}',
     width: '{{page.get("width") or 0}}',
     height: '{{page.get("height") or 0}}',
-    chars: '{{[char["pos"]]}}',
-    scrollContainer: '#left-region',
+    chars: decodeJSON('{{[char]}}'),
+    showImage: true,
+    blurImage: 1,
   });
-  $.cut.bindKeys();
+  $.box.bindBaseKeys();
 
-  // 提交字框修改
+  let char = $.box.data.boxes[0];
+  $.charTxt.init({readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true});
+  $.charTxt.setChar(char);
+  $.box.switchCurBox(char);
+
+  $.box.onBoxChanged(function (box, reason, param) {
+    if (reason === 'zoom') {
+      $.box.switchCurBox(char);
+    }
+  });
+
+  $.mapKey('i', () => window.open(`/char/info/${char.name}`, '_blank'));
+
+  // 字框修改
   $('#submit-box').on('click', function () {
-    if ($(this).hasClass('disabled')) return;
-    var box = $.cut.exportBoxes()[0];
-    var data = {pos: {x: box.x, y: box.y, w: box.w, h: box.h}};
-    postApi('/page/char/box/{{char["name"]}}', {data: data}, function (res) {
+    let $this = $(this);
+    if ($this.hasClass('disabled')) return;
+    let chars = $.box.exportSubmitData()['op']['chars'];
+    if (!chars.length) return bsShow('提示', '没有修改，无需提交', 'warning', 1500, '#b-alert');
+    $this.addClass('disabled');
+    postApi('/page/char/box/{{char["name"]}}', {data: {pos: chars[0]}}, function (res) {
+      // $this.removeClass('disabled');
+      // bsShow('成功', '已保存', 'success', 1000, '#b-alert');
       location.reload();
+    }, function (err) {
+      $this.removeClass('disabled');
+      if (err.code === 2007)  // 没有发生更改
+        return bsShow('提示', err.message, 'info', 1000, '#s-alert');
+      showTips('提示', err.message, 2000);
     });
   });
 
-</script>
+  $('#reset-box').on('click', function () {
+    $.charTxt.toggleHint(null, false);
+    $.box.switchCurBox(char);
+  });
 
+  // 单字提交
+  $('.char-txt .btn-submit').on('click', function () {
+    let $this = $(this), $txt = $this.text();
+    let data = $.charTxt.checkAndExport();
+    if (!data || $this.hasClass('disabled')) return;
+    $this.addClass('disabled').text('保存中...');
+    postApi('/page/char/txt/' + char.name, {data: data}, function (res) {
+      $this.text($txt).removeClass('disabled');
+      bsShow('成功', '已保存', 'success', 1000, '#s-alert');
+      $.charTxt.setTxtLogs(res['txt_logs']);
+      data['txt_logs'] = res['txt_logs'];
+      Object.assign(char, data);
+    }, function (err) {
+      $this.text($txt).removeClass('disabled');
+      if (err.code === 2007)  // 没有发生更改
+        return bsShow('提示', err.message, 'info', 1000, '#s-alert');
+      showTips('提示', err.message, 2000);
+    });
+  });
+
+  // 显示坐标对应的框
+  $(document).on('click', 'span.pos', function () {
+    let txt = $(this).text(), box = {x: 0, y: 0, w: 0, h: 0, cid: 0};
+    if (txt.split(',').length > 3) {
+      txt.split(',').forEach((item) => {
+        let a = item.split(':');
+        if (a.length === 2) box[a[0]] = parseInt(a[1]);
+      });
+    } else if (txt.split('/').length > 3) {
+      let a = txt.split('/');
+      box = {x: parseInt(a[0]), y: parseInt(a[1]), w: parseInt(a[2]), h: parseInt(a[3]), cid: 0};
+    }
+    box.boxType = box.cid ? 'column' : 'char';
+    $.charTxt.toggleHint(box, true);
+    $('#reset-box').removeClass('hide');
+  });
+
+</script>
 </body>
 </html>

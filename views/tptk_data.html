@@ -44,7 +44,7 @@
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
         <div class="btn-group title" style="user-select: text">
-          <a href="/tptk/{{tripitaka_code}}">{{tripitaka['name']}}</a>
+          <a href="/page/{{tripitaka_code}}">{{tripitaka['name']}}</a>
         </div>
       </div>
       <div class="center">
@@ -78,17 +78,17 @@
 <script>
 
   $('td.start_volume,  td.end_volume,  td.volume_code').on('click', function () {
-    window.open('/tptk/' + $(this).text().trim(), '_blank');
+    window.open('/page/' + $(this).text().trim(), '_blank');
   });
 
   $('td.start_page').on('click', function () {
-    var volumeCode = $(this).parent().find('.start_volume').text();
-    window.open('/tptk/' + volumeCode + '_' + $(this).text().trim(), '_blank');
+    let volumeCode = $(this).parent().find('.start_volume').text();
+    window.open('/page/' + volumeCode + '_' + $(this).text().trim(), '_blank');
   });
 
   $('td.end_page').on('click', function () {
-    var volumeCode = $(this).parent().find('.end_volume').text();
-    window.open('/tptk/' + volumeCode + '_' + $(this).text().trim(), '_blank');
+    let volumeCode = $(this).parent().find('.end_volume').text();
+    window.open('/page/' + volumeCode + '_' + $(this).text().trim(), '_blank');
   });
 </script>
 

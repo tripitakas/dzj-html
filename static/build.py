@@ -126,7 +126,7 @@ def merge_3rd_assets(which=None):
             'assets/select2/zh-CN.js',
             'assets/jquery-multi-select/jquery.multi-select.js',
             'assets/jquery-multi-select/jquery.quicksearch.js',
-            'assets/flatpickr/flatpickr.js',
+            'assets/flatpickr/flatpickr.min.js',
             'assets/flatpickr/zh.js',
         ]
         dst_name = 'static/built/task_admin_assets.js'

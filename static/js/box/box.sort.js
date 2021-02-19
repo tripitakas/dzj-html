@@ -31,26 +31,26 @@
     let b = self.getBoxes();
     let cover1 = boxesOutOfBoxes(b.chars, b.columns, 0.1);
     if (cover1.outBoxes.length)
-      return {status: false, msg: '字框不在列框内', outBoxes: cover1.outBoxes};
-    // let cover2 = boxesOutOfBoxes(b.chars, b.blocks, 0.2);
-    // if (cover2.outBoxes.length)
-    //   return {status: false, msg: '字框不在栏框内', outBoxes: cover2.outBoxes};
-    let cover3 = boxesOutOfBoxes(b.columns, b.blocks, 0.2);
-    if (cover3.outBoxes.length)
-      return {status: false, msg: '列框不在栏框内', outBoxes: cover3.outBoxes};
+      return {status: false, msg: '列框没有覆盖住字框', outBoxes: cover1.outBoxes};
+    let cover2 = boxesOutOfBoxes(b.columns, b.blocks, 0.2);
+    if (cover2.outBoxes.length)
+      return {status: false, msg: '栏框没有覆盖住列框', outBoxes: cover2.outBoxes};
+    // let cover3 = boxesOutOfBoxes(b.chars, b.blocks, 0.2);
+    // if (cover3.outBoxes.length)
+    //   return {status: false, msg: '栏框没有覆盖住字框', outBoxes: cover3.outBoxes};
     return {status: true};
   }
 
-  function adjustBoxes() {
+  function adjustBoxes(boxType) {
     // 根据字框调整栏框、列框边界
     let boxes = self.getBoxes();
-    boxes.blocks.forEach((b) => {
+    (boxType === 'all' || boxType === 'blocks') && boxes.blocks.forEach((b) => {
       let p = getOuterRange(boxes.chars.filter((ch) => ch.block_no === b.block_no));
-      b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
+      if (p.x) b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
     });
-    boxes.columns.forEach((b) => {
+    (boxType === 'all' || boxType === 'columns') && boxes.columns.forEach((b) => {
       let p = getOuterRange(boxes.chars.filter((ch) => ch.block_no === b.block_no && ch.column_no === b.column_no));
-      b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
+      if (p.x) b.elem.attr({x: p.x, y: p.y, width: p.w, height: p.h});
     });
   }
 
@@ -243,7 +243,7 @@
       let size = 0, chWs = 0, chHs = 0, chAs = 0;
       chars.forEach((c) => {
         let cp = pos(c);
-        if (bigCh * 0.75 < cp.w <= bigCh) {
+        if (bigCh * 0.75 < cp.w && cp.w <= bigCh) {
           ++size;
           chWs += cp.w;
           chHs += cp.h;
@@ -259,7 +259,7 @@
       let size2 = 0, clWs = 0;
       columns.forEach((c) => {
         let cp = pos(c);
-        if (bigCl * 0.75 < cp.w <= bigCl) {
+        if (bigCl * 0.75 < cp.w && cp.w <= bigCl) {
           ++size2;
           clWs += cp.w;
         }
@@ -339,12 +339,12 @@
           let x = Math.min(column1['x'], column2['x']);
           let w = Math.max(column1['x'] + column1['w'], column2['x'] + column2['w']) - x;
           let hrNbs = getBoxesOfRegion(chars, {x: x, y: cp['y'], w: w, h: cp['h']}, 0.1);
-          let hrNbs1 = hrNbs.filter((n) => n['column_id'] = c['column_id']);
-          let hrNbs2 = hrNbs.filter((n) => n['column_id'] = c['column_id2']);
+          let hrNbs1 = hrNbs.filter((n) => n['column_id'] === c['column_id']);
+          let hrNbs2 = hrNbs.filter((n) => n['column_id'] === c['column_id2']);
           // 比较把c放过去之后两列的水平宽度
           let hrW1 = getOuterRange(hrNbs1)['w'];
           let hrW2 = getOuterRange(hrNbs2.concat([c]))['w'];
-          if (hrW1 < hrW2) c['column_id'] = c['column_id2'];
+          if (hrW2 < hrW1) c['column_id'] = c['column_id2'];
         }
       });
       // 3.根据column_id分组
@@ -463,7 +463,8 @@
     }
 
     function setSubColumns(columnId, columnChars) {
-      let sub = {columns: [], col: [], no: 1, isNew: false};
+      let subColumns = [];
+      let sub = {col: [], no: 1, isNew: false};
       columnChars.forEach((c, i) => {
         if (!sub.col.length) return sub.col.push(c);
         let lst = sub.col[sub.col.length - 1];
@@ -474,18 +475,26 @@
           sub.isNew = true;
         if (sub.isNew) {
           let p = getOuterRange(sub.col);
-          sub.columns.push({x: p.x, y: p.y, w: p.w, h: p.h, 'sub_no': sub.no, 'column_id': columnId + '#' + sub.no});
+          let charCids = sub.col.map((c) => c.cid);
+          subColumns.push({
+            x: p.x, y: p.y, w: p.w, h: p.h, 'char_cids': charCids, 'sub_no': sub.no,
+            'column_id': columnId + 's' + sub.no,
+          });
           Object.assign(sub, {col: [c], no: sub.no + 1, isNew: false});
         } else {
-          sub.columns.push(c);
+          sub.col.push(c);
         }
       });
       if (sub.col.length) {
         let p = getOuterRange(sub.col);
-        sub.columns.push({x: p.x, y: p.y, w: p.w, h: p.h, 'sub_no': sub.no, 'column_id': columnId + '#' + sub.no});
+        let charCids = sub.col.map((c) => c.cid);
+        subColumns.push({
+          x: p.x, y: p.y, w: p.w, h: p.h, 'char_cids': charCids, 'sub_no': sub.no,
+          'column_id': columnId + 's' + sub.no
+        });
       }
-      if (columnId !== 'b0c0' && sub.columns.length > 1)
-        columnDict[columnId]['sub_columns'] = sub.columns;
+      if (columnId !== 'b0c0' && subColumns.length > 1)
+        columnDict[columnId]['sub_columns'] = subColumns;
     }
 
     if (!chars || !chars.length) return;

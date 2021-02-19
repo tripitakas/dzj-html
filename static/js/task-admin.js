@@ -1,87 +1,83 @@
 // 更新批次
-$('.operation .bat-batch').click(function () {
-  var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-  if (!ids.length)
-    return showTips('请选择', '当前没有选中任何记录', 3000);
+$('.operation .bat-batch').on('click', function () {
+  let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+  if (!ids.length) return showTips('请选择', '当前没有选中任何记录', 1000);
   Swal2.fire({title: '请输入批次', input: 'text'}).then((result) => {
-    if (result.value) {
-      postApi('/task/batch', {data: {_ids: ids, batch: result.value}}, () => location.reload());
-    }
+    if (result.dismiss || !result.value) return;
+    postApi('/task/batch', {data: {_ids: ids, batch: result.value}}, () => location.reload());
   });
 });
 // 统计检索结果
-$('.operation .btn-statistic a').click(function () {
-  var collection = location.pathname.indexOf('page') > -1 ? 'page' : 'char';
+$('.operation .btn-statistic a').on('click', function () {
+  let collection = location.pathname.indexOf('page') > -1 ? 'page' : 'char';
   location.href = '/' + collection + '/task/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
 });
 // 显示退回理由、失败理由等
-$('.sty-table td.return_reason').click(function () {
+$('.sty-table td.return_reason').on('click', function () {
   if ($(this).text().length) {
     showTips($(this).text());
   }
 });
 // 查看页面
-$('.sty-table td.doc_id').click(function () {
+$('.sty-table td.doc_id').on('click', function () {
   if ($(this).text().length) {
-    location.href = '/page/browse/' + $(this).text() + '?from=' + encodeFrom();
+    window.open(`/page/${$(this).text().trim()}`, '_blank');
   }
 });
 // 浏览任务
-$('.sty-table .action .btn-nav').click(function () {
-  var node = $(this).parent().parent();
-  var taskType = node.find('.task_type').attr('title');
-  location.href = '/task/browse/' + taskType + '/' + node.attr('id') + '?from=' + encodeFrom();
+$('.sty-table .action .btn-browse').on('click', function () {
+  setStorage('from', location.href);
+  let node = $(this).parent().parent();
+  let taskType = node.find('.task_type').attr('title');
+  // let search = setQueryString('from', 1, true);
+  window.open(`/task/browse/${taskType}/${node.attr('id')}`, '_blank');
 });
 // 任务详情
-$('.sty-table .action .btn-detail').click(function () {
-  var node = $(this).parent().parent();
+$('.sty-table .action .btn-detail').on('click', function () {
+  let node = $(this).parent().parent();
   location.href = '/task/info/' + node.attr('id');
 });
 // 任务历程
-$('.sty-table .action .btn-history').click(function () {
-  var node = $(this).parent().parent();
+$('.sty-table .action .btn-history').on('click', function () {
+  let node = $(this).parent().parent();
   location.href = '/page/task/resume/' + node.find('.doc_id').text();
 });
 // 重新发布任务
-$('.sty-table .action .btn-republish').click(function () {
-  var node = $(this).parent().parent();
-  var regex = /(picked|failed)/i;
+$('.sty-table .action .btn-republish').on('click', function () {
+  let node = $(this).parent().parent();
+  let regex = /(picked|failed)/i;
   if (!node.find('.status').attr('title').match(regex)) {
-    return showWarning('状态有误', '只能重新发布进行中或已失败的任务！', 5000);
+    return showWarning('状态有误', '只能重新发布进行中或已失败的任务！', 3000);
   }
   showConfirm("确定重新发布吗？", "任务" + node.find('.doc_id').text().trim() + "将被重新发布！", function () {
     postApi('/task/republish/' + node.attr('id'), {data: {}}, function () {
-      window.location.reload();
+      location.reload();
     });
   });
 });
 // 删除任务
-$('.sty-table .action .btn-delete').click(function () {
-  var node = $(this).parent().parent();
-  var regex = /(published|fetched|pending|returned)/i;
+$('.sty-table .action .btn-delete').on('click', function () {
+  let node = $(this).parent().parent();
+  let regex = /(published|fetched|pending|returned)/i;
   if (!node.find('.status').attr('title').match(regex)) {
-    return showWarning('状态有误', '只能删除已发布未领取、已获取、等待前置任务及已退回的任务！', 5000);
+    return showWarning('状态有误', '只能删除已发布未领取、已获取、等待前置任务及已退回的任务！', 3000);
   }
-  var id = node.attr('id');
-  var data = getData(id);
-  var name = 'name' in data ? data.name : '';
+  let id = node.attr('id');
+  let data = getData(id);
+  let name = 'name' in data ? data.name : '';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
     postApi('/task/delete', {data: {_id: data._id}}, function (res) {
-      showSuccess('成功', '数据' + name + '已删除', 2000);
+      showSuccess('成功', '数据' + name + '已删除', 1000);
       refresh(1000);
     }, function (err) {
-      showError('删除失败', err.message, 5000);
+      showError('删除失败', err.message, 3000);
     });
   });
 });
 
 /*---指派任务---*/
-var $assignModal = $('#assignModal');
-$('.operation .bat-assign').click(function () {
-  $assignModal.modal();
-});
-
-var $assignResultModal = $('#assignResultModal');
+let $assignModal = $('#assignModal');
+$('.operation .bat-assign').on('click', () => $assignModal.modal());
 $assignModal.find(".select-user").select2({
   dropdownParent: $assignModal,
   ajax: {
@@ -95,19 +91,20 @@ $assignModal.find(".select-user").select2({
     }
   }
 });
-$assignModal.find('.modal-confirm').click(function () {
+let $assignResultModal = $('#assignResultModal');
+$assignModal.find('.modal-confirm').on('click', function () {
   if (!$('.sty-table :checked').length) {
     $assignModal.modal('hide');
-    return showTips('提示', '请选择任务', 3000);
+    return showTips('提示', '请选择任务', 1000);
   }
   $(this).text('进行中...');
-  var tasks = $.map($('table tbody :checked'), function (item) {
-    var node = $(item).parent().parent();
+  let tasks = $.map($('table tbody :checked'), function (item) {
+    let node = $(item).parent().parent();
     return [[node.attr('id'), node.find('.task_type').attr('title'), node.find('.doc_id').text()]];
   });
-  var data = {'tasks': tasks, 'user_id': $assignModal.find(".select-user").val()};
+  let data = {'tasks': tasks, 'user_id': $assignModal.find(".select-user").val()};
   postApi('/task/assign', {'data': data}, function (res) {
-    var html = $.map(res.data, function (value, key) {
+    let html = $.map(res.data, function (value, key) {
       return '<tr><td class="' + key + '">' + l10n[key] + '(' + value.length + ')' + '<td>' + value + '</td>' + '</td></tr>';
     }).join('');
     $assignModal.modal('hide');
@@ -115,24 +112,22 @@ $assignModal.find('.modal-confirm').click(function () {
     $assignResultModal.modal();
   });
 });
-$assignResultModal.find('.modal-confirm').click(function () {
-  location.reload();
-});
+$assignResultModal.find('.modal-confirm').on('click', () => location.reload());
 
 // 批量重做
-$('.operation .bat-republish').click(function () {
-  var ids = $.map($('table tbody :checked'), function (item) {
+$('.operation .bat-republish').on('click', function () {
+  let ids = $.map($('table tbody :checked'), function (item) {
     return $(item).parent().parent().attr('id').trim();
   });
-  if (!ids.length) return showTips('请选择', '当前没有选中任何记录', 3000);
+  if (!ids.length) return showTips('请选择', '当前没有选中任何记录', 1000);
   showConfirm("提示", "确定重新发布这 " + ids.length + " 个任务吗？", function () {
     postApi('/task/republish', {data: {ids: ids}}, function (res) {
-      var msg = `${res.published_count}条已重新发布`;
-      if (ids.length - res.published_count)
-        msg += `，${ids.length - res.published_count}条未重新发布（非失败、退回、进行中）`;
+      let msg = `${res['published_count']}条已重新发布`;
+      if (ids.length - res['published_count'])
+        msg += `，${ids.length - res['published_count']}条未重新发布（非失败、退回、进行中）`;
       showConfirm("提示", msg, () => location.reload());
     }, function (err) {
-      showError('重新发布失败', err.message, 5000);
+      showError('重新发布失败', err.message, 3000);
     });
   });
 });

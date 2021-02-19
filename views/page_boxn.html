@@ -78,7 +78,7 @@
 </div>
 
 <div class="panel-body" style="padding: 0">
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -190,20 +190,20 @@
   // 设置三种切分框的状态
   function updateThreeBoxes() {
     $.cut.switchCurrentBox(null);
-    var charActive = $('#toggle-char').hasClass('active');
+    let charActive = $('#toggle-char').hasClass('active');
     $.cut.toggleBox(charActive, 'char');
-    var blockActive = $('#toggle-block').hasClass('active');
+    let blockActive = $('#toggle-block').hasClass('active');
     $.cut.toggleBox(blockActive, 'block');
-    var columnActive = $('#toggle-column').hasClass('active');
+    let columnActive = $('#toggle-column').hasClass('active');
     $.cut.toggleBox(columnActive, 'column');
     console.log(charActive + '|' + columnActive + '|' | blockActive);
   }
 
   $.cut.state.canHitBox = function (el) {
-    var boxType = $('.task-step.active').attr('data-value');
-    var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
-    var blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
-    var columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
+    let boxType = $('.task-step.active').attr('data-value');
+    let charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
+    let blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
+    let columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
 
     // 栏框内的列字框可显示不能点击，列框内的字框同理。而 readonly 属性用于部分明确是只读的框，可点击不可编辑
     if (el.data('_readonly')) return false;
@@ -214,11 +214,11 @@
 
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'added') {
-      var boxType = $('.task-step.active').attr('data-value');
-      var charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
-      var blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
-      var columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
-      var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
+      let boxType = $('.task-step.active').attr('data-value');
+      let charActive = stepsFinished || !boxType ? $('#toggle-char').hasClass('active') : boxType === 'char';
+      let blockActive = stepsFinished || !boxType ? $('#toggle-block').hasClass('active') : boxType === 'block';
+      let columnActive = stepsFinished || !boxType ? $('#toggle-column').hasClass('active') : boxType === 'column';
+      let active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
 
       if (active.length > 6) {
         $.cut.removeBox();
@@ -239,12 +239,12 @@
       showHighLightCount();
       updateUndo();
     } else if (reason === 'navigate') {
-      var curId = $.cut.getCurrentCharID(true);
+      let curId = $.cut.getCurrentCharID(true);
       $('.m-footer .char-name').text(curId || '未选中');
-      var msg = (info.txt || info.ocr_txt || '') + (info['is_small'] ? '（小字）' : '') + (info.readonly ? '，  权限：只读' : '，  权限：读写');
+      let msg = (info.txt || info.ocr_txt || '') + (info['is_small'] ? '（小字）' : '') + (info.readonly ? '，  权限：只读' : '，  权限：可写');
       $('.m-footer .char-info').text(curId ? msg : '');
     } else if (reason === 'initial') {
-      var invalid = $.cut.data.chars.map(function (c) {
+      let invalid = $.cut.data.chars.map(function (c) {
         return /b0c/.test(c.char_id) && c.char_id;
       });
       $.cut.toggleClass(invalid, null, 'flash', true);
@@ -257,8 +257,8 @@
   // 高亮各种类型字框数量
   function showHighLightCount() {
     $('.hl-box > button').each(function (i, btn) {
-      var type = btn.getAttribute('id').replace(/^.*-/, '');
-      var boxes = $.cut.highlightBoxes(type, true, true);
+      let type = btn.getAttribute('id').replace(/^.*-/, '');
+      let boxes = $.cut.highlightBoxes(type, true, true);
       $(btn).find('.s-count').text(boxes.length);
     });
   }
@@ -288,7 +288,7 @@
         // 高亮未被覆盖的框
         $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
         $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
-        var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
+        let tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
         tips += `<a onclick="deleteBoxes([${res['out_boxes']}],'${res['box_type']}');">批量删除</a>`;
         bsShow('已保存!', tips, 'warning');
       }
@@ -303,7 +303,7 @@
       // 高亮未被覆盖的框
       $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
       $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
-      var tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
+      let tips = `检测到<b style="color:red">${res.message}</b>并高亮显示，请修正。`;
       tips += `<a onclick="deleteBoxes([${res['out_boxes']}],'${res['box_type']}');">批量删除</a>`;
       bsShow('已保存!', tips, 'warning');
     }
@@ -317,11 +317,11 @@
   }
 
   // 切换步骤
-  var stepsFinished = null;
-  var clickedSteps = ['char'];
+  let stepsFinished = null;
+  let clickedSteps = ['char'];
 
   $('.task-step').on('click', function () {
-    var boxType = $(this).attr('data-value');
+    let boxType = $(this).attr('data-value');
     if (clickedSteps.indexOf(boxType) === -1) clickedSteps.push(boxType);
     $('.task-step').removeClass('active');
     $(this).addClass('active');
@@ -342,7 +342,7 @@
 
   // 跳转字序
   $('#btn-order').on('click', function () {
-    var from = decodeFrom() ? '?from=' + decodeFrom() : '';
+    let from = decodeFrom() ? '?from=' + decodeFrom() : '';
     location.href = '/page/order/{{page["name"]}}' + from;
   });
 

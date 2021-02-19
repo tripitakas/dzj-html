@@ -33,7 +33,7 @@
   });
 
   $('#side-menu').on('click', '.has-sub .menu-title', function () {
-    var $sub = $(this).parent().find('.sub-ul');
+    let $sub = $(this).parent().find('.sub-ul');
     if ($sub.hasClass('sub-ul-hidden')) {
       $('#side-menu .sub-ul').addClass('sub-ul-hidden');
       $sub.removeClass('sub-ul-hidden');
@@ -43,9 +43,8 @@
   });
 
   $(document).ready(function () {
-    var activeId = '{{active_id}}';
-    if (!activeId)
-      activeId = location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
+    let activeId = '{{active_id}}' || location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
+    console.log(activeId)
     $(activeId).addClass('active');
     $(activeId).parent().removeClass('sub-ul-hidden');
   });

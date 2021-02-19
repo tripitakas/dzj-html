@@ -2,15 +2,73 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{handler.page_name if hasattr(handler, 'page_name') else '聚类校对'}}</title>
+  <title>{{globals().get('page_title') or '聚类校对'}}</title>
   {% include com/_base_css.html %}
-  <link href="{{static_url('css/char.css')}}" rel="stylesheet">
+  <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/cluster.css')}}" rel="stylesheet">
   <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-  {% import re %}
+  <style>
+    #panel-region {
+      width: 260px;
+      max-width: 260px;
+    }
+
+    .add-gap li:first-child {
+      margin-top: 18px;
+    }
+
+    .m-panel {
+      display: flex;
+      overflow: auto;
+      flex-direction: column;
+      background: var(--Grey_Content);
+      border-right: 1px solid var(--Grey_Light);
+    }
+
+    .m-panel .s-count {
+      font-size: 75%;
+      color: var(--Brown_Darker);
+    }
+
+    .panel-list > li > a {
+      clear: both;
+      color: #333;
+      display: block;
+      cursor: pointer;
+      font-weight: 400;
+      padding: 3px 10px;
+      white-space: nowrap;
+      line-height: 1.42857143;
+    }
+
+    .panel-list li:hover {
+      background-color: var(--Grey_Line);
+    }
+
+    .panel-list li.active a {
+      color: green;
+      font-weight: bold;
+    }
+
+    .panel-list .head {
+      font-weight: 500;
+      text-align: center;
+      color: var(--Brown_Darker);
+      background-color: var(--Grey_Lighter);
+    }
+
+    .panel-list .divider {
+      height: 1px;
+      margin: 2px 0;
+      overflow: hidden;
+      background-color: #e5e5e5;
+    }
+
+  </style>
 </head>
 
 <body class="widescreen">
@@ -22,22 +80,27 @@
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
         <div class="btn-group title">
-          {{handler.page_name if hasattr(handler, 'page_name') else '聚类校对'}}
+          {{globals().get('page_name') or '聚类校对'}}
         </div>
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-        <div class="btn-group" title="按置信度排序">
-          <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
+        <div class="btn-group" title="显隐设置">
+          <i class="btn-txt icon-eye dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-cc-up" href="#">按置信度升序</a></li>
-            <li><a id="btn-cc-down" href="#">按置信度降序</a></li>
+            <li id="toggle-filter-panel" class="active"><a>显隐排序过滤[1]</a></li>
+            <li id="toggle-char-variant" class="active"><a>显隐异体字列表[2]</a></li>
+            <li id="toggle-char-cc" class="active"><a>显隐字符置信度[3]</a></li>
+            <li id="toggle-column-panel" class="active"><a>显隐中间列图[4]</a></li>
+            <li id="toggle-proof-panel" class="active"><a>显隐校对面板[5]</a></li>
+            <li id="toggle-proof-info" class="active"><a>显隐校对信息[6]</a></li>
           </ul>
         </div>
-        <div class="btn-group" title="按置信度过滤">
-          <i class="btn-txt icon-cc dropdown-toggle" data-toggle="dropdown"></i>
+        <div id="btn-reset" class="btn-txt icon-loop2" data-toggle="tooltip" data-placement="bottom" title="去掉排序及过滤条件[esc]"></div>
+        <div class="btn-group" data-toggle="tooltip" data-placement="bottom" title="按字置信度过滤">
+          <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <div class="dropdown-menu filter-menu" data-stopPropagation="true">
-            <div class="menu-title">按置信度过滤</div>
+            <div class="menu-title">按字置信度过滤</div>
             <li class="divider"></li>
             <div class="input-line">
               <input id="filter-start" type="text" class="form-control input-sm" placeholder="起始值">
@@ -47,116 +110,125 @@
             <button id="btn-filter" type="button" class="btn btn-primary btn-sm">确定</button>
           </div>
         </div>
-        <div id="bat-select" class="btn-txt icon-checkbox2" data-toggle="tooltip" data-placement="bottom" title="全部选择"></div>
-        <div class="btn-group" title="按条件过滤">
-          <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
+        <div class="btn-group" title="批量修改">
+          <i class="btn-txt icon-pencil dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
-            <li><a id="btn-diff" href="#">异文</a></li>
-            <li><a id="btn-submitted" href="#">已提交</a></li>
-            <li><a id="btn-not-submitted" href="#">未提交</a></li>
-            <li><a id="btn-un-required" href="#">不必校对</a></li>
-            <li class="divider"></li>
-            <li><a id="btn-un-update" href="#">未修改</a></li>
-            <li><a id="btn-my-update" href="#">我的修改</a></li>
-            <li><a id="btn-all-update" href="#">所有修改</a></li>
-            <li class="divider"></li>
-            <li><a id="btn-no-problem" href="#">没问题</a></li>
-            <li><a id="btn-vague" href="#">模糊或残损</a></li>
-            <li><a id="btn-not-sure" href="#">不确定</a></li>
-            <li><a id="btn-not-know" href="#">不认识</a></li>
+            <li id="bat-update-txt" class="bat-update" data-value="txt"><a>文字[s]</a></li>
+            <li id="bat-update-deform" class="bat-update" data-value="is_deform"><a>异形字[d]</a></li>
+            <li id="bat-update-uncertain" class="bat-update" data-value="uncertain"><a>不确定[f]</a></li>
+            <li id="bat-update-vague" class="bat-update" data-value="is_vague"><a>笔画残损[e]</a></li>
+            <li id="bat-update-remark" class="bat-update" data-value="remark"><a>备注[r]</a></li>
           </ul>
         </div>
-        <div id="bat-update-txt" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="批量修改文字"></div>
-        <div id="toggle-column-panel" class="btn-txt icon-panel-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐中间列图"></div>
-        <div id="bat-update-type" class="btn-txt icon-edit1" data-toggle="tooltip" data-placement="bottom" title="批量修改类型"></div>
-        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
+        <div id="bat-select" class="btn-txt icon-all-select1" data-toggle="tooltip" data-placement="bottom" title="全部选择[a]"></div>
+        <div class="btn-group add-gap hide" data-toggle="tooltip" data-placement="bottom" title="鼠标滑选">
+          <i class="btn-txt icon-all-select dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li id="do-multi" class="toggle-multi"><a>正选[]</a></li>
+            <li id="de-multi" class="toggle-multi"><a>反选[]</a></li>
+            <li id="un-multi" class="toggle-multi active"><a>取消[]</a></li>
+          </ul>
+        </div>
+        <div id="toggle-config" class="btn-txt icon-config" data-toggle="tooltip" data-placement="bottom" title="设置每页字图条数"></div>
         <div class="search">
-          <input id="search-variant" type="text" placeholder="搜索异体字字典">
-          <i id="icon-search" class="icon-search"></i>
+          <input id="search-variant" type="text" placeholder="搜索异体字 或 按编码过滤字图">
+          <i class="btn-txt icon-search" data-toggle="tooltip" data-placement="bottom" data-html="true" title="搜索异体字或过滤字图<br/>[g:选中]<br/>[回车:搜索]"></i>
         </div>
-      </div>
+      </div><!--center-->
       <div class="right">
-        {% include com/_task_btns.html %}
+        {% set mode = globals().get('mode') or '' %}
+        {% set readonly = globals().get('readonly') or False %}
+        {% set do_task = globals().get('mode') in ['do', 'update', 'nav'] %}
+        <div id="task-my-remark" class="btn-txt icon-edit2{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注我的任务"></div>
+        <div id="task-admin-remark" class="btn-txt icon-edit{{' hide' if mode != 'browse' else ''}}" data-toggle="tooltip" data-placement="bottom" title="备注任务管理"></div>
+        <div id="page-submit" class="btn-txt icon-done{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="提交当前页[w]"></div>
+        <div id="task-return" class="btn-txt icon-return-task{{' hide' if not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="退回任务[ctrl+r]"></div>
+        <div id="task-submit-back" class="btn-txt icon-check-outline2 order{{' hide' if readonly or not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后转任务大厅[y]"></div>
+        <div id="task-submit" class="btn-txt icon-submit my-task order{{' hide' if readonly or not do_task else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交后领新任务[t]"></div>
+        <div id="task-prev" class="btn-txt icon-arrow-left {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="前一个任务[]]"></div>
+        <div id="task-next" class="btn-txt icon-arrow-right {{'hide' if mode not in ['browse', 'nav'] else mode}}" data-toggle="tooltip" data-placement="bottom" title="后一个任务[[]"></div>
       </div><!--right-->
-    </div>
+    </div><!--m-header-->
+
     <div class="m-body flex">
+      <div class="m-panel slim-bar hide">
+        <ul id="filter-panel" class="panel-list">
+          <li><a class="head">排序</a></li>
+          <li id="order-cc" class="filter btn-order"><a>按字置信度升序</a></li>
+          <li id="order--cc" class="filter btn-order"><a>按字置信度降序</a></li>
+          <li id="order-lc" class="filter btn-order"><a>按列置信度升序</a></li>
+          <li id="order--lc" class="filter btn-order"><a>按列置信度降序</a></li>
+          <li><a class="head">按相同程度过滤</a></li>
+          {%for i,name in equal_level.items()%}
+          <li id="sc-{{i}}" class="filter btn-sc"><a>{{name}}<sup class="s-count">{{txt_equals.get(i) or 0}}</sup></a></li>
+          {% end %}
+          <li><a class="head">按是否提交过滤</a></li>
+          <li id="submitted-false" class="filter btn-submitted"><a>未提交</a></li>
+          <li id="submitted-true" class="filter btn-submitted"><a>已提交</a></li>
+          <li><a class="head">按修改情况过滤</a></li>
+          <li id="updated-false" class="filter btn-updated"><a>未修改</a></li>
+          <li id="updated-true" class="filter btn-updated"><a>已修改</a></li>
+          <li id="updated-my" class="filter btn-updated"><a>我的修改</a></li>
+          <li id="updated-other" class="filter btn-updated"><a>他人修改</a></li>
+          <li id="updated-unauth" class="filter btn-updated"><a>无权修改</a></li>
+          <li><a class="head">按校对标记过滤</a></li>
+          <li id="is_vague-true" class="filter btn-is_vague"><a>笔画残损</a></li>
+          <li id="is_vague-false" class="filter btn-is_vague"><a>笔画完整</a></li>
+          <li id="is_deform-true" class="filter btn-is_deform"><a>异形字</a></li>
+          <li id="is_deform-false" class="filter btn-is_deform"><a>非异形字</a></li>
+          <li id="uncertain-false" class="filter btn-uncertain"><a>确定</a></li>
+          <li id="uncertain-true" class="filter btn-uncertain"><a>不确定</a></li>
+          <li id="remark-true" class="filter btn-remark"><a>有备注</a></li>
+          <li id="remark-false" class="filter btn-remark"><a>无备注</a></li>
+        </ul>
+      </div><!--m-panel-->
       <div class="char-panel">
-        <div class="txt-kinds">
-          <span class="txt-kind{{' current' if not cur_txt else ''}}"></span>
-          {% for t in txts %}
-          <span class="txt-kind{{' current' if t == cur_txt else ''}}" data-value="{{t}}">
-          {% if t and t[0] == 'Y' %}
-            <img src="{{handler.get_web_img(v_txts.get(t), 'char')}}"/>
-          {% else %}
-            {{t}}
-          {% end %}
-          </span>
-          {% end %}
-        </div>
-        <div class="variants{{'' if cur_txt else ' hide'}}">
-          <span id="add-variant" class="variant">+</span>
-          {% for v in variants %}
-          {% if v.get('txt') %}
-          <span class="variant txt-item" data-value="{{v['txt']}}">
-            {{v['txt']}}
-          </span>
-          {% else %}
-          <span class="variant variant-img txt-item" data-value="{{'Y%s' % v.get('uid')}}">
-            <img src="{{handler.get_char_img(v)}}"/>
-          </span>
-          {% end %}
-          {% end %}
-        </div>
-        <div class="char-items">
-          {% for d in docs %}
-          <div class="char-item proof{{len(d.get('txt_logs') or [])}}{{' diff' if d.get('diff') else ''}}" id="{{d['name']}}" data-id="{{d['name']}}">
-            <div class="char-img">
-              <img src="{{handler.get_char_img(d)}}"/>
-            </div>
-            <div class="char-info{{' hide' if show_char_info == '否' else ''}}">
-              <span class="txt">{{d.get('txt', '')}}</span>
-              <span class="submitted {{'' if hasattr(handler, 'task') and handler.task.get('_id') in prop(d, 'tasks.'+handler.task_type, []) else 'hide'}}">
-                <i class="icon-check"></i>
-              </span>
-            </div>
-            <div class="char-check">
-              <span class="cc{{' hide' if show_char_info == '否' else ''}}">{{d.get('cc', 0)/1000}}</span>
-              <input type="checkbox" title="{{d['name']}}">
-            </div>
-          </div>
-          {% end %}
-        </div>
+        <div class="txt-kinds slim-bar"></div>
+        <div class="variants slim-bar"><span id="add-variant" class="variant">+</span></div>
+        <div class="char-items slim-bar"></div>
         {% module Pager(pager) %}
-      </div>
+      </div><!--char-panel-->
       <div class="column-panel">
-        <div id="col-holder"><div id="col-holder-inner"></div></div>
-        <div class="btn-group" role="group" aria-label="column panel buttons" style="margin-top: 6px">
-          <button id="zoom-out" class="btn btn-default btn-sm" title="缩小">-</button>
-          <button id="submit-box" class="btn btn-primary btn-sm">确认</button>
-          <button id="zoom-in" class="btn btn-default btn-sm" title="放大">+</button>
+        <div class="box-holder slim-bar"></div>
+        <div class="btn-group">
+          <div id="zoom-in" class="btn-txt icon-zoom-in" title="放大图片[+]"></div>
+          <div id="submit-box" class="btn-txt icon-save" title="保存修改[ctrl+s]"></div>
+          <div id="zoom-out" class="btn-txt icon-zoom-out" title="缩小图片[-]"></div>
         </div>
-      </div>
-      <div class="work-panel">
-        {% module CharTxt(docs and docs[0] or {}, txt_fields = ['txt']) %}
-      </div>
-    </div>
+      </div><!--column-panel-->
+      <div id="panel-region" class="right bd proof-panel">
+        {% include com/_char_txt.html %}
+      </div><!--char-panel-->
+    </div><!--m-body-->
+
     <div class="m-alert alert alert-info hide" id="m-alert">
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
       <strong class="title"></strong><span class="text"></span>
-    </div>
+    </div><!--m-alert-->
+    <div class="b-alert alert alert-info hide" id="b-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div><!--b-alert-->
+
     <div class="m-footer">
       <span class="fl">
-        总字数：{{char_count}}　聚类字种：{{'、'.join(ocr_txts)}}
+        <span class="cluster-info">
+          总字数：<span class="char-count">{{char_count}}</span>
+          聚类字种：<span class="txt-kinds">{{'、'.join(base_txts)}}</span>
+        </span>
+      </span>
+      <span class="center">
       </span>
       <span class="fr">
-        页编码：<span class="page-name" style="margin-right: 10px" title="查看单字对应的整页"></span>
-        字编码：<span class="char-name" title="查看单字详情">未选中</span>
+        <span class="page-info" style="margin-right: 15px">页编码：<span class="page-name"></span></span>
+        <span class="char-info">字编码：<span class="char-name">未选中</span></span>
       </span>
-    </div>
+    </div><!--m-footer-->
   </div>
 </div>
+
 <div class="panel-body" style="padding: 0">
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -166,61 +238,50 @@
         <div class="modal-body">
           <div class="title">一、简单介绍</div>
           <div class="intro">
-            聚类校对是一种将OCR识别出的文字按照字种聚集到一起进行批量处理的校对方式。一个聚类校对任务的字头显示在左上方，
-            字头区域下是式当前字头所有的异体字列表。左下方区域是当前字头的所有字图。用户需要检查字图中的图片字形与当前的
-            字头文字是否相一致，如果不一致，就需要在右侧的校对工作区输入正确的文字。
+            聚类校对是一种新型的文字校对方式。在经过切分校对和OCR文字识别后，每个字框都有对应的计算机文字，将相同文字的字图聚集
+            到一起批量进行校对，就是“聚类校对”。<br/>
+            进行聚类的相同文字，即“聚类字种”，它是计算机识别的结果。（在底部状态栏显示）<br/>
+            人工校对会对计算机识别的结果进行检查和纠正，校对后的文字类别，即“校对字头”。（中间区域第一行）<br/>
+            人工校对时，会逐个选择校对字头进行校对，当前被选中的校对字头，即“当前字头”。（红色背景高亮提示）<br/>
+            校对字头下是式当前字头的异体字列表，以便辅助人工进行校对。<br/>
+            异体字列表下方是当前字头的所有字图。用户需要检查这些字图中的图片字形与当前校对字头是否一致，不一致，就要进行校正。
           </div>
           <div class="title">二、一般步骤</div>
           <div class="intro">
-            1. 逐一点击左上区域的字头（当前字头将会高亮显示）<br/>
-            2. 检查该字头下字图区域的字图，如果发现字图中的文字与当前字头不一致，则进行修改：<br/>
-            （1）右侧工作面板可以查看该字的OCR候选字，选择某字后该字会出现在校对工作区的输入位置；<br/>
-            （2）左侧字头下有该字头的异体字列表，选择某字后该字会出现在校对工作区的输入位置；<br/>
-            （3）如果没有合适的文字可供选择，可以手工输入正确的校对文字到工作区输入位置；<br/>
-            （4）输入后确认，该字图中的文字信息即被修改为输入的文字<br/>
-            3. 如果发现当前页所有字图都没有错误，则可以提交当前页<br/>
-            4. 如果所有页面都已经提交，则可以提交当前任务<br/>
+            1. 逐一点击左上区域的校对字头<br/>
+            2. 检查该字头（即当前字头）下的所有字图，如果发现某字图字形与当前字头字形不一致，则进行校正。系统提供以下辅助：<br/>
+            （1）右侧校对面板的OCR候选字；<br/>
+            （2）当前字头的异体字列表；<br/>
+            （3）顶部搜索框，可以检索某字的异体字列表；<br/>
+            3. 检查、校对完当前页的所有字图后，提交当前页<br/>
+            4. 检查、校对完所有页面后，提交当前任务<br/>
             注：为提高校对效率，系统提供了条件筛选、批量修改等校对辅助功能。
           </div>
           <div class="title">三、按钮说明</div>
           <table class="table">
             <tr>
-              <td><i class="icon-sort"></i></td>
-              <td>待校对的字图按置信度升序排列或按置信度降序排列</td>
-            </tr>
-            <tr>
-              <td><i class="icon-cc"></i></td>
-              <td>按置信度过滤。输入正确范围的数值（0-1），点击最左侧空白方框取消过滤</td>
+              <td><i class="icon-eye"></i></td>
+              <td>设置页面上各面板的显示或隐藏</td>
             </tr>
             <tr>
               <td><i class="icon-filter"></i></td>
-              <td>按照条件过滤来选择字图。<br/>
-                过滤条件包括：异文，已提交，未提交，我的修改，所有修改。<br/>
-                根据不同的过滤条件显示字图。 选择一个过滤条件后，再选择一个条件，结果是两个条件的叠加。
-                如：已提交/未提交 + 我的修改/所有修改，异文可以和任意一个其他条件组合。<br/>
-                如果两个条件不相容，则后面的覆盖前面的条件，例如：先选未提交，再选已提交，结果是已经提交的。<br/>
-                点击最左侧的空白方框取消过滤，显示所有字图。
-              </td>
+              <td>按字置信度过滤，请输入正确范围的数值（0-1）</td>
             </tr>
             <tr>
-              <td><i class="icon-checkbox2"></i></td>
-              <td>将本页字图区显示的字图全部选择，注意不会选择不在本页显示的字图</td>
+              <td><i class="icon-all-select1"></i></td>
+              <td>全选当前页字图</td>
             </tr>
             <tr>
               <td><i class="icon-pencil"></i></td>
-              <td>将选中的字图批量修改为正确的字</td>
+              <td>批量修改</td>
             </tr>
             <tr>
-              <td><i class="icon-edit1"></i></td>
-              <td>将选中的字图的类型（没问题、模糊或残损、不确定、不认识）进行批量修改</td>
+              <td class="btn-txt"><</td>
+              <td>上一页</td>
             </tr>
             <tr>
-              <td><i class="icon-panel-txt"></i></td>
-              <td>显隐中间的原始图片列</td>
-            </tr>
-            <tr>
-              <td><i class="icon-right-panel"></i></td>
-              <td>显隐右侧工作面板</td>
+              <td class="btn-txt">></td>
+              <td>下一页</td>
             </tr>
           </table>
         </div>
@@ -233,16 +294,10 @@
         <div class="modal-header"><h4 class="modal-title">新增图片字</h4></div>
         <div class="modal-body">
           <form class="form-horizontal">
-            <div class="form-group">
-              <h4 class="col-sm-3 control-label">图片字</h4>
-              <div class="col-sm-8">
-                <input type="text" class="form-control txt" placeholder="请输入图片字的编码">
-                <div style="font-style: italic; color: grey">注：默认选择当前图片编码，您可以自行修改</div>
-              </div>
-              <h4 class="col-sm-3 control-label hide" style="margin-top: 10px">所属正字</h4>
-              <div class="col-sm-8 hide" style="margin-top: 10px">
-                <input type="text" class="form-control normal-txt" placeholder="请输入所属正字" readonly="readonly">
-              </div>
+            <div class="form-group" style="text-align: center">
+              <div class="col-sm-12"><img id="v-img" src="#"/></div>
+              <div class="col-sm-12"><span id="v-img-name"></span></div>
+              <input id="v-user-txt" type="hidden">
             </div>
           </form>
         </div>
@@ -271,167 +326,194 @@
       </div>
     </div>
   </div>
+  {% if hasattr(handler, 'task_type') and handler.task_type %}
+  {% module ReturnModal() %}
+  {% module TaskRemarkModal() %}
+  {% end %}
 </div>
 
 {% include com/_base_js.html %}
-{% include com/_base_cut.html %}
-{% include com/_base_task.html %}
-<script src="{{static_url('js/char.js')}}"></script>
+<script src="{{static_url('js/box/jquery.mapKey.js')}}"></script>
+<script src="{{static_url('js/box/raphael.js')}}"></script>
+<script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.cut.js')}}"></script>
+<script src="{{static_url('js/box/box.key.js')}}"></script>
 <script src="{{static_url('js/char-txt.js')}}"></script>
+<script src="{{static_url('js/cluster.js')}}"></script>
+<script src="{{static_url('js/btn-cluster.js')}}"></script>
+{% include com/_base_task.html %}
 <script>
-  // 公共参数
-  var chars = decodeJSON('{{dumps(chars)}}');
-  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
-  var taskType = "{{handler.task_type if hasattr(handler, 'task_type') else ''}}";
-
   // 初始化
-  $('#taskConfigModal .page-size').val('{{handler.page_size}}');
-  $('#taskConfigModal .show-char-info :radio[value="{{show_char_info}}"]').prop('checked', true);
-  if (!getStorage('toggle-column-panel', true)) {
-    $('#toggle-column-panel').removeClass('active');
-    $('.column-panel').addClass('hide');
-  }
-  if (!getStorage('toggle-work-panel', true)) {
-    $('#toggle-work-panel').removeClass('active');
-    $('.work-panel').addClass('hide');
-  }
-
-  $(document).ready(function () {
-    getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
+  let curTxt = '{{cur_txt}}';
+  $.cluster.init({
+    curTxt: curTxt,
+    colHolder: '.box-holder',
+    chars: decodeJSON('{{chars or []}}'),
+    txtKinds: decodeJSON('{{txt_kinds or []}}'),
   });
+  $.charTxt.init({
+    readonly: false, showBase: true, showTxtLogs: true, showBoxLogs: true,
+    baseFields: 'cc,lc,sc,pc,txt_level,box_level'.split(',')
+  });
+  togglePanels();
+  toggleFilters();
 
-  // 配置项
-  $('#taskConfigModal .modal-confirm').on('click', function () {
-    var data = {};
-    var pageSize = $('#taskConfigModal .page-size').val();
-    if (pageSize.length) {
-      if (!/^\d+$/.test(pageSize)) {
-        return showTips('提示', '每页条数中请输入数字', 3000);
-      } else if (parseInt(pageSize) > 100) {
-        return showTips('提示', '每页条数不能超过100', 3000);
-      } else {
-        data['cluster_page_size'] = pageSize;
-      }
-    }
-    var showCharInfo = $('#taskConfigModal .show-char-info :checked');
-    if (showCharInfo) {
-      data['cluster_char_info'] = showCharInfo.val();
-      $('.char-info, .cc').toggleClass('hide', showCharInfo.val() !== '是');
-    }
-    if (JSON.stringify(data) !== '{}') {
-      $(this).text('进行中...');
-      postApi('/session/config', {data: data}, function () {
+  window.onload = () => {
+    // 设置异体字
+    $.cluster.loadVariants(curTxt);
+    // 更新校对字头
+    postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
+      $.cluster.setTxtKinds(res['txt_kinds']);
+    });
+    // 设置当前字图
+    getAnchor() && $('#' + getAnchor()).find('.char-img').click();
+  };
+
+</script>
+<script>
+  // 配置每页显示字图数量
+  let pageSize = '{{handler.page_size}}';
+  $('#toggle-config').on('click', function () {
+    Swal2.fire({title: '请输入每页字图数量', input: 'text', inputValue: pageSize.trim()}).then((result) => {
+      if (result.dismiss || !result.value) return;
+      if (!/^\d+$/.test(result.value)) return showTips('提示', '每页条数中请输入数字', 3000);
+      if (parseInt(result.value) > 100) return showTips('提示', '每页条数不能超过100', 3000);
+      postApi('/session/config', {data: {cluster_page_size: result.value}}, function () {
+        pageSize = result.value;
         location.reload();
       });
-    }
+    });
   });
 
-  // 新增异体字
-  $('#add-variant').on('click', function () {
-    var normalTxt = $('.txt-kind.current').attr('data-value'), currentName = $('.char-name').text();
-    $('#variantModal .normal-txt').val(normalTxt);
-    $('#variantModal .txt').val(currentName);
+  // 新增图片字-弹框
+  $(document).on('click', '#add-variant', function () {
+    if (!$('.txt-kind.current').length) return bsShow('提示', '请选择一个校对字头', 'warning', 2000);
+    if (!$('.char-item.current').length) return bsShow('提示', '请选择待新增的图片字', 'warning', 2000);
+    $('#v-user-txt').text($('.txt-kind.current').attr('data-value') || $('.txt-kind.current').text().trim());
+    $('#v-img').attr('src', $('.char-item.current img').attr('src'));
+    $('#v-img-name').text($('.char-name').text());
     $('#variantModal').modal();
   });
+
+  // 新增图片字-提交
   $('#variantModal .modal-confirm').on('click', function () {
-    var data = {txt: $('#variantModal .txt').val(), normal_txt: $('#variantModal .normal-txt').val()};
-    if (!data.txt.length) {
-      return showTips('提示', '请输入异体字文字或字图编码', 5000);
-    } else if (!data.normal_txt.length) {
-      return showTips('提示', '请输入异体字所属正字', 3000);
-    } else {
-      $(this).text('进行中...');
-      postApi('/data/variant', {data: data}, function (res) {
-        $("#variantModal").modal('hide');
-        if (/[0-9a-zA-Z_]+/.test(data.txt)) {
-          var imgUrl = $('#' + data.txt).find('img').attr('src');
-          $('.variants').append(`<span class="variant variant-img txt-item" data-value="Y${res.doc.uid}"><img src="${imgUrl}"/></span>`);
-        } else {
-          $('.variants').append(`<span class="variant txt-item" data-value="${data.txt}">${data.txt}</span>`);
-        }
-      });
-    }
+    let $this = $(this), $txt = $this.text();
+    if ($this.hasClass('disabled')) return;
+    $this.addClass('disabled').text('进行中...');
+    let data = {img_name: $('#v-img-name').text(), user_txt: $('#v-user-txt').text()};
+    postApi('/variant/upsert', {data: data}, function (res) {
+      $this.removeClass('disabled').text($txt);
+      $.cluster.addVariant(res['v_code']);
+      $('#variantModal').modal('hide');
+    }, function (err) {
+      $this.removeClass('disabled').text($txt);
+      showError('失败', err.message, 3000);
+    });
   });
 
-  // 删除异体字
-  $(document).on('dblclick', '.variant-img', function () {
-    var $this = $(this);
+  // 删除图片字
+  $(document).on('dblclick', '.variant', function () {
+    let $this = $(this);
+    if (!$this.find('img').length) return;
     showConfirm('提示', '确定删除该图片字吗？', function () {
-      postApi('/variant/delete', {data: {uid: $this.attr('data-value')}}, function (res) {
+      postApi('/variant/delete', {data: {v_code: $this.attr('data-value')}}, function (res) {
         $this.remove();
       });
     });
   });
 
-  // 批量修改文字
-  $('#bat-update-txt').on('click', function () {
-    var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
-    if (!names.length)
-      return showTips('请选择', '当前没有选中任何记录', 3000);
-    Swal2.fire({title: '请输入文字', input: 'text', inputValue: $('.proof .txt').val()}).then((result) => {
-      if (result.value) {
-        var data = {names: names, txt: result.value, task_type: taskType};
-        postApi('/chars/txt', {data: data}, function (res) {
-          if (res.data.level_unqualified || res.data.level_unqualified) {
-            $('#resultModal .form-group').html($.map(res.data, function (value, key) {
-              return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
-            }).join(''));
-            $('#resultModal').modal();
-          } else {
-            location.reload();
-          }
-        });
-      }
+  // 单字提交
+  $('.char-txt .btn-submit').on('click', function () {
+    let $this = $(this), $txt = $this.text();
+    let data = $.charTxt.checkAndExport();
+    if (!data || $this.hasClass('disabled')) return;
+    $this.addClass('disabled').text('保存中...');
+    postApi('/char/txt/' + data.name, {data: data}, function (res) {
+      $this.text($txt).removeClass('disabled');
+      bsShow('成功', '已保存', 'success', 1000, '#s-alert');
+      // 更新当前字图、字图数据、校对面板和锚点
+      $('.char-item.current').addClass('changed').find('.txt').text(data.txt);
+      $.charTxt.setTxtLogs(res['txt_logs']);
+      data['txt_logs'] = res['txt_logs'];
+      $.cluster.updateChar(data.name, data);
+      $.cluster.addTxtKind(data.txt);
+      location.href = setAnchor(data.name);
+    }, function (err) {
+      $this.text($txt).removeClass('disabled');
+      if (err.code === 2007)  // 没有发生更改
+        return bsShow('提示', err.message, 'info', 1000, '#s-alert');
+      showTips('提示', err.message, 2000);
     });
   });
 
-  // 批量修改类型
-  $('#bat-update-type').on('click', function () {
-    var names = $.map($('.char-check :checked'), (item) => $(item).attr('title'));
-    if (!names.length)
-      return showTips('请选择', '当前没有选中任何记录', 3000);
-    Swal2.fire({title: '请选择类型', input: 'radio', inputOptions: txtTypes}).then((result) => {
-      if (result.value) {
-        var data = {names: names, txt_type: result.value, task_type: taskType};
-        postApi('/chars/txt_type', {data: data}, function (res) {
-          if (res.data.level_unqualified || res.data.level_unqualified) {
-            $('#resultModal .form-group').html($.map(res.data, function (value, key) {
-              return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
-            }).join(''));
-            $('#resultModal').modal();
-          } else {
-            location.reload();
-          }
-        });
-      }
+  // 批量提交-修改文字
+  $.mapKey('s', () => $('#bat-update-txt').click());
+  $.mapKey('d', () => $('#bat-update-deform').click());
+  $.mapKey('f', () => $('#bat-update-uncertain').click());
+  $.mapKey('e', () => $('#bat-update-vague').click());
+  $.mapKey('r', () => $('#bat-update-remark').click());
+  $('#resultModal .modal-confirm').on('click', () => location.reload());
+  $('.bat-update').on('click', function () {
+    if (typeof isMyTask === 'undefined' || !isMyTask) return showTips('提示', '您不是该任务所有者，不能批量修改', 2000);
+    let names = $.map($('.char-check :checked'), (item) => $(item).parent().parent().attr('id'));
+    if (!names.length) return showTips('请选择', '当前没有选中任何记录', 2000);
+    let field = $(this).attr('data-value'), name = $.charTxt.fields[field];
+    let isTxtField = ['txt', 'remark'].indexOf(field) > -1;
+    let info = {title: `是否${name}`, input: 'radio', inputOptions: {1: '是', 0: '否'}};
+    if (isTxtField) info = {title: `请输入${name}`, input: 'text', inputValue: $(`#p-${field}`).val()};
+    let data = {names: names, field: field, task_type: gTaskType};
+    Swal2.fire(info).then((result) => {
+      if (result.dismiss || !result.value) return;
+      bsLoading('保存中‧‧‧');
+      data['value'] = isTxtField ? result.value : result.value === '1';
+      postApi('/chars/txt', {data: data}, function (res) {
+        bsHide();
+        if (res.data.level_unqualified || res.data.point_unqualified) {
+          $('#resultModal .form-group').html($.map(res.data, function (value, key) {
+            return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`
+          }).join(''));
+          $('#resultModal').modal();
+        } else {
+          location.reload();
+        }
+      }, function (err) {
+        bsShow('失败', err.message, 'warning', 3000);
+      });
     });
-  });
-
-  $('#resultModal .modal-confirm').on('click', function () {
-    location.reload();
   });
 
   // 提交当前页
   $('#page-submit').on("click", function () {
-    $('#progress').removeClass('hide');
-    var charNames = $.map($('.char-item'), function (item) {
-      return $(item).attr('data-id');
-    });
+    bsLoading('提交中‧‧‧');
+    let charNames = $.map($('.char-item'), (item) => $(item).attr('id'));
     postApi(location.pathname, {data: {char_names: charNames}}, function () {
-      $('#progress').addClass('hide');
-      $('.char-item .submitted').removeClass('hide');
-      showSuccess('成功', '页面已提交。', 2000);
+      $('.char-item').addClass('submitted');
+      bsShow('成功', '页面已提交', 'success', 1000);
+      browse(setQueryString('page', parseInt($('.p-no.active').text().trim()) + 1));
+    }, function (err) {
+      bsShow('失败', err.message, 'warning', 3000);
     });
   });
 
-  // 方向键移动
-  $.mapKey('left', function () {
-    $('.char-item.current').prev().find('.char-img').click();
-  });
-
-  // 方向键移动
-  $.mapKey('right', function () {
-    $('.char-item.current').next().find('.char-img').click();
+  // 提交任务
+  $('#task-submit,#task-submit-back').on('click', function () {
+    let $this = $(this), id = $this.attr('id');
+    if ($this.hasClass('disabled')) return;
+    bsLoading('提交中‧‧‧');
+    $this.addClass('disabled');
+    postApi(location.pathname, {data: {submit: true}}, function (res) {
+      bsShow('成功', '任务已提交', 'success', 1000);
+      $this.removeClass('disabled');
+      if (id === 'task-submit') {
+        pick(gTaskType);
+      } else if (id === 'task-submit-back') {
+        location.href = '/task/lobby/' + gTaskType;
+      }
+    }, function (err) {
+      $this.removeClass('disabled');
+      bsShow('失败', err.message, 'warning', 3000);
+    });
   });
 
 </script>

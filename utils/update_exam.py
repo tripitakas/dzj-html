@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# python3 utils/update_exam_data.py --uri=uri --func=initial_run
+# python3 utils/update_exam.py --uri=uri --func=initial_run
 # 更新考核和体验相关的数据和任务
 
 import sys

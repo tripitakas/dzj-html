@@ -4,53 +4,43 @@
  */
 
 // 排序
-$('.sty-table .sort').click(function () {
-  var direction = $(this).find('span').hasClass('icon-triangle-up') ? '-' : '';
-  location.href = setQueryString('order', direction + $(this).attr('title'));
+$('.sty-table .sort').on('click', function () {
+  let direction = $(this).find('span').hasClass('icon-triangle-up') ? '-' : '';
+  location.href = setQueryString('order', direction + $(this).attr('title').trim());
 });
 
 // 过滤
-$('.btn-filter').click(function () {
-  var title = $(this).attr('title').trim();
+$('.btn-filter').on('click', function () {
+  let title = $(this).attr('title').trim();
   location.href = setQueryString(title.split('=')[0], title.split('=')[1])
 });
 
 // 搜索
-$('#search-input').on("keydown", function (event) {
-  var keyCode = event.keyCode || event.which;
+$('#search-input').on("keydown", function (e) {
+  let keyCode = e.keyCode || e.which;
   if (keyCode === 13) {
-    var q = $(this).val().trim();
-    location = location.pathname + (q === '' ? '' : "?q=" + q);
+    let q = $(this).val().trim();
+    location = location.pathname + (q.length ? '?q=' + q : '');
   }
 });
 
 // 全选
-$('#check-all').click(function () {
-  var $items = $("tr [type='checkbox']");
-  if (!this.checked)
-    $items.removeAttr('checked');
-  else
-    $items.prop('checked', 'true');
+$('#check-all').on('click', function () {
+  let $items = $("tr [type='checkbox']");
+  this.checked ? $items.prop('checked', 'true') : $items.removeAttr('checked');
 });
 
 // 列表配置
-$('#configModal .modal-confirm').click(function () {
-  $.map($('#configModal :checkbox:not(:checked)'), function (item) {
-    $('.sty-table .' + $(item).attr('title')).addClass('hide');
-  });
-  $.map($('#configModal :checkbox:checked'), function (item) {
-    $('.sty-table .' + $(item).attr('title')).removeClass('hide');
-  });
-  var data = {};
-  var key = location.pathname.substr(1).replace(/[\/\-]/g, '_');
-  data[key] = $.map($('#configModal :not(:checked)'), function (item) {
-    return $(item).attr('title');
-  });
+$('#configModal .modal-confirm').on('click', function () {
+  $.map($('#configModal :checkbox(:checked)'), (item) => $('.sty-table .' + $(item).attr('title')).removeClass('hide'));
+  $.map($('#configModal :checkbox:not(:checked)'), (item) => $('.sty-table .' + $(item).attr('title')).addClass('hide'));
+  let data = {}, key = location.pathname.substr(1).replace(/[\/\-]/g, '_');
+  data[key] = $.map($('#configModal :checkbox:not(:checked)'), (item) => $(item).attr('title').trim());
   postApi('/session/config', {data: data});
 });
 
 
-/*---Modal相关代码---*/
+//---Modal相关代码---
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
     if (info[item.id]) { // 如果值为空，则不予设置
@@ -64,7 +54,7 @@ function setModal(modal, info, fields) {
             $(obj).removeAttr('checked');
         });
       } else {
-        var value = info[item.id];
+        let value = info[item.id];
         value = typeof value === 'object' ? JSON.stringify(value) : value;
         modal.find('.' + item.id).val(value);
       }
@@ -72,8 +62,8 @@ function setModal(modal, info, fields) {
   });
 }
 
-function getModal(modal, fields) {
-  var info = {};
+function getModal(modal, fields, noEmpty) {
+  let info = {};
   fields.forEach(function (item) {
     if ('input_type' in item && item['input_type'] === 'checkbox') {
       info[item.id] = $.map(modal.find('.' + item.id + ' :checked'), function (item) {
@@ -86,7 +76,9 @@ function getModal(modal, fields) {
     } else {
       info[item.id] = modal.find('.' + item.id).val();
     }
-    if (typeof info[item.id] === 'undefined' || !info[item.id]) {
+    if (typeof info[item.id] === 'undefined') {
+      delete info[item.id];
+    } else if (noEmpty && !info[item.id]) {
       delete info[item.id];
     }
   });
@@ -126,99 +118,101 @@ function toggleModal(modal, fields, disabled) {
 }
 
 function getData(id) {
-  var data = parseJSON($('#' + id).find('.info').text());
+  let data = parseJSON($('#' + id).find('.info').text());
+  let fields = ($('#table_fields').val() || '').split(',');
+  fields.forEach((f) => {
+    if (!data[f] && ['ckbox', 'action'].indexOf(f) < 0) {
+      data[f] = $(`#${id} td.${f}`).text().trim();
+    }
+  });
   data['_id'] = id;
   return data;
 }
 
-var $modal = $('#updateModal');
-var fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_id'});
+let fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_id'});
 
 // 新增-弹框
-$('.btn-add').click(function () {
-  $modal.find('.modal-title').html('新增数据');
-  $modal.find('.update-url').val($(this).attr('url') || location.pathname);
-  toggleModal($modal, fields, false);
-  resetModal($modal, fields);
-  $modal.modal();
+$('.btn-add').on('click', function () {
+  $('#updateModal .modal-title').html('新增数据');
+  $('#updateModal .update-url').val($(this).attr('url') || $('a', this).attr('url') || location.pathname);
+  toggleModal($('#updateModal'), fields, false);
+  resetModal($('#updateModal'), fields);
+  $('#updateModal').modal();
 });
 
 // 查看-弹框
-$('.btn-view').click(function () {
-  var id = $(this).parent().parent().attr('id');
+$('.btn-view').on('click', function () {
+  let id = $(this).parent().parent().attr('id');
   if ($(this).attr('url')) {
     location.href = $(this).attr('url').replace('@id', id);
   } else {
-    var data = getData(id);
-    var title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
-    $modal.find('.modal-title').html(title);
-    toggleModal($modal, fields, true);
-    setModal($modal, data, fields);
-    $modal.modal();
+    let data = getData(id);
+    let title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
+    $('#updateModal .modal-title').html(title);
+    toggleModal($('#updateModal'), fields, true);
+    setModal($('#updateModal'), data, fields);
+    $('#updateModal').modal();
   }
 });
 
 // 修改-弹框
-$('.btn-update').click(function () {
-  var id = $(this).parent().parent().attr('id');
-  var data = getData(id);
-  var title = 'name' in data ? '修改数据/' + data.name : '修改数据';
-  $modal.find('.update-url').val($(this).attr('url') || location.pathname);
-  $modal.find('.modal-title').html(title);
-  toggleModal($modal, fields, false);
-  setModal($modal, data, fields);
-  $modal.modal();
+$('.btn-update').on('click', function () {
+  let id = $(this).parent().parent().attr('id');
+  let data = getData(id);
+  let title = 'name' in data ? '修改数据/' + data.name : '修改数据';
+  $('#updateModal .update-url').val($(this).attr('url') || location.pathname);
+  $('#updateModal .modal-title').html(title);
+  toggleModal($('#updateModal'), fields, false);
+  setModal($('#updateModal'), data, fields);
+  $('#updateModal').modal();
 });
 
 // 新增/修改-提交
-$("#updateModal .modal-confirm").click(function () {
-  var data = getModal($modal, fields);
-  postApi($modal.find('.update-url').val().trim(), {data: data}, function () {
-    showSuccess('成功', '数据已提交。', 2000);
-    refresh(2000);
+$("#updateModal .modal-confirm").on('click', function () {
+  let data = getModal($('#updateModal'), fields);
+  postApi($('#updateModal .update-url').val().trim(), {data: data}, function () {
+    showSuccess('成功', '数据已保存', 1000);
+    refresh(1000);
   }, function (error) {
-    showError('提交失败', error.message, 5000);
+    showError('失败', error.message, 3000);
   });
 });
 
 // 删除
-$('.btn-remove').click(function () {
-  var id = $(this).parent().parent().attr('id');
-  var data = getData(id);
-  var name = 'name' in data ? data.name : '';
-  var url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
+$('.btn-remove').on('click', function () {
+  let id = $(this).parent().parent().attr('id');
+  let data = getData(id);
+  let name = 'name' in data ? data.name : '';
+  let url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_id: data._id}}, function (res) {
       if (res.count) {
-        showSuccess('成功', '数据' + name + '已删除', 2000);
-        refresh(2000);
+        showSuccess('成功', '数据' + name + '已删除', 1000);
+        refresh(1000);
       } else {
         showError('失败', '数据未删除', 3000);
       }
     }, function (err) {
-      showError('删除失败', err.message, 5000);
+      showError('失败', err.message, 3000);
     });
   });
 });
 
 // 批量删除
-$('.operation .bat-remove').click(function () {
-  var ids = $.map($('table tbody :checked'), function (item) {
-    return $(item).parent().parent().attr('id');
-  });
-  if (!ids.length)
-    return showTips('提示', '当前没有选中任何记录', 3000);
-  var url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
+$('.operation .bat-remove').on('click', function () {
+  let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+  if (!ids.length) return showTips('提示', '当前没有选中任何记录', 3000);
+  let url = $(this).find('a').attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_ids: ids}}, function (res) {
       if (res.count) {
-        showSuccess('成功', '选中' + ids.length + '条记录，已删除' + res.count + '条记录。', 2000);
-        refresh(2000);
+        showSuccess('成功', '选中' + ids.length + '条记录，已删除' + res.count + '条记录', 1000);
+        refresh(1000);
       } else {
         showTips('提示', '删除0条数据', 3000);
       }
     }, function (err) {
-      showError('删除失败', err.message, 5000);
+      showError('失败', err.message, 3000);
     });
   });
 });

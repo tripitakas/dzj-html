@@ -58,7 +58,7 @@
 <script type="text/javascript">
   // 提交
   $('#btn-submit').on("click", function () {
-    var q = $('#punc-input').val();
+    let q = $('#punc-input').val();
     if (q.trim().length === 0)
       return;
     postApi('/com/punctuate', {data: {q: q}}, function (data) {
@@ -67,7 +67,7 @@
   });
 
   $('#punc-input').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
+    let keyCode = event.keyCode || event.which;
     if (keyCode === 13) {
       $('#btn-submit').click();
     }
@@ -75,7 +75,7 @@
 
   // 清除标点
   $('#btn-clear').on("click", function () {
-    var txt = $('#punc-input').val();
+    let txt = $('#punc-input').val();
     $('#punc-input').val(txt.replace(/[\.,:\?，、：；。？！‘’“”—……\-（）「」【】{}《》<>]+/g, ''));
   });
 

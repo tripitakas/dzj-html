@@ -7,12 +7,12 @@ from os import path
 from tornado.options import options
 from elasticsearch import Elasticsearch
 
-BASE_DIR = path.dirname(path.dirname(path.dirname(path.dirname(__file__))))
+BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
+from controller.tool.diff import Diff
 from controller.helper import load_config
-from controller.page.tool.diff import Diff
-from controller.page.tool.variant import normalize
+from controller.tool.variant import normalize
 
 
 def get_hosts():
@@ -24,7 +24,7 @@ def get_hosts():
 
 
 def find(q, index='cb4ocr-ik'):
-    """ 从ES中寻找与q最匹配的document """
+    """从ES中寻找与q最匹配的document"""
     if not q:
         return []
 
@@ -47,7 +47,7 @@ def find(q, index='cb4ocr-ik'):
 
 
 def find_one(ocr, num=1):
-    """ 从ES中寻找与ocr最匹配的document，返回第num个结果 """
+    """从ES中寻找与ocr最匹配的document，返回第num个结果"""
     ocr = ''.join(ocr) if isinstance(ocr, list) else ocr.replace('|', '')
     ret = find(ocr)
     if not ret or num - 1 not in range(0, len(ret)):
@@ -60,7 +60,7 @@ def find_one(ocr, num=1):
 
 
 def find_neighbor(page_code, neighbor='next'):
-    """ 从ES中寻找page_code的前一页或后一页记录 """
+    """从ES中寻找page_code的前一页或后一页记录"""
     assert neighbor in ['prev', 'next']
     head = re.search(r'^([A-Z]{1,2}\d+n[A-Z]?\d+[A-Za-z_]?)p([a-z]?\d+)', page_code)
     page_no = head.group(2)
@@ -71,7 +71,7 @@ def find_neighbor(page_code, neighbor='next'):
 
 
 def find_match(ocr, depth=10):
-    """ 从cbeta文中找出与ocr匹配的文本"""
+    """从cbeta文中找出与ocr匹配的文本"""
     ocr = ''.join(ocr) if isinstance(ocr, list) else ocr.replace('|', '')
     if len(ocr) < 10:
         return ''
@@ -107,9 +107,3 @@ def find_match(ocr, depth=10):
         if abs(len(match) - len(ocr)) < 20:
             return match
     return ''
-
-
-if __name__ == '__main__':
-    ocr_txt = '能尋香奏樂世樂乾土音岳阿修羅此云非天婆稚此云有縛佉羅騫䭾此云廣肩佉丘加切騫音愆毘摩質多羅此云海水波音卽帝釋夫人'
-    res = find_match(ocr_txt)
-    print(res)

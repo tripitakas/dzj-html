@@ -31,25 +31,18 @@
 
 {% block custom-js %}
 <script>
-  // 上传文件-提交
-  $("#uploadModal .modal-confirm").click(function () {
-    var file = $('#upload')[0].files[0];
-    if (typeof file === 'undefined') {
-      return showTips('提示', '请选择文件', 3000);
-    } else if (!/\.(csv|CSV)$/.test(file.name)) {
-      return showTips('提示', '文件不是CSV类型', 3000);
-    } else if (file.size > (10 * 1024 * 1024)) {
-      return showTips('提示', '文件大小不能超过10M', 3000);
-    }
-
-    $('#progress').removeClass('hide');
-    var formData = new FormData();
+  $("#uploadModal .modal-confirm").on('click', function () {
+    let file = $('#upload')[0].files[0];
+    if (typeof file === 'undefined') return showTips('提示', '请选择文件', 3000);
+    if (!/\.(csv|CSV)$/.test(file.name)) return showTips('提示', '文件不是CSV类型', 3000);
+    if (file.size > (10 * 1024 * 1024)) return showTips('提示', '文件大小不能超过10M', 3000);
+    let formData = new FormData();
     formData.append('csv', file);
+    $('#progress').removeClass('hide');
     postFile(location.pathname + '/upload', formData, function (res) {
       $('#progress').addClass('hide');
-      var errors = res.data.errors;
-      if (errors.length > 0) {
-        var text = '<div class="message">' + res.message + '</div><br/><a href="' + res.url + '">下载上传结果</a>';
+      if (res.data['errors'].length > 0) {
+        let text = '<div class="message">' + res.message + '</div><br/><a href="' + res.url + '">下载上传结果</a>';
         showConfirm('上传完成', text, () => location.reload());
       } else {
         showConfirm('上传成功', res.message, () => location.reload());

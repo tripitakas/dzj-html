@@ -17,7 +17,7 @@
 {% end %}
 
 {% block custom-modal %}
-<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+<div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
      aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -61,7 +61,7 @@
           </tr>
           <tr>
             <td>结果统计</td>
-            <td>按分类、原字、OCR字，正字进行字数统计</td>
+            <td>按分类、校对文字、综合OCR进行字数统计</td>
           </tr>
           <tr>
             <td>发布任务</td>
@@ -94,36 +94,54 @@
       <div class="modal-body">
         <form class="form-horizontal">
           <div class="form-group">
+            <h4 class="col-sm-2 control-label">分类</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
+            </div>
+          </div>
+          <div class="form-group">
             <h4 class="col-sm-2 control-label">字编码</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="请输入字编码，可部分输入">
+              <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
           </div>
           <div class="form-group">
-            <h4 class="col-sm-2 control-label">分　类</h4>
+            <h4 class="col-sm-2 control-label">综合OCR</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
-            </div>
-          </div>
-          <div class="form-group">
-            <h4 class="col-sm-2 control-label">OCR文字</h4>
-            <div class="col-sm-10">
-              <input type="text" class="form-control ocr_txt" value="{{params.get('ocr_txt') or ''}}" placeholder="请输入OCR文字，一个汉字">
+              <input type="text" class="form-control ocr_txt" value="{{params.get('ocr_txt') or ''}}" placeholder="精确匹配">
             </div>
           </div>
           <div class="form-group">
             <h4 class="col-sm-2 control-label">校对文字</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入校对文字，一个汉字">
+              <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入汉字或异体字编码，精确匹配">
             </div>
           </div>
           <div class="form-group">
-            <h4 class="col-sm-2 control-label">文字类型</h4>
+            <h4 class="col-sm-2 control-label">字置信度</h4>
             <div class="col-sm-10">
-              <select class="form-control txt_type">
+              <input type="text" class="form-control cc" value="{{params.get('cc') or ''}}" placeholder="支持比较符号>、>=、<、<=等，默认为等于">
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">列置信度</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control lc" value="{{params.get('lc') or ''}}" placeholder="支持比较符号>、>=、<、<=等，默认为等于">
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">相同程度</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control sc" value="{{params.get('sc') or ''}}" placeholder="支持比较符号>、>=、<、<=等，默认为等于">
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">相同程度</h4>
+            <div class="col-sm-10">
+              <select class="form-control sc">
                 <option value=""></option>
-                {% for k,v in txt_types.items() %}
-                {% if params.get('txt_type', '') == k %}
+                {% for k,v in handler.equal_level.items() %}
+                {% if params.get('sc', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -132,28 +150,14 @@
               </select>
             </div>
           </div>
+
           <div class="form-group">
-            <h4 class="col-sm-2 control-label">是否不匹配</h4>
+            <h4 class="col-sm-2 control-label">异形字</h4>
             <div class="col-sm-10">
-              <select class="form-control diff">
-                <option value=""></option>
-                {% for k,v in {True: '是', False: '否'}.items() %}
-                {% if params.get('diff', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <h4 class="col-sm-2 control-label">是否不必校对</h4>
-            <div class="col-sm-10">
-              <select class="form-control un_required">
+              <select class="form-control is_deform">
                 <option value=""></option>
                 {% for k,v in {True: '是', None: '否'}.items() %}
-                {% if params.get('un_required', '') == k %}
+                {% if params.get('is_deform', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -163,15 +167,39 @@
             </div>
           </div>
           <div class="form-group">
-            <h4 class="col-sm-2 control-label">置信度</h4>
+            <h4 class="col-sm-2 control-label">不确定</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control cc" value="{{params.get('cc') or ''}}" placeholder="请输入置信度，支持范围如>0.5、>=0.5、<0.9、<=0.9等，默认为等于">
+              <select class="form-control uncertain">
+                <option value=""></option>
+                {% for k,v in {True: '是', None: '否'}.items() %}
+                {% if params.get('uncertain', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
             </div>
           </div>
           <div class="form-group">
-            <h4 class="col-sm-2 control-label">备　注</h4>
+            <h4 class="col-sm-2 control-label">笔画残损</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
+              <select class="form-control is_vague">
+                <option value=""></option>
+                {% for k,v in {True: '是', None: '否'}.items() %}
+                {% if params.get('is_vague', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">备注</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="默认模糊匹配，加=时精确匹配">
             </div>
           </div>
         </form>
@@ -212,7 +240,7 @@
     </div>
   </div>
 </div>
-<div id="extractModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="extractModal" aria-hidden="true">
+<div id="genImgModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genImgModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content modal-sm">
       <div class="modal-header">
@@ -231,7 +259,7 @@
             <h4 class="item-title">已有字图时是否重新生成？</h4>
             <div class="regen">
               <label class="radio-inline"><input type="radio" name="regen" value="否" checked>否</label>
-              <label class="radio-inline"><input type="radio" name="regen" value="是">是</label>
+              <label class="radio-inline hide"><input type="radio" name="regen" value="是">是</label>
             </div>
           </div>
         </form>
@@ -318,31 +346,29 @@
     $('#sourceModal').modal();
   });
   $('#sourceModal .modal-confirm').on('click', function () {
-    var source = $('#sourceModal .source').val();
-    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
-    if (data.type === 'selected' && !ids.length) return showTips('提示', '选中记录不允许为空。', 3000);
-    if (data.type === 'searched' && !data.search) return showTips('提示', '检索条件不允许为空。', 3000);
-    $(this).text('进行中...');
+    let source = $('#sourceModal .source').val();
+    let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+    let data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
+    if (data.type === 'selected' && !ids.length) return showTips('提示', '选中记录不允许为空', 3000);
+    if (data.type === 'searched' && !data.search) return showTips('提示', '检索条件不允许为空', 3000);
+    $('#sourceModal').modal('hide');
     postApi('/char/source', {data: data}, () => location.reload());
   });
 
   // 生成字图
-  $('.operation .bat-gen-img').on('click', function () {
+  $('.operation .bat-gen-imgs').on('click', function () {
     if (!$('table tbody :checked').length) return showTips('提示', '请选择字图', 3000);
-    $('#extractModal .selected-count').text($('table tbody :checked').length);
-    $('#extractModal').modal();
+    $('#genImgModal .selected-count').text($('table tbody :checked').length);
+    $('#genImgModal').modal();
   });
-  $('#extractModal .modal-confirm').on('click', function () {
-    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    var data = {_ids: ids, type: $('#extractModal .range :checked').val(), regen: $('.regen :checked').val(), search: location.search};
-    $(this).text('进行中...');
+  $('#genImgModal .modal-confirm').on('click', function () {
+    let type = $('#genImgModal .range :checked').val();
+    let ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+    let data = {_ids: ids, type: type, regen: $('.regen :checked').val(), search: location.search};
+    $('#genImgModal').modal('hide');
     postApi('/char/extract_img', {data: data}, (res) => {
-      Swal0.fire({
-        type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
-        footer: `详情可查看<a href="/sys/oplog/latest/extract_img">日志</a>`
-      });
-      $('#extractModal').modal('hide');
+      let info = `详情可查看<a href="/sys/oplog/latest/extract_img">日志</a>`;
+      Swal0.fire({type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。', footer: info});
     });
   });
 
@@ -353,93 +379,89 @@
 
   // 浏览结果
   $('.operation .btn-browse').on('click', function () {
-    location.href = '/char/browse' + setQueryString('from', location.pathname, true);
-  });
-
-  // 查看
-  $('.btn-detail').on('click', function () {
-    location.href = '/char/' + $(this).parent().parent().find('.name').text();
+    setStorage('from', location.href);
+    location.href = '/char/browse' + location.search + '&from=1';
   });
 
   // 检查字页数量是否一致
   $('.operation .btn-check-consistent').on('click', function () {
     location.href = '/char/consistent' + location.search;
   });
+  // 查看
+  $('.btn-my-view').on('click', function () {
+    location.href = '/char/' + $(this).parent().parent().find('.name').text();
+  });
+
+  // 详情
+  $('.btn-detail').on('click', function () {
+    location.href = '/char/info/' + $(this).parent().parent().find('.name').text();
+  });
 
 </script>
 <script>
   /*---综合检索---*/
-  var $searchModal = $("#searchModal");
-  var inputFields = ['name', 'source', 'ocr_txt', 'txt', 'remark', 'cc'];
-  var selectFields = ['txt_type', 'diff', 'un_required'];
+  let $searchModal = $("#searchModal");
+  let inputFields = ['source', 'name', 'ocr_txt', 'txt', 'remark', 'cc', 'lc'];
+  let selectFields = ['is_vague', 'is_deform', 'uncertain', 'sc'];
   $searchModal.find('.modal-confirm').on('click', function () {
-    var search = '';
+    let search = '';
     inputFields.forEach(function (field) {
-      var value = $searchModal.find('.' + field).val();
-      if (value)
-        search += '&' + field + '=' + value;
+      let value = $searchModal.find('.' + field).val();
+      if (value) search += '&' + field + '=' + value;
     });
     selectFields.forEach(function (field) {
-      var $select = $searchModal.find('.' + field + ' :selected');
-      if ($select.text())
-        search += '&' + field + '=' + $select.val();
+      let $select = $searchModal.find('.' + field + ' :selected');
+      if ($select.text()) search += '&' + field + '=' + $select.val();
     });
-    if (!search.length)
-      return showTips('提示', '请输入查询条件', 3000);
+    if (!search.length) return showTips('提示', '请输入查询条件', 3000);
     location.href = location.pathname + '?' + search.substr(1);
   });
 
   // 重置检索条件
   $searchModal.find('.reset').on('click', function () {
-    inputFields.forEach(function (field) {
-      $searchModal.find('.' + field).val('');
-    });
+    inputFields.forEach((field) => $searchModal.find('.' + field).val(''));
   });
 
 </script>
 <script>
   /*---发布任务---*/
-  var taskType = '';
-  var $publishModal = $('#publishModal');
-  var taskTypes = decodeJSON('{{handler.task_types}}');
+  let taskType = '';
+  let $publishModal = $('#publishModal');
+  let taskTypes = decodeJSON('{{handler.task_types}}');
   $('.btn-publish a').on('click', function () {
     $publishModal.modal();
     taskType = $(this).attr('title');
     $publishModal.find('.task-name').text($(this).text());
     // 前置任务
     $('.pre_tasks :checkbox').removeAttr('checked');
-    var preTasks = taskTypes[taskType].pre_tasks || [];
-    preTasks.forEach(function (item) {
-      $('.pre_tasks .' + item).prop('checked', true);
-    });
+    let preTasks = taskTypes[taskType].pre_tasks || [];
+    preTasks.forEach((item) => $('.pre_tasks .' + item).prop('checked', true));
     // 校次
-    var num = taskTypes[taskType].num || [];
+    let num = taskTypes[taskType].num || [];
     $publishModal.find('.num').toggleClass('hide', !num.length);
     $publishModal.find('.num .value').html($.map(num, function (item) {
       return `<label class="radio-inline"><input type="radio" name="num" value="${item}" ${item === 1 ? "checked" : ""}>${item}</label>`;
     }).join(''));
   });
   // 刷新
-  $('#publishModal .modal-refresh').on('click', function () {
-    location.reload();
-  });
-
-  $('#publishModal .modal-confirm').on('click', function () {
-    if ($(this).text() === '进行中...') return;
-    $(this).text('进行中...');
-    var num = $('#publishModal .num :checked').val();
-    var batch = $('#publishModal .batch .value').val();
-    var source = $('#publishModal .source .value').val();
-    var priority = $('#publishModal .priority :checked').val();
-    var is_oriented = $('#publishModal .is_oriented :checked').val();
-    var preTasks = $.map($('.pre_tasks :checked'), function (item) {
-      return $(item).attr('title');
-    });
-    var $this = $(this);
-    var data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, priority: priority, is_oriented: is_oriented, source: source};
+  $publishModal.find('.modal-refresh').on('click', () => location.reload());
+  $publishModal.find('.modal-confirm').on('click', function () {
+    let $this = $(this);
+    if ($this.hasClass('disabled')) return;
+    $this.addClass('disabled').text('进行中...');
+    let num = $('#publishModal .num :checked').val();
+    let batch = $('#publishModal .batch .value').val();
+    let source = $('#publishModal .source .value').val();
+    let priority = $('#publishModal .priority :checked').val();
+    let is_oriented = $('#publishModal .is_oriented :checked').val();
+    let preTasks = $.map($('.pre_tasks :checked'), (item) => $(item).attr('title'));
+    let data = {
+      task_type: taskType, num: num, pre_tasks: preTasks, batch: batch,
+      priority: priority, is_oriented: is_oriented, source: source
+    };
     postApi('/char/task/publish', {data: data}, (res) => {
-      $this.text('发布');
-      var tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;
+      $this.removeClass('disabled').text('发布');
+      let tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;
       Swal0.fire({title: '成功', html: tips, type: 'success', footer: '详情可以查看<a href="/sys/oplog/latest">日志</a>'});
     });
   });

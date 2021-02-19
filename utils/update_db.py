@@ -7,22 +7,18 @@ import pymongo
 from os import path
 from pymongo.errors import PyMongoError
 
-BASE_DIR = path.dirname(path.dirname(__file__))
-sys.path.append(BASE_DIR)
-
-from controller.page.tool.variant import variants
-
 
 def index_db(db):
     """ 给数据库增加索引"""
     fields2index = {
         'user': ['name', 'email', 'phone'],
-        'page': ['name', 'page_code', 'source', 'tasks'],
-        'char': ['name', 'source', 'uid', 'ocr_txt', 'txt', 'diff', 'un_required', 'cc', 'sc', 'txt_level', 'has_img'],
-        'task': ['batch', 'task_type', 'num', 'collection', 'id_name', 'doc_id', 'txt_kind', 'status', 'is_oriented',
-                 'picked_user_id'],
+        'page': ['name', 'source', 'page_code'],
         'log': ['create_time', 'user_id', 'op_type'],
-        'variant': ['txt', 'normal_txt'],
+        'variant': ['txt', 'v_code', 'nor_txt', 'user_txt'],
+        'char': ['name', 'source', 'cmb_txt', 'txt', 'cc', 'lc', 'pc', 'sc', 'txt_level',
+                 'is_vague', 'is_deform', 'uncertain'],
+        'task': ['batch', 'task_type', 'num', 'collection', 'doc_id', 'txt_kind', 'status',
+                 'is_oriented', 'picked_user_id'],
     }
     for collection, fields in fields2index.items():
         for field in fields:
@@ -32,17 +28,7 @@ def index_db(db):
                 print(e)
 
 
-def init_variants(db):
-    """ 初始化异体字表"""
-    variants2insert = []
-    for v_str in variants:
-        for item in v_str:
-            variants2insert.append(dict(txt=item, normal_txt=v_str[0]))
-    db.variant.insert_many(variants2insert, ordered=False)
-    print('add %s variants' % len(variants2insert))
-
-
-def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='index_db', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

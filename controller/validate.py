@@ -70,7 +70,10 @@ def i18n(key):
         'blocks': '栏框',
         'columns': '列框',
         'chars': '字框',
-        'normal_txt': '正字',
+        'txt': '文字',
+        'img_name': '图片',
+        'nor_txt': '正字',
+        'user_txt': '用户字头',
         'remark': '备注',
     }
     return maps[key] if key in maps else key
@@ -135,7 +138,7 @@ def equal(**kw):
 
 
 def is_name(**kw):
-    """ 检查是否为姓名。"""
+    """检查是否为姓名。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{3,20}$'
@@ -145,7 +148,7 @@ def is_name(**kw):
 
 
 def is_phone(**kw):
-    """ 检查是否为手机。"""
+    """检查是否为手机。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^1[23456789]\d{9}$'
@@ -155,7 +158,7 @@ def is_phone(**kw):
 
 
 def is_email(**kw):
-    """ 检查是否为邮箱。"""
+    """检查是否为邮箱。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
@@ -165,7 +168,7 @@ def is_email(**kw):
 
 
 def is_phone_or_email(**kw):
-    """ 检查是否为手机或邮箱。"""
+    """检查是否为手机或邮箱。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     email_regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
@@ -176,7 +179,7 @@ def is_phone_or_email(**kw):
 
 
 def is_password(**kw):
-    """ 检查是否为密码。"""
+    """检查是否为密码。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^(?![0-9]+$)(?![a-zA-Z]+$)[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$'
@@ -186,7 +189,7 @@ def is_password(**kw):
 
 
 def is_priority(**kw):
-    """ 检查是否为优先级。"""
+    """检查是否为优先级。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[123]$'
@@ -196,7 +199,7 @@ def is_priority(**kw):
 
 
 def is_tripitaka(**kw):
-    """ 检查是否为藏编码。"""
+    """检查是否为藏编码。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[A-Z]{1,2}$'
@@ -206,7 +209,7 @@ def is_tripitaka(**kw):
 
 
 def is_volume(**kw):
-    """ 检查是否为册编码。"""
+    """检查是否为册编码。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[A-Z]{1,2}(_\d+)+$'
@@ -216,7 +219,7 @@ def is_volume(**kw):
 
 
 def is_sutra(**kw):
-    """ 检查是否为经编码。"""
+    """检查是否为经编码。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[A-Z]{1,2}(\d{4,}|_\d+)$'
@@ -226,7 +229,7 @@ def is_sutra(**kw):
 
 
 def is_reel(**kw):
-    """ 检查是否为卷编码。"""
+    """检查是否为卷编码。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[A-Z]{1,2}\d{4,}_\d*$'
@@ -236,7 +239,7 @@ def is_reel(**kw):
 
 
 def is_page(**kw):
-    """ 检查是否为页编码。"""
+    """检查是否为页编码。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[A-Z]{1,2}[_\w]+$'
@@ -246,7 +249,7 @@ def is_page(**kw):
 
 
 def is_article(**kw):
-    """ 检查是否为文章编码。"""
+    """检查是否为文章编码。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[^/]{6,}$'
@@ -256,33 +259,34 @@ def is_article(**kw):
 
 
 def is_digit(**kw):
-    """ 检查是否为数字。"""
+    """检查是否为数字。"""
     code, message = e.invalid_digit
-    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(r'^\d+$', str(v))}
+    if len(kw) == 1:
+        errs = {k: (code, message) for k, v in kw.items() if v and not re.match(r'^\d+$', str(v))}
+    else:
+        errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(r'^\d+$', str(v))}
     return errs or None
 
 
 def is_txt(**kw):
-    """ 检查是否为校对文字。"""
+    """检查是否为校对文字。"""
     code, message = e.invalid_txt
-    regex = r'^([^\x00-\xff]|Y\d+)$'
-    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
-    return errs or None
-
-
-def is_txt_type(**kw):
-    """ 检查文字类型。"""
-    code, message = e.invalid_txt_type
-    regex = r'^[YMN*]$'
-    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    regex = r'^([^\x00-\xff]|v[0-9a-z]+)$'
+    if len(kw) == 1:
+        errs = {k: (code, message) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    else:
+        errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
     return errs or None
 
 
 def is_char_uid(**kw):
-    """ 检查是否为char的uid。"""
-    code, message = e.invalid_txt_type
+    """检查是否为char的uid。"""
+    code, message = e.field_error
     regex = r'^Y\d+$'
-    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    if len(kw) == 1:
+        errs = {k: (code, message) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    else:
+        errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
     return errs or None
 
 

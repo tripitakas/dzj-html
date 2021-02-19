@@ -4,22 +4,24 @@
 import re
 import json
 from .page import Page
+from .api import PageBoxApi
 from .base import PageHandler
 from controller import helper as h
+from controller import errors as e
 from controller import validate as v
-from .api import PageBoxApi
 
 
-class PageTasklistApi(PageHandler):
+class PageTaskListApi(PageHandler):
     URL = '/api/page/task/list'
 
     def post(self):
-        """ 获取页任务的页码"""
+        """获取页任务的页码"""
         try:
             rules = [(v.not_empty, 'search')]
             self.validate(self.data, rules)
-            condition, _ = self.get_task_search_condition(self.data['search'], 'page')
-            tasks = list(self.db.task.find(condition, {'doc_id': 1}))
+
+            cond = self.get_task_search_condition(self.data['search'], 'page')[0]
+            tasks = list(self.db.task.find(cond, {'doc_id': 1}))
             page_names = [task['doc_id'] for task in tasks]
             self.send_data_response(dict(names=page_names))
 
@@ -30,13 +32,8 @@ class PageTasklistApi(PageHandler):
 class PageTaskPublishApi(PageHandler):
     URL = '/api/page/task/publish'
 
-    field_names = {
-        'published': '任务已发布', 'pending': '任务已悬挂', 'finished_before': '任务已完成',
-        'un_existed': '页面不存在', 'published_before': '任务曾被发布',
-    }
-
     def post(self):
-        """ 发布任务"""
+        """发布任务"""
         try:
             log = dict()
             self.get_page_names(log)
@@ -49,14 +46,16 @@ class PageTaskPublishApi(PageHandler):
             self.validate(self.data, rules)
             log = self.check_and_publish(log)
             log_id = self.add_op_log(self.db, 'publish_task', None, log, self.username)
-            message = '，'.join(['%s：%s条' % (self.field_names.get(k) or k, len(names)) for k, names in log.items()])
+            trans = {'published': '任务已发布', 'pending': '任务已悬挂', 'finished_before': '任务已完成',
+                     'un_existed': '页面不存在', 'published_before': '任务曾被发布'}
+            message = '，'.join(['%s：%s条' % (trans.get(k) or k, len(names)) for k, names in log.items()])
             return self.send_data_response(dict(message=message, id=str(log_id), **log))
 
         except self.DbError as error:
             return self.send_db_error(error)
 
     def get_page_names(self, log):
-        """ 获取页码"""
+        """获取页码"""
         page_names = self.data.get('page_names')
         if page_names:
             if isinstance(page_names, str):
@@ -77,7 +76,7 @@ class PageTaskPublishApi(PageHandler):
             log['un_existed'] = set(page_names) - set([page['name'] for page in pages])
             page_names = [page['name'] for page in pages]
         elif self.data.get('prefix'):
-            condition = {'name': {'$regex': self.data['prefix'], '$options': '$i'}}
+            condition = {'name': {'$regex': self.data['prefix']}}
             page_names = [page['name'] for page in list(self.db.page.find(condition, {'name': 1}))]
         elif self.data.get('search'):
             condition = Page.get_page_search_condition(self.data['search'])[0]
@@ -90,14 +89,13 @@ class PageTaskPublishApi(PageHandler):
         self.data['page_names'] = page_names
 
     def check_and_publish(self, log):
-        """ 检查页码并发布任务"""
+        """检查页码并发布任务"""
         # 去掉已发布的页码
         page_names, task_type, num = self.data['page_names'], self.data['task_type'], self.data.get('num') or 1
         if page_names:
             cond = dict(task_type=task_type, num=int(num), doc_id={'$in': list(page_names)})
             log['published_before'] = set(t['doc_id'] for t in self.db.task.find(cond, {'doc_id': 1}))
             page_names = set(page_names) - log['published_before']
-
         # 剩下的页码，发布新任务
         if page_names:
             pre_tasks = self.data['pre_tasks']
@@ -153,39 +151,49 @@ class PageTaskPublishApi(PageHandler):
 
 
 class PageTaskCutApi(PageHandler):
-    URL = ['/api/task/do/(cut_proof|cut_review)/@task_id',
-           '/api/task/update/(cut_proof|cut_review)/@task_id']
+    URL = '/api/task/(do|update|nav)/(cut_proof|cut_review)/@task_id'
 
-    def post(self, task_type, task_id):
-        """ 切分校对、审定页面"""
+    def post(self, mode, task_type, task_id):
+        """切分校对、审定页面"""
         try:
-            page = PageBoxApi.save_box(self, self.task['doc_id'], task_type)
-            hint_no = self.get_user_hint_no(page, self.user_id)
+            page = self.db.page.find_one({'name': self.task['doc_id']})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到任务相关页面%s' % self.task['doc_id'])
+            PageBoxApi.save_box(self, page, task_type)
+
+            op_no = self.get_user_op_no(page, self.user_id)
+            update = {'updated_time': self.now(), **op_no}
             if self.data.get('submit') and self.task['status'] != self.STATUS_FINISHED:
-                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                    'status': self.STATUS_FINISHED, 'finished_time': self.now(), **hint_no}})
+                used_time = (self.now() - self.task['picked_time']).total_seconds()
+                update.update({'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'used_time': used_time})
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
+                self.send_data_response()
                 self.update_post_tasks(self.task)
                 self.update_page_status(self.STATUS_FINISHED, self.task)
             else:
-                self.db.task.update_one({'_id': self.task['_id']}, {'$set': hint_no})
-            return self.send_data_response()
+                self.send_data_response()
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
 
         except self.DbError as error:
             return self.send_db_error(error)
 
 
 class PageTaskTextApi(PageHandler):
-    URL = ['/api/task/do/(text_proof|text_review)/@task_id',
-           '/api/task/update/(text_proof|text_review)/@task_id']
+    URL = '/api/task/(do|update|nav)/(text_proof|text_review)/@task_id'
 
-    def post(self, task_type, task_id):
-        """ 文字校对、审定页面"""
+    def post(self, mode, task_type, task_id):
+        """文字校对、审定页面"""
         try:
+            update = {'updated_time': self.now()}
             if self.data.get('submit') and self.task['status'] != self.STATUS_FINISHED:
-                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                    'status': self.STATUS_FINISHED, 'finished_time': self.now()}})
+                used_time = (self.now() - self.task['picked_time']).total_seconds()
+                update.update({'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'used_time': used_time})
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
+                self.send_data_response()
                 self.update_page_status(self.STATUS_FINISHED, self.task)
-            return self.send_data_response()
+            else:
+                self.send_data_response()
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
 
         except self.DbError as error:
             return self.send_db_error(error)

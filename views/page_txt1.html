@@ -12,6 +12,11 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
+    #panel-region {
+      width: 260px;
+      max-width: 260px;
+    }
+
     .char-txt tspan {
       /*font-size: 32px;*/
       text-align: center;
@@ -80,7 +85,7 @@
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-        <div id="toggle-work-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐右侧工作面板"></div>
+        <div id="toggle-proof-panel" class="btn-txt icon-right-panel active" data-toggle="tooltip" data-placement="bottom" title="显隐校对面板"></div>
         <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
         <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
@@ -101,9 +106,8 @@
       <div id="left-region" class="left bd">
         <div id="holder"></div>
       </div>
-      <div id="right-region" class="right bd work-panel">
-        {% set ch = page["chars"] and page["chars"][0] or {} %}
-        {% module CharTxt(ch, show_base=False, submit_id='submit-page-txt') %}
+      <div id="panel-region" class="right bd proof-panel">
+        {% include com/_char_txt.html %}
       </div>
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
@@ -112,7 +116,7 @@
     </div>
     <div class="m-footer">
       <span class="fl">
-        页编码：<span class="page-name">{{page['name']}}</span>
+        <span class="page-info">页编码：<span class="page-name">{{page['name']}}</span></span>
       </span>
       <span class="center">
         异文: <span class="diff">■</span>
@@ -128,7 +132,7 @@
 </div>
 
 <div class="panel-body" style="padding: 0">
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -141,7 +145,7 @@
             文字校对提供对照图片进行文字校对的功能，有两种模式：页图模式和列图模式，用户可根据个人喜好选择在哪种模式下校对。
             两种模式下都会以不同颜色标识异文、异体字以及修改过的文字，详见底部状态栏。<br/>
             图片和文字可以达到字符级别对应，页面右侧工作面板上部区域提供来自OCR字引擎、列引擎及比对文本的候选文字供用户选择。
-            下部区域为文字输入区，可输入原字和所属正字，并可对校对结果标注类别：没问题，图片模糊或残损，不确定，不认识。
+            下部区域为文字输入区，可输入校对文字和所属正字，并可对校对结果标注类别：没问题，图片模糊或残损，不确定，不认识。
           </div>
           <div class="title">二、操作</div>
           <table class="table">
@@ -195,12 +199,11 @@
 <script src="{{static_url('js/char-txt.js')}}"></script>
 <script src="{{static_url('js/cut/char_txt.js') }}"></script>
 <script>
-  var taskType = '{{handler.task_type or ""}}';
-  var from = taskType ? '/task/lobby/' + taskType : decodeFrom();
-  var pageName = '{{page["name"]}}';
-  var chars = decodeJSON("{{dumps(chars)}}");
-  var columns = decodeJSON("{{dumps(columns)}}");
-  var txtTypes = decodeJSON('{{dumps(txt_types)}}');
+  let taskType = '{{handler.task_type or ""}}';
+  let from = taskType ? '/task/lobby/' + taskType : decodeFrom();
+  let pageName = '{{page["name"]}}';
+  let chars = decodeJSON("{{dumps(chars)}}");
+  let columns = decodeJSON("{{dumps(columns)}}");
 
   // 显示页面图和切分框
   $.cut.createColumns({
@@ -218,25 +221,14 @@
   // 字框切换时更新字输入元素
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'navigate') {
-      if (info.class === 'char') {
-        var ch = chars[pageName + '_' + info.cid];
-        updateCharTxtPanel(ch);
-        $('.m-footer .char-info').text(ch.txt || ch.ocr_txt);
-        $('.m-footer .char-name').text(ch.char_id + '#' + ch.cid);
-      }
-      if (info.class === 'column') {
-        var ch = columns[info.column_id] || {};
-        $('.m-footer .char-info').text(ch.txt || ch.ocr_txt);
-        $('.m-footer .char-name').text(ch.column_id + '#' + ch.cid);
-        info.shape.attr({'fill-opacity': 0.2});
-      }
+
     }
   }, true);
 
   // 保存文本
   $.fn.addSvgClass = function (className) {
     return this.each(function () {
-      var attr = $(this).attr('class') || "";
+      let attr = $(this).attr('class') || "";
       if (!$(this).hasClass(className)) {
         $(this).attr('class', $.trim(attr + ' ' + className))
       }
@@ -245,9 +237,9 @@
 
   $('#submit-page-txt').on('click', function () {
     if ($(this).hasClass('disabled')) return;
-    var name = $('.char-edit .current-name').val();
-    var ch = chars[name];
-    var data = {
+    let name = $('.char-edit .current-name').val();
+    let ch = chars[name];
+    let data = {
       task_type: taskType || '',
       txt: $('.proof .txt').val() || '',
       nor_txt: $('.proof .nor-txt').val() || '',
@@ -291,7 +283,7 @@
   // 减少文本字号
   $('#reduce-txt-font').on('click', function () {
     $.map($('text'), function (item) {
-      var size = parseInt($(item).css('font-size')) - 2;
+      let size = parseInt($(item).css('font-size')) - 2;
       $(item).css('font-size', size + 'px');
     });
   });
@@ -299,7 +291,7 @@
   // 增加文本字号
   $('#enlarge-txt-font').on('click', function () {
     $.map($('text'), function (item) {
-      var size = parseInt($(item).css('font-size')) + 2;
+      let size = parseInt($(item).css('font-size')) + 2;
       $(item).css('font-size', size + 'px');
     });
   });
@@ -311,12 +303,14 @@
 
   // 修改字框
   $('#btn-box').on('click', function () {
-    location.href = '/page/box/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    window.location = '/page/box/{{page["name"]}}?from=1';
   });
 
   // 修改字序
   $('#btn-order').on('click', function () {
-    location = '/page/order/{{page["name"]}}?from=' + encodeFrom();
+    setStorage('from', location.href);
+    window.location = '/page/order/{{page["name"]}}?from=1';
   });
 
 </script>

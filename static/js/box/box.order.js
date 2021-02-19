@@ -30,7 +30,7 @@
 
   $.extend($.box, {
     oStatus: oStatus,
-    initOrder: initOrder,
+    bindOrder: bindOrder,
     toggleLink: toggleLink,
     drawLink: drawLink,
     checkLinks: checkLinks,
@@ -47,10 +47,10 @@
     return status.boxMode === 'order';
   }
 
-  function initOrder(p) {
+  function bindOrder(p) {
     if (p && p.userLinks) oStatus.userLinks = p.userLinks;
     // bind event
-    $(data.holder).find('svg').on('mousedown', mouseDown).mouseup(mouseUp).mousemove(function (e) {
+    $(data.holder).on('mousedown', mouseDown).mouseup(mouseUp).mousemove(function (e) {
       if (!oStatus.isMouseDown) mouseHover(e);
       else if (self.getDistance(self.getPoint(e), oStatus.downPt) > data.ratio) //仅当拖拽距离大于1时才触发拖拽函数
         mouseDrag(e);
@@ -69,17 +69,17 @@
   }
 
   function mouseHover(e) {
-    if (!isOrderMode() || status.readonly) return;
+    if (!isOrderMode() || !oStatus.curLinkType || status.readonly) return;
     e.preventDefault();
     switchCurLink(self.getPoint(e));
   }
 
   function mouseDown(e) {
-    if (!isOrderMode() || status.readonly) return;
+    if (!isOrderMode() || !oStatus.curLinkType || status.readonly) return;
     e.preventDefault();
     if (e.button === 2) return; // 鼠标右键
     oStatus.downPt = self.getPoint(e);
-    let box = self.findBoxByPoint(oStatus.downPt, status.curBoxType, notDeleted);
+    let box = self.findBoxByPoint(oStatus.downPt, oStatus.curLinkType, notDeleted);
     self.switchCurBox(box);
     switchCurLink(oStatus.downPt);
     oStatus.isDragging = false;
@@ -87,7 +87,7 @@
   }
 
   function mouseDrag(e) {
-    if (!isOrderMode() || status.readonly) return;
+    if (!isOrderMode() || !oStatus.curLinkType || status.readonly) return;
     e.preventDefault();
     if (!oStatus.curCap) return;
     // init
@@ -140,16 +140,16 @@
       // 3.检查栏列号，跳过新增的字框（未分配栏列号）
       if (a.boxType === 'char' && a.block_no && b.block_no && a.column_no && b.column_no && (
           a.block_no !== b.block_no || a.column_no !== b.column_no)) {
-        bsShow('提示', '两个字框不在同一列，禁止连接', 'warning', 5000);
+        bsShow('提示', '两个字框不在同一列，禁止连接', 'warning', 2000);
         return false;
       } else if (a.boxType === 'column' && a.block_no && b.block_no && a.block_no !== b.block_no) {
-        bsShow('提示', '两个列框不在同一栏，禁止连接', 'warning', 5000);
+        bsShow('提示', '两个列框不在同一栏，禁止连接', 'warning', 2000);
         return false;
       }
       // 4.检查目标框的连线
       let sideB = isUpdate ? sideA : {in: 'out', out: 'in'}[sideA];
       if (b[sideB + 'Link']) {
-        bsShow('提示', '目标框' + {in: '入', out: '出'}[sideB] + '点已有连线', 'warning', 5000);
+        bsShow('提示', '目标框' + {in: '入', out: '出'}[sideB] + '点已有连线', 'warning', 2000);
         return false;
       }
       return true;
@@ -162,7 +162,7 @@
       oStatus.hasChanged = true;
     }
 
-    if (!isOrderMode() || status.readonly) return;
+    if (!isOrderMode() || !oStatus.curLinkType || status.readonly) return;
     e.preventDefault();
     oStatus.isMouseDown = false;
     if (!oStatus.isDragging) return onQuit();
@@ -254,7 +254,7 @@
     if (oStatus.hasInit && !reset) return;
     let prev = {block: null, column: null, char: null};
     data.boxes.forEach(function (b, i) {
-      if (self.isDeleted(b)) return deleteLink(b.inLink);
+      if (self.isDeleted(b) || b.boxType === 'image') return deleteLink(b.inLink);
       let a = prev[b.boxType];
       if (a) a.iniOutCid = setLink(a, b) ? b.cid : null;
       if (!a || !a.iniOutCid) deleteLink(b.inLink); // b是第一个框
@@ -266,8 +266,8 @@
   function setLink(a, b) {
     let r = data.ratio;
     let boxType = a.boxType;
-    let p = {column: 'block_no', char: 'column_no'};
-    if (a[p[boxType]] !== b[p[boxType]]) {
+    if ((boxType === 'char' && (a['block_no'] !== b['block_no'] || a['column_no'] !== b['column_no'])) ||
+        (boxType === 'column' && a['block_no'] !== b['block_no'])) {
       deleteLink(a.outLink, 'out');
       deleteLink(b.inLink, 'in');
       return false;
@@ -281,8 +281,15 @@
     }
     a.outLink && a.outLink.elem && a.outLink.elem.remove();
     b.inLink && b.inLink.elem && b.inLink.elem.remove();
+
+    let w = a.elem.attrs.width;
+    w = w > 40 ? 40 : w < 6 ? 6 : w; // 线宽从6~40，对应连线宽度从1到2.2
+    w = (1 + (w - 6) * 0.035) * (0.5 + data.ratio * 0.5);
+    let p = {column: 'block_no', char: 'column_no'};
     let even = a[p[boxType]] % 2 ? ' odd' : ' even';
-    let link = createLink(ap, bp, 'link ln-' + boxType + even).attr({'id': a.idx + '#' + b.idx});
+    let link = createLink(ap, bp, 'link ln-' + boxType + even).attr({
+      'id': a.idx + '#' + b.idx, 'stroke-width': w,
+    });
     a.outLink = b.inLink = {elem: link, out: a, in: b};
     return true;
   }
@@ -411,19 +418,17 @@
         self.addClass(b, isOdd ? 'odd' : 'even');
       }
     });
-    self.adjustBoxes();
   }
 
 
   function toggleLink(boxType, show) {
-    // 设置当前字框，并navigate至第一个框
-    status.curBoxType = boxType;
-    // 设置当前序线
-    oStatus.curLinkType = boxType;
     $(data.holder).removeClass('show-block-link show-column-link show-char-link');
     if (boxType && show) {
+      oStatus.curLinkType = boxType;
       $(data.holder).addClass('show-' + boxType + '-link');
       drawLink();
+    } else {
+      oStatus.curLinkType = null;
     }
   }
 
@@ -449,29 +454,29 @@
     let name = {block: '栏框', column: '列框', char: '字框'}[boxType];
     let pName = {block: '页面', column: '栏框', char: '列框'}[boxType];
     if (none.length) {
-      bsShow('错误', name + '没有任何连线', 'warning', 5000);
+      bsShow('错误', name + '没有任何连线', 'warning', 2000);
       none.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false;
     } else if (start.length > 1) {
-      bsShow('错误', pName + '内有多个开始' + name, 'warning', 5000);
+      bsShow('错误', pName + '内有多个开始' + name, 'warning', 2000);
       start.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false
     } else if (end.length > 1) {
-      bsShow('错误', pName + '内有多个结束' + name, 'warning', 5000);
+      bsShow('错误', pName + '内有多个结束' + name, 'warning', 2000);
       end.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false
     } else if (!start.length) {
-      bsShow('错误', '没有找到开始' + name, 'warning', 5000);
+      bsShow('错误', '没有找到开始' + name, 'warning', 2000);
       boxes.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false
     } else if (!end.length) {
-      bsShow('错误', '没有找到结束' + name, 'warning', 5000);
+      bsShow('错误', '没有找到结束' + name, 'warning', 2000);
       boxes.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false
     }
     let orders = _traverseLink(start[0]);
     if (orders.length !== boxes.length) {
-      bsShow('错误', '连线有中断及环路，不能从开始框依次走到结束框', 'warning', 5000);
+      bsShow('错误', '连线有中断及环路，不能从开始框依次走到结束框', 'warning', 2000);
       boxes.forEach((b) => self.addClass(b, 'highlight ln-error'));
       return false;
     }

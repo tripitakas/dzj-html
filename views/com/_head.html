@@ -29,9 +29,9 @@
 </div>
 
 <script>
-  $('#logout').click(function () {
+  $('#logout').on('click', function () {
     postApi('/user/logout', {'data': {}}, function () {
-      showSuccess('注销成功', '', 2000);
+      showSuccess('成功', '已注销', 1000);
       goto('/user/login', 1000);
     });
   });

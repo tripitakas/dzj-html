@@ -15,20 +15,24 @@
     if (reason === 'switch') {
       switchCurHandles(box);
     }
+    if (reason === 'zoom') {
+      switchCurHandles($.box.status.curBox);
+    }
   });
 
   let self = $.box;
   let data = self.data;
   let status = self.status;
   let cStatus = {
+    onlyChange: false,                              // 是否仅允许修改
     hasChanged: false,                              // 用户是否已修改
     isMouseDown: false,                             // 鼠标左键是否按下
     isDragging: false,                              // 鼠标是否在点击拖拽
+    dragMode: null,                                 // 鼠标拖拽模式，1表示修改，2表示新增
+    dragHandleIndex: -1,                            // 鼠标拖拽哪个控制点
     isMulti: false,                                 // 是否为多选模式
     downPt: null,                                   // 点击的坐标
-    curHandles: [],                                // 当前box的控制点
-    handleIndex: -1,                                // 鼠标拖拽哪个控制点，-1表示没有任何控制点，据此判断是新增还是修改
-    sensitiveGap: 8,                                // 控制点的敏感距离
+    curHandles: [],                                 // 当前box的控制点
     dragPt: null,                                   // 当前拖拽的坐标
     dragElem: null,                                 // 当前拖拽box的Raphael元素
     hoverElem: null,                                // 掠过box的Raphael元素
@@ -37,7 +41,7 @@
 
   $.extend($.box, {
     cStatus: cStatus,
-    initCut: initCut,
+    bindCut: bindCut,
     moveBox: moveBox,
     copyBox: copyBox,
     isCutMode: isCutMode,
@@ -51,14 +55,16 @@
     toggleMulti: toggleMulti,
     deleteBoxByIdxes: deleteBoxByIdxes,
     exportSubmitData: exportSubmitData,
+    selectBoxesByShape: selectBoxesByShape,
   });
 
   function isCutMode() {
     return status.boxMode === 'cut';
   }
 
-  function initCut() {
-    $(data.holder).on('dblclick', dblclick).mousedown(mouseDown).mouseup(mouseUp).mousemove(function (e) {
+  function bindCut(p) {
+    if (p && p.onlyChange) cStatus.onlyChange = true;
+    $(data.holder).find('svg').on('dblclick', dblclick).mousedown(mouseDown).mouseup(mouseUp).mousemove(function (e) {
       if (!cStatus.isMouseDown) mouseHover(e);
       else if (self.getDistance(self.getPoint(e), cStatus.downPt) > data.ratio) //仅当拖拽距离大于1时才触发拖拽函数
         mouseDrag(e);
@@ -66,7 +72,7 @@
   }
 
   function dblclick(e) {
-    if (!isCutMode() || !$(data.holder).hasClass('usr-hint')) return;
+    if (!isCutMode() || !$(data.holder).hasClass('user-hint')) return;
     e.preventDefault();
     let pt = self.getPoint(e);
     let box = findHintBoxByPoint(pt, status.curBoxType);
@@ -78,65 +84,79 @@
   }
 
   function mouseDown(e) {
-    if (!isCutMode() || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType) return;
     e.preventDefault();
+
     if (e.button === 2) return; // 鼠标右键
     cStatus.isDragging = false;
     cStatus.isMouseDown = true;
     cStatus.downPt = self.getPoint(e);
-    let box = self.findBoxByPoint(cStatus.downPt, status.curBoxType, canHit);
-    if (cStatus.isMulti) { // 多选模式，设置选中
-      box && self.toggleClass(box, 'u-selected');
-    } else { // 单选模式，设置当前字框
-      self.switchCurBox(box);
-    }
-    // 注：在设置curBox之后设置activeHandle
-    cStatus.handleIndex = setActiveHandle(cStatus.downPt);
   }
 
   function mouseDrag(e) {
-    if (!isCutMode() || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType || status.readonly) return;
     e.preventDefault();
+
+    let pt = self.getPoint(e);
+    cStatus.dragPt = pt;
     cStatus.isDragging = true;
-    cStatus.dragPt = self.getPoint(e);
     cStatus.dragElem && cStatus.dragElem.remove();
-    if (cStatus.handleIndex !== -1) { // 修改字框
+    if (!cStatus.dragMode) {
+      cStatus.dragMode = (status.curBox && self.isInRect(pt, status.curBox, 8)) ? 1 : 2;
+      cStatus.dragHandleIndex = setActiveHandle(pt);
+    }
+    if (cStatus.dragMode === 1) { // 1.修改字框
       cStatus.dragElem = dragHandle(cStatus.dragPt);
       self.addClass(status.curBox, 'on-drag');
-    } else { // 新增字框
-      cStatus.dragElem = self.createRect(cStatus.downPt, cStatus.dragPt, 'box dragging', true);
+    } else { // 2.新增字框
+      if (cStatus.onlyChange) return;
+      cStatus.dragElem = self.createRect(cStatus.downPt, cStatus.dragPt,
+          'box dragging ' + status.curBoxType, true);
     }
     switchCurHandles(cStatus.dragElem, true);
   }
 
   function mouseUp(e) {
-    if (!isCutMode() || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType) return;
     e.preventDefault();
-    cStatus.isMouseDown = false;
-    if (cStatus.isDragging) { // 拖拽弹起
+
+    let pt = self.getPoint(e);
+    if (cStatus.isDragging) { // 1.拖拽弹起
       cStatus.dragPt = self.getPoint(e);
-      if (cStatus.handleIndex !== -1) { // 1.修改字框
+      if (cStatus.dragMode === 1) { // 1.1.修改字框
         self.removeClass(status.curBox, 'on-drag');
-        if (self.getDistance(cStatus.downPt, cStatus.dragPt) > 1) { // 1.1.应用修改
-          updateBox(status.curBox, cStatus.dragElem);
-        } else { // 1.2.放弃很小的移动
+        if (self.getDistance(cStatus.downPt, cStatus.dragPt) > data.ratio) { // 1.1.1.应用修改
+          cStatus.dragElem && updateBox(status.curBox, cStatus.dragElem);
+        } else { // 1.1.2.放弃很小的移动
           cStatus.dragElem && cStatus.dragElem.remove();
           self.switchCurBox(status.curBox);
+          setActiveHandle(pt);
         }
-      } else { // 2.画新字框或选择字框
-        if (cStatus.isMulti) selectBoxes(cStatus.dragElem);
+      } else { // 1.2.新增字框
+        if (cStatus.isMulti) selectBoxes(cStatus.dragElem, e.shiftKey);
         else addBox(cStatus.dragElem);
       }
-    } else {
-      cStatus.dragElem && cStatus.dragElem.remove();
+    } else { // 2.点击弹起
+      cStatus.downPt = pt;
+      let box = self.findBoxByPoint(pt, status.curBoxType, canHit);
+      if (cStatus.isMulti) { // 2.1.多选模式，设置选中
+        box && self.toggleClass(box, 'u-selected');
+      } else { // 2.2.单选模式，设置当前字框
+        cStatus.dragElem && cStatus.dragElem.remove();
+        self.switchCurBox(box);
+        setActiveHandle(pt);
+      }
     }
+    cStatus.dragMode = null;
     cStatus.dragElem = null;
     cStatus.isDragging = false;
+    cStatus.isMouseDown = false;
   }
 
   function mouseHover(e) {
-    if (!isCutMode() || status.readonly) return;
+    if (!isCutMode() || !status.curBoxType || status.readonly) return;
     e.preventDefault();
+
     let pt = self.getPoint(e);
     let box = self.findBoxByPoint(pt, status.curBoxType, canHit);
     if (box && (!cStatus.hoverElem || (cStatus.hoverElem.id !== box.elem.id))) {
@@ -152,20 +172,27 @@
     multi = multi || !cStatus.isMulti;
     cStatus.isMulti = !!multi;
     if (cStatus.isMulti) {
+      bsShow('', '多选模式 已开启！', 'info', 600);
       $(data.holder).addClass('multi');
       if (status.curBox) {
         self.addClass(status.curBox, 'u-selected');
         self.switchCurBox(null);
       }
-    } else
+    } else {
+      data.boxes.forEach(function (box) {
+        if (self.hasClass(box, 'u-selected')) self.removeClass(box, 'u-selected');
+      });
       $(data.holder).removeClass('multi');
+    }
+
   }
 
   function addBox(boxElem, boxType) {
+    if (!boxElem) return;
     boxType = boxType || status.curBoxType;
-    if (!boxType || typeof boxType !== 'string') {
+    if (!boxType || boxType === 'all') {
       boxElem.remove();
-      return bsShow('错误', '请选择仅一种切分框类型', 'warning', 5000);
+      return bsShow('错误', `请选择${boxType ? '仅' : ''}一种切分框类型`, 'warning', 2000);
     }
     let box = {
       boxType: boxType, idx: data.boxes.length, cid: self.getMaxCid(boxType) + 1,
@@ -181,13 +208,12 @@
   }
 
   function copyBox() {
-    let box = status.curBox || (data.boxes && data.boxes[0]);
-    if (box) {
-      let _box = addBox(box.elem.clone(), box.boxType);
-      _moveBox(_box, 'right', 10);
-      _moveBox(_box, 'down', 10);
-      self.switchCurBox(_box);
-      return _box;
+    if (status.curBox) {
+      let box = addBox(status.curBox.elem.clone(), status.curBox.boxType);
+      _moveBox(box, 'right', 10);
+      _moveBox(box, 'down', 10);
+      self.switchCurBox(box);
+      return box;
     }
   }
 
@@ -205,6 +231,7 @@
   }
 
   function _deleteBox(box) {
+    if (cStatus.onlyChange) return;
     if (box.op === 'added') { // 直接删除此次新增的字框
       self.addClass(box, 's-deleted');  // 标记为系统删除，将不会传给后台
     } else { // 标记删除此前新增的字框
@@ -253,6 +280,7 @@
       boxes.push(_deleteBox(data.boxes[idx]));
     });
     self.notifyChanged(boxes, 'deleted');
+    bsHide();
   }
 
   function recoverBox(box, unNotify) {
@@ -262,21 +290,32 @@
     !unNotify && self.notifyChanged(box, 'recovered');
   }
 
-  function selectBoxes(rangeElem) {
-    if (!rangeElem) return;
+  function selectBoxes(rangeElem, reverse) {
+    if (!cStatus.isMulti || !rangeElem) return;
     data.boxes.forEach(function (box) {
       if (canHit(box) && self.isOverlap(box.elem, rangeElem)) {
-        self.addClass(box, 'u-selected');
+        reverse ? self.removeClass(box, 'u-selected') : self.addClass(box, 'u-selected');
       }
     });
     rangeElem.remove();
+  }
+
+  function selectBoxesByShape(shape, reverse) {
+    if (!cStatus.isMulti) return;
+    if ('white/opacity'.indexOf(shape) > -1) return;
+    if (status.curBoxType !== 'char' && shape !== 'overlap') return;
+    data.boxes.forEach((box) => {
+      if (canHit(box) && self.hasClass(box.elem, 's-' + shape)) {
+        reverse ? self.removeClass(box, 'u-selected') : self.addClass(box, 'u-selected');
+      }
+    });
   }
 
   function getUnit(unit) {
     if (!unit) {
       // unit随时间改变：慢速启动，加速移动
       let now = new Date().getTime();
-      cStatus.step.unit = (cStatus.step.lastTime && ((now - cStatus.step.lastTime) < 200)) ? cStatus.step.unit + 1 : 1;
+      cStatus.step.unit = (cStatus.step.lastTime && ((now - cStatus.step.lastTime) < 200)) ? cStatus.step.unit + 3 : 1;
       cStatus.step.lastTime = now;
       unit = cStatus.step.unit;
     }
@@ -302,7 +341,7 @@
     if (cStatus.isMulti) {
       let boxes = [];
       data.boxes.forEach(function (box) {
-        if (self.hasClass(box, 'u-selected') && (!boxType || box.boxType === boxType))
+        if (self.hasClass(box, 'u-selected') && (boxType === 'all' || box.boxType === boxType))
           boxes.push(_moveBox(box, direction, unit));
       });
       if (self.hasClass(status.curBox, 'u-selected')) self.switchCurBox(status.curBox);
@@ -334,7 +373,7 @@
     if (cStatus.isMulti) {
       let boxes = [];
       data.boxes.forEach(function (box) {
-        if (self.hasClass(box, 'u-selected') && (!boxType || box.boxType === boxType))
+        if (self.hasClass(box, 'u-selected') && (boxType === 'all' || box.boxType === boxType))
           boxes.push(_resizeBox(box, direction, unit));
       });
       if (self.hasClass(status.curBox, 'u-selected')) self.switchCurBox(status.curBox);
@@ -375,11 +414,10 @@
   }
 
   function canHit(box) {
-    if (status.readonly || !box || !box.elem || !box.elem.attrs) return false;
-    if (status.curBoxType && status.curBoxType !== box.boxType) return false;
+    if (!box || !box.elem || !box.elem.attrs) return false;
+    if (status.curBoxType !== 'all' && status.curBoxType !== box.boxType) return false;
     return !self.hasClass(box, 'hide')
         && !self.hasClass(box, 'hint')
-        && !self.hasClass(box, 'readonly')
         && !self.hasClass(box, 's-deleted')
         && !self.hasClass(box, 'u-deleted')
         && !self.hasClass(box, 'b-deleted')
@@ -390,7 +428,7 @@
     let ret = null, dist = 1e5;
     data.boxes.forEach(function (box) {
       let elem = box.hint && box.hint.elem;
-      if (elem && (!boxType || box.boxType === boxType) && self.isInRect(pt, elem, ext)) {
+      if (elem && (boxType === 'all' || box.boxType === boxType) && self.isInRect(pt, elem, ext)) {
         for (let j = 0; j < 8; j++) {
           let d = self.getDistance(pt, self.getHandlePt(elem, j));
           if (d < dist) {
@@ -404,7 +442,7 @@
   }
 
   function dragHandle(pt) {
-    let index = cStatus.handleIndex;
+    let index = cStatus.dragHandleIndex;
     if (index === -1) return;
     let pt1 = pt, b = status.curBox.elem.getBBox();
     // 4<=index<8，拖动四条边
@@ -413,13 +451,13 @@
     if (index === 6) pt1.x = b.x + b.width;
     if (index === 7) pt1.y = b.y + b.height;
     let pt2 = self.getHandlePt(status.curBox.elem, (index + 2) % 4);
-    return self.createRect(pt1, pt2, 'box dragging', true);
+    return self.createRect(pt1, pt2, 'box dragging ' + status.curBoxType, true);
   }
 
   function setActiveHandle(pt) {
     let index = -1, gap = -1;
     if (!status.curBox) return index;
-    if (pt && self.isInRect(pt, status.curBox, cStatus.sensitiveGap)) {
+    if (pt && self.isInRect(pt, status.curBox, 8)) {
       cStatus.curHandles.forEach(function (h, i) {
         self.removeClass(h, 'active');
         let d = self.getDistance(pt, h.getBBox());
@@ -434,17 +472,21 @@
   }
 
   function switchCurHandles(box, force) {
+    if ($.box.status.readonly) return;
     // 清空curHandles
     cStatus.curHandles.forEach((h) => h.remove());
     cStatus.curHandles = [];
-    if (!box || !(force || canHit(box))) return;
+    if (!box || !box.elem || !(force || canHit(box))) return;
     // 设置curHandles
-    let zoom = {char: 1, column: 1.5, block: 2};
     let boxType = box.boxType || status.curBoxType;
-    let r = Math.min(2.2 * data.ratio, 8) * (zoom[boxType] || 1);
+    let w = box.elem.attrs.width;
+    w = w > 40 ? 40 : w < 6 ? 6 : w; // 宽度从6~40，对应控制点半径从1.2到2.0
+    let r = (1.2 + (w - 6) * 0.024) * (0.6 + data.ratio * 0.4);
     for (let i = 0; i < 8; i++) {
       let pt = self.getHandlePt(box.elem, i);
-      let h = data.paper.circle(pt.x, pt.y, r).attr({'class': 'handle ' + boxType});
+      let h = data.paper.circle(pt.x, pt.y, r).attr({
+        'class': 'handle ' + boxType, 'stroke-width': r * 0.5,
+      });
       cStatus.curHandles.push(h);
     }
   }
@@ -466,25 +508,28 @@
 
   function exportSubmitData() {
     let r = data.initRatio;
-    let op = {blocks: [], columns: [], chars: []};
-    let order = {blocks: [], columns: [], chars: []};
+    let subColumns = {};
+    let op = {blocks: [], columns: [], chars: [], images: []};
+    let order = {blocks: [], columns: [], chars: [], images: []};
     data.boxes.forEach(function (box) {
       // s-deleted是系统删除，无需传给后台
       if (self.hasClass(box, 's-deleted')) return;
+      // sub columns
+      if (box.boxType === 'column' && box['sub_columns'])
+        subColumns[box['column_id']] = box['sub_columns'];
+      // order
       order[box.boxType + 's'].push([box.cid, box[box.boxType + '_id'] || '']);
+      // op
       if (!box.op || !box.elem || !box.elem.attrs) return;
       let b = box.elem.attrs, p = {cid: box.cid, op: box.op};
       Object.assign(p, {
         x: self.round(b.x / r), y: self.round(b.y / r),
         w: self.round(b.width / r), h: self.round(b.height / r)
       });
-      if (box.cid === 202) {
-        debugger;
-      }
       if (box.op === 'changed' && box.x === p.x && box.y === p.y && box.w === p.w && box.h === p.h) return;
       op[box.boxType + 's'].push(p);
     });
-    return {op: op, order: order};
+    return {op: op, order: order, sub_columns: subColumns};
   }
 
 }());

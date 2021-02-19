@@ -1,0 +1,24 @@
+<script src="{{static_url('js/cut/raphael.js')}}"></script>
+<script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/cut/jquery.mapkey.js')}}"></script>
+<script src="{{static_url('js/cut/cut.js')}}"></script>
+<script src="{{static_url('js/cut/cut_keys.js')}}"></script>
+<script src="{{static_url('js/cut/cut_adv.js')}}"></script>
+<script>
+  function updateUndo() {
+    $('#undo').toggleClass('disabled', !$.cut.canUndo());
+    $('#redo').toggleClass('disabled', !$.cut.canRedo());
+  }
+
+  updateUndo();
+
+  $('#undo').on('click', function () {
+    $.cut.undo();
+    updateUndo();
+  });
+
+  $('#redo').on('click', function () {
+    $.cut.redo();
+    updateUndo();
+  });
+</script>

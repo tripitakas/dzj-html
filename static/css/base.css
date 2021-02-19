@@ -55,7 +55,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   background: url(../imgs/fbg.png) repeat;
-  font-family: Microsoft YaHei, SimSun, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
+  font-family: 宋体, KaiXinSong, KaiXinSongB, Microsoft YaHei, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
+  /*font-family: Microsoft YaHei, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;*/
   /*font-family: Microsoft YaHei, SimSun, sans-serif, Helvetica Neue, Helvetica;*/
 }
 
@@ -145,8 +146,8 @@ a:hover, a:focus {
 }
 
 body.widescreen {
-  padding: auto !important;
   height: 100% !important;
+  padding: auto !important;
 }
 
 .app-main {
@@ -423,9 +424,10 @@ body.widescreen {
   color: #b33c2b;
 }
 
-.sty-table a.disabled, .sty-table a.disabled:hover {
+.sty-table a.disabled,
+.sty-table a.disabled:hover {
   color: #797979;
-  cursor: not-allowed
+  cursor: not-allowed;
 }
 
 .sty-table td.action a {
@@ -460,6 +462,7 @@ body.widescreen {
 }
 
 .dropdown-menu > li > a {
+  cursor: pointer;
   padding: 5px 20px;
 }
 
@@ -508,15 +511,17 @@ body.widescreen {
   display: inline-block;
 }
 
-.pagers span {
+.pagers > span {
   color: #333;
   font-size: 14px;
   line-height: 36px;
   margin-right: 15px;
 }
 
-.pagers span em {
+.pagers .cur-page,
+.pagers .doc-count {
   color: #f56558;
+  margin-left: 5px;
 }
 
 .pagers ul {
@@ -588,11 +593,12 @@ body.widescreen {
   top: 0;
   left: 0;
   right: 0;
+  height: 40px;
+  z-index: 1000;
   padding: 0 6px;
   position: fixed;
   background: var(--Grey_Light);
-  height: 40px;
-  z-index: 1000;
+  border-bottom: 1px solid rgba(227, 228, 229, 0.8);
   user-select: none;
   display: flex;
   align-items: center;
@@ -682,7 +688,7 @@ body.widescreen {
   cursor: not-allowed;
 }
 
-.btn-nav {
+.m-header .btn-nav {
   float: none;
   cursor: pointer;
   font-size: 16px;
@@ -693,11 +699,11 @@ body.widescreen {
   color: var(--Brown_Darker);
 }
 
-.btn-nav:hover {
+.m-header .btn-nav:hover {
   text-decoration: underline;
 }
 
-.btn-nav.active {
+.m-header .btn-nav.active {
   color: #333;
 }
 
@@ -742,8 +748,40 @@ body.widescreen {
   margin-right: 6px;
 }
 
-/* bootstrap */
+/*滚动条样式*/
+.slim-bar {
+  scrollbar-width: thin;
+  scrollbar-color: inherit #BDBDBD;
+}
 
+.slim-bar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.slim-bar::-webkit-scrollbar-track-piece {
+  background-color: white;
+  -webkit-border-radius: 6px;
+}
+
+.slim-bar::-webkit-scrollbar-thumb:vertical {
+  height: 6px;
+  background-color: #BDBDBD;
+  -webkit-border-radius: 3px;
+}
+
+.slim-bar::-webkit-scrollbar-thumb:horizontal {
+  width: 6px;
+  background-color: #BDBDBD;
+  -webkit-border-radius: 3px;
+}
+
+.slim-bar::-webkit-scrollbar-thumb:vertical:hover,
+.slim-bar::-webkit-scrollbar-thumb:horizontal:hover {
+  background-color: #808080;
+}
+
+/* bootstrap */
 .alert {
   border: 0;
 }
@@ -758,22 +796,32 @@ body.widescreen {
   width: 600px;
 }
 
-.m-alert .close {
+.b-alert {
+  bottom: 45px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  position: fixed;
+  font-size: 14px;
+  width: 600px;
+}
+
+.m-alert .close, .b-alert .close {
   font-size: 22px;
   margin-top: -3px;
 }
 
-.m-alert .loading {
+.m-alert .loading, .b-alert .loading {
   float: left;
   font-size: 16px;
   margin: 2px 5px;
 }
 
-.m-alert .title {
+.m-alert .title, .b-alert .title {
   margin-right: 10px;
 }
 
-.m-alert .text a {
+.m-alert .text a, .b-alert .text a {
   text-decoration: underline;
   color: var(--Brown_Darker);
   cursor: pointer;
@@ -850,33 +898,32 @@ body.widescreen {
 }
 
 .wide-txt {
-  font-family: Microsoft YaHei, SimSun, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
-  /*font-family: Microsoft YaHei, SimSun, sans-serif, Helvetica Neue, Helvetica, KaiXinSong;*/
+  font-family: Microsoft YaHei, 宋体, KaiXinSong, KaiXinSongB, HanaMinA, HanaMinB, Arial, Helvetica, sans-serif;
 }
 
 /* 帮助文档modal */
-.modal a.more-help {
+.modal.help a.more-help {
   color: var(--Brown_Dark);
   margin-left: 10px;
   text-decoration: underline;
   font-size: 12px;
 }
 
-.modal img {
+.modal.help img {
   width: 20px;
 }
 
-.modal-content textarea {
+.modal.help .modal-content textarea {
   min-width: 450px;
   min-height: 100px;
 }
 
-.modal tr > td:first-child {
+.modal.help tr > td:first-child {
   width: 120px;
   color: var(--Brown_Darker);
 }
 
-.modal .intro {
+.modal.help .intro {
   display: block;
   margin-left: 8px;
   color: #797979;
@@ -885,21 +932,21 @@ body.widescreen {
   line-height: 24px;
 }
 
-.modal .intro a {
+.modal.help .intro a {
   color: var(--Brown_Dark);
   text-decoration: underline;
 }
 
-.modal td {
+.modal.help td {
   word-break: break-all;
 }
 
-.modal .btn-sm {
+.modal.help .btn-sm {
   padding: 3px 6px !important;
   margin-left: -6px;
 }
 
-#helpModal i {
+.modal.help i {
   font-size: 20px;
 }
 
@@ -911,20 +958,24 @@ body.widescreen {
   color: #333;
   font-weight: 400;
   border-radius: 1px;
-  background-color: #eee;
-  box-shadow: 5px 5px 3px #888888;
   word-break: keep-all;
+  background-color: #eee;
+  box-shadow: 0 5px 5px 0 #888888;
 }
 
 .m-body .tooltip-inner {
   font-size: 1.2em;
   text-align: left;
   word-break: break-all;
+  box-shadow: 0 3px 5px 5px #888888;
 }
 
 .tooltip .tooltip-arrow {
+  /*border-bottom-color: #eee !important;*/
+}
+
+.no-arrow .tooltip-arrow {
   display: none;
-  border-bottom-color: #eee !important;
 }
 
 .checkbox-inline:first-child, .radio-inline:first-child {
@@ -934,16 +985,21 @@ body.widescreen {
 /*swal2*/
 .swal2-file:focus, .swal2-input:focus, .swal2-textarea:focus {
   outline: 0;
-  border: 1px solid var(--Brown_Dark);
-  box-shadow: 0 0 3px var(--Brown);
+  border: 1px solid #d9d9d9;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .06);
 }
 
 .swal2-title {
-  font-size: 1.8em;
+  /*font-size: 1.8em;*/
+  font-size: 22px;
 }
 
 .swal2-label {
-  font-size: 16px;
+  font-size: 18px;
+}
+
+.swal2-radio > label:first-child {
+  margin-left: 0;
 }
 
 .swal2-footer a {
@@ -986,18 +1042,8 @@ body.widescreen {
   }
 }
 
-.m-footer .page-name {
-  cursor: pointer;
-}
-
+.m-footer .page-name,
 .m-footer .char-name {
   cursor: pointer;
-}
-
-.page-name {
   margin-right: 10px;
-}
-
-.char-info {
-  margin-left: 10px;
 }

@@ -18,7 +18,7 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
-from controller.page.tool.esearch import find_match
+from controller.tool.esearch import find_match
 from controller.page.base import PageHandler as Ph
 
 
@@ -26,7 +26,7 @@ def is_valid(txt):
     return txt not in [None, '', '■']
 
 
-def find_cmp(db, source, reset=None):
+def find_cmp_txt(db, source, reset=None):
     """ 根据ocr文本，从cbeta库中寻找比对文本"""
     size = 100
     cond = {'source': source}
@@ -54,7 +54,7 @@ def find_cmp(db, source, reset=None):
     print('%s ignored: %s' % (len(ignored), ignored))
 
 
-def apply_txt(db, source, field, reset=None):
+def apply_page_txt(db, source, field, reset=None):
     """ 适配文本至page['chars']，包括ocr_col, cmp_txt, txt等几种文本"""
     size = 100
     cond = {'source': source}
@@ -77,7 +77,7 @@ def apply_txt(db, source, field, reset=None):
             if not Ph.get_txt(p, field):
                 ignored.append(p['name'])
                 continue
-            match, txt = Ph.apply_txt(p, field)
+            match, txt = Ph.apply_raw_txt(p, field)
             db.page.update_one({'_id': p['_id']}, {'$set': {
                 'chars': p['chars'], field1: {'status': match, 'value': txt}}})
             updated.append(p['name'])
@@ -85,43 +85,7 @@ def apply_txt(db, source, field, reset=None):
     print('%s ignored: %s' % (len(ignored), ignored))
 
 
-def reset_ocr_txt(db, source):
-    """ 重置page表的chars.ocr_txt字段"""
-    size = 100
-    cond = {'source': source}
-    item_count = db.page.count_documents(cond)
-    page_count = math.ceil(item_count / size)
-    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
-    for i in range(page_count):
-        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        fields = ['name', 'chars']
-        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
-        for p in pages:
-            print('[%s]%s' % (hp.get_date_time(), p['name']))
-            for c in p['chars']:
-                if is_valid(c.get('ocr_col')) and c['ocr_col'] != c.get('ocr_txt') and c['ocr_col'] == c.get('cmp_txt'):
-                    c['ocr_txt'] = c['ocr_col']
-            db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
-
-
-def reset_box_cid(db, source):
-    """ 重置page表的cid字段"""
-    size = 100
-    cond = {'source': source}
-    item_count = db.page.count_documents(cond)
-    page_count = math.ceil(item_count / size)
-    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
-    for i in range(page_count):
-        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        project = ['name', 'blocks', 'columns', 'chars']
-        pages = list(db.page.find(cond, {k: 1 for k in project}).sort('_id', 1).skip(i * size).limit(size))
-        for p in pages:
-            print('[%s]%s' % (hp.get_date_time(), p['name']))
-            Ph.reset_page_cid(p)
-            db.page.update_one({'_id': p['_id']}, {'$set': {k: p[k] for k in ['blocks', 'columns', 'chars']}})
-
-
-def migrate_txt_to_char(db, source, fields=None):
+def migrate_page_to_char(db, source, fields=None):
     """ 将page表的文本同步到char表"""
     fields = fields or ['ocr_col', 'cmp_txt', 'txt']
     fields = fields.split(',') if isinstance(fields, str) else fields
@@ -133,8 +97,7 @@ def migrate_txt_to_char(db, source, fields=None):
     print('[%s]%s items, %s pages to process' % (hp.get_date_time(), item_count, page_count))
     for i in range(page_count):
         print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
-        project = ['name', 'chars']
-        pages = list(db.page.find(cond, {k: 1 for k in project}).sort('_id', 1).skip(i * size).limit(size))
+        pages = list(db.page.find(cond, {k: 1 for k in ['name', 'chars']}).sort('_id', 1).skip(i * size).limit(size))
         for page in pages:
             print('[%s]processing %s' % (hp.get_date_time(), page['name']))
             for c in page['chars']:
@@ -142,14 +105,44 @@ def migrate_txt_to_char(db, source, fields=None):
                 update and db.char.update_one({'name': '%s_%s' % (page['name'], c['cid'])}, {'$set': update})
 
 
+def migrate_char_to_page(db):
+    """ 从char表中将文本回page表"""
+    size, i = 100, 0
+    cond = {'need_updated': True}
+    item_count = db.page.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    while db.page.find_one(cond):
+        i += 1
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i, page_count))
+        page_dict = dict()
+        pages = list(db.page.find(cond, {k: 1 for k in ['name', 'chars']}).limit(size))
+        db.page.update_many({'_id': {'$in': [p['_id'] for p in pages]}}, {'$set': {'need_updated': None}})
+        # 同步更新以下字段
+        fields = ['name', 'txt', 'nor_txt', 'is_vague', 'uncertain', 'is_deform', 'txt_level', 'txt_logs']
+        chars = list(db.char.find({'page_name': {'$in': [p['name'] for p in pages]}}, {k: 1 for k in fields}))
+        if not chars:
+            continue
+        for c in chars:
+            c.pop('_id', 0)
+            page_name, cid = c.pop('name', '').rsplit('_', 1)
+            page_dict[page_name] = page_dict.get(page_name) or dict()
+            page_dict[page_name][cid] = c
+        for p in pages:
+            print(p['name'])
+            if page_dict.get(p['name']):
+                for c in p['chars']:
+                    c.update(page_dict[p['name']].get(str(c['cid'])) or {})
+                db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
+
+
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
-
-    print('finished.')
 
 
 if __name__ == '__main__':
     import fire
 
     fire.Fire(main)
+    print('finished.')

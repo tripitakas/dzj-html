@@ -2,64 +2,27 @@
   'use strict';
 
   $.extend($.box, {
-    bindKey: function (key, func) {
-      $.mapKey(key, func, {direction: 'down'});
+    isMode: function (mode) {
+      return this.status.boxMode === mode;
     },
-    bindKeys: function () {
+    bindKey: function (key, func) {
+      if (key.trim() === ',')
+        $.mapKey(',', func, {direction: 'down'});
+      else key.split(',').forEach((k) => {
+        $.mapKey(k.trim(), func, {direction: 'down'});
+      });
+    },
+    bindBaseKeys: function (readonly) {
       let self = this;
       let on = self.bindKey;
 
-      on('h', () => $('#help').click());
-      on('p', () => $('#toggle-image').click());
-      on('b', () => $('#toggle-blur').click());
+      // 图片操作
+      // on('h', () => $('#help').click());
+      on('space', () => $('#toggle-blur').click());
+      on('p', () => $('#toggle-img').click());
       on('+', () => self.zoomImg(self.data.ratio * 1.2));
       on('=', () => self.zoomImg(self.data.ratio * 1.2));
       on('-', () => self.zoomImg(self.data.ratio * 0.9));
-      on('v', () => $('#toggle-multi').click());
-
-      on('a', () => $.box.cStatus.isMulti ? $.box.moveBox('left') : $('#toggle-white').click());
-      on('s', () => $.box.cStatus.isMulti ? $.box.moveBox('down') : $('#toggle-opacity').click());
-      on('d', () => $.box.cStatus.isMulti ? $.box.moveBox('right') : $('#toggle-overlap').click());
-      on('f', () => self.isCutMode() ? $('#toggle-mayWrong').click() : $('#toggle-back-box').click());
-      on('q', () => $('#toggle-large').click());
-      on('w', () => $.box.cStatus.isMulti ? $.box.moveBox('up') : $('#toggle-small').click());
-      on('e', () => self.isCutMode() ? $('#toggle-narrow').click() : $('#toggle-link-char').click());
-      on('r', () => $('#toggle-flat').click());
-      on('c', () => $.box.isCutMode() ? $('#btn-check-cut').click() : $('#btn-check-link').click());
-
-      on('i', () => $('#toggle-my-hint').click());
-      on('l', () => $('#op-hint').click());
-      on('esc', () => $('#no-hint').click());
-      on('t', () => $('#task-submit').click());
-      on('y', () => $('#task-submit-back').click());
-      on('u', () => $('#save').click());
-      on('k', () => $('#task-return').click());
-      on('m', () => $('#toggle-order').click());
-      on('n', () => $('#toggle-cut').click());
-      on(',', () => $('#task-prev').click());
-      on('.', () => $('#task-next').click());
-
-      on('back', () => self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink()));
-      on('del', () => self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink()));
-      on('x', () => self.isCutMode() ? self.deleteBox() : self.switchCurBox(self.deleteCurLink()));
-
-      on('left', () => self.navigate('left'));
-      on('right', () => self.navigate('right'));
-      on('up', () => self.navigate('up'));
-      on('down', () => self.navigate('down'));
-
-      on('alt+left', () => self.resizeBox('left', false));
-      on('alt+right', () => self.resizeBox('right', false));
-      on('alt+up', () => self.resizeBox('up', false));
-      on('alt+down', () => self.resizeBox('down', false));
-      on('shift+left', () => self.resizeBox('left', true));
-      on('shift+right', () => self.resizeBox('right', true));
-      on('shift+up', () => self.resizeBox('up', true));
-      on('shift+down', () => self.resizeBox('down', true));
-
-      on('g', () => self.isCutMode() && self.redo());
-      on('j', () => self.isCutMode() && self.undo());
-
       on('1', () => self.zoomImg(1));
       on('2', () => self.zoomImg(2));
       on('3', () => self.zoomImg(3));
@@ -69,7 +32,169 @@
       on('7', () => self.zoomImg(0.7));
       on('8', () => self.zoomImg(0.8));
       on('9', () => self.zoomImg(0.9));
+
+      // 框操作
+      on('j', () => {
+        $('#toggle-char').click();
+      });
+      on('k', () => {
+        $('#toggle-column').click();
+      });
+      on('l', () => {
+        $('#toggle-block').click();
+      });
+      on('tab', () => {
+        let seqs = ['char', 'column', 'block'];
+        let next = (seqs.indexOf(self.status.curBoxType) + 1) % 3;
+        $(`#toggle-${seqs[next]}`).click();
+      });
+      on('shift+tab', () => {
+        let seqs = ['char', 'column', 'block'];
+        let prev = (seqs.indexOf(self.status.curBoxType) + 2) % 3;
+        $(`#toggle-${seqs[prev]}`).click();
+      });
+      on(';', () => {
+        if (self.isMode('cut')) $('#toggle-all').click();
+      });
+      on('n', () => {
+        $('#toggle-no-char').click();
+      });
+      on('left', () => {
+        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
+        self.navigate('left', navType);
+      });
+      on('right', () => {
+        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
+        self.navigate('right', navType);
+      });
+      on('up', () => {
+        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
+        self.navigate('up', navType);
+      });
+      on('down', () => {
+        let navType = self.isMode('cut') ? self.status.curBoxType : self.oStatus.curLinkType;
+        self.navigate('down', navType);
+      });
+      if (readonly) return;
+      on('back,del,x', () => {
+        self.isMode('cut') ? self.deleteBox() : self.switchCurBox(self.deleteCurLink());
+      });
+      on('ctrl+v', () => {
+        if (self.isMode('cut') && !$.box.status.isMulti) $.box.copyBox();
+      });
+      on('shift+a', () => {
+        self.moveBox('left');
+      });
+      on('shift+d', () => {
+        self.moveBox('right');
+      });
+      on('shift+w', () => {
+        self.moveBox('up');
+      });
+      on('shift+s', () => {
+        self.moveBox('down');
+      });
+      on('alt+left', () => {
+        if (self.isMode('cut')) self.resizeBox('left', false);
+      });
+      on('alt+right', () => {
+        if (self.isMode('cut')) self.resizeBox('right', false);
+      });
+      on('alt+up', () => {
+        if (self.isMode('cut')) self.resizeBox('up', false);
+      });
+      on('alt+down', () => {
+        if (self.isMode('cut')) self.resizeBox('down', false);
+      });
+      on('shift+left', () => {
+        if (self.isMode('cut')) self.resizeBox('left', true);
+      });
+      on('shift+right', () => {
+        if (self.isMode('cut')) self.resizeBox('right', true);
+      });
+      on('shift+up', () => {
+        if (self.isMode('cut')) self.resizeBox('up', true);
+      });
+      on('shift+down', () => {
+        if (self.isMode('cut')) self.resizeBox('down', true);
+      });
+    },
+
+    bindFullKeys: function () {
+      let self = this;
+      let on = self.bindKey;
+      self.bindBaseKeys();
+
+      // 系统操作
+      on('esc', () => {
+        $('#btn-reset').click();
+      });
+      on('c', () => $('#btn-check').click());
+      on('ctrl+z', () => {
+        self.isMode('cut') && self.undo();
+      });
+      on('ctrl+x', () => {
+        self.isMode('cut') && self.redo();
+      });
+      on('ctrl+s', () => {
+        if ($('#save').css('display') === 'block') $('#save').click();
+      });
+
+      // 切换步骤
+      on('g', () => {
+        if (self.isMode('order')) $('#toggle-cut').click();
+      });
+      on('b', () => {
+        if (self.isMode('cut')) $('#toggle-order').click();
+      });
+
+      // 框提示
+      on('a', () => {
+        if (self.isMode('cut'))
+          self.cStatus.isMulti ? self.moveBox('left') : $('#toggle-white').click();
+      });
+      on('s', () => {
+        if (self.isMode('cut'))
+          self.cStatus.isMulti ? self.moveBox('down') : $('#toggle-opacity').click();
+      });
+      on('d', () => {
+        if (self.isMode('cut'))
+          self.cStatus.isMulti ? self.moveBox('right') : $('#toggle-narrow').click();
+      });
+      on('f', () => {
+        if (self.isMode('cut')) $('#toggle-flat').click();
+      });
+      on('q', () => {
+        if (self.isMode('cut')) $('#toggle-small').click();
+      });
+      on('w', () => {
+        if (self.isMode('cut'))
+          self.cStatus.isMulti ? self.moveBox('up') : $('#toggle-large').click();
+      });
+      on('e', () => {
+        if (self.isMode('cut')) $('#toggle-overlap').click();
+      });
+      on('r', () => {
+        if (self.isMode('cut')) $('#toggle-mayWrong').click();
+      });
+
+      // 框操作
+      on("o", () => {
+        if (self.isMode('cut')) $('#toggle-image').click();
+      });
+      on('i', () => {
+        if (self.isMode('cut')) $('#toggle-my-hint').click();
+      });
+      on('v', () => {
+        if (self.isMode('cut')) $('#toggle-multi').click();
+      });
+
+      // 序操作
+      on('u', () => {
+        if (self.isMode('order')) $('#toggle-link-char').click();
+      });
+
     },
   });
-  $.box.bindKeys();
+
 }());

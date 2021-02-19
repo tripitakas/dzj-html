@@ -10,8 +10,6 @@ import math
 from bson.json_util import dumps
 from tornado.web import UIModule
 from controller import helper as h
-from controller.char.char import Char
-from controller.task.task import Task
 from controller.page.base import PageHandler as Ph
 
 
@@ -19,6 +17,11 @@ class ComLeft(UIModule):
     def render(self, active_id=''):
         def is_enabled(module):
             return module not in h.prop(self.handler.config, 'modules.disabled', '')
+
+        def get_link(lk):
+            if '?' in lk:
+                return lk[:lk.find('?')]
+            return lk
 
         # 默认左侧菜单项
         base_items = [
@@ -33,12 +36,12 @@ class ComLeft(UIModule):
                 dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/cluster_review'),
             ]),
             dict(name='我的任务', icon='icon-task-my', sub_items=[
-                dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
-                dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
-                dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof'),
-                dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review'),
-                dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof'),
-                dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review'),
+                dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof?order=-picked_time'),
+                dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review?order=-picked_time'),
+                dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof?order=-picked_time'),
+                dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review?order=-picked_time'),
+                dict(name='聚类校对', icon='icon-subitem', link='/task/my/cluster_proof?order=-picked_time'),
+                dict(name='聚类审定', icon='icon-subitem', link='/task/my/cluster_review?order=-picked_time'),
             ]),
             dict(name='任务管理', icon='icon-task-admin', sub_items=[
                 dict(name='页任务', icon='icon-subitem', link='/page/task/list'),
@@ -121,14 +124,16 @@ class ComLeft(UIModule):
         for item in items:
             if not is_enabled(item.get('name')):
                 continue
-            if item.get('link') and self.handler.can_access(item['link']):
-                item['id'] = re.sub('[/_]', '-', item['link'][1:])
+            link = get_link(item.get('link') or '')
+            if link and self.handler.can_access(link):
+                item['id'] = re.sub('[/_]', '-', link[1:])
                 display_items.append(item)
             if item.get('sub_items'):
                 sub_items = []
                 for sub in item['sub_items']:
-                    if is_enabled(sub.get('name')) and sub.get('link') and self.handler.can_access(sub['link']):
-                        sub['id'] = re.sub('[/_]', '-', sub['link'][1:])
+                    link = get_link(sub.get('link') or '')
+                    if is_enabled(sub.get('name')) and link and self.handler.can_access(link):
+                        sub['id'] = re.sub('[/_]', '-', link[1:])
                         sub_items.append(sub)
                 if sub_items:
                     item['sub_items'] = sub_items
@@ -244,6 +249,17 @@ class PageRemarkModal(UIModule):
                                   buttons=buttons)
 
 
+class PageConfigModal(UIModule):
+    def render(self):
+        buttons = [('modal-cancel', '关闭'), ('modal-confirm', '应用')]
+        modal_fields = [
+            {'id': 'may_wrong', 'name': '易错字列表', 'input_type': 'textarea'},
+            {'id': 'img_opacity', 'name': '图片透明度'}
+        ]
+        return self.render_string('com/_modal.html', modal_fields=modal_fields, id='pageConfigModal', title='配置',
+                                  buttons=buttons)
+
+
 class TaskConfigModal(UIModule):
     def render(self, config_fields=None):
         title = '配置项'
@@ -255,40 +271,10 @@ class TaskConfigModal(UIModule):
 
 class TxtDiff(UIModule):
     def render(self, cmp_data):
-        """ 文字校对的文字区"""
+        """文字校对的文字区"""
         return self.render_string(
             'com/_txt_diff.html', blocks=cmp_data,
             sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0])
-        )
-
-
-class CharTxt(UIModule):
-    @staticmethod
-    def format_value(value, key=None, doc=None):
-        """ 格式化task表的字段输出"""
-        if key in ['cc', 'sc'] and value:
-            return value / 1000
-        if key in ['pos', 'column'] and value:
-            fields = ['x', 'y', 'w', 'h', 'cid']
-            return ', '.join([('%s:%.1f' % (k, v)).replace('.0', '') for k, v in value.items() if k in fields])
-        if key == 'txt_type':
-            return Char.txt_types.get(value) or value or ''
-        if key == 'nor_txt':
-            return value or ''
-        if key in ['box_point', 'txt_point'] and value:
-            return '%s/%s' % (Task.get_task_name(value[0]), value[1])
-        return h.format_value(value, key, doc)
-
-    def render(self, char, show_base=False, txt_fields=None, readonly=None, submit_id=None):
-        """ 单字校对区域"""
-
-        txt_fields = txt_fields or ['txt', 'nor_txt']
-        base_fields = ['name', 'char_id', 'source', 'cc', 'sc', 'pos', 'column', 'txt', 'nor_txt',
-                       'txt_type', 'box_level', 'box_point', 'txt_level', 'txt_point', 'remark']
-        return self.render_string(
-            'com/_char_txt.html', Char=Char, char=char, txt_fields=txt_fields, show_base=show_base,
-            submit_id=submit_id, base_fields=base_fields, readonly=readonly, format_value=self.format_value,
-            to_date_str=lambda t, fmt='%Y-%m-%d %H:%M': h.get_date_time(fmt=fmt, date_time=t) if t else ''
         )
 
 

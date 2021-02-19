@@ -160,17 +160,20 @@ class Cut(object):
         if self.get_cfg('big_img.with_hash'):
             page_name = self.get_hash_name(page_name, salt=self.get_cfg('big_img.salt'))
         local_path = self.get_cfg('big_img.local_path')
-        img_path = '/pages/{0}/{1}.jpg'.format(inner_path, page_name)
+        img_path = 'pages/{0}/{1}.jpg'.format(inner_path, page_name)
         if local_path:
             if local_path[0] != '/':
                 local_path = path.join(hp.BASE_DIR, local_path)
-            img_file = path.join(local_path, img_path)
+            img_file, dirs = path.join(local_path, img_path), []
             if not path.exists(img_file):
+                dirs.append(img_file)
                 img_file = path.join(local_path, inner_path, page_name + '.jpg')
             if not path.exists(img_file):
+                dirs.append(img_file)
                 img_file = path.join(local_path, page_name + '.jpg')
             if not path.exists(img_file):
-                raise OSError('%s not exist' % img_file)
+                dirs.append(img_file)
+                raise OSError('%s not found in %s.' % (page_name, dirs))
             return img_file
         my_cloud = self.get_cfg('big_img.my_cloud')
         if not self.oss_big and my_cloud:
@@ -180,7 +183,7 @@ class Cut(object):
             tmp_file = path.join(hp.BASE_DIR, 'temp', 'cut', img_path)
             if not path.exists(path.dirname(tmp_file)):
                 os.makedirs(path.dirname(tmp_file))
-            self.oss_big.download_file(img_path, tmp_file)
+            self.oss_big.download_file('/' + img_path, tmp_file)
             return tmp_file
         raise OSError('oss not exist or not readable')
 
@@ -212,8 +215,7 @@ class Cut(object):
         raise OSError('oss not exist or not writeable')
 
 
-def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
-                regen=False, username=None):
+def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None, regen=False, username=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
     cfg = hp.load_config()
     db = db or (uri and pymongo.MongoClient(uri)[db_name]) or hp.connect_db(cfg['database'], db_name=db_name)[0]
@@ -231,22 +233,19 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
 
     condition = json.loads(condition) if isinstance(condition, str) else {}
     condition['img_need_updated'] = True
-
-    once_size = 5000
     chars = list(db.char.find(condition, {'name': 1}))
     names = [c['name'] for c in chars]
-    total_count = len(names)
-    # total_count = db.char.count_documents(condition)
-    print('[%s]%s chars to generate.' % (hp.get_date_time(), total_count))
-    for i in range(math.ceil(total_count / once_size)):
+    print('[%s]%s chars to generate.' % (hp.get_date_time(), len(names)))
+    once_size = 5000
+    page_count = math.ceil(len(names) / once_size)
+    for i in range(page_count):
         start = i * once_size
         chars = list(db.char.find({'name': {'$in': names[start: start + once_size]}}))
-        # chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         log = cut.cut_img(chars)
-        _names = (log.get('cut_char_success') or []) + (log.get('cut_char_existed') or [])
-        if _names:
+        u_names = (log.get('cut_char_success') or []) + (log.get('cut_char_existed') or [])
+        if u_names:
             update = {'has_img': True, 'img_need_updated': False, 'img_time': hp.get_date_time('%m%d%H%M%S')}
-            db.char.update_many({'name': {'$in': _names}}, {'$set': update})
+            db.char.update_many({'name': {'$in': u_names}}, {'$set': update})
         Bh.add_op_log(db, 'extract_img', 'finished', log, username)
 
 

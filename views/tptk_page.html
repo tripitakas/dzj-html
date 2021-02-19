@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{'%s-%s' % (tripitaka['name'], page['name'])}}</title>
+  {% include com/_base_css.html %}
+  <link href="{{static_url('css/box.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/char-txt.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    #panel-region {
+      width: 260px;
+      max-width: 260px;
+    }
+
+    .icon-home {
+      font-size: 24px;
+    }
+
+    .m-header .m-pager {
+      margin-right: 30px;
+    }
+
+    .m-pager .btn-page {
+      float: left;
+      margin: 0 3px;
+      font-size: 16px;
+      cursor: pointer;
+      text-align: center;
+      color: var(--Brown_Darker);
+    }
+
+    .m-pager .btn-page.to {
+      cursor: default;
+    }
+
+    .m-pager .btn-page.to input {
+      border: 0;
+      width: 55px;
+      height: 20px;
+      margin: 0 2px;
+      text-align: center;
+      border-radius: 10px;
+      background: var(--Grey_Line);
+    }
+
+    .m-pager .btn-page.to input:hover {
+      background: var(--White);
+    }
+
+    .m-pager .btn-page.last {
+      border: 0;
+    }
+
+    .add-gap li:first-child {
+      margin-top: 18px;
+    }
+
+    .pic-nav {
+      position: absolute;
+      width: 36px;
+      height: 60px;
+      background: #333;
+      opacity: 0.2;
+      z-index: 100;
+      cursor: pointer;
+      top: 45%;
+      border-radius: 2px;
+    }
+
+    .pic-nav:hover {
+      opacity: 0.5;
+    }
+
+    #pic-right {
+      right: 0;
+    }
+
+    .toggle-v-code {
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .m-footer {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .m-footer .is-diff {
+      color: #333;
+      margin-right: 12px;
+    }
+
+    .m-footer .changed {
+      color: red;
+    }
+
+    body { /*避免tooltip引起的滚动*/
+      overflow: hidden !important;
+    }
+  </style>
+</head>
+
+<body class="widescreen" style="overflow: hidden">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group title" style="user-select: text">
+          <div class="btn-group back">
+            <a class="icon-home" href="/tripitaka/list" data-toggle="tooltip" data-placement="bottom" title="返回"></a>
+          </div>
+          <a href="#">{{tripitaka['name']}}</a>
+        </div>
+      </div>
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助[h]"></div>
+        <div class="btn-group" title="显隐设置">
+          <i class="btn-txt icon-config dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li id="toggle-left" class="toggle-panel active"><a>显隐左侧图片[a]</a></li>
+            <li id="toggle-right" class="toggle-panel active"><a>显隐中间文本[s]</a></li>
+            <li id="toggle-proof-panel" class="toggle-panel active"><a>显隐校对面板[d]</a></li>
+          </ul>
+        </div>
+        <div id="toggle-img" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片[p]"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片[m]"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片[+]"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小[1]"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片[-]"></div>
+        <div class="btn-group add-gap" data-toggle="tooltip" data-placement="bottom" title="显隐切分">
+          <i class="btn-txt icon-view-tile dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li id="toggle-char" class="toggle-box"><a>显隐字框[j]</a></li>
+            <li id="toggle-column" class="toggle-box"><a>显隐列框[k]</a></li>
+            <li id="toggle-block" class="toggle-box"><a>显隐栏框[l]</a></li>
+            <li id="toggle-no-char" class="toggle-no"><a>显隐字序[n]</a></li>
+          </ul>
+        </div>
+        <div id="view-box" class="btn-txt icon-chars{{'' if page.get('chars') else ' hide'}}" data-toggle="tooltip" data-placement="bottom" title="查看切分"></div>
+        <div id="toggle-txts" class="btn-group" title="切换文本">
+          <i class="btn-txt icon-task-lobby dropdown-toggle" data-toggle="dropdown"></i>
+          <ul id="txt-list" class="dropdown-menu" data-stopPropagation="true">
+            <li id="txt" class="toggle-txt active"><a>校对文本</a></li>
+            <li id="v_image" class="toggle-v-code hide"><a>字图图片</a></li>
+            <li id="v_code" class="toggle-v-code hide"><a>字图编码</a></li>
+            <li id="v_nor_txt" class="toggle-v-code hide"><a>字图正字</a></li>
+            <li class="divider"></li>
+            <li id="cmb_txt" class="toggle-txt"><a>综合OCR</a></li>
+            <li id="ocr_txt" class="toggle-txt"><a>字框OCR</a></li>
+            <li id="ocr_col" class="toggle-txt"><a>列框OCR</a></li>
+            <li id="cmp_txt" class="toggle-txt"><a>比对文本</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="right">
+        <div class="btn-group m-pager">
+          <div class="btn-page first{{'' if nav.get('first') else ' hide'}}" data-value="{{nav.get('first')}}">首页</div>
+          <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" data-value="{{nav.get('prev')}}"><</div>
+          <div class="btn-page to">
+            <input type="text" value="{{nav.get('cur')}}"/>
+            <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last', '')}}</span>
+          </div>
+          <div class="btn-page next{{'' if nav.get('next') else ' hide'}}" data-value="{{nav.get('next')}}">></div>
+          <div class="btn-page last{{'' if nav.get('last') else ' hide'}}" data-value="{{nav.get('last')}}">末页</div>
+        </div>
+        <a class="btn-nav sutra-menu" href="/sutra/{{tripitaka_code}}?from={{current_path}}" target="_blank">经目</a>
+        <a class="btn-nav reel-menu" href="/reel/{{tripitaka_code}}?from={{current_path}}" target="_blank">卷目</a>
+        <a class="btn-nav volume-menu" href="/volume/{{tripitaka_code}}?from={{current_path}}" target="_blank">册目</a>
+      </div>
+    </div>
+    <div class="m-body flex pfread">
+      <div id="left-region" class="m-left bd">
+        <img class="pic-nav" id="pic-left" data-toggle="tooltip" data-placement="right" title="上一页[,]" src="{{static_url('imgs/icon_left.png')}}"/>
+        <img class="pic-nav" id="pic-right" data-toggle="tooltip" data-placement="left" title="下一页[.]" src="{{static_url('imgs/icon_right.png')}}"/>
+        <div class="box-holder show-current"></div>
+      </div>
+      <div id="right-region" class="m-right bd">
+        <div class="txt-holder"></div>
+      </div>
+      <div id="panel-region" class="right bd proof-panel">
+        {% include com/_char_txt.html %}
+      </div>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        <span class="page-info">页编码：<span class="page-name disabled">{{page['name']}}</span></span>
+        <span class="book-meta">{{book_meta}}</span>
+      </span>
+      <span class="center">
+        <span class="txt-type">
+          不一致: <span class="is-diff">_</span>
+          已修改: <span class="changed">阿</span>
+        </span>
+      </span>
+      <span class="fr">
+        <span class="char-info">当前：<span class="char-name">未选中</span><span class="char-id"></span></span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal help fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档</h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、简介</div>
+          <div class="intro">
+            用户可以在这里阅读大藏经的图片和文本，还可以通过经目、卷目和册目进行检索和浏览。
+          </div>
+          <div class="title">二、操作</div>
+          <table class="table">
+            <tr>
+              <td>,</td>
+              <td>上一页</td>
+            </tr>
+            <tr>
+              <td>.</td>
+              <td>下一页</td>
+            </tr>
+            <tr>
+              <td><i class="icon-home"></i></td>
+              <td>返回</td>
+            </tr>
+            <tr>
+              <td><i class="icon-image"></i></td>
+              <td>显示或隐藏图片</td>
+            </tr>
+            <tr>
+              <td><i class="icon-blur"></i></td>
+              <td>图片模糊处理。模糊后可以更好的看清字框、字序等信息</td>
+            </tr>
+            <tr>
+              <td><i class="icon-zoom-in"></i></td>
+              <td>图片放大</td>
+            </tr>
+            <tr>
+              <td><i class="icon-zoom-back"></i></td>
+              <td>图片恢复原始大小</td>
+            </tr>
+            <tr>
+              <td><i class="icon-zoom-out"></i></td>
+              <td>图片缩小</td>
+            </tr>
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+            <tr>
+              <td><i class="icon-txt"></i></td>
+              <td>打开或关闭文本。注：系统会记住您的选择，刷新页面或下一页时，将默认打开或关闭</td>
+            </tr>
+            <tr>
+              <td><i class="icon-history"></i></td>
+              <td>切换文本显示的内容，可能有校对文本、字框OCR、列框OCR和比对文本等</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include com/_base_js.html %}
+<script src="{{static_url('js/box/jquery.mapKey.js')}}"></script>
+<script src="{{static_url('js/box/raphael.js')}}"></script>
+<script src="{{static_url('js/box/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/box/box.base.js')}}"></script>
+<script src="{{static_url('js/box/box.cut.js')}}"></script>
+<script src="{{static_url('js/box/box.txt.js')}}"></script>
+<script src="{{static_url('js/box/box.page.js')}}"></script>
+<script src="{{static_url('js/box/box.key.js')}}"></script>
+<script src="{{static_url('js/btn-box.js')}}"></script>
+<script src="{{static_url('js/char-txt.js')}}"></script>
+<script>
+  // 初始化。注：先设置右侧，后设置$.page.init
+  if (!parseInt(('{{len(page.get("chars") or [])}}')) || !getStorage('tptkRight', true)) {
+    $('#toggle-right').removeClass('active');
+    $('#right-region').addClass('hide');
+    $('.m-footer .txt-type').addClass('hide');
+  }
+  if (!parseInt(('{{len(page.get("chars") or [])}}')) || !getStorage('tptkProof', true)) {
+    $('#toggle-proof-panel').removeClass('active');
+    $('#panel-region').addClass('hide');
+  }
+  if (!getStorage('tptkLeft', true)) {
+    $('#toggle-left').removeClass('active');
+    $('#left-region').addClass('hide');
+  }
+
+  $.page.init({
+    readonly: true,
+    holder: '.box-holder',
+    txtHolder: '.txt-holder',
+    useTooTips: true,
+    showMode: 'height-full',
+    imgUrl: '{{page["img_url"]}}',
+    curBoxType: getStorage('tptkBox', ''),
+    width: '{{page.get("width") or 0}}',
+    height: '{{page.get("height") or 0}}',
+    chars: decodeJSON('{{page.get("chars") or []}}'),
+    blocks: decodeJSON('{{page.get("blocks") or []}}'),
+    columns: decodeJSON('{{page.get("columns") or []}}'),
+    showImage: $('#toggle-img').hasClass('active'),
+    blurImage: getStorage('tptkBlur', false) ? 0.2 : 1,
+  });
+  $.box.bindBaseKeys(true);
+  let boxAuth = '{{box_auth}}' === 'True', txtAuth = '{{txt_auth}}' === 'True';
+  $.charTxt.init({readonly: !txtAuth, showBase: true, showTxtLogs: true, showBoxLogs: true});
+  if ('{{cid}}'.length) $.box.switchCurBox($.box.findFirstBox('char', '{{cid}}'));
+  $('#toggle-blur').toggleClass('active', getStorage('tptkBlur', false));
+  if (getStorage('tptkBox', '')) $('#toggle-' + getStorage('tptkBox')).addClass('active');
+  window.onload = () => $.box.setRawImageRatio();
+
+</script>
+<script>
+  $.mapKey('a', () => $('#toggle-left').click());
+  $.mapKey('s', () => $('#toggle-right').click());
+  $.mapKey('d', () => $('#toggle-proof-panel').click());
+  $.mapKey(',', () => $('#pic-left').click());
+  $.mapKey('.', () => $('#pic-right').click());
+  $.mapKey('g', () => $('.m-pager .to input').focus());
+  $.mapKey('i', () => window.open('/page/info/{{page["name"]}}', '_blank'));
+
+  $('#toggle-left').on('click', function () {
+    $(this).toggleClass('active');
+    $('#left-region').toggleClass('hide', !$(this).hasClass('active'));
+    setStorage('tptkLeft', $(this).hasClass('active'));
+  });
+  $('#toggle-right').on('click', function () {
+    $(this).toggleClass('active');
+    $('#right-region').toggleClass('hide', !$(this).hasClass('active'));
+    $('.m-footer .txt-type').toggleClass('hide', !$(this).hasClass('active'));
+    setStorage('tptkRight', $(this).hasClass('active'));
+  });
+  $('#toggle-proof-panel').on('click', function () {
+    $(this).toggleClass('active');
+    $('.proof-panel').toggleClass('hide', !$(this).hasClass('active'));
+    setStorage('tptkProof', $(this).hasClass('active'));
+  });
+  $('#toggle-blur').on('click', function () {
+    setStorage('tptkBlur', $(this).hasClass('active'));
+  });
+  $('.toggle-box').on('click', function () {
+    let boxType = $(this).attr('id').replace('toggle-', '');
+    setStorage('tptkBox', $(this).hasClass('active') ? boxType : '');
+  });
+  $('#toggle-v-code').on('click', function () {
+    $(this).toggleClass('active');
+    $.box.toggleVCode($(this).hasClass('active'));
+  });
+  $('#view-box').on('click', function () {
+    window.open(`/page/box/{{page["name"]}}`, '_blank');
+  });
+
+  // 图片导航
+  $('.m-pager .btn-page:not(.to)').on('click', function () {
+    window.location = '/page/{{volume_code}}_' + $(this).attr('data-value');
+  });
+  $('.m-pager .btn-page.to').on('keydown', function (e) {
+    let keyCode = e.keyCode || e.which, pageNo = $('.m-pager .btn-page.to input').val();
+    if (keyCode === 13) window.location = '/page/{{volume_code}}_' + pageNo;
+  });
+  $('#pic-left').on('click', () => $('.btn-page.prev').click());
+  $('#pic-right').on('click', () => $('.btn-page.next').click());
+
+  // 单字提交
+  $('.char-txt .btn-submit').on('click', function () {
+    let $this = $(this), $txt = $this.text();
+    if ($this.hasClass('disabled')) return;
+    let data = $.charTxt.checkAndExport();
+    if (!data) return;
+    $this.addClass('disabled').text('保存中...');
+    let idx = $('.txt-holder .current-char').attr('id').split('-').pop();
+    postApi('/page/char/txt/' + data.name, {data: data}, function (res) {
+      $this.removeClass('disabled').text($txt);
+      location.href = setAnchor(name);
+      bsShow('', '已保存成功', 'success', 1000, '#s-alert');
+      $('.txt-holder .current-char').text(data.txt).addClass('changed');
+      $.charTxt.setTxtLogs(res['txt_logs']);
+      data['txt_logs'] = res['txt_logs'];
+      Object.assign($.box.data.boxes[parseInt(idx)], data);
+    }, function (err) {
+      $this.removeClass('disabled').text($txt);
+      if (err.code === 2007) showTips('', err.message, 1000);
+      else showWarning('失败', err.message, 2000);
+    });
+  });
+
+</script>
+</body>
+</html>

@@ -54,12 +54,12 @@
                 <td><a id="bat-gen-chars">启动</a></td>
               </tr>
               <tr>
-                <td>生成字图</td>
+                <td>生成字列图</td>
                 <td></td>
                 <td class="intro">
-                  根据字数据的分类，批量生成字图。
+                  根据字数据的分类，批量生成字图和列图。
                 </td>
-                <td><a id="bat-gen-images">启动</a></td>
+                <td><a id="bat-gen-imgs">启动</a></td>
               </tr>
               <tr class="hide">
                 <td>上传OSS图片</td>
@@ -117,6 +117,36 @@
       </div>
     </div>
   </div>
+  <div id="genImgModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genImgModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h4 class="modal-title">生成字图及列图</h4>
+        </div>
+        <div class="modal-body">
+          <form role="form">
+            <div class="form-group">
+              <h4 class="item-title">字数据分类</h4>
+              <div class="source">
+                <input type="text" class="form-control" value="" placeholder="请输入字数据分类">
+              </div>
+            </div>
+            <div class="form-group">
+              <h4 class="item-title">已有字图时是否重新生成？</h4>
+              <div class="regen">
+                <label class="radio-inline"><input type="radio" name="regen" value="否" checked>否</label>
+                <label class="radio-inline"><input type="radio" name="regen" value="是">是</label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% include com/_base_js.html %}
@@ -126,36 +156,38 @@
   $.fn.modal.Constructor.prototype.enforceFocus = function () {
   };
   /*---重置考核数据---*/
-  var $resetExamUser = $('#resetExamUser');
-  $resetExamUser.find(".select-user").select2({
-    dropdownParent: $resetExamUser,
+  let $reset = $('#resetExamUser');
+  $(".select-user", $reset).select2({
+    dropdownParent: $reset,
     ajax: {
       type: 'POST', url: '/api/user/list', dataType: 'json', delay: 1000, language: 'zh-CN',
       allowClear: true, width: "100%", placeholder: "请选择", maximumSelectionLength: 2,
       data: function (params) {
-        return {'q': params.term || '考核', 'page': params.page || 1};
+        return {q: params.term || '考核', page: params.page || 1};
       },
       processResults: function (res, params) {
-        var data = res.data;
-        if (!params.page || params.page === 1) data.results.splice(0, 0, {id: 'all', text: '所有考核账号'});
-        return data;
+        if (!params.page || params.page === 1) res.data.results.splice(0, 0, {id: 'all', text: '所有考核账号'});
+        return res.data;
       }
     }
   });
 
-  $resetExamUser.find('.modal-confirm').click(function () {
-    $(this).text('进行中...');
-    var data = {'user_id': $resetExamUser.find(".select-user").val()};
+  $('.modal-confirm', $reset).on('click', function () {
+    let $this = $(this), $txt = $this.text();
+    if ($this.hasClass('disabled')) return;
+    $this.addClass('disabled').text('进行中...');
+    let data = {'user_id': $reset.find(".select-user").val()};
     postApi('/sys/reset_exam_user', {'data': data}, function (res) {
+      $this.removeClass('disabled').text($txt);
       if (res.status === 'success') {
         showSuccess('成功', '重置成功', 2000);
-        $resetExamUser.modal('hide');
+        $reset.modal('hide');
       } else if (res.status === 'script') {
         Swal0.fire({
           type: 'success', title: '成功', html: `已启动脚本，请稍后查看任务管理。`,
           footer: '详情可以查看<a href="/sys/oplog/latest/reset_exam">日志</a>'
         });
-        $resetExamUser.modal('hide');
+        $reset.modal('hide');
       }
     });
   });
@@ -163,28 +195,26 @@
   // 批量生成字数据
   $('#bat-gen-chars').on('click', function () {
     Swal2.fire({title: '请输入页数据的分类', input: 'text'}).then((result) => {
-      if (result.value) {
-        postApi('/page/start_gen_chars', {data: {search: '?source="' + result.value + '"'}}, (res) => {
-          Swal0.fire({
-            type: 'success', title: '成功', html: `已启动脚本，将针对${res.count}个页面生成字数据。<br/>请稍后查看字数据管理页面。`,
-            footer: '详情可以查看<a href="/sys/oplog/latest/gen_chars">日志</a>'
-          });
+      if (result.dismiss || !result.value) return;
+      postApi('/page/start_gen_chars', {data: {search: '?source==' + result.value}}, (res) => {
+        Swal0.fire({
+          type: 'success', title: '成功', html: `已启动脚本，将针对${res.count}个页面生成字数据。<br/>请稍后查看字数据管理页面。`,
+          footer: '详情可以查看<a href="/sys/oplog/latest/gen_chars">日志</a>'
         });
-      }
+      });
     });
   });
 
-  // 批量生成字图
-  $('#bat-gen-images').on('click', function () {
-    Swal2.fire({title: '请输入字数据的分类', input: 'text'}).then((result) => {
-      if (result.value) {
-        postApi('/char/extract_img', {data: {type: 'search', search: '?source="' + result.value + '"'}}, (res) => {
-          Swal0.fire({
-            type: 'success', title: '成功', html: `已启动脚本，将针对${res.count}个字数据生成字图。<br/>请稍后查看字数据管理页面。`,
-            footer: '详情可以查看<a href="/sys/oplog/latest/extract_img">日志</a>'
-          });
-        });
-      }
+  // 批量生成字图、列图
+  $('#bat-gen-imgs').on('click', () => $('#genImgModal').modal());
+  $('#genImgModal .modal-confirm').on('click', function () {
+    let source = $('.source input').val().trim();
+    if (!source.length) return showWarning('提示', '请输入字数据分类', 1000);
+    let data = {type: 'search', regen: $('.regen :checked').val(), search: `?source==${source}`};
+    $('#genImgModal').modal('hide');
+    postApi('/char/extract_img', {data: data}, (res) => {
+      let info = `详情可查看<a href="/sys/oplog/latest/extract_img">日志</a>`;
+      Swal0.fire({type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。', footer: info});
     });
   });
 

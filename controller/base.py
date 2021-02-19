@@ -27,7 +27,8 @@ from controller.helper import get_date_time, prop, md5_encode, gen_id, BASE_DIR
 
 
 class BaseHandler(CorsMixin, RequestHandler):
-    """ 后端API响应类的基类"""
+    """后端API响应类的基类"""
+
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
 
@@ -48,6 +49,9 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_header('Access-Control-Allow-Methods', self._get_methods())
         self.set_header('Access-Control-Allow-Credentials', 'true')
         self.set_header('Cache-Control', 'no-cache')
+
+    def data_received(self, chunk):
+        pass
 
     def prepare(self):
         """ 调用 get/post 前的准备"""
@@ -98,9 +102,10 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error_response(e.unauthorized, message=message)
 
     def direct_login(self, login_id, password):
-        """ 直接登录，然后访问网站api"""
+        """直接登录，然后访问网站api"""
         # 检查是否多次登录失败
-        if self.db.log.count_documents({'type': 'login-fail', 'content': login_id}) >= 12:
+        failed_times = self.db.log.count_documents({'type': 'login-fail', 'content': login_id})
+        if failed_times >= 12:
             self.db.user.update_one({'email': login_id}, {'$set': {'disabled': True}})
             return self.send_error_response(e.unauthorized, message='登录失败超过12次，账号被禁用，请联系管理员。')
 
@@ -112,7 +117,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error_response(e.incorrect_password)
 
         # 清除登录失败记录
-        self.db.log.delete_many({'type': 'login_fail', 'content': login_id})
+        failed_times and self.db.log.delete_many({'type': 'login_fail', 'content': login_id})
 
         user['roles'] = user.get('roles', '')
         user['login_md5'] = gen_id(user['roles'])
@@ -310,8 +315,13 @@ class BaseHandler(CorsMixin, RequestHandler):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
-    def get_config(self, key):
-        return self.prop(self.config, key)
+    def get_config(self, key, default=None):
+        return self.prop(self.config, key, default)
+
+    def get_hide_fields(self):
+        key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
+        value = self.get_secure_cookie(key)
+        return value and json_util.loads(value)
 
     def add_log(self, op_type, target_id=None, target_name=None, content=None, remark=None):
         logging.info('%s,username=%s,id=%s,context=%s' % (op_type, self.username, target_id, content))
@@ -326,7 +336,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     @classmethod
     def add_op_log(cls, db, op_type, status, content, username):
-        """ 新增运维日志。运维日志指的是管理员的各种操作的日志记录"""
+        """新增运维日志。运维日志指的是管理员的各种操作的日志记录"""
         assert status in ['ongoing', 'finished', '', None]
         try:
             r = db.oplog.insert_one(dict(
@@ -347,10 +357,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         return not disabled_mods or mod not in disabled_mods
 
     def get_img_suffix(self, tripitaka_code):
-        """ 获取藏经图片的后缀名"""
+        """获取藏经图片的后缀名"""
         return self.prop(self.config, 'img_suffix.%s' % tripitaka_code) or 'jpg'
 
-    def get_web_img(self, img_name, img_type='page', use_my_cloud=False):
+    def get_web_img(self, img_name, img_type='page'):
         if not img_name:
             return ''
         inner_path = '/'.join(img_name.split('_')[:-1])
@@ -365,7 +375,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 return img_url
         # 从我的云盘获取图片。如果use_my_cloud为True，则返回我的云盘路径而不使用共享云盘
         my_cloud = self.get_config('web_img.my_cloud')
-        if my_cloud and (img_type in (self.get_config('web_img.cloud_type') or '') or use_my_cloud):
+        if my_cloud and img_type in self.get_config('web_img.cloud_type', ''):
             return path.join(my_cloud.replace('-internal', ''), relative_url)
         # 从共享盘获取图片
         shared_cloud = self.get_config('web_img.shared_cloud')

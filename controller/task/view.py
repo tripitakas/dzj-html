@@ -1,91 +1,113 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import re
+from bson import json_util
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller.task.base import TaskHandler
 
 
-class TaskLobbyHandler(TaskHandler):
-    URL = '/task/lobby/@task_type'
-
-    def format_value(self, value, key=None, doc=None):
-        """ 格式化task表的字段输出"""
-        if key == 'txt_kind' and len(value) > 5:
-            value = value[:5] + '...'
-        return super().format_value(value, key, doc)
+class PageTaskLobbyHandler(TaskHandler):
+    URL = '/task/lobby/@page_task'
 
     def get(self, task_type):
-        """ 任务大厅"""
+        """任务大厅"""
         try:
             q = self.get_query_argument('q', '')
             batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
             tasks, total_count = self.find_lobby(task_type, q=q, batch=batch)
-            collection = self.prop(self.task_types, task_type + '.data.collection')
-            fields = [('txt_kind', '字种'), ('char_count', '单字数量')] if collection == 'char' else [
-                ('doc_id', '页编码'), ('char_count', '单字数量')]
+            fields = [('doc_id', '页编码'), ('char_count', '单字数量')]
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
-                        fields=fields, batch=batch, format_value=self.format_value)
+                        fields=fields, batch=batch, search_tips='搜索页编码，请输入全部或部分页编码',
+                        format_value=self.format_value)
+
         except Exception as error:
             return self.send_db_error(error)
 
 
-class TaskMyHandler(TaskHandler):
-    URL = '/task/my/@task_type'
-
-    operations = []
-    img_operations = []
-    actions = [
-        {'action': 'my-task-view', 'label': '查看'},
-        {'action': 'my-task-do', 'label': '继续', 'disabled': lambda d: d['status'] == 'finished'},
-        {'action': 'my-task-update', 'label': '更新', 'disabled': lambda d: d['status'] == 'picked'},
-    ]
-    hide_fields = ['task_type']
-    info_fields = ['doc_id', 'task_type', 'status', 'picked_time', 'finished_time']
-    update_fields = []
-
-    @classmethod
-    def set_template_kwargs(cls, collection):
-        if collection == 'page':
-            cls.search_tips = '请搜索页编码、备注'
-            cls.search_fields = ['doc_id', 'remark']
-            cls.table_fields = [{'id': 'doc_id', 'name': '页编码'}]
-        else:
-            cls.search_tips = '请搜索字种、备注'
-            cls.search_fields = ['txt_kind', 'remark']
-            cls.table_fields = [{'id': 'txt_kind', 'name': '字种'},
-                                {'id': 'required_count', 'name': '需要校对数量'}]
-        cls.table_fields.extend([
-            {'id': 'char_count', 'name': '单字数量'},
-            {'id': 'task_type', 'name': '类型'},
-            {'id': 'status', 'name': '状态'},
-            {'id': 'remark', 'name': '备注'},
-            {'id': 'picked_time', 'name': '领取时间'},
-            {'id': 'finished_time', 'name': '完成时间'},
-        ])
-
-    def format_value(self, value, key=None, doc=None):
-        """ 格式化task表的字段输出"""
-        if key == 'txt_kind' and len(value) > 5:
-            return value[:5] + '...'
-        return super().format_value(value, key, doc)
+class CharTaskLobbyHandler(TaskHandler):
+    URL = '/task/lobby/@char_task'
 
     def get(self, task_type):
-        """ 我的任务"""
+        """任务大厅"""
         try:
-            collection = self.prop(self.task_types, task_type + '.data.collection')
-            self.set_template_kwargs(collection)
+            q = self.get_query_argument('q', '')
+            batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
+            tasks, total_count = self.find_lobby(task_type, q=q, batch=batch)
+            fields = [('base_txts', '聚类字种'), ('char_count', '单字数量')]
+            self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
+                        fields=fields, batch=batch, search_tips='搜索聚类字种，请输入单个汉字',
+                        format_value=self.format_value)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class MyPageTaskHandler(TaskHandler):
+    URL = '/task/my/@page_task'
+
+    table_fields = ['batch', 'doc_id', 'num', 'status', 'char_count', 'added', 'deleted', 'changed', 'total',
+                    'used_time', 'picked_time', 'finished_time', 'updated_time', 'nav_times', 'my_remark']
+    hide_fields = ['num', 'added', 'deleted', 'changed', 'updated_time']
+    search_fields = ['batch', 'doc_id', 'my_remark']
+    operations = [
+        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+        {'operation': 'btn-dashboard', 'label': '结果统计'},
+        {'operation': 'btn-nav', 'label': '继续浏览'},
+    ]
+    actions = [
+        {'action': 'my-task-view', 'label': '查看'},
+        {'action': 'my-task-update', 'label': '更新'},
+        {'action': 'my-task-nav', 'label': '浏览'},
+        {'action': 'my-task-remark', 'label': '备注'},
+    ]
+
+    def get(self, task_type):
+        """我的任务"""
+        try:
             kwargs = self.get_template_kwargs()
+            kwargs['page_title'] = '我的任务-' + self.get_task_name(task_type)
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
+            cond, params = self.get_task_search_condition(self.request.query, 'page')
             status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
-            condition = {'task_type': task_type, 'status': status, 'picked_user_id': self.user_id}
-            docs, pager, q, order = self.find_by_page(self, condition, default_order='-picked_time')
-            condition['status'] = self.STATUS_FINISHED
-            counts = list(self.db.task.aggregate([
-                {'$match': condition}, {'$group': {'_id': None, 'count': {'$sum': '$char_count'}}},
-            ]))
-            point = counts and counts[0]['count']
-            self.render('task_my.html', docs=docs, pager=pager, q=q, order=order, point=point,
-                        format_value=self.format_value, **kwargs)
+            cond.update({'task_type': task_type, 'status': status, 'picked_user_id': self.user_id})
+            docs, pager, q, order = self.find_by_page(self, cond, default_order='_id')
+            self.render('task_my_page.html', task_type=task_type, docs=docs, pager=pager, q=q, order=order,
+                        params=params, format_value=self.format_value, **kwargs)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class MyCharTaskHandler(TaskHandler):
+    URL = '/task/my/@char_task'
+
+    table_fields = ['batch', 'base_txts', 'num', 'status', 'char_count', 'used_time', 'picked_time',
+                    'finished_time', 'updated_time', 'my_remark']
+    search_fields = ['batch', 'my_remark']
+    operations = [
+        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+    ]
+    actions = [
+        {'action': 'my-task-view', 'label': '查看'},
+        {'action': 'my-task-update', 'label': '更新'},
+        {'action': 'my-task-remark', 'label': '备注'},
+    ]
+
+    def get(self, task_type):
+        """我的任务"""
+        try:
+            kwargs = self.get_template_kwargs()
+            kwargs['page_title'] = '我的任务-' + self.get_task_name(task_type)
+            if self.get_hide_fields() is not None:
+                kwargs['hide_fields'] = self.get_hide_fields()
+            cond, params = self.get_task_search_condition(self.request.query, 'char')
+            status = {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}
+            cond.update({'task_type': task_type, 'status': status, 'picked_user_id': self.user_id})
+            docs, pager, q, order = self.find_by_page(self, cond, default_order='-picked_time')
+            self.render('task_my_char.html', task_type=task_type, docs=docs, pager=pager, q=q, order=order,
+                        params=params, format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -94,12 +116,21 @@ class TaskMyHandler(TaskHandler):
 class TaskInfoHandler(TaskHandler):
     URL = '/task/info/@task_id'
 
+    @classmethod
+    def format_value(cls, value, key=None, doc=None):
+        """格式化task表的字段输出"""
+        if key == 'txt_equals' and value:
+            return ','.join(['%s:%s' % (k, v) for k, v in value.items()])
+        if key == 'base_txts':
+            return ','.join(['%s:%s' % (t.get('txt'), t.get('count')) for t in value])
+        return super().format_value(value, key, doc)
+
     def get(self, task_id):
-        """ 任务详情"""
+        """任务详情"""
         try:
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
             if not task:
-                self.send_error_response(e.no_object, message='没有找到该任务')
+                return self.send_error_response(e.no_object, message='没有找到该任务')
             self.render('task_info.html', task=task)
 
         except Exception as error:
@@ -110,10 +141,11 @@ class TaskSampleHandler(TaskHandler):
     URL = '/task/sample/@task_type'
 
     def get(self, task_type):
-        """ 练习任务"""
+        """练习任务"""
         try:
-            aggregate = [{'$match': {'task_type': task_type, 'batch': '练习任务'}}, {'$sample': {'size': 1}}]
-            tasks = list(self.db.task.aggregate(aggregate))
+            tasks = list(self.db.task.aggregate([
+                {'$match': {'task_type': task_type, 'batch': '练习任务'}}, {'$sample': {'size': 1}}
+            ]))
             if tasks:
                 return self.redirect('/task/%s/%s' % (task_type, tasks[0]['_id']))
             else:

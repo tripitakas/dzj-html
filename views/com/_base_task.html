@@ -2,21 +2,13 @@
 <script src="{{static_url('js/task-pick.js')}}"></script>
 <script>
   // 公共参数
-  let from = decodeFrom();
-  let mode = '{{handler.mode}}';
-  let taskId = '{{handler.task_id}}';
-  let taskType_ = '{{handler.task_type}}';
-  let steps = decodeJSON('{{handler.steps}}');
-  let step = '{{handler.steps.get("current") or ""}}';
-  let readonly = '{{handler.readonly}}' === 'True';
+  let gMode = '{{handler.mode}}';
+  let gTaskId = '{{handler.task_id}}';
+  let gTaskType = '{{handler.task_type}}';
+  let isMyTask = '{{handler.is_my_task}}' === 'True';
   let myRemark = '{{handler.task.get("my_remark") or ""}}';
   let adminRemark = '{{handler.task.get("remark") or ""}}';
   let isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
-
-  // 快捷键
-  $.mapKey('p', () => !$('#step-prev').hasClass('hide') && $('#step-prev').click());
-  $.mapKey('n', () => !$('#step-next').hasClass('hide') && $('#step-next').click());
-  $.mapKey('t', () => !$('#task-submit').hasClass('hide')) && $('#task-submit').click();
 
   // 模态框
   $('#task-return').on('click', () => $("#returnModal").modal());
@@ -35,71 +27,102 @@
     }
     // 是否示例任务
     $('#remarkModal .is_sample :radio[value="' + isSample + '"]').prop('checked', true);
+    // 记录当前浏览
+    if (gMode === 'browse' || gMode === 'nav') {
+      setStorage(`${gMode}-${gTaskType}`, location.href);
+    }
   });
+
+  function getPostUrl() {
+    return `/task/${gMode}/${gTaskType}/${gTaskId}`;
+  }
 
   // 离开页面
   window.leave = function () {
-    if (from) {
-      window.location = from;
-    } else if (mode === 'update' || mode === 'do') {
-      window.location = '/task/my/' + taskType_;
-    } else {
-      window.history.back();
-    }
+    let from = getQueryString('from');
+    let url = from === '1' ? getStorage('from') : decodeFrom();
+    url = url || (gTaskType && `/task/my/${gTaskType}?order=-picked_time`);
+    url ? window.location = url : window.history.back();
   };
 
   // 备注任务管理
-  $('#remarkModal .options :radio').on('click', () => $('#remarkModal .remark').val($(this).val()));
+  $('#remarkModal .options :radio').on('click', () => $('#remarkModal .remark').val($('#remarkModal .options :checked').val()));
   $('#remarkModal .modal-confirm').on('click', function () {
     if ($(this).hasClass('disabled')) return;
     let remark = $('#remarkModal .remark').val().trim();
     remark && setStorage('taskRemark', remark);
     let isSample = $('#remarkModal .is_sample :checked').val() || '否';
-    $(this).addClass('disabled').text('进行中...');
-    let $this = $(this);
-    postApi('/task/remark', {data: {_id: taskId, remark: remark, is_sample: isSample}}, function () {
-      showSuccess('成功', '已备注', 2000);
-      $this.removeClass('disabled').text('确定');
+    let $this = $(this), $txt = $this.text();
+    $this.addClass('disabled').text('进行中...');
+    postApi('/task/remark', {data: {_id: gTaskId, remark: remark, is_sample: isSample}}, function () {
+      showSuccess('成功', '已备注', 1000);
+      $this.removeClass('disabled').text($txt);
     });
   });
 
   // 备注我的任务
   $('#task-my-remark').on('click', function () {
     Swal2.fire({title: '请输入备注', input: 'text', inputValue: myRemark}).then((result) => {
-      if (result.dismiss === 'cancel') return;
-      postApi('/task/my_remark/' + taskId, {data: {my_remark: result.value}}, function () {
+      if (result.dismiss) return;
+      postApi('/task/my_remark/' + gTaskId, {data: {my_remark: result.value}}, function () {
         myRemark = result.value;
-        showSuccess('备注成功', '', 1000);
+        showSuccess('成功', '已备注', 1000);
       });
     });
   });
 
   // 任务退回
-  $('#returnModal .options :radio').on('click', () => $('#returnModal .return_reason').val($(this).val()));
+  $('#returnModal .options :radio').on('click', () => $('#returnModal .return_reason').val($('#returnModal .options :checked').val()));
   $('#returnModal .modal-confirm, #returnModal .modal-next').on('click', function () {
     if ($(this).hasClass('disabled')) return;
     let reason = $('#returnModal .return_reason').val().trim();
-    if (!reason.length) return showTips('提示', '尚未填写退回理由', 3000);
+    if (!reason.length) return showTips('提示', '尚未填写退回理由', 2000);
     let $this = $(this), $txt = $this.text();
     $this.addClass('disabled').text('进行中...');
-    postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
+    postApi('/task/return/' + gTaskId, {data: {reason: reason}}, function () {
       $this.removeClass('disabled').text($txt);
-      showSuccess('成功', '任务已退回成功。', 1000);
-      if ($this.hasClass('modal-next')) pick(taskType_);
-      else goto('/task/lobby/' + taskType_, 1000);
+      showSuccess('成功', '已退回', 1000);
+      if ($this.hasClass('modal-next')) pick(gTaskType);
+      else goto('/task/lobby/' + gTaskType, 500);
     });
   });
 
+  function hasChanged() {
+    let bChanged = $.box && $.box.cStatus && $.box.cStatus.hasChanged;
+    let oChanged = $.box && $.box.oStatus && $.box.oStatus.hasChanged;
+    return bChanged || oChanged;
+  }
+
   // 前一个任务
   $('#task-prev').on('click', function () {
-    let url = '/task/browse/' + taskType_ + '/' + taskId;
-    location.href = url + setQueryString('to', 'prev', true);
+    if (hasChanged()) return bsShow('提示', '数据已修改，请先保存', 'info', 1000);
+    let search = setQueryString('to', 'prev', true);
+    let cmd = $(this).hasClass('nav') ? 'nav' : 'browse';
+    location.href = `/task/${cmd}/${gTaskType}/${gTaskId}` + search;
   });
 
   // 后一个任务
   $('#task-next').on('click', function () {
-    let url = '/task/browse/' + taskType_ + '/' + taskId;
-    location.href = url + setQueryString('to', 'next', true);
+    if (hasChanged()) return bsShow('提示', '数据已修改，请先保存', 'info', 1000);
+    let search = setQueryString('to', 'next', true);
+    let cmd = $(this).hasClass('nav') ? 'nav' : 'browse';
+    location.href = `/task/${cmd}/${gTaskType}/${gTaskId}` + search;
+  });
+
+  $.mapKey('ctrl+r', function () {
+    if ($('#task-return').css('display') === 'block') $('#task-return').click();
+  });
+  $.mapKey('t', function () {
+    if ($('#task-submit').css('display') === 'block') $('#task-submit').click();
+  });
+  $.mapKey('y', function () {
+    if ($('#task-submit-back').css('display') === 'block') $('#task-submit-back').click();
+  });
+  $.mapKey('[', function () {
+    if ($('#task-prev').css('display') === 'block') $('#task-prev').click();
+  });
+  $.mapKey(']', function () {
+    if ($('#task-next').css('display') === 'block') $('#task-next').click();
   });
 
 </script>
