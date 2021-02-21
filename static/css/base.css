@@ -760,8 +760,8 @@ body.widescreen {
 }
 
 .slim-bar::-webkit-scrollbar-track-piece {
-  background-color: white;
   -webkit-border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
 .slim-bar::-webkit-scrollbar-thumb:vertical {
