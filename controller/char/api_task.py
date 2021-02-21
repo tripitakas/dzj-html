@@ -30,12 +30,14 @@ class CharTaskPublishApi(CharHandler):
             normal_txts, rare_txts = self.get_base_txts(self.db, source, task_type)
             tasks = [self.task_meta(task_type, t, source) for t in (normal_txts + rare_txts)]
             self.db.task.insert_many(tasks)
+            # 先返回客户端
             self.send_data_response(dict(normal_count=len(normal_txts), rare_count=len(rare_txts)))
 
-            # 先返回客户端，后更新txt_equals
+            # 后更新txt_equals/tripitakas
             log = dict(task_type=task_type, normal_txts=normal_txts, rare_txts=rare_txts)
             self.add_op_log(self.db, 'publish_task', None, log, self.username)
-            self.update_txt_equals(self.db, task_type, self.data['batch'])
+            self.update_txt_equals(self.db, self.data['batch'], task_type)
+            self.update_tripitakas(self.db, self.data['batch'], task_type)
 
         except self.DbError as error:
             return self.send_db_error(error)

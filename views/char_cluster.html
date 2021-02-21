@@ -158,6 +158,10 @@
           <li id="order--cc" class="filter btn-order"><a>按字置信度降序</a></li>
           <li id="order-lc" class="filter btn-order"><a>按列置信度升序</a></li>
           <li id="order--lc" class="filter btn-order"><a>按列置信度降序</a></li>
+          <li><a class="head">按藏经类别过滤</a></li>
+          {%for t in tripitakas%}
+          <li id="tk-{{t[0]}}" class="filter btn-tk"><a>{{tk_names.get(t[0]) or t[0]}}<sup class="s-count">{{t[1]}}</sup></a></li>
+          {% end %}
           <li><a class="head">按相同程度过滤</a></li>
           {%for i,name in equal_level.items()%}
           <li id="sc-{{i}}" class="filter btn-sc"><a>{{name}}<sup class="s-count">{{txt_equals.get(i) or 0}}</sup></a></li>
