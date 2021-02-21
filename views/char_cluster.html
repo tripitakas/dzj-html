@@ -55,10 +55,18 @@
     }
 
     .panel-list .head {
+      cursor: unset;
       font-weight: 500;
-      text-align: center;
+      text-align: left;
       color: var(--Brown_Darker);
       background-color: var(--Grey_Lighter);
+      border-bottom: 1px solid var(--Grey_Light);
+    }
+
+    .panel-list .head .toggle-filter {
+      float: right;
+      cursor: pointer;
+      line-height: 20px;
     }
 
     .panel-list .divider {
@@ -153,14 +161,14 @@
     <div class="m-body flex">
       <div class="m-panel slim-bar hide">
         <ul id="filter-panel" class="panel-list">
-          <li><a class="head">排序</a></li>
-          <li id="order-cc" class="filter btn-order"><a>按字置信度升序</a></li>
-          <li id="order--cc" class="filter btn-order"><a>按字置信度降序</a></li>
-          <li id="order-lc" class="filter btn-order"><a>按列置信度升序</a></li>
-          <li id="order--lc" class="filter btn-order"><a>按列置信度降序</a></li>
-          <li><a class="head">按藏经类别过滤</a></li>
+          <li><a class="head">排序<span id="toggle-order" class="icon-down toggle-filter"></span></a></li>
+          <li id="order-cc" class="filter btn-order hide"><a>按字置信度升序</a></li>
+          <li id="order--cc" class="filter btn-order hide"><a>按字置信度降序</a></li>
+          <li id="order-lc" class="filter btn-order hide"><a>按列置信度升序</a></li>
+          <li id="order--lc" class="filter btn-order hide"><a>按列置信度降序</a></li>
+          <li><a class="head">按藏经过滤<span id="toggle-tk" class="icon-down toggle-filter"></span></a></li>
           {%for t in tripitakas%}
-          <li id="tk-{{t[0]}}" class="filter btn-tk"><a>{{tk_names.get(t[0]) or t[0]}}<sup class="s-count">{{t[1]}}</sup></a></li>
+          <li id="tk-{{t[0]}}" class="filter btn-tk hide"><a>{{tk_names.get(t[0]) or t[0]}}<sup class="s-count">{{t[1]}}</sup></a></li>
           {% end %}
           <li><a class="head">按相同程度过滤</a></li>
           {%for i,name in equal_level.items()%}

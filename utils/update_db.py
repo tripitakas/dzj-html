@@ -15,7 +15,7 @@ def index_db(db):
         'page': ['name', 'source', 'page_code'],
         'log': ['create_time', 'user_id', 'op_type'],
         'variant': ['txt', 'v_code', 'nor_txt', 'user_txt'],
-        'char': ['name', 'source', 'cmb_txt', 'txt', 'cc', 'lc', 'pc', 'sc', 'txt_level',
+        'char': ['name', 'source', 'tptk', 'cmb_txt', 'txt', 'cc', 'lc', 'pc', 'sc', 'txt_level',
                  'is_vague', 'is_deform', 'uncertain'],
         'task': ['batch', 'task_type', 'num', 'collection', 'doc_id', 'txt_kind', 'status',
                  'is_oriented', 'picked_user_id'],

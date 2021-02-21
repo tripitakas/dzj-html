@@ -210,6 +210,18 @@ $('#filter-panel .filter').on('click', function () {
   });
 });
 
+// 展开收缩排序过滤
+$('.toggle-filter').on('click', function () {
+  let target = $(this).attr('id').replace('toggle-', '');
+  if ($(this).hasClass('icon-up')) {
+    $(this).removeClass('icon-up').addClass('icon-down');
+    $(`.btn-${target}`).addClass('hide');
+  } else if ($(this).hasClass('icon-down')) {
+    $(this).removeClass('icon-down').addClass('icon-up');
+    $(`.btn-${target}`).removeClass('hide');
+  }
+});
+
 
 //----------------------左侧字图----------------------
 // 切换字种
