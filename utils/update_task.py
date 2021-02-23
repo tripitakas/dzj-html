@@ -70,6 +70,11 @@ def update_txt_equals(db, batch='', task_type=''):
     Ch.update_txt_equals(db, batch, task_type)
 
 
+def update_tripitakas(db, batch='', task_type=''):
+    """ 更新聚类任务-藏经类别"""
+    Ch.update_tripitakas(db, batch, task_type)
+
+
 def check_cluster_task(db, char_source='', task_type='', batch=''):
     """ 检查某分类数据的聚类校对任务的字种、字数是否变化"""
     # 统计字种及字数

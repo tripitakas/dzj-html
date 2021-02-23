@@ -165,6 +165,18 @@ def update_char_txt(db, source=None):
         db.char.update_many({**cond, 'cmb_txt': txt}, {'$set': {'txt': txt}})
 
 
+def update_tptk(db, source=None):
+    cond = {'source': source} if source else {}
+    counts = list(db.char.aggregate([
+        {'$match': cond},
+        {'$group': {'_id': {'$substr': ["$name", 0, 2]}, 'count': {'$sum': 1}}},
+    ]))
+    for c in counts:
+        print(c['_id'])
+        cond.update({'name': {'$regex': '%s_' % c['_id']}})
+        db.char.update_many(cond, {'$set': {'tptk': c['_id']}})
+
+
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)

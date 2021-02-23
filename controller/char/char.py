@@ -13,6 +13,7 @@ class Char(Model):
     collection = 'char'
     fields = {
         'name': {'name': '字编码'},
+        'tptk': {'name': '藏经类别'},
         'page_name': {'name': '页编码'},
         'char_id': {'name': '字序号'},
         'uid': {'name': '对齐编码', 'remark': 'page_name和char_id'},
