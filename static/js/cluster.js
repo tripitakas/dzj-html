@@ -23,6 +23,7 @@
     addVariant: addVariant,
     setVariants: setVariants,
     loadVariants: loadVariants,
+    hasTxtKind: hasTxtKind,
     addTxtKind: addTxtKind,
     setTxtKinds: setTxtKinds,
     updateChar: updateChar,
@@ -54,6 +55,10 @@
     char['x'] += status.curChar['column']['x'];
     char['y'] += status.curChar['column']['y'];
     return char;
+  }
+
+  function hasTxtKind(txt) {
+    return status.txtKinds.indexOf(txt) > -1;
   }
 
   function setTxtKinds(txtKinds) {
