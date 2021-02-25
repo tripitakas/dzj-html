@@ -133,6 +133,15 @@ def update_page_txt(db, source=None):
                 db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
 
 
+def statistic_chars(db):
+    cnt = 0
+    cond = {'name': {'$regex': 'JS_'}}
+    pages = list(db.page.find(cond, {'chars': 1}))
+    for p in pages:
+        cnt += len([c for c in p.get('chars', []) if not c.get('deleted')])
+    print(cnt)
+
+
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
