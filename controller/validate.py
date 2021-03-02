@@ -183,8 +183,9 @@ def is_password(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^(?![0-9]+$)(?![a-zA-Z]+$)[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$'
+    regex2 = r'^.{16}$'
     # 值为空或空串时跳过而不检查
-    if v and not re.match(regex, str(v)):
+    if v and not re.match(regex, str(v)) and not re.match(regex2, str(v)):
         return {k: e.invalid_password}
 
 

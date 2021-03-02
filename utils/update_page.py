@@ -133,6 +133,25 @@ def update_page_txt(db, source=None):
                 db.page.update_one({'_id': p['_id']}, {'$set': {'chars': p['chars']}})
 
 
+def statistic_chars(db):
+    total = 0
+    size = 10000
+    cond = {'name': {'$regex': 'JS_'}}
+    item_count = db.page.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['name', 'chars']
+        pages = list(db.page.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for p in pages:
+            if p.get('chars'):
+                cnt = len([c for c in p.get('chars') if not c.get('deleted')])
+                print('[%s]%s, %s' % (hp.get_date_time(), p['name'], cnt))
+                total += cnt
+    print('total count: %s' % total)
+
+
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)

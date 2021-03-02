@@ -65,7 +65,8 @@ class PageTaskListHandler(TaskHandler, Page):
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-history', 'label': '历程'},
         {'action': 'btn-delete', 'label': '删除'},
-        {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
+        {'action': 'btn-republish', 'label': '重新发布',
+         'disabled': lambda d: d['status'] not in ['picked', 'returned', 'failed']},
     ]
 
     def get_template_kwargs(self, fields=None):

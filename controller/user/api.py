@@ -363,7 +363,7 @@ class SendUserPhoneCodeApi(BaseHandler):
             self.send_error_response(e.verify_failed, message=message)
 
 
-class UserlistApi(BaseHandler):
+class UserListApi(BaseHandler):
     URL = '/api/user/list'
 
     def post(self):
