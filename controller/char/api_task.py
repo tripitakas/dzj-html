@@ -27,8 +27,9 @@ class CharTaskPublishApi(CharHandler):
                 msg = '数据分类 %s已发布过 %s#%s的任务' % (source, self.get_task_name(task_type), num)
                 self.send_error_response(e.task_failed, message=msg)
             # 根据分类统计字种，发布任务
+            pub_time = self.now()
             normal_txts, rare_txts = self.get_base_txts(self.db, source, task_type)
-            tasks = [self.task_meta(task_type, t, source) for t in (normal_txts + rare_txts)]
+            tasks = [self.task_meta(task_type, t, source, pub_time) for t in (normal_txts + rare_txts)]
             self.db.task.insert_many(tasks)
             # 先返回客户端
             self.send_data_response(dict(normal_count=len(normal_txts), rare_count=len(rare_txts)))
@@ -42,7 +43,7 @@ class CharTaskPublishApi(CharHandler):
         except self.DbError as error:
             return self.send_db_error(error)
 
-    def task_meta(self, task_type, base_txts, source):
+    def task_meta(self, task_type, base_txts, source, pub_time=None):
         batch = self.data['batch']
         num = int(self.data.get('num') or 1)
         pre_tasks = self.data.get('pre_tasks') or []
@@ -52,8 +53,8 @@ class CharTaskPublishApi(CharHandler):
         task = dict(task_type=task_type, num=num, batch=batch, status=self.STATUS_PUBLISHED, priority=priority,
                     steps={}, pre_tasks=pre_tasks, is_oriented=is_oriented, collection='char', id_name='name',
                     doc_id='', base_txts=base_txts, char_count=char_count, params=dict(source=source),
-                    txt_equals={}, result={}, create_time=self.now(), updated_time=self.now(),
-                    publish_time=self.now(), publish_user_id=self.user_id, publish_by=self.username)
+                    txt_equals={}, result={}, create_time=pub_time, updated_time=pub_time,
+                    publish_time=pub_time, publish_user_id=self.user_id, publish_by=self.username)
         not is_oriented and task.pop('is_oriented', 0)
         return task
 
