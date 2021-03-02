@@ -152,6 +152,45 @@ def statistic_chars(db):
     print('total count: %s' % total)
 
 
+def update_source_by_task(db):
+    """根据任务设置页数据的分类"""
+    # 径山藏
+    cond = {'task_type': 'cut_proof', 'num': 1, 'doc_id': {'$regex': 'JS_'}}
+    print('径山藏切分校对#一校：', db.task.count_documents(cond))
+    # 全职校对人员
+    users1 = list(db.user.find({'group': '全职校对人员'}, {'_id': 1, 'name': 1}))
+    print('全职校对人员：', '，'.join([u['name'] for u in users1]))
+    tasks1 = list(db.task.find({**cond, 'picked_user_id': {'$in': [u['_id'] for u in users1]}}, {'doc_id': 1}))
+    print('完成任务总数：', len(tasks1))
+    page_names1 = [t['doc_id'] for t in tasks1]
+    db.page.update_many({'name': {'$in': page_names1}}, {'$set': {'source': '径山藏-全职'}})
+    # 实习学生
+    users2 = list(db.user.find({'group': '实习学生'}, {'_id': 1, 'name': 1}))
+    print('实习学生：', '，'.join([u['name'] for u in users2]))
+    tasks2 = list(db.task.find({**cond, 'picked_user_id': {'$in': [u['_id'] for u in users2]}}, {'doc_id': 1}))
+    print('完成任务总数：', len(tasks2))
+    page_names2 = [t['doc_id'] for t in tasks2]
+    db.page.update_many({'name': {'$in': page_names2}, 'source': {'$ne': '径山藏-全职'}},
+                        {'$set': {'source': '径山藏-学生'}})
+    # 义工
+    users3 = [u['_id'] for u in users1] + [u['_id'] for u in users2]
+    tasks3 = list(db.task.find({**cond, 'picked_user_id': {'$nin': users3}}, {'doc_id': 1}))
+    print('其它人完成任务总数：', len(tasks3))
+    page_names3 = [t['doc_id'] for t in tasks3]
+    db.page.update_many({'name': {'$in': page_names3}, 'source': {'$nin': ['径山藏-全职', '径山藏-学生']}},
+                        {'$set': {'source': '径山藏-义工'}})
+
+
+def update_source_by_nav(db):
+    """根据任务浏览设置页数据的分类"""
+    cond = {'task_type': 'cut_proof', 'num': 1, 'doc_id': {'$regex': 'JS_'}, 'nav_times': {'$gte': 1}}
+    print('已完成自查任务数：', db.task.count_documents(cond))
+    tasks = list(db.task.find(cond, {'doc_id': 1}))
+    page_names = [t['doc_id'] for t in tasks]
+    db.page.update_many({'name': {'$in': page_names}, 'source': '径山藏-全职'},
+                        {'$set': {'source': '径山藏-全职-已自查'}})
+
+
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)

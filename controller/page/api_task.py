@@ -98,6 +98,7 @@ class PageTaskPublishApi(PageHandler):
             page_names = set(page_names) - log['published_before']
         # 剩下的页码，发布新任务
         if page_names:
+            pub_time = self.now()
             pre_tasks = self.data['pre_tasks']
             if pre_tasks:
                 pre_tasks = [pre_tasks] if isinstance(pre_tasks, str) else pre_tasks
@@ -110,19 +111,20 @@ class PageTaskPublishApi(PageHandler):
                 un_finished = set(t['doc_id'] for t in db_pre_tasks if t['status'] != self.STATUS_FINISHED)
                 log['pending'] = set(un_finished | un_published)
                 if log['pending']:
-                    self.create_tasks(log['pending'], self.STATUS_PENDING, {t: None for t in pre_tasks})
+                    self.create_tasks(log['pending'], self.STATUS_PENDING, {t: None for t in pre_tasks}, pub_time)
                 # 其它为前置任务全部已完成的情况，发布为PUBLISHED
                 page_names = set(page_names) - log['pending']
                 if page_names:
-                    self.create_tasks(page_names, self.STATUS_PUBLISHED, {t: self.STATUS_FINISHED for t in pre_tasks})
+                    p_tasks = {t: self.STATUS_FINISHED for t in pre_tasks}
+                    self.create_tasks(page_names, self.STATUS_PUBLISHED, p_tasks, pub_time)
                     log['published'] = page_names
             else:
-                self.create_tasks(page_names, self.STATUS_PUBLISHED)
+                self.create_tasks(page_names, self.STATUS_PUBLISHED, pub_time=pub_time)
                 log['published'] = page_names
 
         return {k: list(l) for k, l in log.items() if l}
 
-    def create_tasks(self, page_names, status, pre_tasks=None):
+    def create_tasks(self, page_names, status, pre_tasks=None, pub_time=None):
         def get_task(page_name, char_count=None, params=None):
             num = int(self.data.get('num') or 1)
             priority = int(self.data['priority'])
@@ -130,7 +132,7 @@ class PageTaskPublishApi(PageHandler):
             task = dict(task_type=task_type, num=num, batch=self.data['batch'], status=status, priority=priority,
                         steps=steps, pre_tasks=pre_tasks, is_oriented=is_oriented, collection='page', id_name='name',
                         doc_id=page_name, char_count=char_count, params=params or {}, result={},
-                        create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
+                        create_time=pub_time, updated_time=pub_time, publish_time=pub_time,
                         publish_user_id=self.user_id, publish_by=self.username)
             not is_oriented and task.pop('is_oriented', 0)
             return task
@@ -169,6 +171,7 @@ class PageTaskCutApi(PageHandler):
                 self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
                 self.send_data_response()
                 self.update_post_tasks(self.task)
+                self.update_group_task_users(self.db, self.task)
                 self.update_page_status(self.STATUS_FINISHED, self.task)
             else:
                 self.send_data_response()

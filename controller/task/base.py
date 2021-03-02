@@ -147,42 +147,27 @@ class TaskHandler(BaseHandler, Task):
         def get_random_skip():
             n = 0
             for p in [3, 2, 1]:
-                n += self.db.task.count_documents({'priority': p, **condition})
+                n += self.db.task.count_documents({'priority': p, **cond})
                 if n > page_size:
                     return random.randint(1, n - page_size)
             return 0
 
-        condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
+        cond = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
+        if not batch:
+            cond.update({'is_oriented': None})
+        elif ',' in batch:
+            cond.update({'batch': {'$in': [b.strip() for b in batch.split(',')]}})
+        else:
+            cond.update({'batch': batch})
         if q:
             collection = self.prop(self.task_types, task_type + '.data.collection')
-            cond = {'doc_id': {'$regex': q}} if collection == 'page' else {'base_txts.txt': q}
-            condition.update(cond)
-        if batch:
-            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
-            condition.update({'batch': batch})
-        else:
-            condition.update({'is_oriented': None})
+            cond.update({'doc_id': {'$regex': q}} if collection == 'page' else {'base_txts.txt': q})
+
         page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
         skip_no = get_random_skip()
-        tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
-        total_count = self.db.task.count_documents(condition)
+        tasks = list(self.db.task.find(cond).skip(skip_no).sort('priority', -1).limit(page_size))
+        total_count = self.db.task.count_documents(cond)
         return tasks[:page_size], total_count
-
-    def pick_one(self, task_type, batch=None):
-        """领取任务"""
-        condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
-        if batch:
-            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
-            condition.update({'batch': batch})
-        else:
-            condition.update({'is_oriented': None})
-        if self.has_num(task_type):
-            field = self.get_data_field(task_type)
-            my_tasks = self.find_mine(task_type, project={field: 1})
-            if my_tasks:
-                condition[field] = condition.get(field) or {}
-                condition[field].update({'$nin': [t[field] for t in my_tasks]})
-        return self.db.task.find_one(condition, sort=[('priority', 1)])
 
     def count_task(self, task_type=None, status=None, mine=False):
         """统计任务数量"""
@@ -282,4 +267,14 @@ class TaskHandler(BaseHandler, Task):
             if pre_tasks and not unfinished:
                 to_publish.append(tsk['_id'])
         if to_publish:
-            self.db.task.update_one({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})
+            self.db.task.update_many({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})
+
+    @classmethod
+    def update_group_task_users(cls, db, task):
+        """完成任务时，更新组任务用户，以便后续领取组任务"""
+        if not task.get('doc_id'):
+            return
+        for k, group_types in cls.group_tasks.items():
+            if task['task_type'] in group_types:
+                cond = {'doc_id': task['doc_id'], 'task_type': {'$in': group_types}}
+                db.task.update_many(cond, {'$addToSet': {'group_task_users': task['picked_user_id']}})
