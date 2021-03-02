@@ -170,13 +170,15 @@ def update_source_by_task(db):
     tasks2 = list(db.task.find({**cond, 'picked_user_id': {'$in': [u['_id'] for u in users2]}}, {'doc_id': 1}))
     print('完成任务总数：', len(tasks2))
     page_names2 = [t['doc_id'] for t in tasks2]
-    db.page.update_many({'name': {'$in': page_names2}}, {'$set': {'source': '径山藏-学生'}})
+    db.page.update_many({'name': {'$in': page_names2}, 'source': {'$ne': '径山藏-全职'}},
+                        {'$set': {'source': '径山藏-学生'}})
     # 义工
     users3 = [u['_id'] for u in users1] + [u['_id'] for u in users2]
     tasks3 = list(db.task.find({**cond, 'picked_user_id': {'$nin': users3}}, {'doc_id': 1}))
     print('其它人完成任务总数：', len(tasks3))
     page_names3 = [t['doc_id'] for t in tasks3]
-    db.page.update_many({'name': {'$in': page_names3}}, {'$set': {'source': '径山藏-义工'}})
+    db.page.update_many({'name': {'$in': page_names3}, 'source': {'$nin': ['径山藏-全职', '径山藏-学生']}},
+                        {'$set': {'source': '径山藏-义工'}})
 
 
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
