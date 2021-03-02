@@ -171,7 +171,7 @@ class PageTaskCutApi(PageHandler):
                 self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
                 self.send_data_response()
                 self.update_post_tasks(self.task)
-                self.update_group_task_users(self.task)
+                self.update_group_task_users(self.db, self.task)
                 self.update_page_status(self.STATUS_FINISHED, self.task)
             else:
                 self.send_data_response()

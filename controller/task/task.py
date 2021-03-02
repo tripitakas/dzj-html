@@ -58,6 +58,13 @@ class Task(Model):
         },
     }
 
+    # 组任务定义
+    group_tasks = {
+        'cut': ['cut_proof', 'cut_review'],
+        'text': ['text_proof', 'text_review'],
+        'cluster': ['cluster_proof', 'cluster_review'],
+    }
+
     # 任务状态表
     STATUS_PUBLISHED = 'published'
     STATUS_PENDING = 'pending'
@@ -120,6 +127,10 @@ class Task(Model):
     def has_num(cls, task_type):
         num = cls.prop(cls.task_types, task_type + '.num')
         return num is not None
+
+    @classmethod
+    def get_group_types(cls, task_type):
+        return cls.prop(cls.group_tasks, task_type.split('_')[0])
 
     @classmethod
     def get_page_tasks(cls):

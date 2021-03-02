@@ -18,6 +18,7 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
+from controller.task.base import TaskHandler as Th
 from controller.page.base import PageHandler as Ph
 from controller.char.base import CharHandler as Ch
 
@@ -73,6 +74,25 @@ def update_txt_equals(db, batch='', task_type=''):
 def update_tripitakas(db, batch='', task_type=''):
     """ 更新聚类任务-藏经类别"""
     Ch.update_tripitakas(db, batch, task_type)
+
+
+def update_cluster_doc_id(db, batch=''):
+    """ 更新聚类任务-doc_id"""
+    cond = {'task_type': 'cluster_proof'}
+    batch and cond.update({'batch': batch})
+    tasks = list(db.task.find(cond, {'base_txts': 1, 'params': 1}))
+    for t in tasks:
+        doc_id = Ch.get_doc_id(task=t)
+        doc_id and db.task.update_one({'_id': t['_id']}, {'$set': {'doc_id': doc_id}})
+
+
+def update_group_task_users(db, batch=''):
+    """ 更新任务-group_task_users"""
+    cond = {'task_type': 'cluster_proof', 'status': 'finished'}
+    batch and cond.update({'batch': batch})
+    tasks = list(db.task.find(cond, {'picked_user_id': 1, 'task_type': 1, 'doc_id': 1}))
+    for t in tasks:
+        Th.update_group_task_users(db, t)
 
 
 def check_cluster_task(db, char_source='', task_type='', batch=''):

@@ -50,7 +50,7 @@ class CharTaskPublishApi(CharHandler):
         priority = int(self.data.get('priority') or 2)
         is_oriented = self.data.get('is_oriented') == '1'
         char_count = sum([t['count'] for t in base_txts])
-        doc_id = '%s@%s' % (source, ''.join(sorted([t['txt'] for t in base_txts])))
+        doc_id = self.get_doc_id(source, base_txts)
         task = dict(task_type=task_type, num=num, batch=batch, status=self.STATUS_PUBLISHED, priority=priority,
                     steps={}, pre_tasks=pre_tasks, is_oriented=is_oriented, collection='char', id_name='name',
                     doc_id=doc_id, base_txts=base_txts, char_count=char_count, params=dict(source=source),
@@ -111,7 +111,7 @@ class CharTaskClusterApi(CharHandler):
                     'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'updated_time': self.now(),
                     'used_time': (self.now() - self.task['picked_time']).total_seconds(),
                 }})
-                self.update_group_task_users(self.task)
+                self.update_group_task_users(self.db, self.task)
             else:
                 self.send_data_response()
 

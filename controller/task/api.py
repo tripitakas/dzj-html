@@ -24,19 +24,21 @@ class PickTaskApi(TaskHandler):
             # 领取指定任务
             task_id, task = self.prop(self.data, 'task_id'), None
             if task_id:
+                group_types = self.get_group_types(task_type)
                 task = self.db.task.find_one({'_id': ObjectId(task_id)})
                 if task and self.has_num(task_type) and self.db.task.find_one({
-                    'task_type': task_type, 'doc_id': task['doc_id'], 'picked_user_id': self.user_id,
+                    'doc_id': task['doc_id'], 'picked_user_id': self.user_id,
+                    'task_type': {'$in': group_types} if group_types else task_type,
                     'status': {'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]}
                 }):
-                    task = None  # 不可以领取同组(相同doc_id)不同校次的任务
+                    task = None  # 不可以重复领取同组(相同doc_id)任务
             # 系统分配任务
             for i in range(5):
                 if not task or task['status'] != self.STATUS_PUBLISHED:
                     task = self.pick_one(task_type, self.prop(self.current_user, 'task_batch.%s' % task_type))
                 if not task:
                     collection = self.prop(self.task_types, '%s.data.collection' % task_type)
-                    msg = '您已领取该%s的某校次任务，不可以重复领取' % ('页编码' if collection == 'page' else '聚类字种')
+                    msg = '您曾领取过该%s的校对或审定任务，不可以重复领取' % ('页编码' if collection == 'page' else '聚类字种')
                     return self.send_error_response(e.no_task_to_pick, message=task_id and msg)
                 r = self.db.task.update_one({'_id': task['_id'], 'status': self.STATUS_PUBLISHED}, {'$set': {
                     'status': self.STATUS_PICKED, 'picked_user_id': self.user_id, 'picked_by': self.username,
@@ -55,7 +57,7 @@ class PickTaskApi(TaskHandler):
 
     def pick_one(self, task_type, batch):
         cond = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
-        # 不可以领取同组不同校次的任务
+        # 不可以重复领取同组任务
         self.has_num(task_type) and cond.update({'group_task_users': {'$ne': self.user_id}})
         # 设置批次号
         if not batch:

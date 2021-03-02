@@ -269,9 +269,12 @@ class TaskHandler(BaseHandler, Task):
         if to_publish:
             self.db.task.update_many({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})
 
-    def update_group_task_users(self, task):
+    @classmethod
+    def update_group_task_users(cls, db, task):
         """完成任务时，更新组任务用户，以便后续领取组任务"""
-        task_types = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'cluster_proof', 'cluster_review']
-        if task['task_type'] in task_types:
-            cond = {'task_type': task['task_type'], 'doc_id': task['doc_id']}
-            self.db.task.update_many(cond, {'$addToSet': {'group_task_users': task['picked_user_id']}})
+        if not task.get('doc_id'):
+            return
+        for k, group_types in cls.group_tasks.items():
+            if task['task_type'] in group_types:
+                cond = {'doc_id': task['doc_id'], 'task_type': {'$in': group_types}}
+                db.task.update_many(cond, {'$addToSet': {'group_task_users': task['picked_user_id']}})

@@ -105,6 +105,13 @@ class CharHandler(Char, TaskHandler):
         return 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
 
     @classmethod
+    def get_doc_id(cls, source=None, base_txts=None, task=None):
+        """ 聚类任务的doc_id"""
+        source = source or cls.prop(task, 'params.source')
+        base_txts = base_txts or cls.prop(task, 'base_txts', [])
+        return '%s@%s' % (source, ''.join(sorted([t['txt'] for t in base_txts])))
+
+    @classmethod
     def update_txt_equals(cls, db, batch, task_type=None):
         """ 设置聚类任务的文本相同程度"""
         cond = {'batch': batch, 'txt_equals': {'$in': [None, {}]}}
