@@ -50,9 +50,10 @@ class CharTaskPublishApi(CharHandler):
         priority = int(self.data.get('priority') or 2)
         is_oriented = self.data.get('is_oriented') == '1'
         char_count = sum([t['count'] for t in base_txts])
+        doc_id = '%s#%s' % (source, sorted([t['txt'] for t in base_txts]))
         task = dict(task_type=task_type, num=num, batch=batch, status=self.STATUS_PUBLISHED, priority=priority,
                     steps={}, pre_tasks=pre_tasks, is_oriented=is_oriented, collection='char', id_name='name',
-                    doc_id='', base_txts=base_txts, char_count=char_count, params=dict(source=source),
+                    doc_id=doc_id, base_txts=base_txts, char_count=char_count, params=dict(source=source),
                     txt_equals={}, result={}, create_time=pub_time, updated_time=pub_time,
                     publish_time=pub_time, publish_user_id=self.user_id, publish_by=self.username)
         not is_oriented and task.pop('is_oriented', 0)
