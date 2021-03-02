@@ -77,22 +77,36 @@ def update_tripitakas(db, batch='', task_type=''):
 
 
 def update_cluster_doc_id(db, batch=''):
-    """ 更新聚类任务-doc_id"""
+    """更新任务-group_task_users"""
+    size = 10000
     cond = {'task_type': 'cluster_proof'}
     batch and cond.update({'batch': batch})
-    tasks = list(db.task.find(cond, {'base_txts': 1, 'params': 1}))
-    for t in tasks:
-        doc_id = Ch.get_doc_id(task=t)
-        doc_id and db.task.update_one({'_id': t['_id']}, {'$set': {'doc_id': doc_id}})
+    item_count = db.task.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['base_txts', 'params']
+        tasks = list(db.task.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for t in tasks:
+            doc_id = Ch.get_doc_id(task=t)
+            doc_id and db.task.update_one({'_id': t['_id']}, {'$set': {'doc_id': doc_id}})
 
 
 def update_group_task_users(db, batch=''):
-    """ 更新任务-group_task_users"""
+    """更新任务-group_task_users"""
+    size = 10000
     cond = {'task_type': {'$in': Th.get_group_types()}, 'status': 'finished'}
     batch and cond.update({'batch': batch})
-    tasks = list(db.task.find(cond, {'picked_user_id': 1, 'task_type': 1, 'doc_id': 1}))
-    for t in tasks:
-        Th.update_group_task_users(db, t)
+    item_count = db.task.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['picked_user_id', 'task_type', 'doc_id']
+        tasks = list(db.task.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for t in tasks:
+            Th.update_group_task_users(db, t)
 
 
 def check_cluster_task(db, char_source='', task_type='', batch=''):
