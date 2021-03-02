@@ -122,11 +122,6 @@ class Task(Model):
         return num is not None
 
     @classmethod
-    def get_data_field(cls, task_type):
-        c2f = dict(page='doc_id', char='base_txts')
-        return c2f.get(cls.prop(cls.task_types, task_type + '.data.collection'))
-
-    @classmethod
     def get_page_tasks(cls):
         return {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == 'page'}
 

@@ -11,7 +11,7 @@ function pick(taskType, task_id) {
         if (res.code === 3002) {  // error.task_uncompleted
           window.location = res.url;
         } else if (res.code === 3003) { // error.no_task_to_pick
-          showConfirm("返回任务大厅？", "没有任务可领取", function () {
+          showConfirm("返回任务大厅？", res.message, function () {
             window.location = '/task/lobby/' + taskType;
           });
         } else if (res.code !== 500) {

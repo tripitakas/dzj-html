@@ -50,7 +50,7 @@ class CharTaskPublishApi(CharHandler):
         priority = int(self.data.get('priority') or 2)
         is_oriented = self.data.get('is_oriented') == '1'
         char_count = sum([t['count'] for t in base_txts])
-        doc_id = '%s#%s' % (source, sorted([t['txt'] for t in base_txts]))
+        doc_id = '%s@%s' % (source, ''.join(sorted([t['txt'] for t in base_txts])))
         task = dict(task_type=task_type, num=num, batch=batch, status=self.STATUS_PUBLISHED, priority=priority,
                     steps={}, pre_tasks=pre_tasks, is_oriented=is_oriented, collection='char', id_name='name',
                     doc_id=doc_id, base_txts=base_txts, char_count=char_count, params=dict(source=source),
@@ -90,14 +90,14 @@ class CharTaskClusterApi(CharHandler):
     def post(self, mode, task_type, task_id):
         """提交聚类校对任务"""
         try:
-            update = {'updated_time': self.now()}
             user_level = self.get_user_txt_level(self, task_type)
             cond = {'tasks.' + task_type: {'$ne': self.task['_id']}, 'txt_level': {'$lte': user_level}}
             if self.data.get('char_names'):  # 提交单页
                 cond.update({'name': {'$in': self.data.get('char_names')}})
                 self.db.char.update_many(cond, {'$addToSet': {'tasks.' + task_type: self.task['_id']}})
                 self.send_data_response()
-                return self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'updated_time': self.now()}})
+                return
 
             if self.data.get('submit') and self.task['status'] != self.STATUS_FINISHED:  # 提交任务
                 b_field = self.get_base_field(task_type)
@@ -106,11 +106,14 @@ class CharTaskClusterApi(CharHandler):
                 cond.update({'source': source, b_field: {'$in': base_txts}, 'sc': {'$ne': 39}})
                 if self.db.char.find_one(cond):  # 检查sc不为39（即三字相同）的字数据
                     return self.send_error_response(e.task_submit_error, message='还有未提交的字图，不能提交任务')
-                used_time = (self.now() - self.task['picked_time']).total_seconds()
-                update.update({'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'used_time': used_time})
-                self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
-
-            return self.send_data_response()
+                self.send_data_response()
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
+                    'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'updated_time': self.now(),
+                    'used_time': (self.now() - self.task['picked_time']).total_seconds(),
+                }})
+                self.update_group_task_users(self.task)
+            else:
+                self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)

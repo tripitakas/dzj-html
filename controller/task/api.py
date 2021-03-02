@@ -35,7 +35,9 @@ class PickTaskApi(TaskHandler):
                 if not task or task['status'] != self.STATUS_PUBLISHED:
                     task = self.pick_one(task_type, self.prop(self.current_user, 'task_batch.%s' % task_type))
                 if not task:
-                    return self.send_error_response(e.no_task_to_pick)
+                    collection = self.prop(self.task_types, '%s.data.collection' % task_type)
+                    msg = '您已领取该%s的某校次任务，不可以重复领取' % ('页编码' if collection == 'page' else '聚类字种')
+                    return self.send_error_response(e.no_task_to_pick, message=task_id and msg)
                 r = self.db.task.update_one({'_id': task['_id'], 'status': self.STATUS_PUBLISHED}, {'$set': {
                     'status': self.STATUS_PICKED, 'picked_user_id': self.user_id, 'picked_by': self.username,
                     'picked_time': self.now(), 'updated_time': self.now()

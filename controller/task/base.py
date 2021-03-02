@@ -147,25 +147,26 @@ class TaskHandler(BaseHandler, Task):
         def get_random_skip():
             n = 0
             for p in [3, 2, 1]:
-                n += self.db.task.count_documents({'priority': p, **condition})
+                n += self.db.task.count_documents({'priority': p, **cond})
                 if n > page_size:
                     return random.randint(1, n - page_size)
             return 0
 
-        condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
+        cond = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
+        if not batch:
+            cond.update({'is_oriented': None})
+        elif ',' in batch:
+            cond.update({'batch': {'$in': [b.strip() for b in batch.split(',')]}})
+        else:
+            cond.update({'batch': batch})
         if q:
             collection = self.prop(self.task_types, task_type + '.data.collection')
-            cond = {'doc_id': {'$regex': q}} if collection == 'page' else {'base_txts.txt': q}
-            condition.update(cond)
-        if batch:
-            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
-            condition.update({'batch': batch})
-        else:
-            condition.update({'is_oriented': None})
+            cond.update({'doc_id': {'$regex': q}} if collection == 'page' else {'base_txts.txt': q})
+
         page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
         skip_no = get_random_skip()
-        tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
-        total_count = self.db.task.count_documents(condition)
+        tasks = list(self.db.task.find(cond).skip(skip_no).sort('priority', -1).limit(page_size))
+        total_count = self.db.task.count_documents(cond)
         return tasks[:page_size], total_count
 
     def count_task(self, task_type=None, status=None, mine=False):
@@ -269,7 +270,7 @@ class TaskHandler(BaseHandler, Task):
             self.db.task.update_many({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})
 
     def update_group_task_users(self, task):
-        """更新组任务用户"""
+        """完成任务时，更新组任务用户，以便后续领取组任务"""
         task_types = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'cluster_proof', 'cluster_review']
         if task['task_type'] in task_types:
             cond = {'task_type': task['task_type'], 'doc_id': task['doc_id']}
