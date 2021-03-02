@@ -129,8 +129,13 @@ class Task(Model):
         return num is not None
 
     @classmethod
-    def get_group_types(cls, task_type):
-        return cls.prop(cls.group_tasks, task_type.split('_')[0])
+    def get_group_types(cls, task_type=None):
+        if task_type:
+            return cls.prop(cls.group_tasks, task_type.split('_')[0])
+        group_types = []
+        for k, task_types in cls.group_tasks.items():
+            group_types.extend(task_types)
+        return group_types
 
     @classmethod
     def get_page_tasks(cls):

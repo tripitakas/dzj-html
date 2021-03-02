@@ -88,7 +88,7 @@ def update_cluster_doc_id(db, batch=''):
 
 def update_group_task_users(db, batch=''):
     """ 更新任务-group_task_users"""
-    cond = {'task_type': 'cluster_proof', 'status': 'finished'}
+    cond = {'task_type': {'$in': Th.get_group_types()}, 'status': 'finished'}
     batch and cond.update({'batch': batch})
     tasks = list(db.task.find(cond, {'picked_user_id': 1, 'task_type': 1, 'doc_id': 1}))
     for t in tasks:
