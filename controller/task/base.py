@@ -168,22 +168,6 @@ class TaskHandler(BaseHandler, Task):
         total_count = self.db.task.count_documents(condition)
         return tasks[:page_size], total_count
 
-    def pick_one(self, task_type, batch=None):
-        """领取任务"""
-        condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
-        if batch:
-            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
-            condition.update({'batch': batch})
-        else:
-            condition.update({'is_oriented': None})
-        if self.has_num(task_type):
-            field = self.get_data_field(task_type)
-            my_tasks = self.find_mine(task_type, project={field: 1})
-            if my_tasks:
-                condition[field] = condition.get(field) or {}
-                condition[field].update({'$nin': [t[field] for t in my_tasks]})
-        return self.db.task.find_one(condition, sort=[('priority', 1)])
-
     def count_task(self, task_type=None, status=None, mine=False):
         """统计任务数量"""
         condition = dict()
