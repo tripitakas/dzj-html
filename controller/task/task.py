@@ -89,6 +89,7 @@ class Task(Model):
         'steps': {'name': '步骤'},
         'pre_tasks': {'name': '前置任务'},
         'is_oriented': {'name': '是否定向', 'filter': yes_no},
+        'group_task_users': {'name': '组任务用户'},
         'txt_equals': {'name': '相同程度'},
         'params': {'name': '输入参数'},
         'result': {'name': '输出结果'},

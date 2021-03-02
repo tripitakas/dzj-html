@@ -282,4 +282,11 @@ class TaskHandler(BaseHandler, Task):
             if pre_tasks and not unfinished:
                 to_publish.append(tsk['_id'])
         if to_publish:
-            self.db.task.update_one({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})
+            self.db.task.update_many({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})
+
+    def update_group_task_users(self, task):
+        """更新组任务用户"""
+        task_types = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'cluster_proof', 'cluster_review']
+        if task['task_type'] in task_types:
+            cond = {'task_type': task['task_type'], 'doc_id': task['doc_id']}
+            self.db.task.update_many(cond, {'$addToSet': {'group_task_users': task['picked_user_id']}})
