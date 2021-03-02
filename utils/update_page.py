@@ -181,6 +181,16 @@ def update_source_by_task(db):
                         {'$set': {'source': '径山藏-义工'}})
 
 
+def update_source_by_nav(db):
+    """根据任务浏览设置页数据的分类"""
+    cond = {'task_type': 'cut_proof', 'num': 1, 'doc_id': {'$regex': 'JS_'}, 'nav_times': {'$gte': 1}}
+    print('已完成自查任务数：', db.task.count_documents(cond))
+    tasks = list(db.task.find(cond, {'doc_id': 1}))
+    page_names = [t['doc_id'] for t in tasks]
+    db.page.update_many({'name': {'$in': page_names}, 'source': '径山藏-全职'},
+                        {'$set': {'source': '径山藏-全职-已自查'}})
+
+
 def main(db_name='tripitaka', uri='localhost', func='', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
