@@ -13,6 +13,7 @@
 @time: 2019/10/16
 """
 import re
+import math
 import random
 from bson.objectid import ObjectId
 from controller import errors as e
@@ -269,12 +270,44 @@ class TaskHandler(BaseHandler, Task):
         if to_publish:
             self.db.task.update_many({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})
 
-    @classmethod
-    def update_group_task_users(cls, db, task):
-        """完成任务时，更新组任务用户，以便后续领取组任务"""
+    def update_single_task_users(self, task):
+        """更新新发布任务的group_task_users字段"""
         if not task.get('doc_id'):
             return
-        for k, group_types in cls.group_tasks.items():
+        for k, group_types in self.group_tasks.items():
             if task['task_type'] in group_types:
-                cond = {'doc_id': task['doc_id'], 'task_type': {'$in': group_types}}
-                db.task.update_many(cond, {'$addToSet': {'group_task_users': task['picked_user_id']}})
+                cond = {'doc_id': task['doc_id'], 'task_type': {'$in': group_types}, 'status': 'published'}
+                self.db.task.update_many(cond, {'$addToSet': {'group_task_users': task['picked_user_id']}})
+
+    @classmethod
+    def update_batch_task_users(cls, db, task_type='', batch=''):
+        """批量更新新发布任务的group_task_users字段"""
+        for k, g_types in cls.group_tasks.items():
+            if not task_type or task_type in g_types:  # 分组处理
+                size = 10000
+                cond = {'task_type': {'$in': g_types}, 'status': 'published'}
+                batch and cond.update({'batch': batch})
+                item_count = db.task.count_documents(cond)
+                page_count = math.ceil(item_count / size)
+                print('%s items, %s pages. %s' % (item_count, page_count, cond))
+                for i in range(page_count):
+                    print('processing page %s / %s' % (i + 1, page_count))
+                    # 1. 查找新发布的任务
+                    tasks = list(db.task.find(cond, {'doc_id': 1}).sort('_id', 1).skip(i * size).limit(size))
+                    # 2. 根据新任务doc_id，查找已完成的旧任务
+                    doc_ids = [t['doc_id'] for t in tasks]
+                    task2 = list(db.task.find(
+                        {'doc_id': {'$in': doc_ids}, 'task_type': {'$in': g_types}, 'status': 'finished'},
+                        {k: 1 for k in ['picked_user_id', 'doc_id']})
+                    )
+                    # 3. 将旧任务按照picked_user_id分组
+                    group_users = dict()
+                    for t in task2:
+                        group_users[str(t['picked_user_id'])] = group_users.get(str(t['picked_user_id'])) or set()
+                        t.get('doc_id') and group_users[str(t['picked_user_id'])].add(t['doc_id'])
+                    # 4. 设置新任务的group_task_users
+                    for picked_user_id, doc_ids in group_users.items():
+                        db.task.update_many(
+                            {'doc_id': {'$in': list(doc_ids)}, **cond},
+                            {'$addToSet': {'group_task_users': ObjectId(picked_user_id)}}
+                        )

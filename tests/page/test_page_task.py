@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
 from tests import users as u
 from tests.testcase import APITestCase
 from controller import errors as e
@@ -144,3 +145,40 @@ class TestPageTask(APITestCase):
             # 检查任务状态，应为已完成
             task = self._app.db.task.find_one({'task_type': task_type, 'doc_id': name})
             self.assertEqual('finished', task['status'], msg=task_type)
+
+    def test_update_group_task_users(self):
+        # 准备参数
+        page_names = ['YB_22_346', 'YB_22_389', 'QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733']
+        proof_type, review_type = 'cut_proof', 'cut_review'
+        name = page_names[0]
+
+        # 发布一校、二校任务
+        self.login_as_admin()
+        r = self.publish_page_tasks(dict(page_names=page_names, task_type=proof_type, num=1, pre_tasks=[]))
+        self.assert_code(200, r)
+        r = self.publish_page_tasks(dict(page_names=page_names, task_type=proof_type, num=2, pre_tasks=[]))
+        self.assert_code(200, r)
+
+        # 领取一校任务并提交
+        self.login(u.expert1[0], u.expert1[1])
+        task = self._app.db.task.find_one({'task_type': proof_type, 'doc_id': name, 'num': 1})
+        r = self.fetch('/api/task/pick/' + proof_type, body={'data': {'task_id': task['_id']}})
+        self.assert_code(200, r)
+        r = self.fetch('/api/task/do/%s/%s' % (proof_type, task['_id']), body={'data': {'submit': True, 'op': {}}})
+        self.assert_code(200, r, msg=proof_type)
+        task = self._app.db.task.find_one({'_id': task['_id']})
+        self.assertEqual('finished', task['status'])
+
+        # 检查二校任务
+        task2 = self._app.db.task.find_one({'task_type': proof_type, 'doc_id': name, 'num': 2})
+        self.assertIsNotNone(task2.get('group_task_users'))
+
+        # 发布审定任务
+        self.login_as_admin()
+        r = self.publish_page_tasks(dict(page_names=[name], task_type=review_type, num=1, pre_tasks=[]))
+        self.assert_code(200, r)
+
+        # 检查审定任务
+        time.sleep(1)
+        task3 = self._app.db.task.find_one({'task_type': review_type, 'doc_id': name, 'num': 1})
+        self.assertIsNotNone(task3.get('group_task_users'))

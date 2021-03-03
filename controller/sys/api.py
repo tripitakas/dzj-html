@@ -55,13 +55,13 @@ class SysUploadOssApi(BaseHandler):
             r = upload_oss(img_type, True)
             if r is not True:
                 self.send_error_response(r)
+            self.send_data_response()
 
             # 启动脚本，生成字图
             script = 'nohup python3 %s/utils/upload_oss.py --img_type=%s >> log/upload_oss_%s.log 2>&1 &'
             script = script % (h.BASE_DIR, img_type, h.get_date_time(fmt='%Y%m%d%H%M%S'))
             # print(script)
             os.system(script)
-            self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -86,11 +86,11 @@ class ResetExamUserApi(BaseHandler):
                 exam.reset_user_data_and_tasks(self.db, user_no)
                 self.send_data_response(dict(status='success'))
             else:
+                self.send_data_response(dict(status='script'))
                 script = 'nohup python3 %s/utils/update_exam.py --func=reset_user_data_and_tasks >> log/update_exam_%s.log 2>&1 &'
                 script = script % (h.BASE_DIR, h.get_date_time(fmt='%Y%m%d%H%M%S'))
                 print(script)
                 os.system(script)
-                self.send_data_response(dict(status='script'))
 
         except self.DbError as error:
             return self.send_db_error(error)

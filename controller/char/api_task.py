@@ -34,11 +34,12 @@ class CharTaskPublishApi(CharHandler):
             # 先返回客户端
             self.send_data_response(dict(normal_count=len(normal_txts), rare_count=len(rare_txts)))
 
-            # 后更新txt_equals/tripitakas
+            # 后更新txt_equals/tripitakas/group_task_users
             log = dict(task_type=task_type, normal_txts=normal_txts, rare_txts=rare_txts)
             self.add_op_log(self.db, 'publish_task', None, log, self.username)
             self.update_txt_equals(self.db, self.data['batch'], task_type)
             self.update_tripitakas(self.db, self.data['batch'], task_type)
+            self.update_batch_task_users(self.db, task_type, self.data['batch'])
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -111,7 +112,7 @@ class CharTaskClusterApi(CharHandler):
                     'status': self.STATUS_FINISHED, 'finished_time': self.now(), 'updated_time': self.now(),
                     'used_time': (self.now() - self.task['picked_time']).total_seconds(),
                 }})
-                self.update_group_task_users(self.db, self.task)
+                self.update_single_task_users(self.task)
             else:
                 self.send_data_response()
 
