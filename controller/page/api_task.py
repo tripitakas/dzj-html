@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import os
 import json
 from .page import Page
 from .api import PageBoxApi
@@ -49,7 +50,11 @@ class PageTaskPublishApi(PageHandler):
             trans = {'published': '任务已发布', 'pending': '任务已悬挂', 'finished_before': '任务已完成',
                      'un_existed': '页面不存在', 'published_before': '任务曾被发布'}
             message = '，'.join(['%s：%s条' % (trans.get(k) or k, len(names)) for k, names in log.items()])
-            return self.send_data_response(dict(message=message, id=str(log_id), **log))
+
+            # 先返回客户端
+            self.send_data_response(dict(message=message, id=str(log_id), **log))
+            # 后更新group_task_users
+            self.update_batch_task_users(self.db, self.data['task_type'], self.data['batch'])
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -171,7 +176,7 @@ class PageTaskCutApi(PageHandler):
                 self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
                 self.send_data_response()
                 self.update_post_tasks(self.task)
-                self.update_group_task_users(self.db, self.task)
+                self.update_single_task_users(self.task)
                 self.update_page_status(self.STATUS_FINISHED, self.task)
             else:
                 self.send_data_response()
