@@ -513,6 +513,9 @@
   let inputFields = ['name', 'source', 'txt', 'remark_box', 'remark_txt'];
   let selectFields = ['task_type', 'num', 'task_status', 'match_field', 'match_status'];
   $searchModal.find('.modal-confirm').on('click', function () {
+    if ($searchModal.find('.task_type :selected').val() && !$searchModal.find('.num :selected').val()) {
+      $searchModal.find('.num [value=1]').attr('selected', false).attr('selected', true);
+    }
     let search = '';
     inputFields.forEach(function (field) {
       let value = $searchModal.find('.' + field).val();
