@@ -55,7 +55,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   background: url(../imgs/fbg.png) repeat;
-  font-family: Arial, Helvetica, Microsoft YaHei, KaiXinSong, KaiXinSongB, sans-serif;
+  font-family: Arial, Helvetica, Microsoft YaHei, 宋体, KaiXinSong, KaiXinSongB, sans-serif;
   /*font-family: Arial, Helvetica, -apple-system, PingFang, 微軟正黑體, 微软正黑体, Microsoft JhengHei, 微軟雅黑, 微软雅黑, Microsoft YaHei, KaiXinSong, KaiXinSongB, sans-serif;*/
 }
 
