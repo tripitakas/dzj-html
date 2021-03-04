@@ -45,9 +45,9 @@ $('.sty-table .action .btn-history').on('click', function () {
 // 重新发布任务
 $('.sty-table .action .btn-republish').on('click', function () {
   let node = $(this).parent().parent();
-  let regex = /(picked|failed)/i;
+  let regex = /(picked|returned|failed)/i;
   if (!node.find('.status').attr('title').match(regex)) {
-    return showWarning('状态有误', '只能重新发布进行中或已失败的任务！', 3000);
+    return showWarning('状态有误', '只能重新发布进行中、已退回或已失败的任务！', 3000);
   }
   showConfirm("确定重新发布吗？", "任务" + node.find('.doc_id').text().trim() + "将被重新发布！", function () {
     postApi('/task/republish/' + node.attr('id'), {data: {}}, function () {

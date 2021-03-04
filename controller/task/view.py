@@ -16,7 +16,7 @@ class PageTaskLobbyHandler(TaskHandler):
             q = self.get_query_argument('q', '')
             batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
             tasks, total_count = self.find_lobby(task_type, q=q, batch=batch)
-            fields = [('doc_id', '页编码'), ('char_count', '单字数量')]
+            fields = [('doc_id', '页编码'), ('num', '校次'), ('char_count', '单字数量')]
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
                         fields=fields, batch=batch, search_tips='搜索页编码，请输入全部或部分页编码',
                         format_value=self.format_value)
@@ -34,7 +34,7 @@ class CharTaskLobbyHandler(TaskHandler):
             q = self.get_query_argument('q', '')
             batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
             tasks, total_count = self.find_lobby(task_type, q=q, batch=batch)
-            fields = [('base_txts', '聚类字种'), ('char_count', '单字数量')]
+            fields = [('base_txts', '聚类字种'), ('num', '校次'), ('char_count', '单字数量')]
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
                         fields=fields, batch=batch, search_tips='搜索聚类字种，请输入单个汉字',
                         format_value=self.format_value)

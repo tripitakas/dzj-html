@@ -16,7 +16,7 @@ $.mapKey('.', () => $('.pagers .p-next a').click());
 $.mapKey(',', () => $('.pagers .p-prev a').click());
 $.mapKey('w', () => $('#page-submit').click());
 $.mapKey('v', () => $('.char-txt .btn-submit').click());
-$.mapKey('esc', () => $('#btn-reset').click());
+$.mapKey('esc', () => !$('body').hasClass('modal-open') && $('#btn-reset').click());
 $.mapKey('g', () => $('#search-variant').focus());
 $.mapKey('enter', () => $('#search-variant').click());
 $.mapKey('left', () => $('.char-item.current').prev().find('.char-img').click());
@@ -208,6 +208,18 @@ $('#filter-panel .filter').on('click', function () {
     $(`.btn-${ids[0]}`).removeClass('active');
     !active && $this.addClass('active');
   });
+});
+
+// 展开收缩排序过滤
+$('.toggle-filter').on('click', function () {
+  let target = $(this).attr('id').replace('toggle-', '');
+  if ($(this).hasClass('icon-up')) {
+    $(this).removeClass('icon-up').addClass('icon-down');
+    $(`.btn-${target}`).addClass('hide');
+  } else if ($(this).hasClass('icon-down')) {
+    $(this).removeClass('icon-down').addClass('icon-up');
+    $(`.btn-${target}`).removeClass('hide');
+  }
 });
 
 

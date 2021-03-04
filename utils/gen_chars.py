@@ -34,12 +34,8 @@ def is_changed(a, b):
     return False
 
 
-def gen_chars(db=None, db_name=None, uri=None, condition=None, source=None, page_names=None, username=None):
+def gen_chars(db, condition=None, source=None, page_names=None, username=None):
     """ 从页数据中导出字数据"""
-    db = db or (uri and pymongo.MongoClient(uri)[db_name])
-    if not db:
-        cfg = hp.load_config()
-        db = hp.connect_db(cfg['database'], db_name=db_name)[0]
     # condition
     if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
@@ -72,6 +68,7 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, source=None, page
                         char_names.append('%s_%s' % (p['name'], c['cid']))
                         m = dict(page_name=p['name'], source=p.get('source'), txt_level=0, img_need_updated=True)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
+                        m['tptk'] = p['name'].split('_')[0]
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int((c.get(k) or 0) * 1000) for k in ['cc', 'lc']})
                         m['ocr_txt'] = (c.get('alternatives') or '')[:1]
@@ -125,7 +122,15 @@ def gen_chars(db=None, db_name=None, uri=None, condition=None, source=None, page
         CharHandler.add_op_log(db, 'gen_chars', 'finished', log, username)
 
 
+def main(db_name='tripitaka', uri='', func='gen_chars', **kwargs):
+    db = uri and pymongo.MongoClient(uri)[db_name]
+    if not uri:
+        cfg = hp.load_config()
+        db = hp.connect_db(cfg['database'], db_name=db_name)[0]
+    eval(func)(db, **kwargs)
+
+
 if __name__ == '__main__':
     import fire
 
-    fire.Fire(gen_chars)
+    fire.Fire(main)

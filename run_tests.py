@@ -19,7 +19,7 @@ if __name__ == '__main__':
     except ValueError:
         test_args += ['tests']
         # 要单独调试某个测试用例或用例集，可将下行的注释取消，改为相应的测试用例函数名或类名，提交代码前恢复注释
-        # test_args += ['-k test_variant_add_or_update']
+        # test_args += ['-k test_update_group_task_users']
     else:
         test_args = ['--cov=controller', '--cov=periodic',
                      '--cov-report=term', '--cov-report=html', 'tests'] + test_args

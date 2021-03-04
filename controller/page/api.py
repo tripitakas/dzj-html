@@ -153,7 +153,7 @@ class PageBoxApi(PageHandler):
     @staticmethod
     def save_box(self, page, task_type=None):
         """保存用户提交。包括框修改、框序和用户序线"""
-        rules = [(v.not_empty, 'op')]
+        rules = [(v.not_none, 'op')]
         self.validate(self.data, rules)
         page_updated = self.get_user_submit(self.data, page, task_type)
         self.db.page.update_one({'_id': page['_id']}, {'$set': page_updated})

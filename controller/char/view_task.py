@@ -26,6 +26,7 @@ class CharTaskListHandler(TaskHandler, Char):
         {'id': 'priority', 'name': '优先级', 'filter': CharHandler.priorities},
         {'id': 'is_oriented', 'name': '是否定向', 'filter': CharHandler.yes_no},
         {'id': 'txt_equals', 'name': '相同程度'},
+        {'id': 'params.tripitakas', 'name': '藏经类别'},
         {'id': 'params', 'name': '输入参数'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
@@ -78,8 +79,12 @@ class CharTaskListHandler(TaskHandler, Char):
     def format_value(self, value, key=None, doc=None):
         """格式化page表的字段输出"""
         if key == 'params' and value:
-            names = dict(source='来源', txt_kinds='校对字头')
-            return '<br/>'.join(['%s: %s' % (names.get(k) or k, v) for k, v in value.items()])
+            ret = []
+            value.get('source') and ret.append('来源: %s' % value['source'])
+            value.get('txt_kinds') and ret.append('校对字头: %s' % ''.join(value['txt_kinds']))
+            return '<br/>'.join(ret)
+        if key == 'params.tripitakas' and value:
+            return '<br/>'.join('%s: %s' % (t[0], t[1]) for t in value)
         if key == 'txt_equals' and value:
             return '<br/>'.join(['%s: %s' % (Char.equal_level.get(k) or k, v) for k, v in value.items()])
         return super().format_value(value, key, doc)
@@ -163,25 +168,15 @@ class CharTaskClusterHandler(CharHandler):
         2. 如果是用户自己的任务，则会以task_type获取user_level，以此过滤，以免工作时遇到没有权限校对的情况。否则，不做任何过滤。
         """
         try:
-            debug, start = True, self.now()
-            data, task_cond, cond = self.get_chars(task_type)
-            debug and print('[1]get chars:', (self.now() - start).total_seconds(), cond)
-
+            data = self.get_chars(task_type)
             txt = self.get_query_argument('txt', '')
             txt_equals = self.task.get('txt_equals') or {}
-
+            tripitakas = self.prop(self.task, 'params.tripitakas') or []
             self.render('char_cluster.html', Char=Char, **data, cur_txt=txt, readonly=self.readonly,
                         mode=self.mode, txt_equals=txt_equals, equal_level=self.equal_level,
+                        tripitakas=tripitakas, tk_names=self.tk_names,
                         page_title=self.get_task_name(task_type),
                         char_count=self.task.get('char_count'))
-
-            # 更新校对字头
-            counts = list(self.db.char.aggregate([
-                {'$match': task_cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
-            ]))
-            txt_kinds = [c['_id'] for c in sorted(counts, key=itemgetter('count'), reverse=True)]
-            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'params.txt_kinds': txt_kinds}})
-            debug and print('[2]aggregate txt kinds:', (self.now() - start).total_seconds(), task_cond)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -189,31 +184,49 @@ class CharTaskClusterHandler(CharHandler):
     def post(self, task_type, task_id):
         """聚类校对ajax获取数据"""
         try:
-            if self.data.get('query') == 'txt_kinds':
+            if self.data.get('query') == 'txt_kinds':  # 获取校对字头
+                task_cond = self.get_task_cond(task_type)
+                counts = list(self.db.char.aggregate([
+                    {'$match': task_cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
+                ]))
+                txt_kinds = [c['_id'] for c in sorted(counts, key=itemgetter('count'), reverse=True)]
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'params.txt_kinds': txt_kinds}})
                 base_txts = [t['txt'] for t in self.task['base_txts']]
-                data = dict(txt_kinds=self.prop(self.task, 'params.txt_kinds', base_txts))
-            else:
-                data = self.get_chars(task_type)[0]
+                data = dict(txt_kinds=txt_kinds or base_txts)
+            else:  # 获取字数据
+                data = self.get_chars(task_type)
             self.send_data_response(data)
 
         except Exception as error:
             return self.send_db_error(error)
 
     def get_chars(self, task_type):
-        b_field = self.get_base_field(task_type)
-        source = self.prop(self.task, 'params.source')
-        base_txts = [t['txt'] for t in self.task['base_txts']]
-        task_cond = {'source': source, b_field: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
-        cond = self.get_user_filter(task_type)
-        cond.update(task_cond)
+        debug, start = True, self.now()
+        cond = self.get_task_cond(task_type)
+        cond.update(self.get_user_filter(task_type))
+        # 默认排序
+        default_order = [('pc', 1), ('cc', 1)]
+        tripitakas = self.prop(self.task, 'params.tripitakas')
+        if tripitakas and len(tripitakas) > 1:
+            default_order = [('pc', 1), ('tptk', 1), ('cc', 1)]
+        # debug and print(tripitakas, default_order)
         # 做任务时，限制每页字数
         self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
         self.page_size = 100 if self.page_size > 100 and self.mode in ['do', 'update', 'nav'] else self.page_size
-        chars, pager, q, order = Char.find_by_page(self, cond, default_order=[('pc', 1), ('cc', 1)])
+        chars, pager, q, order = Char.find_by_page(self, cond, default_order=default_order)
+        debug and print('get chars:', (self.now() - start).total_seconds(), cond)
         for ch in chars:  # 设置单字列图
             column_name = '%s_%s' % (ch['page_name'], self.prop(ch, 'column.cid'))
             ch['column']['img_url'] = self.get_web_img(column_name, 'column')
             ch['img_url'] = self.get_char_img(ch)
+        base_txts = [t['txt'] for t in self.task['base_txts']]
         txt_kinds = self.prop(self.task, 'params.txt_kinds') or base_txts
         data = dict(chars=chars, pager=pager, q=q, order=order, base_txts=base_txts, txt_kinds=txt_kinds)
-        return data, task_cond, cond
+        return data
+
+    def get_task_cond(self, task_type):
+        b_field = self.get_base_field(task_type)
+        source = self.prop(self.task, 'params.source')
+        base_txts = [t['txt'] for t in self.task['base_txts']]
+        task_cond = {'source': source, b_field: {'$in': base_txts} if len(base_txts) > 1 else base_txts[0]}
+        return task_cond

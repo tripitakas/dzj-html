@@ -18,6 +18,7 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as hp
+from controller.task.base import TaskHandler as Th
 from controller.page.base import PageHandler as Ph
 from controller.char.base import CharHandler as Ch
 
@@ -68,6 +69,33 @@ def update_op_no(db):
 def update_txt_equals(db, batch='', task_type=''):
     """ 更新聚类任务-相同程度"""
     Ch.update_txt_equals(db, batch, task_type)
+
+
+def update_tripitakas(db, batch='', task_type=''):
+    """ 更新聚类任务-藏经类别"""
+    Ch.update_tripitakas(db, batch, task_type)
+
+
+def update_batch_task_users(db, task_type='', batch=''):
+    """批量更新新发布任务的group_task_users字段"""
+    Th.update_batch_task_users(db, task_type, batch)
+
+
+def update_cluster_doc_id(db, batch=''):
+    """更新任务-group_task_users"""
+    size = 10000
+    cond = {'task_type': 'cluster_proof'}
+    batch and cond.update({'batch': batch})
+    item_count = db.task.count_documents(cond)
+    page_count = math.ceil(item_count / size)
+    print('[%s]%s items, %s pages' % (hp.get_date_time(), item_count, page_count))
+    for i in range(page_count):
+        print('[%s]processing page %s / %s' % (hp.get_date_time(), i + 1, page_count))
+        fields = ['base_txts', 'params']
+        tasks = list(db.task.find(cond, {k: 1 for k in fields}).sort('_id', 1).skip(i * size).limit(size))
+        for t in tasks:
+            doc_id = Ch.get_doc_id(task=t)
+            doc_id and db.task.update_one({'_id': t['_id']}, {'$set': {'doc_id': doc_id}})
 
 
 def check_cluster_task(db, char_source='', task_type='', batch=''):

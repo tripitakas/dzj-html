@@ -23,7 +23,8 @@
 
     .m-panel {
       display: flex;
-      overflow: auto;
+      margin-right: 5px;
+      overflow-y: overlay;
       flex-direction: column;
       background: var(--Grey_Content);
       border-right: 1px solid var(--Grey_Light);
@@ -55,10 +56,18 @@
     }
 
     .panel-list .head {
+      cursor: unset;
       font-weight: 500;
-      text-align: center;
+      text-align: left;
       color: var(--Brown_Darker);
       background-color: var(--Grey_Lighter);
+      border-bottom: 1px solid var(--Grey_Light);
+    }
+
+    .panel-list .head .toggle-filter {
+      float: right;
+      cursor: pointer;
+      line-height: 20px;
     }
 
     .panel-list .divider {
@@ -129,6 +138,7 @@
             <li id="un-multi" class="toggle-multi active"><a>取消[]</a></li>
           </ul>
         </div>
+        <div id="update-txt-kinds" class="btn-txt icon-txt-simple" data-toggle="tooltip" data-placement="bottom" title="更新校对字头"></div>
         <div id="toggle-config" class="btn-txt icon-config" data-toggle="tooltip" data-placement="bottom" title="设置每页字图条数"></div>
         <div class="search">
           <input id="search-variant" type="text" placeholder="搜索异体字 或 按编码过滤字图">
@@ -153,11 +163,15 @@
     <div class="m-body flex">
       <div class="m-panel slim-bar hide">
         <ul id="filter-panel" class="panel-list">
-          <li><a class="head">排序</a></li>
-          <li id="order-cc" class="filter btn-order"><a>按字置信度升序</a></li>
-          <li id="order--cc" class="filter btn-order"><a>按字置信度降序</a></li>
-          <li id="order-lc" class="filter btn-order"><a>按列置信度升序</a></li>
-          <li id="order--lc" class="filter btn-order"><a>按列置信度降序</a></li>
+          <li><a class="head">排序<span id="toggle-order" class="icon-down toggle-filter"></span></a></li>
+          <li id="order-cc" class="filter btn-order hide"><a>按字置信度升序</a></li>
+          <li id="order--cc" class="filter btn-order hide"><a>按字置信度降序</a></li>
+          <li id="order-lc" class="filter btn-order hide"><a>按列置信度升序</a></li>
+          <li id="order--lc" class="filter btn-order hide"><a>按列置信度降序</a></li>
+          <li><a class="head">按藏经过滤<span id="toggle-tk" class="icon-down toggle-filter"></span></a></li>
+          {%for t in tripitakas%}
+          <li id="tk-{{t[0]}}" class="filter btn-tk hide"><a>{{tk_names.get(t[0]) or t[0]}}<sup class="s-count">{{t[1]}}</sup></a></li>
+          {% end %}
           <li><a class="head">按相同程度过滤</a></li>
           {%for i,name in equal_level.items()%}
           <li id="sc-{{i}}" class="filter btn-sc"><a>{{name}}<sup class="s-count">{{txt_equals.get(i) or 0}}</sup></a></li>
@@ -182,7 +196,7 @@
           <li id="remark-false" class="filter btn-remark"><a>无备注</a></li>
         </ul>
       </div><!--m-panel-->
-      <div class="char-panel">
+      <div class="char-panel wide-txt">
         <div class="txt-kinds slim-bar"></div>
         <div class="variants slim-bar"><span id="add-variant" class="variant">+</span></div>
         <div class="char-items slim-bar"></div>
@@ -362,10 +376,6 @@
   window.onload = () => {
     // 设置异体字
     $.cluster.loadVariants(curTxt);
-    // 更新校对字头
-    postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
-      $.cluster.setTxtKinds(res['txt_kinds']);
-    });
     // 设置当前字图
     getAnchor() && $('#' + getAnchor()).find('.char-img').click();
   };
@@ -385,6 +395,15 @@
       });
     });
   });
+
+  // 更新校对字头
+  function updateTxtKinds() {
+    postApi(trimUrl(location.href), {data: {query: 'txt_kinds'}}, function (res) {
+      $.cluster.setTxtKinds(res['txt_kinds']);
+    });
+  }
+
+  $('#update-txt-kinds').on('click', () => updateTxtKinds());
 
   // 新增图片字-弹框
   $(document).on('click', '#add-variant', function () {
@@ -438,6 +457,7 @@
       data['txt_logs'] = res['txt_logs'];
       $.cluster.updateChar(data.name, data);
       $.cluster.addTxtKind(data.txt);
+      if ($.cluster.hasTxtKind(data.txt)) updateTxtKinds();
       location.href = setAnchor(data.name);
     }, function (err) {
       $this.text($txt).removeClass('disabled');
@@ -469,6 +489,7 @@
       data['value'] = isTxtField ? result.value : result.value === '1';
       postApi('/chars/txt', {data: data}, function (res) {
         bsHide();
+        if (field === 'txt' && !$.cluster.hasTxtKind(result.value)) updateTxtKinds();
         if (res.data.level_unqualified || res.data.point_unqualified) {
           $('#resultModal .form-group').html($.map(res.data, function (value, key) {
             return `<h4 class="col-sm-3 control-label">${_t(key)}(${value.length})</h4><div class="col-sm-9">${value.join(', ')}</div>`

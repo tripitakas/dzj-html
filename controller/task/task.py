@@ -58,6 +58,13 @@ class Task(Model):
         },
     }
 
+    # 组任务定义
+    group_tasks = {
+        'cut': ['cut_proof', 'cut_review'],
+        'text': ['text_proof', 'text_review'],
+        'cluster': ['cluster_proof', 'cluster_review'],
+    }
+
     # 任务状态表
     STATUS_PUBLISHED = 'published'
     STATUS_PENDING = 'pending'
@@ -89,6 +96,7 @@ class Task(Model):
         'steps': {'name': '步骤'},
         'pre_tasks': {'name': '前置任务'},
         'is_oriented': {'name': '是否定向', 'filter': yes_no},
+        'group_task_users': {'name': '组任务用户'},
         'txt_equals': {'name': '相同程度'},
         'params': {'name': '输入参数'},
         'result': {'name': '输出结果'},
@@ -121,9 +129,13 @@ class Task(Model):
         return num is not None
 
     @classmethod
-    def get_data_field(cls, task_type):
-        c2f = dict(page='doc_id', char='base_txts')
-        return c2f.get(cls.prop(cls.task_types, task_type + '.data.collection'))
+    def get_group_types(cls, task_type=None):
+        if task_type:
+            return cls.prop(cls.group_tasks, task_type.split('_')[0])
+        group_types = []
+        for k, task_types in cls.group_tasks.items():
+            group_types.extend(task_types)
+        return group_types
 
     @classmethod
     def get_page_tasks(cls):

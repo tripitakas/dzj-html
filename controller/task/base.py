@@ -13,6 +13,7 @@
 @time: 2019/10/16
 """
 import re
+import math
 import random
 from bson.objectid import ObjectId
 from controller import errors as e
@@ -147,42 +148,27 @@ class TaskHandler(BaseHandler, Task):
         def get_random_skip():
             n = 0
             for p in [3, 2, 1]:
-                n += self.db.task.count_documents({'priority': p, **condition})
+                n += self.db.task.count_documents({'priority': p, **cond})
                 if n > page_size:
                     return random.randint(1, n - page_size)
             return 0
 
-        condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
+        cond = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
+        if not batch:
+            cond.update({'is_oriented': None})
+        elif ',' in batch:
+            cond.update({'batch': {'$in': [b.strip() for b in batch.split(',')]}})
+        else:
+            cond.update({'batch': batch})
         if q:
             collection = self.prop(self.task_types, task_type + '.data.collection')
-            cond = {'doc_id': {'$regex': q}} if collection == 'page' else {'base_txts.txt': q}
-            condition.update(cond)
-        if batch:
-            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
-            condition.update({'batch': batch})
-        else:
-            condition.update({'is_oriented': None})
+            cond.update({'doc_id': {'$regex': q}} if collection == 'page' else {'base_txts.txt': q})
+
         page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
         skip_no = get_random_skip()
-        tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
-        total_count = self.db.task.count_documents(condition)
+        tasks = list(self.db.task.find(cond).skip(skip_no).sort('priority', -1).limit(page_size))
+        total_count = self.db.task.count_documents(cond)
         return tasks[:page_size], total_count
-
-    def pick_one(self, task_type, batch=None):
-        """领取任务"""
-        condition = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
-        if batch:
-            batch = {'$in': batch.strip().split(',')} if ',' in batch else batch
-            condition.update({'batch': batch})
-        else:
-            condition.update({'is_oriented': None})
-        if self.has_num(task_type):
-            field = self.get_data_field(task_type)
-            my_tasks = self.find_mine(task_type, project={field: 1})
-            if my_tasks:
-                condition[field] = condition.get(field) or {}
-                condition[field].update({'$nin': [t[field] for t in my_tasks]})
-        return self.db.task.find_one(condition, sort=[('priority', 1)])
 
     def count_task(self, task_type=None, status=None, mine=False):
         """统计任务数量"""
@@ -282,4 +268,46 @@ class TaskHandler(BaseHandler, Task):
             if pre_tasks and not unfinished:
                 to_publish.append(tsk['_id'])
         if to_publish:
-            self.db.task.update_one({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})
+            self.db.task.update_many({'_id': {'$in': to_publish}}, {'$set': {'status': self.STATUS_PUBLISHED}})
+
+    def update_single_task_users(self, task):
+        """更新新发布任务的group_task_users字段"""
+        if not task.get('doc_id'):
+            return
+        for k, group_types in self.group_tasks.items():
+            if task['task_type'] in group_types:
+                cond = {'doc_id': task['doc_id'], 'task_type': {'$in': group_types}, 'status': 'published'}
+                self.db.task.update_many(cond, {'$addToSet': {'group_task_users': task['picked_user_id']}})
+
+    @classmethod
+    def update_batch_task_users(cls, db, task_type='', batch=''):
+        """批量更新新发布任务的group_task_users字段"""
+        for k, g_types in cls.group_tasks.items():
+            if not task_type or task_type in g_types:  # 分组处理
+                size = 10000
+                cond = {'task_type': {'$in': g_types}, 'status': 'published'}
+                batch and cond.update({'batch': batch})
+                item_count = db.task.count_documents(cond)
+                page_count = math.ceil(item_count / size)
+                print('%s items, %s pages. %s' % (item_count, page_count, cond))
+                for i in range(page_count):
+                    print('processing page %s / %s' % (i + 1, page_count))
+                    # 1. 查找新发布的任务
+                    tasks = list(db.task.find(cond, {'doc_id': 1}).sort('_id', 1).skip(i * size).limit(size))
+                    # 2. 根据新任务doc_id，查找已完成的旧任务
+                    doc_ids = [t['doc_id'] for t in tasks]
+                    task2 = list(db.task.find(
+                        {'doc_id': {'$in': doc_ids}, 'task_type': {'$in': g_types}, 'status': 'finished'},
+                        {k: 1 for k in ['picked_user_id', 'doc_id']})
+                    )
+                    # 3. 将旧任务按照picked_user_id分组
+                    group_users = dict()
+                    for t in task2:
+                        group_users[str(t['picked_user_id'])] = group_users.get(str(t['picked_user_id'])) or set()
+                        t.get('doc_id') and group_users[str(t['picked_user_id'])].add(t['doc_id'])
+                    # 4. 设置新任务的group_task_users
+                    for picked_user_id, doc_ids in group_users.items():
+                        db.task.update_many(
+                            {'doc_id': {'$in': list(doc_ids)}, **cond},
+                            {'$addToSet': {'group_task_users': ObjectId(picked_user_id)}}
+                        )

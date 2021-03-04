@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from tests.testcase import APITestCase
-from controller.page.tool.diff import Diff
-from controller.page.tool.rare import format_rare
-from controller.page.tool.variant import normalize
+from controller.tool.diff import Diff
+from controller.tool.rare import format_rare
+from controller.tool.variant import normalize
 from controller.page.base import PageHandler as Ph
 
 

@@ -17,40 +17,56 @@ class PickTaskApi(TaskHandler):
         """领取任务"""
         try:
             # 检查是否有未完成的任务
-            field = self.get_data_field(task_type)
             uncompleted = self.find_mine(task_type, 1, status=self.STATUS_PICKED)
             if uncompleted:
                 url = '/task/do/%s/%s' % (uncompleted[0]['task_type'], uncompleted[0]['_id'])
-                return self.send_error_response(e.task_uncompleted, **{'url': url, field: uncompleted[0][field]})
-            # 领取任务
+                return self.send_error_response(e.task_uncompleted, **{'url': url, 'doc_id': uncompleted[0]['doc_id']})
+            # 领取指定任务
             task_id, task = self.prop(self.data, 'task_id'), None
             if task_id:
+                group_types = self.get_group_types(task_type)
                 task = self.db.task.find_one({'_id': ObjectId(task_id)})
-                cond = {'task_type': task_type, field: task.get(field), 'picked_user_id': self.user_id,
-                        'status': {'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]}}
-                if self.has_num(task_type) and task.get(field) and self.db.task.find_one(cond):
-                    task = None  # 不可以领取同一编码不同校次的任务
-            # 分配任务
+                if task and self.has_num(task_type) and self.db.task.find_one({
+                    'doc_id': task['doc_id'], 'picked_user_id': self.user_id,
+                    'task_type': {'$in': group_types} if group_types else task_type,
+                    'status': {'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]}
+                }):
+                    task = None  # 不可以重复领取同组(相同doc_id)任务
+            # 系统分配任务
             for i in range(5):
                 if not task or task['status'] != self.STATUS_PUBLISHED:
-                    batch = self.prop(self.current_user, 'task_batch.%s' % task_type)
-                    task = self.pick_one(task_type, batch=batch)
+                    task = self.pick_one(task_type, self.prop(self.current_user, 'task_batch.%s' % task_type))
                 if not task:
-                    return self.send_error_response(e.no_task_to_pick)
-                update = {'status': self.STATUS_PICKED, 'picked_user_id': self.user_id, 'picked_by': self.username,
-                          'picked_time': self.now(), 'updated_time': self.now()}
-                r = self.db.task.update_one({'_id': task['_id'], 'status': self.STATUS_PUBLISHED}, {'$set': update})
-                if r.matched_count:
+                    collection = self.prop(self.task_types, '%s.data.collection' % task_type)
+                    msg = '您曾领取过该%s的校对或审定任务，不可以重复领取' % ('页编码' if collection == 'page' else '聚类字种')
+                    return self.send_error_response(e.no_task_to_pick, message=task_id and msg)
+                r = self.db.task.update_one({'_id': task['_id'], 'status': self.STATUS_PUBLISHED}, {'$set': {
+                    'status': self.STATUS_PICKED, 'picked_user_id': self.user_id, 'picked_by': self.username,
+                    'picked_time': self.now(), 'updated_time': self.now()
+                }})
+                if r.matched_count:  # 分配成功
+                    url = '/task/do/%s/%s' % (task['task_type'], task['_id'])
+                    self.send_data_response({'url': url, 'doc_id': task.get('doc_id'), 'task_id': task['_id']})
                     self.update_page_status(self.STATUS_PICKED, task)
-                    break
-                else:
+                    return
+                else:  # 重新分配
                     task = None
-
-            url = '/task/do/%s/%s' % (task['task_type'], task['_id'])
-            return self.send_data_response({'url': url, 'doc_id': task.get('doc_id'), 'task_id': task['_id']})
 
         except self.DbError as error:
             return self.send_db_error(error)
+
+    def pick_one(self, task_type, batch):
+        cond = {'task_type': task_type, 'status': self.STATUS_PUBLISHED}
+        # 不可以重复领取同组任务
+        self.has_num(task_type) and cond.update({'group_task_users': {'$ne': self.user_id}})
+        # 设置批次号
+        if not batch:
+            cond.update({'is_oriented': None})
+        elif ',' in batch:
+            cond.update({'batch': {'$in': [b.strip() for b in batch.split(',')]}})
+        else:
+            cond.update({'batch': batch})
+        return self.db.task.find_one(cond, sort=[('priority', 1)])
 
 
 class ReturnTaskApi(TaskHandler):

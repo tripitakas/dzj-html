@@ -41,13 +41,11 @@ class ArticleUpsertApi(BaseHandler):
     def post(self, mode):
         """保存文章"""
         try:
-            fields = ['title', 'title_link', 'article_id', 'category', 'active', 'content']
-            info = {k: self.data[k].strip() for k in fields}
-            if mode == 'update':
-                fields += ['_id']
+            fields = ['title', 'article_id', 'category', 'active', 'content']
             rules = [(v.not_empty, *fields), (v.is_article, 'article_id'), (v.is_digit, 'no')]
             self.validate(self.data, rules)
 
+            info = {k: self.data[k].strip() for k in fields + ['title_link']}
             images = re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', self.data['content'])
             info.update(dict(images=images, no=int(self.data.get('no') or 9999),
                              updated_time=self.now(), updated_by=self.username))

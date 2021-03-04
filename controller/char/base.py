@@ -15,6 +15,12 @@ class CharHandler(Char, TaskHandler):
         'role': dict(文字校对员=1, 文字审定员=10, 聚类校对员=1, 聚类审定员=10, 文字专家=100),
     }
     default_level = 1
+    tk_names = dict(
+        KB='开宝藏', QD='契丹藏', LC='高丽初雕', GL='高丽再雕', ZC='赵城金藏', SZ='宋藏遗珍', FS='房山石经', CN='崇宁藏',
+        PL='毘卢藏', YJ='圆觉藏', ZF='资福藏', SX='思溪藏', QS='碛砂藏', PN='普宁藏', YG='元官藏', HW='洪武南藏',
+        YN='永乐南藏', YB='永乐北藏', JX='嘉兴藏', JS='径山藏', QL='乾隆藏', TS='大正藏', WZ='卍正藏',
+        WX='卍续藏', ZH='中华藏', CB='CBETA', DK='单刻本', JZ='赵城金藏', PQ='频伽藏', SJ='房山石经'
+    )
 
     def __init__(self, application, request, **kwargs):
         super(CharHandler, self).__init__(application, request, **kwargs)
@@ -99,6 +105,13 @@ class CharHandler(Char, TaskHandler):
         return 'cmb_txt' if 'proof' in task_type else 'rvw_txt'
 
     @classmethod
+    def get_doc_id(cls, source=None, base_txts=None, task=None):
+        """ 聚类任务的doc_id"""
+        source = source or cls.prop(task, 'params.source')
+        base_txts = base_txts or cls.prop(task, 'base_txts', [])
+        return '%s@%s' % (source, ''.join(sorted([t['txt'] for t in base_txts])))
+
+    @classmethod
     def update_txt_equals(cls, db, batch, task_type=None):
         """ 设置聚类任务的文本相同程度"""
         cond = {'batch': batch, 'txt_equals': {'$in': [None, {}]}}
@@ -117,7 +130,26 @@ class CharHandler(Char, TaskHandler):
             ]))
             txt_equals = {str(c['_id']): c['count'] for c in counts}
             db.task.update_one({'_id': task['_id']}, {'$set': {'txt_equals': txt_equals}})
-        print('finished.')
+
+    @classmethod
+    def update_tripitakas(cls, db, batch, task_type=None):
+        """ 设置聚类任务的藏经种类"""
+        cond = {'batch': batch}
+        task_type and cond.update({'task_type': task_type})
+        tasks = list(db.task.find(cond, {'base_txts': 1, 'params': 1, 'task_type': 1}))
+        print('[%s]update_tripitakas, %s tasks total' % (hp.get_date_time(), len(tasks)))
+        for task in tasks:
+            source = cls.prop(task, 'params.source')
+            b_field = cls.get_base_field(task['task_type'])
+            base_txts = [t['txt'] for t in task['base_txts']]
+            print(str(task['_id']), source, base_txts)
+            counts = list(db.char.aggregate([
+                {'$match': {'source': source, b_field: {'$in': base_txts}}},
+                {'$group': {'_id': '$tptk', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}}
+            ]))
+            tripitakas = [[str(c['_id']), c['count']] for c in counts]
+            db.task.update_one({'_id': task['_id']}, {'$set': {'params.tripitakas': tripitakas}})
 
     @staticmethod
     def is_v_code(txt):
@@ -143,6 +175,10 @@ class CharHandler(Char, TaskHandler):
         name = self.get_user_argument('name', '')
         if name:
             cond.update({'name': {'$regex': name.upper()}})
+        # 按藏经类别
+        tptk = self.get_user_argument('tk', '')
+        if tptk:
+            cond.update({'tptk': tptk})
         # 按校对字头
         txt = self.get_user_argument('txt', '')
         if txt:
