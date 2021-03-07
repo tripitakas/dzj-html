@@ -87,7 +87,7 @@ class UserRolesHandler(BaseHandler, User):
     page_title = '授权管理'
     operations = []
     img_operations = []
-    search_fields = ['name', 'email', 'phone', 'group']
+    search_fields = ['name', 'email', 'phone', 'group', 'roles']
 
     def get(self):
         """角色管理页面"""

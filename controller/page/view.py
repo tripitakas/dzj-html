@@ -20,13 +20,15 @@ class PageListHandler(PageHandler):
     hide_fields = ['book_page', 'uni_sutra_code', 'sutra_code', 'reel_code', 'remark_box', 'remark_txt', 'txt_match']
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+        {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
+            {'operation': 'source', 'label': '按分类'},
+        ]},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in PageHandler.task_names('page', True, False).items()
         ]},
         {'operation': 'btn-more', 'label': '更多操作', 'groups': [
             {'operation': 'bat-delete', 'label': '批量删除'},
             {'operation': 'bat-source', 'label': '更新分类'},
-            {'operation': 'btn-statistic', 'label': '统计分类'},
             {'operation': 'btn-duplicate', 'label': '查找重复'},
             {'operation': 'bat-gen-chars', 'label': '生成字数据'},
         ]},
@@ -268,7 +270,14 @@ class PageStatisticHandler(PageHandler):
     def get(self):
         """统计分类"""
         try:
-            counts = list(self.db.page.aggregate([{'$group': {'_id': '$source', 'count': {'$sum': 1}}}]))
+            cond = Page.get_page_search_condition(self.request.query)[0]
+            kind = self.get_query_argument('kind', '')
+            if kind not in ['source']:
+                return self.send_error_response(e.statistic_type_error, message='只能按分类统计')
+            counts = list(self.db.page.aggregate([
+                {'$match': cond},
+                {'$group': {'_id': '$' + kind, 'count': {'$sum': 1}}}
+            ]))
             self.render('data_statistic.html', counts=counts, collection='page')
 
         except Exception as error:

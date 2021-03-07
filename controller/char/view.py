@@ -164,12 +164,12 @@ class CharStatHandler(CharHandler):
     def get(self):
         """统计字数据"""
         try:
-            condition = Char.get_char_search_condition(self.request.query)[0]
+            cond = Char.get_char_search_condition(self.request.query)[0]
             kind = self.get_query_argument('kind', '')
             if kind not in ['source', 'txt', 'cmb_txt']:
                 return self.send_error_response(e.statistic_type_error, message='只能按分类、校对文字和综合OCR统计')
             aggregates = [{'$group': {'_id': '$' + kind, 'count': {'$sum': 1}}}]
-            docs, pager, q, order = Char.aggregate_by_page(self, condition, aggregates, default_order='-count')
+            docs, pager, q, order = Char.aggregate_by_page(self, cond, aggregates, default_order='-count')
             self.render('char_statistic.html', docs=docs, pager=pager, q=q, order=order, kind=kind, Char=Char)
 
         except Exception as error:
