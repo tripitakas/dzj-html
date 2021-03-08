@@ -15,6 +15,7 @@ class User(Model):
         'email': {'name': '邮箱'},
         'phone': {'name': '手机'},
         'password': {'name': '密码'},
+        'roles': {'name': '角色'},
         'group': {'name': '用户组'},
         'task_batch': {'name': '任务批次'},
         'create_time': {'name': '创建时间'},

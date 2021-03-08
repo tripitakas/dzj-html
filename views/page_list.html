@@ -359,8 +359,8 @@
   });
 
   // 统计分类
-  $('.operation .btn-statistic').on('click', function () {
-    location.href = '/page/statistic';
+  $('.operation .btn-statistic a').on('click', function () {
+    location.href = '/page/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
   });
 
   // 更新分类
