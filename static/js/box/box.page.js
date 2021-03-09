@@ -12,7 +12,7 @@
       // 更新已删除字框数量（注：只有在"我的修改"状态下才可以看见、恢复已删除字框，且无法修改其它字框）
       $('.hint .deleted .no').text($('.box.deleted').length);
     }
-    if (reason === 'switch') {
+    if (reason === 'switch' || reason === 'hover') {
       $.page.updateFootCharInfo(box);
     }
     if (['recovered', 'added', 'deleted', 'changed', 'redo', 'undo'].indexOf(reason) > -1) {
