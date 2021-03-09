@@ -15,7 +15,7 @@ BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 from controller import helper as h
-from controller.page.tool.variant import variants
+from controller.tool.variant import variants
 
 
 def init_variants(db):
@@ -48,7 +48,7 @@ def update_variant(db, fields='v_code,user_txt,img_name'):
         db.variant.update_one({'_id': v['_id']}, {'$set': update})
 
 
-def main(db_name='tripitaka', uri='localhost', func='update_variant', **kwargs):
+def main(db_name='tripitaka', uri='localhost', func='init_variants', **kwargs):
     db = pymongo.MongoClient(uri)[db_name]
     eval(func)(db, **kwargs)
 

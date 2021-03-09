@@ -64,7 +64,8 @@
 
   function bindCut(p) {
     if (p && p.onlyChange) cStatus.onlyChange = true;
-    $(data.holder).find('svg').on('dblclick', dblclick).mousedown(mouseDown).mouseup(mouseUp).mousemove(function (e) {
+    $(data.holder).find('svg').on('dblclick', dblclick).mousedown(mouseDown).mouseup(mouseUp)
+        .mouseleave(mouseLeave).mousemove(function (e) {
       if (!cStatus.isMouseDown) mouseHover(e);
       else if (self.getDistance(self.getPoint(e), cStatus.downPt) > data.ratio) //仅当拖拽距离大于1时才触发拖拽函数
         mouseDrag(e);
@@ -86,16 +87,30 @@
   function mouseDown(e) {
     if (!isCutMode() || !status.curBoxType) return;
     e.preventDefault();
+    if (e.which !== 1) return; // 鼠标右键
 
-    if (e.button === 2) return; // 鼠标右键
     cStatus.isDragging = false;
     cStatus.isMouseDown = true;
     cStatus.downPt = self.getPoint(e);
   }
 
+  function mouseLeave(e) {
+    if (!isCutMode() || !status.curBoxType) return;
+    e.preventDefault();
+
+    // reset
+    cStatus.dragElem && cStatus.dragElem.remove();
+    self.switchCurBox(status.curBox);
+    cStatus.dragMode = null;
+    cStatus.dragElem = null;
+    cStatus.isDragging = false;
+    cStatus.isMouseDown = false;
+  }
+
   function mouseDrag(e) {
     if (!isCutMode() || !status.curBoxType || status.readonly) return;
     e.preventDefault();
+    if (e.which !== 1) return; // 鼠标右键
 
     let pt = self.getPoint(e);
     cStatus.dragPt = pt;

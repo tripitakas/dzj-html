@@ -77,14 +77,16 @@ class PageHandler(Page, TaskHandler, Box):
         if int(u_level) < int(r_level):
             msg = '该字符的切分数据等级为%s，%s切分数据等级%s不够' % (r_level, '当前任务' if task_type else '您的', u_level)
             return self.send_error_msg(e.data_level_unqualified[0], msg, response_error)
-        # 2.检查权限
+        elif task_type:  # 任务模式，直接返回
+            return True
+        # 2.检查开放编辑权限
         roles = auth.get_all_roles(self.current_user['roles'])
         if '切分专家' in roles:
             return True
         r = cls.check_open_edit_role(roles)
         if r is not True:
             return self.send_error_msg(r[0], r[1], response_error)
-        # 3. 检查积分
+        # 3. 检查开放编辑积分
         task_types = list(cls.box_level['task'].keys())
         if int(u_level) == int(r_level) and (not task_type or task_type not in task_types):
             if char.get('box_logs') and char['box_logs'][-1].get('user_id') == self.user_id:
