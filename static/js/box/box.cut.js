@@ -98,7 +98,9 @@
     if (!isCutMode() || !status.curBoxType) return;
     e.preventDefault();
 
+    // reset
     cStatus.dragElem && cStatus.dragElem.remove();
+    self.switchCurBox(status.curBox);
     cStatus.dragMode = null;
     cStatus.dragElem = null;
     cStatus.isDragging = false;
