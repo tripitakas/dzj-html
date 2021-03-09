@@ -42,8 +42,8 @@ class CharTaskListHandler(TaskHandler, Char):
 
     ]
     search_fields = ['batch', 'remark']
-    hide_fields = ['_id', 'txt_equals', 'params', 'return_reason', 'create_time', 'updated_time',
-                   'publish_by', 'remark']
+    hide_fields = ['_id', 'params', 'return_reason', 'create_time', 'updated_time', 'publish_by',
+                   'finished_time', 'used_time', 'my_remark', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},
         {'operation': 'btn-dashboard', 'label': '综合统计'},
@@ -80,7 +80,7 @@ class CharTaskListHandler(TaskHandler, Char):
         """格式化page表的字段输出"""
         if key == 'params' and value:
             ret = []
-            value.get('source') and ret.append('来源: %s' % value['source'])
+            value.get('source') and ret.append('分类: %s' % value['source'])
             value.get('txt_kinds') and ret.append('校对字头: %s' % ''.join(value['txt_kinds']))
             return '<br/>'.join(ret)
         if key == 'params.tripitakas' and value:
