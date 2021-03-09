@@ -41,7 +41,8 @@ class PageTaskListHandler(TaskHandler, Page):
         {'id': 'remark', 'name': '管理备注'},
         {'id': 'my_remark', 'name': '用户备注'},
     ]
-    hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'pre_tasks', 'publish_by', 'remark']
+    hide_fields = ['_id', 'pre_tasks', 'added', 'deleted', 'changed', 'total', 'nav_times', 'return_reason',
+                   'create_time', 'updated_time', 'publish_by', 'finished_time', 'used_time', 'my_remark', 'remark']
     search_fields = ['doc_id', 'batch', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/task/delete'},

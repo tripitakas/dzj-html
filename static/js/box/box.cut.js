@@ -178,6 +178,7 @@
       self.removeClass(cStatus.hoverElem, 'hover');
       self.addClass(box, 'hover');
       cStatus.hoverElem = box.elem;
+      self.notifyChanged(box, 'hover');
     }
     if (!box) self.removeClass(cStatus.hoverElem, 'hover');
     if (status.curBox) setActiveHandle(pt);
