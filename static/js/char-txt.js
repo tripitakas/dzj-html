@@ -40,6 +40,7 @@
     status: status,
     fields: fields,
     init: init,
+    reset: reset,
     setChar: setChar,
     setTxtLogs: setTxtLogs,
     setBoxLogs: setBoxLogs,
@@ -65,6 +66,11 @@
     setUserPanel(char);
     setPageParams(char);
     status.char = char;
+  }
+
+  function reset() {
+    setChar({});
+    // $('#base-info .meta').html();
   }
 
   function isValid(txt) {
