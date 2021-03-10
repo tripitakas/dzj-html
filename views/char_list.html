@@ -389,7 +389,8 @@
   // 浏览结果
   $('.operation .btn-browse').on('click', function () {
     setStorage('from', location.href);
-    location.href = '/char/browse' + location.search + '&from=1';
+    let s = location.search.length ? '&' : '?';
+    location.href = `/char/browse${location.search}${s}from=1`;
   });
 
   // 检查字页数量是否一致
