@@ -169,10 +169,10 @@ class PageHandler(Page, TaskHandler, Box):
                 if op['op'] == 'deleted':
                     if box.get('deleted'):  # 已经删除的框不能重复删除
                         continue
-                    if box.get('added'):  # 如果是自己新增的框
-                        others_logs = [l for l in ori_logs if l.get('user_id') != self.user_id]
-                        if not len(others_logs):  # 无其他人修改，则直接删除
-                            boxes.pop(i)
+                    # 如果是自己新增的框且无其他人修改，则直接删除
+                    others_logs = [l for l in ori_logs if l.get('user_id') != self.user_id]
+                    if box.get('added') and ori_logs[-1].get('user_id') == self.user_id and not others_logs:
+                        boxes.pop(i)
                     else:  # 否则打上deleted标记
                         box.update({'deleted': True, 'box_level': user_level, 'box_logs': ori_logs + [log]})
                 elif op['op'] == 'recovered':

@@ -451,14 +451,20 @@
     postApi('/char/txt/' + data.name, {data: data}, function (res) {
       $this.text($txt).removeClass('disabled');
       bsShow('成功', '已保存', 'success', 1000, '#s-alert');
-      // 更新当前字图、字图数据、校对面板和锚点
-      $('.char-item.current').addClass('changed').find('.txt').text(data.txt);
-      $.charTxt.setTxtLogs(res['txt_logs']);
       data['txt_logs'] = res['txt_logs'];
       $.cluster.updateChar(data.name, data);
       $.cluster.addTxtKind(data.txt);
-      if ($.cluster.hasTxtKind(data.txt)) updateTxtKinds();
+      if (!$.cluster.hasTxtKind(data.txt)) updateTxtKinds();
       location.href = setAnchor(data.name);
+      // 更新当前字图、字图数据、校对面板和锚点
+      if (data.txt !== $('.char-item.current .txt').text()) {
+        $('.char-item.current').addClass('hide');
+        $.charTxt.reset();
+      } else {
+        $('.char-item.current .txt').text(data.txt);
+        $('.char-item.current').toggleClass('changed', $.cluster.status.curTxt !== data.txt);
+        $.charTxt.setTxtLogs(res['txt_logs']);
+      }
     }, function (err) {
       $this.text($txt).removeClass('disabled');
       if (err.code === 2007)  // 没有发生更改
