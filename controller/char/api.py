@@ -112,7 +112,7 @@ class CharsTxtApi(CharHandler):
         """批量更新char"""
         try:
             fields = ['txt', 'is_vague', 'is_deform', 'uncertain', 'remark']
-            rules = [(v.not_empty, 'names', 'field', 'value'), (v.in_list, 'field', fields)]
+            rules = [(v.not_empty, 'names'), (v.not_none, 'field', 'value'), (v.in_list, 'field', fields)]
             self.validate(self.data, rules)
 
             field, value = self.data['field'], self.data['value']

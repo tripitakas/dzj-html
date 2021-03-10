@@ -70,7 +70,6 @@
 
   function reset() {
     setChar({});
-    // $('#base-info .meta').html();
   }
 
   function isValid(txt) {
@@ -107,14 +106,17 @@
     $('#txt-alternatives .body').toggleClass('hide', !html.length);
   }
 
+
   function setTxtLogs(txtLogs) {
     $('#txt-logs').toggleClass('hide', !status.showTxtLogs);
     if (!status.showTxtLogs) return;
+    let yesNo = (v) => v ? '是' : '否';
+    let isDefined = (v) => typeof v !== 'undefined';
     let html = (txtLogs || []).map(function (log) {
       let meta = log.txt ? `<label>校对文字</label><span>${log.txt}</span><br/>` : '';
-      meta += log.is_deform ? `<label>异形字</label><span>是</span><br/>` : '';
-      meta += log.is_vague ? `<label>笔画残损</label><span>是</span><br/>` : '';
-      meta += log.uncertain ? `<label>不确定</label><span>是</span><br/>` : '';
+      meta += isDefined(log.is_deform) ? `<label>异形字</label><span>${yesNo(log.is_deform)}</span><br/>` : '';
+      meta += isDefined(log.is_vague) ? `<label>笔画残损</label><span>${yesNo(log.is_vague)}</span><br/>` : '';
+      meta += isDefined(log.uncertain) ? `<label>不确定</label><span>${yesNo(log.uncertain)}</span><br/>` : '';
       meta += log.remark ? `<label>备注</label><span>${log.remark}</span><br/>` : '';
       meta += log.username ? `<label>校对人</label><span>${log.username}</span><br/>` : '';
       meta += log.create_time ? `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>` : '';
